@@ -252,3 +252,6 @@ paket-files/
 # JetBrains Rider
 .idea/
 *.sln.iml
+
+# macOS properties file
+.DS_Store
