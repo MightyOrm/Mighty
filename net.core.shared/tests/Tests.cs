@@ -1,4 +1,5 @@
 using System;
+using Mighty;
 using NUnit.Framework;
 
 namespace Massive.Tests.MySql
@@ -8,14 +9,15 @@ namespace Massive.Tests.MySql
 	{
 		[Test]
 		public void MyTest()
-        {
-            Assert.AreEqual(1, 1);
-        }
+		{
+			var db = new MightyORM();
+			Assert.AreEqual(1, 1);
+		}
 
 		[Test]
 		public void MyTest2()
-        {
-            Assert.AreEqual(1, 2);
-        }
-    }
+		{
+			Assert.AreEqual(1, 2);
+		}
+	}
 }

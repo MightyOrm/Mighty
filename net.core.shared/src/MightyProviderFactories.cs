@@ -2,9 +2,11 @@ using System;
 using System.Data;
 using System.Data.Common;
 
+using Mighty.Plugin;
+
 namespace Mighty
 {
-	internal class ProviderFactories
+	internal class MightyProviderFactories
 	{
 		private const string INSTANCE_FIELD_NAME = "Instance";
 
@@ -46,13 +48,13 @@ namespace Mighty
 
 		internal static SupportedDb GetSupportedDb(string providerName)
 		{
-            string loweredProviderName = providerName.ToLowerInvariant();
-            if (MySql.GetProviderFactoryClassNameName(loweredProviderName)) return SupportedDb.MySql;
-            else if (Oracle.GetProviderFactoryClassNameName(loweredProviderName)) return SupportedDb.Oracle;
-            else if (PostgreSql.GetProviderFactoryClassNameName(loweredProviderName)) return SupportedDb.PostgreSql;
-            else if (Sqlite.GetProviderFactoryClassNameName(loweredProviderName)) return SupportedDb.Sqlite;
-            else if (SqlServer.GetProviderFactoryClassNameName(loweredProviderName)) return SupportedDb.SqlServer;
-            else throw new InvalidOperationException("Unknown database provider: " + providerName);
+			string loweredProviderName = providerName.ToLowerInvariant();
+			if (MySql.GetProviderFactoryClassNameName(loweredProviderName)) return SupportedDb.MySql;
+			else if (Oracle.GetProviderFactoryClassNameName(loweredProviderName)) return SupportedDb.Oracle;
+			else if (PostgreSql.GetProviderFactoryClassNameName(loweredProviderName)) return SupportedDb.PostgreSql;
+			else if (Sqlite.GetProviderFactoryClassNameName(loweredProviderName)) return SupportedDb.Sqlite;
+			else if (SqlServer.GetProviderFactoryClassNameName(loweredProviderName)) return SupportedDb.SqlServer;
+			else throw new InvalidOperationException("Unknown database provider: " + providerName);
 		}
 	}
 }

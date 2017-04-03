@@ -1,11 +1,11 @@
 using System;
 
-namespace Mighty
+namespace Mighty.Plugin
 {
-    internal class Sqlite : DatabasePlugin
-    {
-        internal override string GetProviderFactoryClassName(string loweredProviderName)
-        {
+	internal class Sqlite : DatabasePlugin
+	{
+		internal override string GetProviderFactoryClassName(string loweredProviderName)
+		{
 			switch (loweredProviderName)
 			{
 				case "system.data.sqlite":
@@ -15,8 +15,8 @@ namespace Mighty
 					return "Microsoft.Data.Sqlite.SqliteFactory";
 
 				default:
-                    return null;
+					return null;
 			}
-        }
-    }
+		}
+	}
 }

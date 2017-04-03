@@ -1,11 +1,11 @@
 using System;
 
-namespace Mighty
+namespace Mighty.Plugin
 {
-    internal class Oracle : DatabasePlugin
-    {
-        internal override string GetProviderFactoryClassName(string loweredProviderName)
-        {
+	internal class Oracle : DatabasePlugin
+	{
+		internal override string GetProviderFactoryClassName(string loweredProviderName)
+		{
 			switch (loweredProviderName)
 			{
 				case "oracle.manageddataaccess.client":
@@ -15,8 +15,8 @@ namespace Mighty
 					return "Oracle.DataAccess.Client.OracleClientFactory";
 
 				default:
-                    return null;
+					return null;
 			}
-        }
-    }
+		}
+	}
 }

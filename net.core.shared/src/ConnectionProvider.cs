@@ -7,14 +7,15 @@ namespace Mighty
 		public DbProviderFactory ProviderFactory { get; protected set; }
 		public SupportedDatabase SupportedDatabase { get; protected set; }
 		public string connectionString { get; protected set; }
-        // fluent API, must return itself at the end
-        abstract public ConnectionProvider Init(string connectionString);
+		// fluent API, must return itself at the end
+		abstract public ConnectionProvider Init(string connectionString);
 	}
 
 #if !COREFX
 	internal class ConfigFileConnectionProvider : ConnectionProvider
 	{
-		override public void Init(string connectionStringName)
+		// fluent API
+		override public ConnectionProvider Init(string connectionStringName)
 		{
 			ConnectionStringSettings connectionStringSettings = GetConnectionStringSettings(connectionStringName);
 			if (connectionStringSettings != null)
@@ -27,7 +28,7 @@ namespace Mighty
 					ProviderFactory = DbProviderFactories.GetFactory(providerName);
 				}
 			}
-            return this;
+			return this;
 		}
 
 		private ConnectionStringSettings GetConnectionStringSettings(string connectionStringName)
@@ -55,18 +56,20 @@ namespace Mighty
 
 	internal class PureConnectionStringProvider : ConnectionProvider
 	{
-        internal bool _usedAsOverride;
+		internal bool _usedAfterConfigFile;
 
-        internal public ConnectionProvider UsedAsOverride()
-        {
-            _usedAsOverride = true;
-            return this;
-        }
+		// fluent API
+		internal public ConnectionProvider UsedAfterConfigFile()
+		{
+			_usedAfterConfigFile = true;
+			return this;
+		}
 
+		// fluent API
 		override public ConnectionProvider Init(string connectionString)
 		{
 			string providerName = null;
-			var extraMessage = _usedAsOverride ? " (and is not a valid connection string name)" : "";
+			var extraMessage = _usedAfterConfigFile ? " (and is not a valid connection string name)" : "";
 			StringBuilder connectionString = new StringBuilder();
 			try
 			{
@@ -98,7 +101,7 @@ namespace Mighty
 			SupportedDatabase = ProviderFactories.GetSupportedDb(providerName);
 			ProviderFactory = ProviderFactories.GetFactory(providerName);
 			ConnectionString = connectionString.ToString();
-            return this;
+			return this;
 		}
 	}
 }

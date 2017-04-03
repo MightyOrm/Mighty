@@ -1,11 +1,11 @@
 using System;
 
-namespace Mighty
+namespace Mighty.Plugin
 {
-    internal class MySql : DatabasePlugin
-    {
-        internal override string GetProviderFactoryClassName(string loweredProviderName)
-        {
+	internal class MySql : DatabasePlugin
+	{
+		internal override string GetProviderFactoryClassName(string loweredProviderName)
+		{
 			switch (loweredProviderName)
 			{
 				case "mysql.data.mysqlclient":
@@ -20,8 +20,8 @@ namespace Mighty
 					return "Devart.Data.MySql.MySqlProviderFactory";
 
 				default:
-                    return null;
+					return null;
 			}
-        }
-    }
+		}
+	}
 }
