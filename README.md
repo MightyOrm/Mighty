@@ -8,8 +8,9 @@ I believe (and hope!) it will do for you what Massive did for you - only with al
 * Transactions
 * Stored procedures
 * Parameter names and directions
-* Cursors
 * Multiple result sets
+* Cursors
+* Compound primary keys
 * Simultaneous support for more then one database provider
 
 ### The History of Mighty
@@ -29,11 +30,11 @@ That is, it's based around C#4's `dynamic` types. If you don't know them, you ca
 #### The power of ADO.NET
 The other secret which Mighty uses, a lot, and which I only found out about from working on Massive, is that ADO.NET is actually very good at automatically setting the `DbType` of parameters from the data you put into them.
 
-Without some additional code, this unfortunately cannot work in a few key cases - which means that most of the ADO.NET database code you've likely ever seen, or worked on, always sets *all* the parameter types explicitly. But hey, now you don't need to. Like Massive, Mighty does it for you; or rather, it mostly lets ADO.NET do it for you, but it deals with the special cases.
+Without some additional code this unfortunately cannot work in a few key cases - which means that most of the ADO.NET database code you've likely ever seen, or worked on, always sets *all* the parameter types explicitly. But hey, now you don't need to! Like Massive, Mighty does it for you; or rather, it mostly lets ADO.NET do it for you, but it deals with the special cases.
 
 ### So, what is a microORM?
 
-Finally Mighty is a microORM, like Massive. This means that when you create an instance of `MightyModel` with a table name (and optionally a primary key name), then Mighty already knows all about:
+Mighty is a microORM, like Massive. This means that when you create an instance of `MightyModel` with a table name (and optionally a primary key name), then Mighty already knows all about:
 
 - Querying
 - Inserting
@@ -48,17 +49,23 @@ Not only that, you can do all of these from *very* sweet and simple API calls.
 
 #### Plus... The New Stuff!
 
-Some databases require more than just CRUD table access. For instance, you might want to read data from a view (Massive and Mighty can both do that), but then write it back via a Stored Procedure, and you might want to be able to see the results of that write-back. Or you might need more control over your transactions (although: go easy on transactions, they're often not as necessary as you think - you don't normally update all your C# objects within C# 'transactions', do you? - and they tend to lock everything up; use good database design to prevent inconsistent data from even being possible, and then carry on happily!), or you might need multiple result sets, or you might need named and directional parameters (to your stored procedures, or even to arbitrary SQL blocks), or you might need to mix and match all of these. And you might even need support for cursors (on the database engines where it makes sense to pass these out of SQL and back to C# - which is not all of them).
+Some databases require more than just CRUD table access.
 
-This is where Mighty comes into its own, because Massive simply cannot do all of that; and because of design decisions which are pretty much locked in now, I don't realisitically think it's ever going to.
+For instance, you might want to read data from a view (Massive and Mighty can both do that), but then write it back via a Stored Procedure and see output or return parameter results from that call. Or you might need more control over your transactions, or you might need multiple result sets, or you might need named and directional parameters (to stored procedures or arbitrary SQL blocks). Or you might need to mix and match all of these. You might even need support for compound primary keys, or access to cursors (on the database engines where it makes sense to pass these out of SQL and back to C# - which is not all of them).
 
-This is why I wrote Mighty:
+This is where Mighty comes into its own, because Massive simply cannot do all of that, right now. In fact, it's almost certainly never going to do all of that, because its design goal is to be a relatively simple microORM which inspires other ORMs. It has worked. (And far more than once: [**ref**]() [**ref**]() and many more.) Note, though, that Mighty is still a relatively small and simple codebase. The only way it can possibly be that *and* support all of the above, is to be (re)built, at its core, using the genius principles which Massive introduced.
 
-- Because I want all the cool, lightweight, `dynamic` microORM stuff which Massive invented, and already perfected
-- But I also want access to all that other ADO.NET stuff, and preferably also with cool, lightweight (and `dynamic`, where applicable!) ways to do it
+Basically, this is why I wrote Mighty:
 
-That's what Mighty is, and does, now. Plus .NET Core.
+- Because I want all that cool, lightweight, `dynamic` microORM stuff which Massive invented, and already perfected
+- But I also want access to all that other ADO.NET stuff - preferably also via a cool, lightweight (and `dynamic`, where applicable) interface
+
+Mighty is all of that, and does it now. Plus .NET Core.
 
 You're welcome!
 
 ## Code ... please ;)
+
+### Transactions
+
+> Note: Go easy on transactions, they're often not as necessary as you think. For instance, you (almost certainly) don't normally update your C# objects within C# 'transactions', do you? Yet things work fine. Database transactions tend to lock everything up, often unecessarily. It is usually far better to use good database design to prevent inconsistent data from even being possible, and then to carry on lightly, treating updates the way you already treat C# updates. (Obviously there *are* cases where correct transactional handling is very important, the canonical example being financial software; but database transactions are an expensive solution to an expensive problem - don't think that they come for free, just because they are supported for when you really need them.)

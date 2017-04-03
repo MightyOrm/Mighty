@@ -3,18 +3,21 @@ using System.Text;
 
 namespace Mighty
 {
-	public class MightyORM : MicroORM, AdoNetDataAccessWrapper
+	public partial class MightyORM : _MicroORM
 	{
 		protected string _connectionString;
 		protected DbProviderFactory _factory;
 
 		// should be properties
-		public string Table; // NB this may have a dot in, and then needs splitting, but ONLY when getting information schema
-		public string PrimaryKeyField;
+		public string Table; // NB this may have a dot in to specify owner/schema, and then needs splitting by us, but ONLY when getting information schema
+		public string PrimaryKeyFields;
 		public string Columns;
 
-		// pkSequence is for sequence-based databases
-		public MightyORM(string connectionStringOrName = null, string table = null, string primaryKeyField = null, string primaryKeySequence = null, string columns = null, ConnectionProvider connectionProvider = null)
+		// primaryKeySequence is for sequence-based databases (Oracle, PostgreSQL) - there is no default, specify either null or empty string to disable and manually specify your PK values;
+		// primaryKeyRetrievalFunction is for non-sequence based databases (MySQL, SQL Server, SQLite) - defaults to default for DB, specify empty string to disable and manually specify your PK values;
+		// primaryKeyFields is a comma separated list; if it has more than one column, you cannot specify primaryKeySequence or primaryKeyRetrievalFunction
+		// (if neither primaryKeySequence nor primaryKeyRetrievalFunction are set (which is always the case for compound primary keys), you MUST specify non-null, non-default values for every column in your primary key)
+		public MightyORM(string connectionStringOrName = null, string table = null, string primaryKeyFields = null, string primaryKeySequence = null, string primaryKeyRetrievalFunction = null, string columns = null, ConnectionProvider connectionProvider = null)
 		{
 			if (connectionProvider == null)
 			{
@@ -38,15 +41,21 @@ namespace Mighty
 			_connectionString = connectionProvider.connectionString;
 			_factory = connectionProvider.providerFactory;
 			Table = table;
-			PrimaryKeyField = primaryKeyField;
+			PrimaryKeyField = primaryKeyFields; // More
 			Columns = columns;
+		}
+
+		// mini-factory for non-table specific access
+		public static DB(string connectionStringOrName = null)
+		{
+			return new MightyORM(connectionStringOrName);
 		}
 
 		private IDatabasePlugin GetPlugin(SupportedDatabase supportedDatabase)
 		{
-			var pluginClassName = "Mighty.Plugin." + supportedDatabase.ToString();
+			var pluginClassName = "Mighty.Plugins." + supportedDatabase.ToString();
 			var type = Type.GetType(pluginClassName);
-			if(type == null)
+			if (type == null)
 			{
 				throw new NotImplementedException("Cannot find type " + pluginClassName);
 			}

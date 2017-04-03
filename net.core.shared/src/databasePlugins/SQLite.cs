@@ -1,6 +1,6 @@
 using System;
 
-namespace Mighty.Plugin
+namespace Mighty.Plugins
 {
 	internal class Sqlite : DatabasePlugin
 	{

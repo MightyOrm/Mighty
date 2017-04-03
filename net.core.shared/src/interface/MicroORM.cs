@@ -2,8 +2,10 @@ using System;
 
 namespace Mighty
 {
-	// Interface for ORM and ADO.NET Data Access Wrapper methods
-	public abstract class MircoORM
+	// Abstract class 'interface' for ORM and ADO.NET Data Access Wrapper methods.
+	// Uses abstract class, not interface, because the semantics of interface means it can never have anything added to it!
+	// (See ... MS document about DB classes; SO post about intefaces)
+	public abstract class MicroORM
 	{
 		// We need the schema so we can instantiate from submit (or any other namevaluecollection-ish thing via ToExpando), to match columns
 		//...
@@ -103,9 +105,9 @@ namespace Mighty
 
 		// ORM: Single from our table
 		abstract public dynamic Single(object key, string columns = "*");
-		// there are really tricky reasons not to have this, aren't there? Bastard.
+		// there are really tricky reasons not to have this, aren't there? Are there? What are they?
 		abstract public dynamic Single(string where, string columns = "*", params object[] args);		
-		// WithParams version just in case, and allows transaction
+		// WithParams version just in case, allows transaction for a start
 		abstract public dynamic SingleWithParams(string where, string columns = "*",
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
@@ -114,12 +116,21 @@ namespace Mighty
 
 		// does update OR insert, per item
 		// in my NEW version, null or default value for type in PK will save as new, as well as no PK field
-		// only we don't know what the pk type is... but we do after getting the schema
+		// only we don't know what the pk type is... but we do after getting the schema, and we should just use = to compare without worrying too much about types
 		// is checking whether every item is valid before any saving - which is good - and not the same as checking
 		// something at inserting/updating time; still if we're going to use a transaction ANYWAY, and this does.... hmmm... no: rollback is EXPENSIVE
 		// returns the sum of the number of rows affected;
-		// insert WILL set the PK field, as long as the object was an expando in the first place (could upgrade that; to set PK
+		// *** insert WILL set the PK field, as long as the object was an expando in the first place (could upgrade that; to set PK
 		// in Expando OR in settable property of correct name)
+		// *** we can assume that it is NEVER valid for the user to specify the PK value manually - though they can of course specify the pkFieldName,
+		// and the pkSequence, for those databases which work that way; I strongly suspect we should be able to shove the sequence select into ONE round
+		// trip to the DB, as well.
+		// (Of course, this would mean that there would be no such thing as an ORM provided update, for a table without a PK. You know what? It *is* valid to
+		// set - and update based on - a compound PK. Which means it must BE valid to set a non-compound PK.)
+		// I think we want primaryKeySequence (for dbs which use that; defaults to no sequence) and primaryKeyRetrievalFunction (for dbs which use that; defaults to
+		// correct default to DB, but may be set to null). If both are null, you can still have a (potentially compound) PK.
+		// We can use INSERT seqname.nextval and then SELECT seqname.currval in Oracle.
+		// And INSERT nextval('seqname') and then currval('seqname') (or just lastval()) in PostgreSQL.
 		abstract public int Save(params object[] items);
 
 		// returns expando with the PK set

@@ -4,7 +4,9 @@ using System.Data.Common;
 
 namespace Mighty
 {
-	public static partial class ObjectExtensions
+	// There is no need to make these extension public (access modifiers on extension methods are relative to the package they are defined in,
+	// not relative to the package which they extend); making them public turns them into utilty methods provided as part of the microORM.
+	public static partial class PublicExtensions
 	{
 		internal static IEnumerable<dynamic> YieldResult(this DbDataReader rdr)
 		{
@@ -21,6 +23,8 @@ namespace Mighty
 		/// Setting DbParameter DbType or Value to one of the per-provider non-supported types will produce an ArgumentException
 		/// (immediately on Postgres and Oracle, at DbCommand execution time on SQL Server).
 		/// The per-database method DbParameter.SetValue is the place to add code to convert these non-supported types to supported types.
+		///
+		/// Not sure whether this should be public...?
 		/// </remarks>
 		public static object CreateInstance(this Type type)
 		{
@@ -62,6 +66,8 @@ namespace Mighty
 			return pinfoEnumProperty == null ? null : pinfoEnumProperty.GetValue(o, null).ToString();
 		}
 
+		// Not sure whether this is useful or not... syntax is slightly nicer, and saves a little typing, even though functionality is obviously very simple.
+		// Presumably compiler removes any apparent inefficiency.
 		public static IDictionary<string, object> ToDictionary(this ExpandoObject object)
 		{
 			return (IDictionary<string, object>)object;

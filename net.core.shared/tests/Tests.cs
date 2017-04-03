@@ -10,7 +10,7 @@ namespace Massive.Tests.MySql
 		[Test]
 		public void MyTest()
 		{
-			var db = new MightyORM();
+			var db = new MightyORM.DB();
 			Assert.AreEqual(1, 1);
 		}
 
