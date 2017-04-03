@@ -131,7 +131,19 @@ namespace Mighty
 		// correct default to DB, but may be set to null). If both are null, you can still have a (potentially compound) PK.
 		// We can use INSERT seqname.nextval and then SELECT seqname.currval in Oracle.
 		// And INSERT nextval('seqname') and then currval('seqname') (or just lastval()) in PostgreSQL.
+		// (if neither primaryKeySequence nor primaryKeyRetrievalFunction are set (which is always the case for compound primary keys), you MUST specify non-null, non-default values for every column in your primary key
+		// before saving an object)
+		// *** okay, shite, how do we know if a compound key object is an insert or an update? I think we just provide Save, which is auto, but can't work for manual primary keys,
+		// and Insert and Update, which will do what they say on the tin, and which can.
+
+		// Cannot be used with manually controlled primary keys (which includes compound primary keys), as the microORM cannot tell apart an insert from an update in this case
+		// but I think this can just be an exception, as we really don't need to worry most users about it.
+		// exception can check whether we are compound; or whether we may be sequence, but just not set; or whether we have retrieval fn intentionally overridden to empty string;
+		// and give different messages.
 		abstract public int Save(params object[] items);
+		
+		abstract public int Insert(params object[] items);
+		abstract public int Update(params object[] items);
 
 		// returns expando with the PK set
 		// We don't need this: (since save sets the PK anyway)

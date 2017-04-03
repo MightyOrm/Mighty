@@ -16,7 +16,9 @@ namespace Mighty
 		// primaryKeySequence is for sequence-based databases (Oracle, PostgreSQL) - there is no default, specify either null or empty string to disable and manually specify your PK values;
 		// primaryKeyRetrievalFunction is for non-sequence based databases (MySQL, SQL Server, SQLite) - defaults to default for DB, specify empty string to disable and manually specify your PK values;
 		// primaryKeyFields is a comma separated list; if it has more than one column, you cannot specify primaryKeySequence or primaryKeyRetrievalFunction
-		// (if neither primaryKeySequence nor primaryKeyRetrievalFunction are set (which is always the case for compound primary keys), you MUST specify non-null, non-default values for every column in your primary key)
+		// (if neither primaryKeySequence nor primaryKeyRetrievalFunction are set (which is always the case for compound primary keys), you MUST specify non-null, non-default values for every column in your primary key
+		// before saving an object)
+		// *** okay, shite, how do we know if a compound key object is an insert or an update?)
 		public MightyORM(string connectionStringOrName = null, string table = null, string primaryKeyFields = null, string primaryKeySequence = null, string primaryKeyRetrievalFunction = null, string columns = null, ConnectionProvider connectionProvider = null)
 		{
 			if (connectionProvider == null)
