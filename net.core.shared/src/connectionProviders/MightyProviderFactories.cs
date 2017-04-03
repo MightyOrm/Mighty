@@ -4,7 +4,7 @@ using System.Data.Common;
 
 using Mighty.Plugin;
 
-namespace Mighty
+namespace Mighty.ConnectionProviders
 {
 	internal class MightyProviderFactories
 	{

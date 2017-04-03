@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 
-namespace Mighty
+namespace Mighty.DatabasePlugins
 {
 	// these need to match the names of the plugin classes
 	// for future link compatibility, don't re-order this list

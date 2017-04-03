@@ -3,7 +3,7 @@ using NUnitLite;
 using System;
 using System.Reflection;
 
-namespace Massive.Tests.NUnit.ConsoleRunner
+namespace Mighty.Tests.NUnit.ConsoleRunner
 {
 	class Program
 	{

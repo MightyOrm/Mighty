@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 
-namespace Mighty
+namespace Mighty.API
 {
 	// Abstract class 'interface' for ORM and ADO.NET Data Access Wrapper methods.
 	// Uses abstract class, not interface, because the semantics of interface means it can never have anything added to it!
@@ -81,6 +81,34 @@ namespace Mighty
 		abstract public object Count(string expression = "COUNT(*)", string where = "",
 			params object[] args);
 
+
+		// ORM: Single from our table
+		abstract public dynamic Single(object key, string columns = "*");
+
+		// I think there really are tricky problems with  this, aren't there?
+		// It's a problem because we've already told the user that they can set the columns,
+		// and now we're asking them to set them again; and not only that, it's getting in the
+		// way of the easy-to-use params-based api.
+		abstract public dynamic Single(string where, string columns = "*", params object[] args);		
+		
+		// WithParams version just in case, allows transaction for a start
+		abstract public dynamic SingleWithParams(string where, string columns = "*",
+			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+			DbConnection connection = null,
+			params object[] args);
+
+
+		// ORM
+		abstract public IEnumerable<dynamic> All(
+			string where = "", string orderBy = "", int limit = 0, string columns = "*",
+			params object[] args);
+		abstract public IEnumerable<dynamic> AllWithParams(
+			string where = "", string orderBy = "", int limit = 0, string columns = "*",
+			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+			DbConnection connection = null,
+			params object[] args);
+
+
 		// non-ORM (NB columns is only used in generating SQL, so makes no sense on either of these)
 		abstract public dynamic Paged(string sql,
 			int pageSize = 20, int currentPage = 1,
@@ -94,26 +122,6 @@ namespace Mighty
 		// ORM
 		abstract public dynamic Paged(string where = "", string orderBy = "",
 			string columns = "*", int pageSize = 20, int currentPage = 1,
-			DbConnection connection = null,
-			params object[] args);
-
-		// ORM
-		abstract public IEnumerable<dynamic> All(
-			string where = "", string orderBy = "", int limit = 0, string columns = "*",
-			params object[] args);
-		abstract public IEnumerable<dynamic> AllWithParams(
-			string where = "", string orderBy = "", int limit = 0, string columns = "*",
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args);
-
-		// ORM: Single from our table
-		abstract public dynamic Single(object key, string columns = "*");
-		// there are really tricky reasons not to have this, aren't there? Are there? What are they?
-		abstract public dynamic Single(string where, string columns = "*", params object[] args);		
-		// WithParams version just in case, allows transaction for a start
-		abstract public dynamic SingleWithParams(string where, string columns = "*",
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args);
 
@@ -144,30 +152,30 @@ namespace Mighty
 		// but I think this can just be an exception, as we really don't need to worry most users about it.
 		// exception can check whether we are compound; or whether we may be sequence, but just not set; or whether we have retrieval fn intentionally overridden to empty string;
 		// and give different messages.
+
+		// save/insert/update one or more items
 		abstract public int Save(params object[] items);
 		
 		abstract public int Insert(params object[] items);
 		abstract public int Update(params object[] items);
 
-		// returns expando with the PK set
-		// We don't need this: (since save sets the PK anyway)
-		//abstract public dynamic Insert(object o);
+		// apply all fields which are present in item to the row matching key
+		abstract public int UpdateFrom(object partialItem, object key);
 
-		// apply fields which are present to row matching key
-		abstract public int UpdateFrom(object o, object key);
-
-		// apply fields which are present to rows matching where clause
-		abstract public int UpdateFrom(object o, string where = "1=1", params object[] args);
+		// apply all fields which are present in item to all rows matching where clause
+		// for safety you MUST specify the where clause yourself (use "1=1" to update all rows)
+		abstract public int UpdateFrom(object partialItem, string where, params object[] args);
 
 		// delete item from table; what about deleting by object? (maybe key can be pk OR expando containing pk? no)
 		// also why the f does this fetch the item back before deleting it, when it's by PK? sod it, let the user
 		// fetch it; only delete by item, and only if (there's a PK and) the item contains the PK. that means
 		// the user has prefetched it. Good.
 		// I prefer this:
+		// delete one or more items
 		abstract public int Delete(params object[] items);
-		abstract public int DeleteKeys(params object[] keys);
-		// This called with no args will delete the entire table. Which is correct. Okay, it's too scary, they have to do Delete("1=1");
-		abstract public int Delete(string where = "1=0", params object[] args);
+		abstract public int DeleteKey(params object[] keys);
+		// for safety you MUST specify the where clause yourself (use "1=1" to delete all rows)
+		abstract public int Delete(string where, params object[] args);
 
 		// We also have validation, called on each object to be updated, before any saves, if a validator was passed in
 		//...

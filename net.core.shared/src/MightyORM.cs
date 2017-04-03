@@ -6,9 +6,12 @@ using System.Data.Common;
 using System.Dynamic;
 using System.Text;
 
+using Mighty.ConnectionProviders;
+using Mighty.DatabasePlugins;
+
 namespace Mighty
 {
-	public partial class MightyORM // (- wait till we're ready -) : MicroORM
+	public partial class MightyORM // (- wait till we're ready -) : API.MicroORM
 	{
 		protected string _connectionString;
 		protected DbProviderFactory _factory;

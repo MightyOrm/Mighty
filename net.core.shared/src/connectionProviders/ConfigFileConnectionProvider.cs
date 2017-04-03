@@ -4,7 +4,7 @@ using System.Configuration;
 using System.Data;
 using System.Data.Common;
 
-namespace Mighty
+namespace Mighty.ConnectionProviders
 {
 	internal class ConfigFileConnectionProvider : ConnectionProvider
 	{

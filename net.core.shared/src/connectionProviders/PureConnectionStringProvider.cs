@@ -1,6 +1,6 @@
 using System;
 
-namespace Mighty
+namespace Mighty.ConnectionProviders
 {
 	internal class PureConnectionStringProvider : ConnectionProvider
 	{
