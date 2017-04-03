@@ -1,4 +1,6 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 
@@ -8,14 +10,6 @@ namespace Mighty
 	// not relative to the package which they extend); making them public turns them into utilty methods provided as part of the microORM.
 	public static partial class PublicExtensions
 	{
-		internal static IEnumerable<dynamic> YieldResult(this DbDataReader rdr)
-		{
-			while(rdr.Read())
-			{
-				yield return rdr.RecordToExpando();
-			}
-		}
-
 		/// <remarks>
 		/// This supports all the types listed in ADO.NET DbParameter type-inference documentation https://msdn.microsoft.com/en-us/library/yy6y35y8(v=vs.110).aspx , except for byte[] and Object.
 		/// Although this method supports all these types, the various ADO.NET providers do not:

@@ -3,7 +3,7 @@ using System;
 namespace Mighty
 {
 	// this is thrown by Mighty when validation fails
-	public class ValidationException : ValidationException
+	public class ValidationException : Exception
 	{
 		public ValidationException() : base()
 		{

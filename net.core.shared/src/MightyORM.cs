@@ -1,9 +1,14 @@
 using System;
+using System.Collections;
+using System.Collections.Generic;
+using System.Data;
+using System.Data.Common;
+using System.Dynamic;
 using System.Text;
 
 namespace Mighty
 {
-	public partial class MightyORM : _MicroORM
+	public partial class MightyORM // (- wait till we're ready -) : MicroORM
 	{
 		protected string _connectionString;
 		protected DbProviderFactory _factory;
@@ -25,7 +30,7 @@ namespace Mighty
 			{
 #if !COREFX
 				connectionProvider = new ConfigFileConnectionProvider().Init(connectionStringOrName);
-				if (connectionProvider.connectionString == null)
+				if (connectionProvider.ConnectionString == null)
 #endif
 				{
 					connectionProvider = new PureConnectionStringProvider()
@@ -40,15 +45,15 @@ namespace Mighty
 				connectionProvider.Init(connectionStringOrName);
 			}
 
-			_connectionString = connectionProvider.connectionString;
-			_factory = connectionProvider.providerFactory;
+			_connectionString = connectionProvider.ConnectionString;
+			_factory = connectionProvider.ProviderFactory;
 			Table = table;
-			PrimaryKeyField = primaryKeyFields; // More
+			PrimaryKeyFields = primaryKeyFields; // More
 			Columns = columns;
 		}
 
 		// mini-factory for non-table specific access
-		public static DB(string connectionStringOrName = null)
+		public static MightyORM DB(string connectionStringOrName = null)
 		{
 			return new MightyORM(connectionStringOrName);
 		}

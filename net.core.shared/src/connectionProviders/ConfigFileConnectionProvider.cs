@@ -1,8 +1,11 @@
+#if !COREFX
 using System;
+using System.Configuration;
+using System.Data;
+using System.Data.Common;
 
 namespace Mighty
 {
-#if !COREFX
 	internal class ConfigFileConnectionProvider : ConnectionProvider
 	{
 		// fluent API
@@ -43,5 +46,5 @@ namespace Mighty
 			return connectionStringSettings;
 		}
 	}
-#endif
 }
+#endif
