@@ -18,7 +18,7 @@ namespace Massive.Tests.MySql
 		[Test]
 		public void MyTest2()
 		{
-			AssertExtensions.StrictlyEqual((long)1, 1);
+			AssertExtensions.StrictlyEqual(1, (long)1);
 		}
 	}
 }

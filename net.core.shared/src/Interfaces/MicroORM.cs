@@ -23,7 +23,7 @@ namespace Mighty.Interfaces
 	//	  parameter under all circumstances - so can never be used for direct SQL injection. In general (i.e. assuming
 	//	  you aren't building SQL from the value yourself, anywhere) strings, etc., which are passed in will NOT need any escaping.
 	//
-	public abstract class MicroORM
+	abstract public class MicroORM
 	{
 		// We need the schema so we can instantiate from form submit (or any other namevaluecollection-ish thing, via ToExpando),
 		// filtering to match columns; needs to buffer itself

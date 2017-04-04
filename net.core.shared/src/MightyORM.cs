@@ -4,6 +4,8 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Dynamic;
+using System.Linq;
+using System.Reflection;
 using System.Text;
 
 using Mighty.ConnectionProviders;
@@ -19,8 +21,8 @@ namespace Mighty
 		// these should all be properties
 		// initialise table name from class name, but only if not == MicroORM(!); get, set, throw
 		// exception if attempt to use it when not set
-		public string Table; // NB this may have a dot in to specify owner/schema, and then needs splitting by us, but ONLY when getting information schema
-		public string PrimaryKeyFields;
+		public string TableName; // NB this may have a dot in to specify owner/schema, and then needs splitting by us, but ONLY when getting information schema
+		public List<string> PrimaryKeys;
 		public string Columns;
 
 		// primaryKeySequence is for sequence-based databases (Oracle, PostgreSQL) - there is no default, specify either null or empty string to disable and manually specify your PK values;
@@ -28,8 +30,7 @@ namespace Mighty
 		// primaryKeyFields is a comma separated list; if it has more than one column, you cannot specify primaryKeySequence or primaryKeyRetrievalFunction
 		// (if neither primaryKeySequence nor primaryKeyRetrievalFunction are set (which is always the case for compound primary keys), you MUST specify non-null, non-default values for every column in your primary key
 		// before saving an object)
-		// *** okay, shite, how do we know if a compound key object is an insert or an update?)
-		public MightyORM(string connectionStringOrName = null, string table = null, string primaryKeyFields = null, string primaryKeySequence = null, string primaryKeyRetrievalFunction = null, string defaultColumns = null, ConnectionProvider connectionProvider = null)
+		public MightyORM(string connectionStringOrName = null, string tableName = null, string primaryKeyFields = null, string primaryKeySequence = null, string primaryKeyRetrievalFunction = null, string defaultColumns = null, ConnectionProvider connectionProvider = null)
 		{
 			if (connectionProvider == null)
 			{
@@ -52,8 +53,21 @@ namespace Mighty
 
 			_connectionString = connectionProvider.ConnectionString;
 			_factory = connectionProvider.ProviderFactory;
-			Table = table;
-			PrimaryKeyFields = primaryKeyFields; // More
+			if (tableName != null)
+			{
+				TableName = tableName;
+			}
+			else
+			{
+				var type = this.GetType();
+				// enforce subclass
+				// (otherwise we work with no table name and data wrapper but not ORM features are available)
+				if (type != typeof(MightyORM))
+				{
+					TableName = CreateTableNameFromClassName(type.Name);
+				}
+			}
+            PrimaryKeys = primaryKeyFields.Split(',').Select(k => k.Trim()).ToList();
 			Columns = defaultColumns;
 		}
 
@@ -63,7 +77,7 @@ namespace Mighty
 			return new MightyORM(connectionStringOrName);
 		}
 
-		private IDatabasePlugin GetPlugin(SupportedDatabase supportedDatabase)
+		private DatabasePlugin GetPlugin(SupportedDatabase supportedDatabase)
 		{
 			var pluginClassName = "Mighty.Plugins." + supportedDatabase.ToString();
 			var type = Type.GetType(pluginClassName);
@@ -71,8 +85,8 @@ namespace Mighty
 			{
 				throw new NotImplementedException("Cannot find type " + pluginClassName);
 			}
-			var plugin = (IDatabasePlugin)Activator.CreateInstance(type, false);
-			plugin._dynamicModel = this;
+			var plugin = (DatabasePlugin)Activator.CreateInstance(type, false);
+			plugin._mightyInstance = this;
 			return plugin;
 		}
 
@@ -142,7 +156,7 @@ namespace Mighty
 
 		private string BuildScalar(string expression)
 		{
-			return string.Format("SELECT {0} FROM {1}", expression, Table)
+			return string.Format("SELECT {0} FROM {1}", expression, TableName)
 		}
 	}
 }
