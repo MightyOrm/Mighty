@@ -30,6 +30,8 @@ namespace Mighty.Interfaces
 		// NB this may have a dot in to specify owner/schema, and then needs splitting by us, but ONLY when getting information schema
 		private string _TableName;
 		// this implementation should go in the actual class; and these definitions should be abstract
+		// and I think we should access the table name via a method, so that the user can see when this is null without an exception
+		// no, via a protected property called ProtectedTableName with the same backing field!, that's nicer
 		public string TableName {
 			get
 			{
@@ -46,6 +48,10 @@ namespace Mighty.Interfaces
 		}
 		abstract public List<string> PrimaryKeys { get; protected set; }
 		abstract public string DefaultColumns { get; protected set; }
+
+		// We don't need this... but it might be sensible to make it visible; which leaves the question should it be the raw one passed in, or the processed one?
+		// Probably the raw one; the processed one will be visible (I think? yes) in any connections sent out.
+		abstract public string ConnectionString { get; protected set; }
 
 		// We need the table info so we can instantiate from form submit (or any other namevaluecollection-ish thing, via ToExpando),
 		// filtering to match columns; needs to buffer itself
