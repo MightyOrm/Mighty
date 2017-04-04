@@ -60,6 +60,9 @@ namespace Mighty.Interfaces
 		// We need the table info so we can instantiate from form submit (or any other namevaluecollection-ish thing, via ToExpando),
 		// filtering to match columns; needs to buffer itself
 		abstract public IEnumerable<dynamic> TableInfo { get; protected set; }
+
+		// some reasonable use-cases don't require this, can help you see whether or not this trip to the database has been made for you
+		abstract public bool HasLoadedTableInfo { get; protected set; }
 #endregion
 
 		// We can implement NewItem() and ColumnDefault()
