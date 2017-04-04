@@ -93,6 +93,8 @@ namespace Mighty.Interfaces
 		// an extension of IEnumerable<dynamic> ... if you can. That means almost no extra code.
 		// it is very easy for the user to do this conversion themselves
 
+		// BASICALLY DONE THE BELOW, I THINK:
+		
 		// create item from form post, only filling in fields which are in the schema - not bad!
 		// (but the form post namevaluecollection is not in NET CORE1.1 anyway ... so what are they doing?
 		// no form posts per se in MVC, but what about that way I was reading back from a form, for files?)
