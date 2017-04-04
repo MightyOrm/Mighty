@@ -1,6 +1,3 @@
-using System;
-using NUnit.Framework;
-
 namespace NUnit.Framework
 {
 	static public partial class AssertExtensions

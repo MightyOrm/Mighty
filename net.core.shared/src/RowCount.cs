@@ -1,5 +1,3 @@
-using System;
-
 namespace Mighty
 {
 	// For use where you are using the WithParams or AsProcedure variant of Execute, but you still want to get the ADO.NET rowcount back amongst your return values.

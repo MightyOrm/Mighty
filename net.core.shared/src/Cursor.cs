@@ -1,5 +1,3 @@
-using System;
-
 namespace Mighty
 {
 	public class Cursor
