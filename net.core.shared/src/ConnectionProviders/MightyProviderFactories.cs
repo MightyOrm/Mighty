@@ -11,7 +11,7 @@ namespace Mighty.ConnectionProviders
 	{
 		private const string INSTANCE_FIELD_NAME = "Instance";
 
-		internal static DbProviderFactory GetFactory(string providerName)
+		static internal DbProviderFactory GetFactory(string providerName)
 		{
 			string assemblyName = null;
 			var factoryClass = GetProviderFactoryClassName(providerName);
@@ -35,7 +35,7 @@ namespace Mighty.ConnectionProviders
 			return (DbProviderFactory)f.GetValue(null);
 		}
 
-		private static string GetProviderFactoryClassName(string providerName)
+		static private string GetProviderFactoryClassName(string providerName)
 		{
 			string loweredProviderName = providerName.ToLowerInvariant();
 			string result = MySQL.GetProviderFactoryClassName(loweredProviderName);
@@ -47,7 +47,7 @@ namespace Mighty.ConnectionProviders
 			return result;
 		}
 
-		internal static SupportedDatabase GetSupportedDatabase(string providerName)
+		static internal SupportedDatabase GetSupportedDatabase(string providerName)
 		{
 			string loweredProviderName = providerName.ToLowerInvariant();
 			if (MySQL.GetProviderFactoryClassName(loweredProviderName) != null) return SupportedDatabase.MySQL;

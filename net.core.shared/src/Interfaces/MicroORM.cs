@@ -7,9 +7,10 @@ using System.Data.Common;
 namespace Mighty.Interfaces
 {
 	// NEW new:
-	//	- clean support for Single with columns
-	//	- compound PKs
-	//	- cleaner support for sequences (incl. one less DB round-trip on sequence-based insert)
+	//	- Clean support for Single with columns
+	//	- Compound PKs
+	//	- Cleaner support for sequences (incl. one less DB round-trip on sequence-based insert)
+	//	- With the new inner loop this really might be faster than Massive too. 'Kinell.
 
 	// Abstract class 'interface' for the ORM and ADO.NET Data Access Wrapper methods.
 	// Uses abstract class, not interface, because the semantics of interface means it can never have anything added to it!

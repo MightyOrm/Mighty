@@ -78,7 +78,7 @@ namespace Mighty
 		}
 
 		// mini-factory for non-table specific access
-		public static MightyORM DB(string connectionStringOrName = null)
+		static public MightyORM DB(string connectionStringOrName = null)
 		{
 			return new MightyORM(connectionStringOrName);
 		}
@@ -125,17 +125,14 @@ namespace Mighty
 							// query multiple pattern
 							do
 							{
-								yield return (T)rdr.YieldResult();
+								// cast is required because compiler doesn't see that we've just checked this!
+								yield return (T)rdr.YieldReturnExpandos();
 							}
 							while (rdr.NextResult());
 						}
 						else
 						{
-							// query pattern
-							while (rdr.Read())
-							{
-								yield return rdr.RecordToExpando();
-							}
+							rdr.YieldReturnExpandos();
 						}
 					}
 					if (trans != null) trans.Commit();
@@ -145,8 +142,8 @@ namespace Mighty
 
 		public dynamic ResultsAsExpando(DbCommand cmd)
 		{
-			dynamic result = new ExpandoObject();
-			var resultDictionary = (IDictionary<string, object>)result;
+			dynamic e = new ExpandoObject();
+			var resultDictionary = e.AsDictionary();
 			for (int i = 0; i < cmd.Parameters.Count; i++)
 			{
 				var param = cmd.Parameters[i];
@@ -157,7 +154,7 @@ namespace Mighty
 					resultDictionary.Add(name, value == DBNull.Value ? null : value);
 				}
 			}
-			return result;
+			return e;
 		}
 
 		// The ones which really are the same cross-db don't need to be put into the plugin classes; plugin can be extended if required at a future point.
