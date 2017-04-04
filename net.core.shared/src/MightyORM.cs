@@ -11,7 +11,7 @@ using Mighty.DatabasePlugins;
 
 namespace Mighty
 {
-	public partial class MightyORM // (- wait till we're ready -) : API.MicroORM
+	public partial class MightyORM // (- wait till we're ready to actually implement! -) : API.MicroORM
 	{
 		protected string _connectionString;
 		protected DbProviderFactory _factory;
@@ -29,7 +29,7 @@ namespace Mighty
 		// (if neither primaryKeySequence nor primaryKeyRetrievalFunction are set (which is always the case for compound primary keys), you MUST specify non-null, non-default values for every column in your primary key
 		// before saving an object)
 		// *** okay, shite, how do we know if a compound key object is an insert or an update?)
-		public MightyORM(string connectionStringOrName = null, string table = null, string primaryKeyFields = null, string primaryKeySequence = null, string primaryKeyRetrievalFunction = null, string columns = null, ConnectionProvider connectionProvider = null)
+		public MightyORM(string connectionStringOrName = null, string table = null, string primaryKeyFields = null, string primaryKeySequence = null, string primaryKeyRetrievalFunction = null, string defaultColumns = null, ConnectionProvider connectionProvider = null)
 		{
 			if (connectionProvider == null)
 			{
@@ -54,7 +54,7 @@ namespace Mighty
 			_factory = connectionProvider.ProviderFactory;
 			Table = table;
 			PrimaryKeyFields = primaryKeyFields; // More
-			Columns = columns;
+			Columns = defaultColumns;
 		}
 
 		// mini-factory for non-table specific access

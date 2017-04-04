@@ -6,102 +6,75 @@ using System.Data.Common;
 
 namespace Mighty.Interfaces
 {
-	// Abstract class 'interface' for ORM and ADO.NET Data Access Wrapper methods.
+	// NEW new:
+	//	- clean support for Single with columns
+	//	- compound PKs
+	//	- cleaner support for sequences (incl. one less DB round-trip on sequence-based insert)
+
+	// Abstract class 'interface' for the ORM and ADO.NET Data Access Wrapper methods.
 	// Uses abstract class, not interface, because the semantics of interface means it can never have anything added to it!
 	// (See ... MS document about DB classes; SO post about intefaces)
+	//
+	// Notes:
+	//	- Any params type argument is ALWAYS last (it must be...)
+	//	- DbConnection is always last (or last before any params), except in the Single-with-columns overload where it is intentionally
+	//	  not in order to disambiguate the method calls.
+	//	- ALL database parameters (i.e. everything sent to the DB via args, inParams or ioParams) is ALWAYS passed in as a true database
+	//	  parameter under all circumstances - so can never be used for direct SQL injection. In general (i.e. assuming
+	//	  you aren't building SQL from the value yourself, anywhere) strings, etc., which are passed in will NOT need any escaping.
+	//
 	public abstract class MicroORM
 	{
 		// We need the schema so we can instantiate from form submit (or any other namevaluecollection-ish thing, via ToExpando),
-		// filtering to match columns; needs to buffer result
-		public IEnumerable<dynamic> TableInfo {get, set}
+		// filtering to match columns; needs to buffer itself
+		abstract public IEnumerable<dynamic> TableInfo { get; internal set; }
 
 		// We can implement prototype and defaultvalue(column)
 		// NB *VERY* useful for better PK handling; needs to do some buffering
-		public object ColumnDefault(string column);
+		abstract public object ColumnDefault(string column);
 
 		// Will instantiate item from superset, only including columns which match the table schema
-		// (read once from the database), (optionally) setting default values for any non-present columns
-		public dynamic CreateItemFrom(object superset, bool addNonPresentAsDefaults = true);
+		// (read once from the database), (optionally) setting default values for any non-present columns.
+		// If called with no args, will create a fully populated prototype.
+		// NB You do NOT need to use this - you can create new items to pass in to Mighty more or less however you want!
+		// (Of course, you do need to make sure that YOU don't pass in columns which aren't in the underlying table, or this will throw errors,
+		// but whether you call this method to ensure that is up to you.)
+		// (Any fields specified as PK will contain null or default; DB defined defaults for all other columns will be noticed, interpreted and applied where possible.)
+		abstract public dynamic NewItem(object superset = null, bool addNonPresentAsDefaults = true);
 
-		abstract public DbConnection OpenConnection();
-
-		abstract public IEnumerable<dynamic> Query(DbCommand command,
-			DbConnection connection = null);
-		// no connection, easy args
-		abstract public IEnumerable<dynamic> Query(string sql,
-			params object[] args);
-		abstract public IEnumerable<dynamic> QueryWithParams(string sql,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args);
-		abstract public IEnumerable<dynamic> QueryFromProcedure(string spName,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args);
-
-		abstract public IEnumerable<IEnumerable<dynamic>> QueryMultiple(DbCommand command,
-			DbConnection connection = null);
-		// no connection, easy args
-		abstract public IEnumerable<IEnumerable<dynamic>> QueryMultiple(string sql,
-			params object[] args);
-		abstract public IEnumerable<IEnumerable<dynamic>> QueryMultipleWithParams(string sql,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args);
-		abstract public IEnumerable<IEnumerable<dynamic>> QueryMultipleFromProcedure(string spName,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args);
-
-		abstract public int Execute(DbCommand command,
-			DbConnection connection = null);
-		// no connection, easy args
-		abstract public int Execute(string sql,
-			params object[] args);
-		// COULD add a RowCount class, like Cursor, to pick out the rowcount if required
-		abstract public dynamic ExecuteWithParams(string sql,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args);
-		abstract public dynamic ExecuteAsProcedure(string spName,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args);
-
-		abstract public object Scalar(DbCommand command,
-			DbConnection connection = null);
-		// no connection, easy args
-		abstract public object Scalar(string sql,
-			params object[] args);
-		abstract public object ScalarWithParams(string sql,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args);
-		abstract public object ScalarFromProcedure(string spName,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args);
-
-		// NB MUST return object because of MySQL ulong
+		// NB MUST return object not int because of MySQL ulong return type
 		// Can I *advertise* correct support for DBs with long types? (i.e. am I sure it does it?)
 		abstract public object Count(string columns = "*", string where = null,
+			params object[] args);
+		abstract public object Count(string columns = "*", string where = null,
+			DbConnection connection = null,
 			params object[] args);
 
 		// Use this also for MAX, MIN, SUM, AVG (basically it's scalar on current table)
 		abstract public object Aggregate(string expression, string where = null,
 			params object[] args);
-
+		abstract public object Aggregate(string expression, string where = null,
+			DbConnection connection = null,
+			params object[] args);
 
 		// ORM: Single from our table
-		abstract public dynamic Single(object key, string columns = null);
+		abstract public dynamic Single(object key, string columns = null,
+			DbConnection connection = null);
 
 		// I think there really are tricky problems with  this, aren't there?
 		// It's a problem because we've already told the user that they can set the columns,
 		// and now we're asking them to set them again; and not only that, it's getting in the
-		// way of the easy-to-use params-based api.
+		// way of the easy-to-use args-based api.
 		// We have to include columns (becasue I always want to use it), but the default HAS to
 		// be null or "" so that we don't automatically overwrite the columns they've already specified.
-		abstract public dynamic Single(string where, string columns = null, params object[] args);		
+		abstract public dynamic Single(string where,
+			params object[] args);
+		// THAT is it........ :-))))))
+		// DbConnection coming before columns spec is really useful, as it avoids any possibility of a column spec being misinterpreted as a first arg by mistake
+		abstract public dynamic Single(string where,
+			DbConnection connection = null,
+			string columns = null,
+			params object[] args);
 		
 		// WithParams version just in case; allows transactions for a start
 		abstract public dynamic SingleWithParams(string where, string columns = null,
@@ -109,35 +82,22 @@ namespace Mighty.Interfaces
 			DbConnection connection = null,
 			params object[] args);
 
-
 		// ORM
 		abstract public IEnumerable<dynamic> All(
 			string where = null, string orderBy = null, int limit = 0, string columns = null,
 			params object[] args);
+
 		abstract public IEnumerable<dynamic> AllWithParams(
 			string where = null, string orderBy = null, int limit = 0, string columns = null,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args);
 
-
-		// non-ORM (NB columns is only used in generating SQL, never in reading back data, so makes no
-		// sense on either of these)
-		abstract public dynamic Paged(string sql,
-			int pageSize = 20, int currentPage = 1,
-			DbConnection connection = null,
-			params object[] args);
-		abstract public dynamic PagedFromProcedure(string spName,
-			int pageSize = 20, int currentPage = 1,
-			DbConnection connection = null,
-			params object[] args);
-
-		// ORM
+		// ORM version (there is also a data wrapper version)
 		abstract public dynamic Paged(string where = null, string orderBy = null,
 			string columns = null, int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args);
-
 
 		// does update OR insert, per item
 		// in my NEW version, null or default value for type in PK will save as new, as well as no PK field
@@ -168,16 +128,26 @@ namespace Mighty.Interfaces
 
 		// save/insert/update one or more items
 		abstract public int Save(params object[] items);
+		abstract public int Save(DbConnection connection, params object[] items);
 		
 		abstract public int Insert(params object[] items);
+		abstract public int Insert(DbConnection connection, params object[] items);
+
 		abstract public int Update(params object[] items);
+		abstract public int Update(DbConnection connection, params object[] items);
 
 		// apply all fields which are present in item to the row matching key
 		abstract public int UpdateFrom(object partialItem, object key);
+		abstract public int UpdateFrom(object partialItem, object key,
+			DbConnection connection);
 
 		// apply all fields which are present in item to all rows matching where clause
 		// for safety you MUST specify the where clause yourself (use "1=1" to update all rows)
-		abstract public int UpdateFrom(object partialItem, string where, params object[] args);
+		abstract public int UpdateFrom(object partialItem, string where,
+			params object[] args);
+		abstract public int UpdateFrom(object partialItem, string where,
+			DbConnection connection,
+			params object[] args);
 
 		// delete item from table; what about deleting by object? (maybe key can be pk OR expando containing pk? no)
 		// also why the f does this fetch the item back before deleting it, when it's by PK? sod it, let the user
@@ -186,47 +156,29 @@ namespace Mighty.Interfaces
 		// I prefer this:
 		// delete one or more items
 		abstract public int Delete(params object[] items);
-		abstract public int DeleteKey(params object[] keys);
+		abstract public int Delete(DbConnection connection, params object[] items);
+		abstract public int DeleteByKey(params object[] keys);
+		abstract public int DeleteByKey(DbConnection connection, params object[] keys);
 		// for safety you MUST specify the where clause yourself (use "1=1" to delete all rows)
-		abstract public int Delete(string where, params object[] args);
-
-		// We also have validation, called on each object to be updated, before any saves, if a validator was passed in
-		//...
-
-		/// Hooks; false return => do nothing with this object but continue with the list
-		public bool Inserting(dynamic item) { return true; }
-		public void Inserted(dynamic item) {}
-		public bool Updating(dynamic item) { return true; }
-		public void Updated(dynamic item) {}
-		public bool Deleting(dynamic item) { return true; }
-		public void Deleted(dynamic item) {};
-
-		abstract public DbCommand CreateCommand(string sql,
-			DbConnection conn = null, // do we need (no) or want (not sure) this, here? it is a prime purpose of a command to have a connection, so why not?
+		abstract public int Delete(string where,
 			params object[] args);
-		abstract public DbCommand CreateCommandWithParams(string sql,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false,
-			DbConnection connection = null,
+		abstract public int Delete(string where,
+			DbConnection connection,
 			params object[] args);
 
-		// kv pair stuff for dropdowns, but it's not obvious you want your dropdown list in kv pair...
-		// it's a lot of extra code for this - you could add to kvpairs (whatever it's called) as
-		// an extension of IEnumerable<dynamic> ... if you can. That means almost no extra code.
-		// it is very easy for the user to do this conversion themselves
+#region User hooks
+		// false => do nothing with this object but continue with the list
+		virtual public bool Inserting(dynamic item) { return true; }
+		virtual public void Inserted(dynamic item) {}
+		// false => do nothing with this object but continue with the list
+		virtual public bool Updating(dynamic item) { return true; }
+		virtual public void Updated(dynamic item) {}
+		// false => do nothing with this object but continue with the list
+		virtual public bool Deleting(dynamic item) { return true; }
+		virtual public void Deleted(dynamic item) {}
 
-		// create item from form post, only filling in fields which are in the schema - not bad!
-		// (but the form post namevaluecollection is not in NET CORE1.1 anyway ... so what are they doing?
-		// no form posts per se in MVC, but what about that way I was reading back from a form, for files?)
-		// Oh bollocks, it was left out by mistake and a I can have it:
-		// https://github.com/dotnet/corefx/issues/10338
-
-		//For folks that hit missing types from one of these packages after upgrading to Microsoft.NETCore.UniversalWindowsPlatform they can reference the packages directly as follows.
-		//"System.Collections.NonGeneric": "4.0.1",
-		//"System.Collections.Specialized": "4.0.1", ****
-		//"System.Threading.Overlapped": "4.0.1",
-		//"System.Xml.XmlDocument": "4.0.1"
-
-		public bool NpgsqlAutoDereferenceCursors { get; set; } = true;
-		public int NpgsqlAutoDereferenceFetchSize { get; set; } = 10000;
-	}
+		// You could override this to establish, for example, the convention of using _ to separate schema/owner from table (just replace "_" with "." and return!)
+		virtual public string CreateTableNameFromClassName(string className) { return className; }
+#endregion
+    }
 }
