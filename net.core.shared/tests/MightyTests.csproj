@@ -13,4 +13,8 @@
     <PackageReference Include="System.Data.SqlClient" Version="4.3.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\src\Mighty.csproj" />
+  </ItemGroup>
+
 </Project>

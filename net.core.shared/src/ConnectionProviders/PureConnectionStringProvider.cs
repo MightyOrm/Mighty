@@ -1,4 +1,5 @@
 using System;
+using System.Text;
 
 namespace Mighty.ConnectionProviders
 {
@@ -7,7 +8,7 @@ namespace Mighty.ConnectionProviders
 		internal bool _usedAfterConfigFile;
 
 		// fluent API
-		internal public ConnectionProvider UsedAfterConfigFile()
+		internal ConnectionProvider UsedAfterConfigFile()
 		{
 			_usedAfterConfigFile = true;
 			return this;
@@ -18,7 +19,7 @@ namespace Mighty.ConnectionProviders
 		{
 			string providerName = null;
 			var extraMessage = _usedAfterConfigFile ? " (and is not a valid connection string name)" : "";
-			StringBuilder connectionString = new StringBuilder();
+			StringBuilder ConnectionString = new StringBuilder();
 			try
 			{
 				foreach (var configPair in connectionString.Split(';'))
@@ -32,8 +33,8 @@ namespace Mighty.ConnectionProviders
 						}
 						else
 						{
-							connectionString.Append(configPair);
-							connectionString.Append(";");
+							ConnectionString.Append(configPair);
+							ConnectionString.Append(";");
 						}
 					}
 				}
@@ -46,9 +47,9 @@ namespace Mighty.ConnectionProviders
 			{
 				throw new InvalidOperationException("Cannot find providerName=... in connection string passed to DynamicModel" + extraMessage);
 			}
-			SupportedDatabase = ProviderFactories.GetSupportedDb(providerName);
-			ProviderFactory = ProviderFactories.GetFactory(providerName);
-			ConnectionString = connectionString.ToString();
+			SupportedDatabase = MightyProviderFactories.GetSupportedDatabase(providerName);
+			ProviderFactory = MightyProviderFactories.GetFactory(providerName);
+			this.ConnectionString = ConnectionString.ToString();
 			return this;
 		}
 	}

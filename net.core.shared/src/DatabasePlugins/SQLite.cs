@@ -6,9 +6,9 @@ using System.Data.Common;
 
 namespace Mighty.DatabasePlugins
 {
-	internal class Sqlite : DatabasePlugin
+	internal class SQLite //: DatabasePlugin
 	{
-		internal override string GetProviderFactoryClassName(string loweredProviderName)
+		/*override*/ static internal string GetProviderFactoryClassName(string loweredProviderName)
 		{
 			switch (loweredProviderName)
 			{

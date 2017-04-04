@@ -107,5 +107,5 @@ namespace Mighty.Interfaces
 		//"System.Collections.Specialized": "4.0.1", ****
 		//"System.Threading.Overlapped": "4.0.1",
 		//"System.Xml.XmlDocument": "4.0.1"
-    }
+	}
 }

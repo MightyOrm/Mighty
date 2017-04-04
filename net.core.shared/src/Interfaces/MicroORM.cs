@@ -17,8 +17,8 @@ namespace Mighty.Interfaces
 	//
 	// Notes:
 	//	- Any params type argument is ALWAYS last (it must be...)
-	//	- DbConnection is always last (or last before any params), except in the Single-with-columns overload where it is intentionally
-	//	  not in order to disambiguate the method calls.
+	//	- DbConnection is always last (or last before any params), except in the Single-with-columns overload, where it needs to be where it is
+	//	  to play the very useful dual role of also disambiguating calls to this overload from calls to the simpler overload without columns.
 	//	- ALL database parameters (i.e. everything sent to the DB via args, inParams or ioParams) is ALWAYS passed in as a true database
 	//	  parameter under all circumstances - so can never be used for direct SQL injection. In general (i.e. assuming
 	//	  you aren't building SQL from the value yourself, anywhere) strings, etc., which are passed in will NOT need any escaping.
@@ -94,7 +94,7 @@ namespace Mighty.Interfaces
 		abstract public dynamic Single(string where,
 			params object[] args);
 		// THAT is it........ :-))))))
-		// DbConnection coming before columns spec is really useful, as it avoids any possibility of a column spec being misinterpreted as a first arg by mistake
+		// DbConnection coming before columns spec is really useful, as it avoids ambiguity between a column spec and a first string arg
 		abstract public dynamic Single(string where,
 			DbConnection connection = null,
 			string columns = null,
@@ -204,5 +204,5 @@ namespace Mighty.Interfaces
 		// You could override this to establish, for example, the convention of using _ to separate schema/owner from table (just replace "_" with "." and return!)
 		virtual public string CreateTableNameFromClassName(string className) { return className; }
 #endregion
-    }
+	}
 }

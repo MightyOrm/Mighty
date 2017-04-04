@@ -22,6 +22,7 @@ namespace Mighty
 	{
 		protected string _connectionString;
 		protected DbProviderFactory _factory;
+		private DatabasePlugin _plugin = null;
 
 		// these should all be properties
 		// initialise table name from class name, but only if not == MicroORM(!); get, set, throw
@@ -39,15 +40,15 @@ namespace Mighty
 		{
 			if (connectionProvider == null)
 			{
-#if !COREFX
-				connectionProvider = new ConfigFileConnectionProvider().Init(connectionStringOrName);
-				if (connectionProvider.ConnectionString == null)
-#endif
+// #if !COREFX
+// 				connectionProvider = new ConfigFileConnectionProvider().Init(connectionStringOrName);
+// 				if (connectionProvider.ConnectionString == null)
+// #endif
 				{
 					connectionProvider = new PureConnectionStringProvider()
-#if !COREFX
-						.UsedAfterConfigFile()
-#endif
+// #if !COREFX
+// 						.UsedAfterConfigFile()
+// #endif
 						.Init(connectionStringOrName);
 				}
 			}
@@ -72,7 +73,7 @@ namespace Mighty
 					TableName = CreateTableNameFromClassName(type.Name);
 				}
 			}
-            PrimaryKeys = primaryKeyFields.Split(',').Select(k => k.Trim()).ToList();
+			PrimaryKeys = primaryKeyFields.Split(',').Select(k => k.Trim()).ToList();
 			Columns = defaultColumns;
 		}
 
@@ -105,12 +106,12 @@ namespace Mighty
 				}
 				else
 				{
-					command = CreateCommandWithParams(sql, args, inParams, outParams, ioParams, returnParams, isProcedure, connection ?? localConn);
+					command = CreateCommandWithParams(sql, inParams, outParams, ioParams, returnParams, isProcedure, connection ?? localConn, args);
 				}
 				// manage wrapping transaction if required, and if we have not been passed an incoming connection
 				using (var trans = ((connection == null
 #if !COREFX
-					&& Transaction.Current == null
+					////&& Transaction.Current == null
 #endif
 					&& _plugin.RequiresWrappingTransaction(command)) ? localConn.BeginTransaction() : null))
 				{
@@ -159,9 +160,30 @@ namespace Mighty
 			return result;
 		}
 
+		// The ones which really are the same cross-db don't need to be put into the plugin classes; plugin can be extended if required at a future point.
 		private string BuildScalar(string expression)
 		{
-			return string.Format("SELECT {0} FROM {1}", expression, TableName)
+			return string.Format("SELECT {0} FROM {1}", expression, TableName);
 		}
+
+		public string CreateTableNameFromClassName(string className)
+		{
+			return className;
+		}
+
+#region Not Implemented - TEMP
+		public DbConnection OpenConnection()
+		{
+			throw new NotImplementedException();
+		}
+
+		public DbCommand CreateCommandWithParams(string sql,
+			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false,
+			DbConnection connection = null,
+			params object[] args)
+		{
+			throw new NotImplementedException();
+		}
+#endregion
 	}
 }

@@ -3,6 +3,9 @@ using System.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Dynamic;
+using System.Linq;
+using System.Reflection;
 
 namespace Mighty
 {
@@ -37,15 +40,15 @@ namespace Mighty
 			{
 				return Activator.CreateInstance(underlying);
 			}
-#if COREFX
+//#if COREFX
 			if(type.GetTypeInfo().IsValueType)
-#else
-			if(type.IsValueType)
-#endif
+//#else
+//			if(type.IsValueType)
+//#endif
 			{
 				return Activator.CreateInstance(type);
 			}
-			if(type == typeof(string))
+			if (type == typeof(string))
 			{
 				return "";
 			}
@@ -72,9 +75,9 @@ namespace Mighty
 
 		// Not sure whether this is useful or not... syntax is slightly nicer, and saves a little typing, even though functionality is obviously very simple.
 		// Presumably compiler removes any apparent inefficiency.
-		public static IDictionary<string, object> ToDictionary(this ExpandoObject object)
-		{
-			return (IDictionary<string, object>)object;
-		}
+		// public static IDictionary<string, object> ToDictionary(this ExpandoObject o)
+		// {
+		// 	return (IDictionary<string, object>)o;
+		// }
 	}
 }

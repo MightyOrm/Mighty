@@ -7,7 +7,6 @@ namespace Mighty
 	{
 		public ValidationException() : base()
 		{
-			throw new Exception()
 		}
 
 		public ValidationException(string message) : base(message)
