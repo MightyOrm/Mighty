@@ -1,5 +1,4 @@
 using System;
-using Mighty;
 using NUnit.Framework;
 
 namespace NUnit.Framework
