@@ -6,10 +6,20 @@ using System.Data.Common;
 
 namespace Mighty
 {
-	// There is no need to make these extension public (access modifiers on extension methods are relative to the package they are defined in,
-	// not relative to the package which they extend); making them public turns them into utilty methods provided as part of the microORM.
-	public static partial class PublicExtensions
+	// There is no need to make these extensions public (note that access modifiers on extension methods are relative to the package they are defined in,
+	// not relative to the package which they extend); making some of them public turns them into utilty methods which are provided as part of the microORM.
+	public static partial class ObjectExtensions
 	{
+#region Internals
+		internal static IEnumerable<dynamic> YieldResult(this DbDataReader rdr)
+		{
+			while(rdr.Read())
+			{
+				yield return rdr.RecordToExpando();
+			}
+		}
+#endregion
+
 		/// <remarks>
 		/// This supports all the types listed in ADO.NET DbParameter type-inference documentation https://msdn.microsoft.com/en-us/library/yy6y35y8(v=vs.110).aspx , except for byte[] and Object.
 		/// Although this method supports all these types, the various ADO.NET providers do not:

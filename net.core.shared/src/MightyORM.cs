@@ -16,7 +16,9 @@ namespace Mighty
 		protected string _connectionString;
 		protected DbProviderFactory _factory;
 
-		// should be properties
+		// these should all be properties
+		// initialise table name from class name, but only if not == MicroORM(!); get, set, throw
+		// exception if attempt to use it when not set
 		public string Table; // NB this may have a dot in to specify owner/schema, and then needs splitting by us, but ONLY when getting information schema
 		public string PrimaryKeyFields;
 		public string Columns;

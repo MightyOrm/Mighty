@@ -11,7 +11,9 @@ namespace Mighty
 		public DbProviderFactory ProviderFactory { get, protected set }
 		public SupportedDatabase SupportedDatabase { get, protected set }
 		public string ConnectionString { get, protected set }
-		// fluent API, must return itself at the end
-		abstract public ConnectionProvider Init(string connectionString);
+
+		// fluent API, must return itself at the end; should set all three public properties (may ignore connectionStringOrName input here if you wish,
+		// in which case you would pass null as the connectionStringOrName value to the MightyORM constructor)
+		abstract public ConnectionProvider Init(string connectionStringOrName);
 	}
 }

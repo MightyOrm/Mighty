@@ -4,7 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 
-namespace Mighty.Interface
+namespace Mighty.Interfaces
 {
 	// Abstract class 'interface' for ORM and ADO.NET Data Access Wrapper methods.
 	// Uses abstract class, not interface, because the semantics of interface means it can never have anything added to it!
@@ -99,11 +99,11 @@ namespace Mighty.Interface
 		// It's a problem because we've already told the user that they can set the columns,
 		// and now we're asking them to set them again; and not only that, it's getting in the
 		// way of the easy-to-use params-based api.
-		// We have to include columns, but the default HAS to be null or "*"so that we don't
-		// automatically overwrite the columns they've already specified.
+		// We have to include columns (becasue I always want to use it), but the default HAS to
+		// be null or "" so that we don't automatically overwrite the columns they've already specified.
 		abstract public dynamic Single(string where, string columns = null, params object[] args);		
 		
-		// WithParams version just in case, allows transaction for a start
+		// WithParams version just in case; allows transactions for a start
 		abstract public dynamic SingleWithParams(string where, string columns = null,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
@@ -121,7 +121,8 @@ namespace Mighty.Interface
 			params object[] args);
 
 
-		// non-ORM (NB columns is only used in generating SQL, so makes no sense on either of these)
+		// non-ORM (NB columns is only used in generating SQL, never in reading back data, so makes no
+		// sense on either of these)
 		abstract public dynamic Paged(string sql,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
