@@ -10,10 +10,15 @@ using System.Text;
 
 using Mighty.ConnectionProviders;
 using Mighty.DatabasePlugins;
+using Mighty.Interfaces;
 
 namespace Mighty
 {
-	public partial class MightyORM // (- wait till we're ready to actually implement! -) : API.MicroORM
+	public partial class MightyORM
+		// (- wait till we're ready to actually implement! -)
+		// : MicroORM
+		// , DataAccessWrapper
+		// , NpgsqlCursorController
 	{
 		protected string _connectionString;
 		protected DbProviderFactory _factory;

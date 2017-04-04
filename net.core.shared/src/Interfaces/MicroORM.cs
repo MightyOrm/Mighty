@@ -25,12 +25,36 @@ namespace Mighty.Interfaces
 	//
 	abstract public class MicroORM
 	{
-		// We need the schema so we can instantiate from form submit (or any other namevaluecollection-ish thing, via ToExpando),
-		// filtering to match columns; needs to buffer itself
-		abstract public IEnumerable<dynamic> TableInfo { get; internal set; }
+#region Properties
+		// initialise table name from class name, but only if we are a *subclass* of MightyORM(!)
+		// throw exception if attempt to use it when not set
+		// NB this may have a dot in to specify owner/schema, and then needs splitting by us, but ONLY when getting information schema
+		private string _TableName;
+		// this implementation should go in the actual class; and these definitions should be abstract
+		public string TableName {
+			get
+			{
+				if (_TableName == null)
+				{
+					throw new InvalidOperationException("No TableName available; this can be passed to the MightyORM constructor or automatically inferred from the class name of any sub-class of MighyORM");
+				}
+				return _TableName;
+			}
+			protected set
+			{
+				_TableName = value;
+			}
+		}
+		abstract public List<string> PrimaryKeys { get; protected set; }
+		abstract public string DefaultColumns { get; protected set; }
 
-		// We can implement prototype and defaultvalue(column)
-		// NB *VERY* useful for better PK handling; needs to do some buffering
+		// We need the table info so we can instantiate from form submit (or any other namevaluecollection-ish thing, via ToExpando),
+		// filtering to match columns; needs to buffer itself
+		abstract public IEnumerable<dynamic> TableInfo { get; protected set; }
+#endregion
+
+		// We can implement NewItem() and ColumnDefault()
+		// NB *VERY* useful for better PK handling; ColumnDefault needs to do buffering - actually, it doesn't because we may end up passing the very same object out twice
 		abstract public object ColumnDefault(string column);
 
 		// Will instantiate item from superset, only including columns which match the table schema
