@@ -4,18 +4,24 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 
-namespace Mighty.API
+namespace Mighty.Interface
 {
 	// Abstract class 'interface' for ORM and ADO.NET Data Access Wrapper methods.
 	// Uses abstract class, not interface, because the semantics of interface means it can never have anything added to it!
 	// (See ... MS document about DB classes; SO post about intefaces)
 	public abstract class MicroORM
 	{
-		// We need the schema so we can instantiate from submit (or any other namevaluecollection-ish thing via ToExpando), to match columns
-		//...
+		// We need the schema so we can instantiate from form submit (or any other namevaluecollection-ish thing, via ToExpando),
+		// filtering to match columns; needs to buffer result
+		public IEnumerable<dynamic> TableInfo {get, set}
 
 		// We can implement prototype and defaultvalue(column)
-		//...
+		// NB *VERY* useful for better PK handling; needs to do some buffering
+		public object ColumnDefault(string column);
+
+		// Will instantiate item from superset, only including columns which match the table schema
+		// (read once from the database), (optionally) setting default values for any non-present columns
+		public dynamic CreateItemFrom(object superset, bool addNonPresentAsDefaults = true);
 
 		abstract public DbConnection OpenConnection();
 
@@ -76,23 +82,29 @@ namespace Mighty.API
 			DbConnection connection = null,
 			params object[] args);
 
-		// use this also for MAX, MIN, SUM, AVG (basically it's scalar on current table)
-		// NB returns object because of MySQL ulong
-		abstract public object Count(string expression = "COUNT(*)", string where = "",
+		// NB MUST return object because of MySQL ulong
+		// Can I *advertise* correct support for DBs with long types? (i.e. am I sure it does it?)
+		abstract public object Count(string columns = "*", string where = null,
+			params object[] args);
+
+		// Use this also for MAX, MIN, SUM, AVG (basically it's scalar on current table)
+		abstract public object Aggregate(string expression, string where = null,
 			params object[] args);
 
 
 		// ORM: Single from our table
-		abstract public dynamic Single(object key, string columns = "*");
+		abstract public dynamic Single(object key, string columns = null);
 
 		// I think there really are tricky problems with  this, aren't there?
 		// It's a problem because we've already told the user that they can set the columns,
 		// and now we're asking them to set them again; and not only that, it's getting in the
 		// way of the easy-to-use params-based api.
-		abstract public dynamic Single(string where, string columns = "*", params object[] args);		
+		// We have to include columns, but the default HAS to be null or "*"so that we don't
+		// automatically overwrite the columns they've already specified.
+		abstract public dynamic Single(string where, string columns = null, params object[] args);		
 		
 		// WithParams version just in case, allows transaction for a start
-		abstract public dynamic SingleWithParams(string where, string columns = "*",
+		abstract public dynamic SingleWithParams(string where, string columns = null,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args);
@@ -100,10 +112,10 @@ namespace Mighty.API
 
 		// ORM
 		abstract public IEnumerable<dynamic> All(
-			string where = "", string orderBy = "", int limit = 0, string columns = "*",
+			string where = null, string orderBy = null, int limit = 0, string columns = null,
 			params object[] args);
 		abstract public IEnumerable<dynamic> AllWithParams(
-			string where = "", string orderBy = "", int limit = 0, string columns = "*",
+			string where = null, string orderBy = null, int limit = 0, string columns = null,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args);
@@ -120,8 +132,8 @@ namespace Mighty.API
 			params object[] args);
 
 		// ORM
-		abstract public dynamic Paged(string where = "", string orderBy = "",
-			string columns = "*", int pageSize = 20, int currentPage = 1,
+		abstract public dynamic Paged(string where = null, string orderBy = null,
+			string columns = null, int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args);
 
@@ -212,9 +224,6 @@ namespace Mighty.API
 		//"System.Collections.Specialized": "4.0.1", ****
 		//"System.Threading.Overlapped": "4.0.1",
 		//"System.Xml.XmlDocument": "4.0.1"
-
-		// schema retrieval stuff ...
-		// when and where is it used?
 
 		public bool NpgsqlAutoDereferenceCursors { get; set; } = true;
 		public int NpgsqlAutoDereferenceFetchSize { get; set; } = 10000;
