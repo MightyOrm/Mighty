@@ -68,7 +68,7 @@ namespace Mighty.Interfaces
 			DbConnection connection = null,
 			params object[] args);
 
-		// You must provide orderBy for a paged query; where is optional.
+		// You must provide orderBy for a paged query; where def'n is optional.
 		abstract public dynamic PagedFromSelect(string selectColumnsAndTables, string orderBy, string where = null,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,

@@ -25,8 +25,9 @@ namespace Mighty
 		// initialise table name from class name, but only if not == MicroORM(!); get, set, throw
 		// exception if attempt to use it when not set
 		public string TableName; // NB this may have a dot in to specify owner/schema, and then needs splitting by us, but ONLY when getting information schema
-		public List<string> PrimaryKeys;
-		public string Columns;
+		public string PrimaryKeyString; // un-separated PK(s)
+		public List<string> PrimaryKeyList; // separated PK(s)
+		public string DefaultColumns;
 
 		// primaryKeySequence is for sequence-based databases (Oracle, PostgreSQL) - there is no default, specify either null or empty string to disable and manually specify your PK values;
 		// primaryKeyRetrievalFunction is for non-sequence based databases (MySQL, SQL Server, SQLite) - defaults to default for DB, specify empty string to disable and manually specify your PK values;
@@ -70,8 +71,9 @@ namespace Mighty
 					TableName = CreateTableNameFromClassName(type.Name);
 				}
 			}
-			PrimaryKeys = primaryKeyFields.Split(',').Select(k => k.Trim()).ToList();
-			Columns = defaultColumns;
+			PrimaryKeyString = primaryKeyFields;
+			PrimaryKeyList = primaryKeyFields.Split(',').Select(k => k.Trim()).ToList();
+			DefaultColumns = defaultColumns;
 		}
 
 		// mini-factory for non-table specific access
