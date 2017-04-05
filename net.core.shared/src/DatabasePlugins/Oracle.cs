@@ -17,6 +17,9 @@ namespace Mighty.DatabasePlugins
 			}
 		}
 
+		// I think the SELECT in Oracle in Massive is WRONG, and we need to use this SQL if we want to limit things.
+		// (By the way, we probably don't, as we can just use the single result hint, can't we?)
+
 		// t outer table name does not conflict with any use of t table name in inner SELECT
 		// SELECT t.*
 		// FROM
