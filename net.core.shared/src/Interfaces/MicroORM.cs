@@ -9,6 +9,10 @@ namespace Mighty.Interfaces
 	//	- Compound PKs
 	//	- Cleaner support for sequences (incl. one less DB round-trip on sequence-based insert)
 	//	- With the new inner loop this really might be faster than Massive too. 'Kinell.
+	//  - True support for ulong for those ADO.NET providers which use it (MySQL...)
+	// To Add:
+	//  - Firebird(?)
+	//  - Generics(??)
 
 	// Abstract class 'interface' for the ORM and ADO.NET Data Access Wrapper methods.
 	// Uses abstract class, not interface, because the semantics of interface means it can never have anything added to it!

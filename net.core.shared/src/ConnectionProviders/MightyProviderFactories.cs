@@ -34,27 +34,33 @@ namespace Mighty.ConnectionProviders
 			return (DbProviderFactory)f.GetValue(null);
 		}
 
-		static private string GetProviderFactoryClassName(string providerName)
+		// less readable but it loops through the enum, so you just need to add a new class with the
+		// right name and add its name to the enum, and nothing else
+		static private object GetProviderFactoryEnumOrClassName(string providerName, bool returnClassName)
 		{
 			string loweredProviderName = providerName.ToLowerInvariant();
-			string result = MySQL.GetProviderFactoryClassName(loweredProviderName);
-			if (result == null) result = Oracle.GetProviderFactoryClassName(loweredProviderName);
-			if (result == null) result = PostgreSQL.GetProviderFactoryClassName(loweredProviderName);
-			if (result == null) result = SQLite.GetProviderFactoryClassName(loweredProviderName);
-			if (result == null) result = SQLServer.GetProviderFactoryClassName(loweredProviderName);
-			if (result == null) throw new InvalidOperationException("Unknown database provider: " + providerName);
-			return result;
+			foreach (var db in Enum.GetValues(typeof(SupportedDatabase)))
+			{
+				Type type = DatabasePlugin.GetPluginType((SupportedDatabase)db);
+				// string name = <type>.GetProviderFactoryClassName(loweredProviderName);
+				string className = (string)type.GetMethod(nameof(DatabasePlugin.GetProviderFactoryClassName)).Invoke(null, new object[] { loweredProviderName });
+				if (className != null)
+				{
+					if (returnClassName) return db;
+					else return className;
+				}
+			}
+			throw new InvalidOperationException("Unknown database provider: " + providerName);
+		}
+
+		static private string GetProviderFactoryClassName(string providerName)
+		{
+			return (string)GetProviderFactoryEnumOrClassName(providerName, false);
 		}
 
 		static internal SupportedDatabase GetSupportedDatabase(string providerName)
 		{
-			string loweredProviderName = providerName.ToLowerInvariant();
-			if (MySQL.GetProviderFactoryClassName(loweredProviderName) != null) return SupportedDatabase.MySQL;
-			else if (Oracle.GetProviderFactoryClassName(loweredProviderName) != null) return SupportedDatabase.Oracle;
-			else if (PostgreSQL.GetProviderFactoryClassName(loweredProviderName) != null) return SupportedDatabase.PostgreSQL;
-			else if (SQLite.GetProviderFactoryClassName(loweredProviderName) != null) return SupportedDatabase.SQLite;
-			else if (SQLServer.GetProviderFactoryClassName(loweredProviderName) != null) return SupportedDatabase.SQLServer;
-			else throw new InvalidOperationException("Unknown database provider: " + providerName);
+			return (SupportedDatabase)GetProviderFactoryEnumOrClassName(providerName, true);
 		}
 	}
 }

@@ -1,5 +1,6 @@
 using System.Data;
 using System.Data.Common;
+//using System.Reflection;
 
 namespace Mighty.DatabasePlugins
 {
@@ -26,5 +27,20 @@ namespace Mighty.DatabasePlugins
 		abstract internal bool SetAnonymousParameter(DbParameter p);
 		abstract internal bool IgnoresOutputTypes(DbParameter p);
 #endregion
+
+		public void foo()
+		{
+			System.Reflection.Type this.GetType();
+		}
+		// static internal Type GetPluginType(SupportedDatabase db)
+		// {
+		// 	var pluginClassName = "Massive.Plugin." + db.ToString();
+		// 	var type = Type.GetType(pluginClassName);
+		// 	if (type == null)
+		// 	{
+		// 		throw new NotImplementedException("Cannot find type " + pluginClassName);
+		// 	}
+		// 	return type;
+		// }
 	}
 }
