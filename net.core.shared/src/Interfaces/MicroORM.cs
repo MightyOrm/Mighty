@@ -134,7 +134,8 @@ namespace Mighty.Interfaces
 
 		// ORM version (there is also a data wrapper version)
 		// You must provider orderBy, except you don't have to as it will order by PK if you don't (or exception if there is no PK defined)
-		abstract public dynamic Paged(string where = null, string orderBy = null,
+		// columns (currently?) not first, as it's an override to something we (may) have already provided in the constructor...
+		abstract public dynamic Paged(string orderBy = null, string where = null,
 			string columns = null,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
