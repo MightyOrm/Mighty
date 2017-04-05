@@ -68,9 +68,8 @@ namespace Mighty.Interfaces
 			DbConnection connection = null,
 			params object[] args);
 
-		// non-ORM (NB columns is only used in generating SQL, never in reading back data, so makes no
-		// sense on either of these)
-		abstract public dynamic Paged(string sql,
+		// You must provide orderBy for a paged query; where is optional.
+		abstract public dynamic PagedFromSelect(string selectColumnsAndTables, string orderBy, string where = null,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args);
