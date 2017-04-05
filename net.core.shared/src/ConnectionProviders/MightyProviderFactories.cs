@@ -41,7 +41,7 @@ namespace Mighty.ConnectionProviders
 			string loweredProviderName = providerName.ToLowerInvariant();
 			foreach (var db in Enum.GetValues(typeof(SupportedDatabase)))
 			{
-				Type type = DatabasePlugin.GetPluginType((SupportedDatabase)db);
+				Type type = null; ////DatabasePlugin.GetPluginType((SupportedDatabase)db);
 				// string name = <type>.GetProviderFactoryClassName(loweredProviderName);
 				string className = (string)type.GetMethod(nameof(DatabasePlugin.GetProviderFactoryClassName)).Invoke(null, new object[] { loweredProviderName });
 				if (className != null)
