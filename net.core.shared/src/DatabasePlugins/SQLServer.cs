@@ -14,6 +14,8 @@ namespace Mighty.DatabasePlugins
 			}
 		}
 
+		// works with QUOTED_IDENTIFIER OFF OR ON;
+		// t outer table name does not conflict with any use of t table name in inner SELECT
 		// SELECT t.*
 		// FROM
 		// (
