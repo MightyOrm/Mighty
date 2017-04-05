@@ -50,7 +50,10 @@ namespace Mighty.Interfaces
 				_TableName = value;
 			}
 		}
-		abstract public List<string> PrimaryKeys { get; protected set; }
+		// probably similar exception processing for PrimaryKeyList, PrimaryKeyString and DefaultColumns...
+		// I think we just need private Get methods (!)
+		abstract public string PrimaryKeyString { get; protected set; }
+		abstract public List<string> PrimaryKeyList { get; protected set; }
 		abstract public string DefaultColumns { get; protected set; }
 
 		// We don't need this... but it might be sensible to make it visible; which leaves the question should it be the raw one passed in, or the processed one?
