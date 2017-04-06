@@ -52,8 +52,12 @@ namespace Mighty.ConnectionProviders
 			string loweredProviderName = providerName.ToLowerInvariant();
 			foreach (var type in DatabasePluginManager.GetInstalledPluginTypes())
 			{
-				// invokes static method GetProviderFactoryClassName(loweredProviderName)
-				string className = (string)type.GetMethod(nameof(DatabasePlugin.GetProviderFactoryClassName)).Invoke(null, new object[] { loweredProviderName });
+				// Invokes static public method GetProviderFactoryClassName(loweredProviderName).
+				// The DatabasePlugin subclass must implement this method, although there is no syntax to
+				// enforce this at complile time.
+				string className = (string)type
+									.GetMethod(nameof(DatabasePlugin.GetProviderFactoryClassName), BindingFlags.Static)
+									.Invoke(null, new object[] { loweredProviderName });
 				if (className != null)
 				{
 					if (returnClassName) return className;
