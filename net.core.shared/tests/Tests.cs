@@ -3,7 +3,7 @@ using NUnit.Framework;
 
 using Mighty;
 
-namespace Massive.Tests.MySql
+namespace Mighty.Tests.MySql
 {
 	public class MyNVC : NameValueCollection
 	{

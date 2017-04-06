@@ -40,7 +40,7 @@ namespace Mighty.ConnectionProviders
 			}
 			else
 			{
-				// may be null if there is no such connection string name; Massive will switch to using the pure connection string provider
+				// may be null if there is no such connection string name; MightyORM will switch to using the pure connection string provider instead
 				connectionStringSettings = ConfigurationManager.ConnectionStrings[connectionStringName];
 			}
 			return connectionStringSettings;
