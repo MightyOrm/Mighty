@@ -49,27 +49,19 @@ namespace Mighty.DatabasePlugins
 #region DbParameter
 		override public void SetValue(DbParameter p, object value)
 		{
-			p.Value = value;
-			var valueAsString = value as string;
-			if (valueAsString != null)
-			{
-				// let the query optimizer have a fixed size to work with for reasonable-sized strings
-				p.Size = valueAsString.Length > 4000 ? -1 : 4000;
-				return;
-			}
+			base.SetValue(p, value);
+			if (value is string) return;
 			var valueAsBool = value as bool?;
 			if (valueAsBool != null)
 			{
 				// this is required for our bool fix-up for Oracle/MySQL, and does not change a thing on Devart
 				p.DbType = DbType.Boolean;
-				return;
 			}
 			var valueAsSByte = value as sbyte?;
 			if (valueAsSByte != null)
 			{
-				// we have to set this to what it already is at this point, to ensure they know we don't want it to change
+				// we have to set this to what it already is at this point, so that they know we really want to use the auto-assigned type
 				p.SetRuntimeEnumProperty("MySqlType", "TinyInt", false);
-				return;
 			}
 		}
 

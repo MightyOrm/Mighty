@@ -41,48 +41,9 @@ namespace Mighty.DatabasePlugins
 #endregion
 
 #region Prefix/deprefix parameters
-		// Needs to know whether this is for use in DbParameter name (cmd=null) or for escaping within the SQL fragment itself,
-		// and if it is for a DbParameter whether it is used for a stored procedure or for a SQL fragment.
 		override public string PrefixParameterName(string rawName, DbCommand cmd = null)
 		{
-			throw new NotImplementedException();
-		}
-		// Will always be from a DbParameter, but needs to know whether it was used for
-		// a stored procedure or for a SQL fragment.
-		override public string DeprefixParameterName(string dbParamName, DbCommand cmd)
-		{
-			throw new NotImplementedException();
-		}
-#endregion
-
-#region DbParameter
-		override public void SetValue(DbParameter p, object value)
-		{
-			throw new NotImplementedException();
-		}
-		override public object GetValue(DbParameter p)
-		{
-			throw new NotImplementedException();
-		}
-		override public void SetDirection(DbParameter p, ParameterDirection direction)
-		{
-			throw new NotImplementedException();
-		}
-		override public bool SetCursor(DbParameter p, object value)
-		{
-			throw new NotImplementedException();
-		}
-		override public bool IsCursor(DbParameter p)
-		{
-			throw new NotImplementedException();
-		}
-		override public bool SetAnonymousParameter(DbParameter p)
-		{
-			throw new NotImplementedException();
-		}
-		override public bool IgnoresOutputTypes(DbParameter p)
-		{
-			throw new NotImplementedException();
+			return (cmd != null) ? rawName : ("@" + rawName);
 		}
 #endregion
 	}

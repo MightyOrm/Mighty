@@ -7,6 +7,8 @@ namespace Mighty.DatabasePlugins
 {
 	abstract public class DatabasePlugin
 	{
+		protected const string CRLF = "\r\n";
+		
 		// the instance which we are pluged in to
 		public MightyORM mighty { get; internal set; }
 
@@ -34,30 +36,30 @@ namespace Mighty.DatabasePlugins
 
 #region SQL
 		// is the same for every (currently supported?) database
-		virtual public string BuildSelect(string columns, string tableName, string where, string orderBy)
+		virtual public string BuildSelect(string columns, string tableName, string where, string orderBy = null)
 		{
-			return string.Format("SELECT {0} FROM {1}{2}{3}",
+			return string.Format("SELECT {0} FROM {1}{2}{3};",
 				columns, tableName, mighty.Thingify("WHERE", where), mighty.Thingify("ORDER BY", orderBy));
 		}
 
 		// is the same for every (currently supported?) database
 		virtual public string BuildDelete(string tableName, string where)
 		{
-			return string.Format("DELETE FROM {0}{1}",
+			return string.Format("DELETE FROM {0}{1};",
 				tableName, mighty.Thingify("WHERE", where));
 		}
 
 		// is the same for every (currently supported?) database
 		virtual public string BuildInsert(string tableName, string columns, string values)
 		{
-			return string.Format("INSERT {0} ({1}) VALUES {2}",
+			return string.Format("INSERT {0} ({1}) VALUES {2};",
 				tableName, columns, values);
 		}
 
 		// is the same for every (currently supported?) database
 		virtual public string BuildUpdate(string tableName, string values, string where)
 		{
-			return string.Format("UPDATE {0} SET {1}{2}",
+			return string.Format("UPDATE {0} SET {1}{2};",
 				tableName, values, mighty.Thingify("WHERE", where));
 		}
 
@@ -95,7 +97,15 @@ namespace Mighty.DatabasePlugins
 
 #region DbParameter
 		// Set Value (and implicitly DbType) for single parameter, adding support for provider unsupported types, etc.
-		abstract public void SetValue(DbParameter p, object value);
+		virtual public void SetValue(DbParameter p, object value)
+		{
+			p.Value = value;
+			var valueAsString = value as string;
+			if(valueAsString != null)
+			{
+				p.Size = valueAsString.Length > 4000 ? -1 : 4000;
+			}
+		}
 
 		// Get the output Value from single parameter, adding support for provider unsupported types, etc.
 		virtual public object GetValue(DbParameter p) { return p.Value; }

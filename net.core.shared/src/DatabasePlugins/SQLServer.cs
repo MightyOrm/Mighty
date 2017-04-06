@@ -25,12 +25,34 @@ namespace Mighty.DatabasePlugins
 		override public string BuildPagingQuery(string columns, string tablesAndJoins, string orderBy, string where,
 			int limit, int offset)
 		{
-			throw new NotImplementedException();
+			string CountQuery = BuildSelect("COUNT(*)", mighty.Unthingify("FROM", tablesAndJoins), where);
+
+			// works with QUOTED_IDENTIFIER OFF or ON
+			//
+			// 't' outer table name will not conflict with any use of 't' table name in inner SELECT
+			//
+			// the idea is to to call the column ROW_NUMBER() and then remove it from any results, if we are going to be
+			// consistent across DBs - but maybe we don't need to be;
+			//
+			string PagingQuery =
+				string.Format("SELECT t.*" + CRLF +
+							  "FROM" + CRLF +
+							  "(" + CRLF +
+							  "		SELECT ROW_NUMBER() OVER ({0}) [ROW_NUMBER()], {1}" + CRLF +
+							  "		FROM {2}" + CRLF +
+							  "		WHERE {3}" + CRLF +
+							  ") t" + CRLF +
+							  "WHERE {4}[ROW_NUMBER()] < {5}" + CRLF +
+							  "ORDER BY [ROW_NUMBER()];",
+					mighty.Thingify("ORDER BY", orderBy),
+					mighty.Unthingify("SELECT", columns),
+					mighty.Unthingify("FROM", tablesAndJoins),
+					mighty.Thingify("WHERE", where),
+					offset > 0 ? string.Format("[ROW_NUMBER()] > {0} AND ", offset) : "",
+					limit + 1
+				);
+			return CountQuery + CRLF + PagingQuery;
 		}
-		// works with QUOTED_IDENTIFIER OFF OR ON;
-		// t outer table name does not conflict with any use of t table name in inner SELECT
-		// we need to call the column ROW_NUMBER() and then remove it from any results, if we are going to be consistent across DBs;
-		// note that first number is offset, and second number is offset + limit + 1
 		// SELECT t.*
 		// FROM
 		// (
@@ -43,48 +65,9 @@ namespace Mighty.DatabasePlugins
 #endregion
 
 #region Prefix/deprefix parameters
-		// Needs to know whether this is for use in DbParameter name (cmd=null) or for escaping within the SQL fragment itself,
-		// and if it is for a DbParameter whether it is used for a stored procedure or for a SQL fragment.
 		override public string PrefixParameterName(string rawName, DbCommand cmd = null)
 		{
-			throw new NotImplementedException();
-		}
-		// Will always be from a DbParameter, but needs to know whether it was used for
-		// a stored procedure or for a SQL fragment.
-		override public string DeprefixParameterName(string dbParamName, DbCommand cmd)
-		{
-			throw new NotImplementedException();
-		}
-#endregion
-
-#region DbParameter
-		override public void SetValue(DbParameter p, object value)
-		{
-			throw new NotImplementedException();
-		}
-		override public object GetValue(DbParameter p)
-		{
-			throw new NotImplementedException();
-		}
-		override public void SetDirection(DbParameter p, ParameterDirection direction)
-		{
-			throw new NotImplementedException();
-		}
-		override public bool SetCursor(DbParameter p, object value)
-		{
-			throw new NotImplementedException();
-		}
-		override public bool IsCursor(DbParameter p)
-		{
-			throw new NotImplementedException();
-		}
-		override public bool SetAnonymousParameter(DbParameter p)
-		{
-			throw new NotImplementedException();
-		}
-		override public bool IgnoresOutputTypes(DbParameter p)
-		{
-			throw new NotImplementedException();
+			return (cmd != null) ? rawName : ("@" + rawName);
 		}
 #endregion
 	}

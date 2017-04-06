@@ -89,11 +89,13 @@ namespace Mighty
 
 		public string Thingify(string thing, string sql, bool addLeadingSpace = true)
 		{
+			if (string.IsNullOrWhiteSpace(thing)) return string.Empty;
 			throw new NotImplementedException();
 		}
 
 		public string Unthingify(string thing, string sql)
 		{
+			if (string.IsNullOrWhiteSpace(thing)) return string.Empty;
 			throw new NotImplementedException();
 		}
 

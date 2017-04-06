@@ -38,17 +38,6 @@ namespace Mighty.DatabasePlugins
 #endregion
 
 #region DbParameter
-		override public void SetValue(DbParameter p, object value)
-		{
-			p.Value = value;
-			var valueAsString = value as string;
-			if (valueAsString != null)
-			{
-				// let the query optimizer have a fixed size to work with for reasonable-sized strings
-				p.Size = valueAsString.Length > 4000 ? -1 : 4000;
-			}
-		}
-
 		override public void SetDirection(DbParameter p, ParameterDirection direction)
 		{
 			// PostgreSQL/Npgsql specific fix: if used, return params always return unchanged; return values must
