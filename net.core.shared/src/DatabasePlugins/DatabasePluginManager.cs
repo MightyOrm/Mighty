@@ -7,55 +7,24 @@ namespace Mighty.DatabasePlugins
 {
 	public class DatabasePluginManager
 	{
-		// for locking access to the list of default + registered database plugins
-		private static ConnectionState _initState; // closed (default value), connecting, open
-        private static List<Type> _installedPluginTypes;
-        private static object _lockobj = new object();
-
-		// Thread-safe initialization based on Microsoft DbProviderFactories reference 
-		// https://referencesource.microsoft.com/#System.Data/System/Data/Common/DbProviderFactories.cs
-		// This method doesn't need to be public, but it seems friendly/useful to make it so!
+		// I think this method doesn't need to be public, but it seems friendly/useful to make it be
         static public List<Type> GetInstalledPluginTypes() {
             Initialize();
             return _installedPluginTypes;
         }
 
-		// register a new database plugin for use with PureConnectionStringProvider
-		// (If are going to pass the type of your DatabasePlugin via your own subclass of ConnectionProvider
-		// you do not need to register it here; this registers unknown plugins for use with the ProviderName
-		// in ConnectionString feature.)
-		// <remarks>This can be tested by registering an existing plugin with a silly name!</remarks>
+		// Register a new database plugin for use with PureConnectionStringProvider
+		// (If are going to pass the type of your own DatabasePlugin via your own subclass of
+		// ConnectionProvider you do not need to register here; this registers unknown plugins
+		// for use with the ProviderName in ConnectionString feature.)
+		// <remarks>This approach can be tested by registering an existing plugin with a silly name..!</remarks>
 		static public void RegisterPlugin(Type pluginType)
 		{
+			// no incorrect type exception here - a perfectly meaningful exception will be thrown as soon as Mighty tries to use this
 			GetInstalledPluginTypes().Add(pluginType);
 		}
- 
-        static private void Initialize() {
-            if (ConnectionState.Open != _initState) {
-                lock (_lockobj) {
-                    switch(_initState) {
-                    case ConnectionState.Closed:
-						// only relevant if the same thread which has the lock can recurse back into here while we
-						// are initialising (any other thread can only see Closed or Open)
-                        _initState = ConnectionState.Connecting;
-                        try {
-							AssembleDefaultPlugins();
-                        }
-                        finally {
-							// try-catch ensures that even after exception we register that Initialize has been done once
-                            _initState = ConnectionState.Open;
-                        }
-                        break;
-                    case ConnectionState.Connecting:
-                    case ConnectionState.Open:
-                        break;
-                    default:
-						throw new Exception("unexpected state");
-                    }
-                }
-            }
-        }
 
+		// Use reflection to find the plugins; only call this from inside the thread-safe initializer
 		static private void AssembleDefaultPlugins()
 		{
 			_installedPluginTypes = new List<Type>();
@@ -70,5 +39,53 @@ namespace Mighty.DatabasePlugins
 				}
 			}
 		}
+
+#region Thread-safe initializer 
+		// Thread-safe initialization based on Microsoft DbProviderFactories reference 
+		// https://referencesource.microsoft.com/#System.Data/System/Data/Common/DbProviderFactories.cs
+		
+		// fields for thread safe access to the list of default + registered database plugins
+		private static ConnectionState _initState; // closed (default value), connecting, open
+        private static List<Type> _installedPluginTypes;
+        private static object _lockobj = new object();
+
+        static private void Initialize()
+		{
+			// MS code (re-)uses database connection states
+            if (_initState != ConnectionState.Open)
+			{
+                lock (_lockobj)
+				{
+                    switch (_initState)
+					{
+						case ConnectionState.Closed:
+							// 'Connecting' state only relevant if the thread which has the lock can recurse back into here
+							// while we are initialising (any other thread can only see Closed or Open)
+							_initState = ConnectionState.Connecting;
+							try
+							{
+								AssembleDefaultPlugins();
+							}
+							catch
+							{
+								// try-catch  (or try-finally) ensures that even after exception we register that
+								// Initialize has been called
+								_initState = ConnectionState.Open;
+								// NB: MS reference code was a finally, with no re-throw
+								throw;
+							}
+							break;
+
+						case ConnectionState.Connecting:
+						case ConnectionState.Open:
+							break;
+
+						default:
+							throw new Exception("unexpected state");
+					}
+                }
+            }
+        }
+#endregion
 	}
 }

@@ -20,6 +20,6 @@ To the extent that I've succeeded, this might make it look as if certain bits of
 
 If the underlying libraries will throw a meaningful exception then *don't* wrap it up in an another exception.
 
-This means that a lot of code in Mighty (and actually, in Massive) looks like it isn't really bothering with exception handling. This is not necessarily true. If the exception thrown by the underlying library would already be a comprehensible, meaningful report of the problem to someone coding against this microORM (and if it's a problem for which you would want an exception thrown anyway) then the coding style here is - do nothing!
+This means that a lot of code in Mighty (and actually, in Massive) looks like it isn't really bothering with exception handling. This is not necessarily true. If the exception thrown by the underlying library would already be a comprehensible, meaningful report of the problem to someone coding against this microORM (and if it's a problem for which you would want an exception thrown, anyway) then the coding style here is - do nothing!
 
 That means: think about it first, and make a conscious decision! But a reasonable decision (and the recommended decision, where possible, in this codebase) is to do nothing. This keeps the codebase small, readable and maintainable.
