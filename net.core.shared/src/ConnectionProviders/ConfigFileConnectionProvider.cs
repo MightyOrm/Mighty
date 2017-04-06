@@ -18,7 +18,7 @@ namespace Mighty.ConnectionProviders
 				string providerName = connectionStringSettings.providerName;
 				if (providerName != null)
 				{
-					SupportedDatabase = GetSupportedDatabaseFromProviderName(providerName);
+					DatabasePluginType = MightyProviderFactories.GetDatabasePluginAsType(providerName);
 					ProviderFactory = DbProviderFactories.GetFactory(providerName);
 				}
 			}

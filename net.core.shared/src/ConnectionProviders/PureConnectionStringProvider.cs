@@ -47,8 +47,8 @@ namespace Mighty.ConnectionProviders
 			{
 				throw new InvalidOperationException("Cannot find providerName=... in connection string passed to DynamicModel" + extraMessage);
 			}
-			SupportedDatabase = MightyProviderFactories.GetSupportedDatabase(providerName);
-			ProviderFactory = MightyProviderFactories.GetFactory(providerName);
+			DatabasePluginType = MightyProviderFactories.GetDatabasePluginAsType(providerName);
+			ProviderFactoryInstance = MightyProviderFactories.GetFactory(providerName);
 			this.ConnectionString = ConnectionString.ToString();
 			return this;
 		}

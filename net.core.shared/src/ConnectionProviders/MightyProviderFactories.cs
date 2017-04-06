@@ -43,18 +43,17 @@ namespace Mighty.ConnectionProviders
 
 		// less readable but it loops through the enum, so you just need to add a new class with the
 		// right name and add its name to the enum, and nothing else
-		static private object GetProviderFactoryEnumOrClassName(string providerName, bool returnClassName)
+		static private object GetProviderFactoryClassNameOrDatabasePluginType(string providerName, bool returnClassName)
 		{
 			string loweredProviderName = providerName.ToLowerInvariant();
-			foreach (var db in Enum.GetValues(typeof(SupportedDatabase)))
+			foreach (var type in DatabasePluginManager.GetInstalledPluginTypes())
 			{
-				Type type = DatabasePlugin.GetPluginType((SupportedDatabase)db);
-				// string name = <type>.GetProviderFactoryClassName(loweredProviderName);
+				// invokes static method GetProviderFactoryClassName(loweredProviderName)
 				string className = (string)type.GetMethod(nameof(DatabasePlugin.GetProviderFactoryClassName)).Invoke(null, new object[] { loweredProviderName });
 				if (className != null)
 				{
-					if (returnClassName) return db;
-					else return className;
+					if (returnClassName) return className;
+					else return type;
 				}
 			}
 			throw new InvalidOperationException("Unknown database provider: " + providerName);
@@ -62,12 +61,12 @@ namespace Mighty.ConnectionProviders
 
 		static private string GetProviderFactoryClassName(string providerName)
 		{
-			return (string)GetProviderFactoryEnumOrClassName(providerName, false);
+			return (string)GetProviderFactoryClassNameOrDatabasePluginType(providerName, false);
 		}
 
-		static internal SupportedDatabase GetSupportedDatabase(string providerName)
+		static internal Type GetDatabasePluginAsType(string providerName)
 		{
-			return (SupportedDatabase)GetProviderFactoryEnumOrClassName(providerName, true);
+			return (Type)GetProviderFactoryClassNameOrDatabasePluginType(providerName, true);
 		}
 	}
 }

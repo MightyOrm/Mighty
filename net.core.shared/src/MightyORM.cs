@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Dynamic;
 using System.Linq;
+using System.Reflection;
 
 using Mighty.ConnectionProviders;
 using Mighty.DatabasePlugins;
@@ -56,19 +57,23 @@ namespace Mighty
 			}
 
 			_connectionString = connectionProvider.ConnectionString;
-			_factory = connectionProvider.ProviderFactory;
+			_factory = connectionProvider.ProviderFactoryInstance;
+			Type pluginType = connectionProvider.DatabasePluginType;
+			_plugin = (DatabasePlugin)Activator.CreateInstance(pluginType, false);
+			_plugin.mightyInstance = this;
+
 			if (tableName != null)
 			{
 				TableName = tableName;
 			}
 			else
 			{
-				var type = this.GetType();
-				// enforce subclass
-				// (otherwise we work with no table name and data wrapper but not ORM features are available)
-				if (type != typeof(MightyORM))
+				var me = this.GetType();
+				// leave table name unset if we are not a true sub-class
+				// test enforces strict sub-class, does not pass for an instance of the class itself
+				if (me.GetTypeInfo().IsSubclassOf(typeof(MightyORM)))
 				{
-					TableName = CreateTableNameFromClassName(type.Name);
+					TableName = CreateTableNameFromClassName(me.Name);
 				}
 			}
 			PrimaryKeyString = primaryKeyFields;
@@ -80,19 +85,6 @@ namespace Mighty
 		static public MightyORM DB(string connectionStringOrName = null)
 		{
 			return new MightyORM(connectionStringOrName);
-		}
-
-		private DatabasePlugin GetPlugin(SupportedDatabase supportedDatabase)
-		{
-			var pluginClassName = "Mighty.Plugins." + supportedDatabase.ToString();
-			var type = Type.GetType(pluginClassName);
-			if (type == null)
-			{
-				throw new NotImplementedException("Cannot find type " + pluginClassName);
-			}
-			var plugin = (DatabasePlugin)Activator.CreateInstance(type, false);
-			plugin._mightyInstance = this;
-			return plugin;
 		}
 
 		private IEnumerable<T> QueryNWithParams<T>(string sql, object args, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, DbConnection connection = null, DbCommand command = null)

@@ -4,39 +4,28 @@ using System.Data.Common;
 
 namespace Mighty.DatabasePlugins
 {
-	abstract internal class DatabasePlugin
+	abstract public class DatabasePlugin
 	{
-		internal MightyORM _mightyInstance;
+		public MightyORM mightyInstance { get; internal set; }
 
-		abstract internal string GetProviderFactoryClassName(string providerName);
+		abstract public string GetProviderFactoryClassName(string providerName);
 
-		abstract internal string PrefixParameterName(string rawName, DbCommand cmd = null);
-		abstract internal string DeprefixParameterName(string dbParamName, DbCommand cmd);
+		abstract public string PrefixParameterName(string rawName, DbCommand cmd = null);
+		abstract public string DeprefixParameterName(string dbParamName, DbCommand cmd);
 
 #region DbCommand
-		abstract internal DbDataReader ExecuteDereferencingReader(DbCommand cmd, DbConnection conn);
-		abstract internal bool RequiresWrappingTransaction(DbCommand cmd);
+		abstract public DbDataReader ExecuteDereferencingReader(DbCommand cmd, DbConnection conn);
+		abstract public bool RequiresWrappingTransaction(DbCommand cmd);
 #endregion
 
 #region DbParameter
-		abstract internal void SetDirection(DbParameter p, ParameterDirection direction);
-		abstract internal void SetValue(DbParameter p, object value);
-		abstract internal object GetValue(DbParameter p);
-		abstract internal bool SetCursor(DbParameter p, object value);
-		abstract internal bool IsCursor(DbParameter p);
-		abstract internal bool SetAnonymousParameter(DbParameter p);
-		abstract internal bool IgnoresOutputTypes(DbParameter p);
+		abstract public void SetDirection(DbParameter p, ParameterDirection direction);
+		abstract public void SetValue(DbParameter p, object value);
+		abstract public object GetValue(DbParameter p);
+		abstract public bool SetCursor(DbParameter p, object value);
+		abstract public bool IsCursor(DbParameter p);
+		abstract public bool SetAnonymousParameter(DbParameter p);
+		abstract public bool IgnoresOutputTypes(DbParameter p);
 #endregion
-
-		static internal Type GetPluginType(SupportedDatabase db)
-		{
-			var pluginClassName = "Massive.Plugin." + db.ToString();
-			var type = Type.GetType(pluginClassName);
-			if (type == null)
-			{
-				throw new NotImplementedException("Cannot find type " + pluginClassName);
-			}
-			return type;
-		}
 	}
 }
