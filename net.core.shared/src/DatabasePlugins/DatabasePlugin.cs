@@ -8,6 +8,8 @@ namespace Mighty.DatabasePlugins
 	abstract public class DatabasePlugin
 	{
 		protected const string CRLF = "\r\n";
+		// This is a weird column name, but it is a column name, it gets escaped in the DBs which need it.
+		internal const string ROWCOL = "ROW_NUMBER()";
 		
 		// the instance which we are pluged in to
 		public MightyORM mighty { get; internal set; }

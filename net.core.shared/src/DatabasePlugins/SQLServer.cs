@@ -38,18 +38,18 @@ namespace Mighty.DatabasePlugins
 				string.Format("SELECT t.*" + CRLF +
 							  "FROM" + CRLF +
 							  "(" + CRLF +
-							  "		SELECT ROW_NUMBER() OVER ({0}) [ROW_NUMBER()], {1}" + CRLF +
-							  "		FROM {2}" + CRLF +
-							  "		WHERE {3}" + CRLF +
+							  "    SELECT ROW_NUMBER() OVER ({3}) [" + ROWCOL + "], {0}" + CRLF +
+							  "    FROM {1}" + CRLF +
+							  "{2}" +
 							  ") t" + CRLF +
-							  "WHERE {4}[ROW_NUMBER()] < {5}" + CRLF +
-							  "ORDER BY [ROW_NUMBER()];",
-					mighty.Thingify("ORDER BY", orderBy),
+							  "WHERE {5}[" + ROWCOL + "] < {4}" + CRLF +
+							  "ORDER BY [" + ROWCOL + "];",
 					mighty.Unthingify("SELECT", columns),
 					mighty.Unthingify("FROM", tablesAndJoins),
-					mighty.Thingify("WHERE", where),
-					offset > 0 ? string.Format("[ROW_NUMBER()] > {0} AND ", offset) : "",
-					limit + 1
+					where == null ? "" : string.Format("    {0}" + CRLF, mighty.Thingify("WHERE", where)),
+					mighty.Thingify("ORDER BY", orderBy),
+					limit + 1,
+					offset > 0 ? string.Format("{0} > {1} AND ", "{0}", offset) : ""
 				);
 			return CountQuery + CRLF + PagingQuery;
 		}
