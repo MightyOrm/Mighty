@@ -39,15 +39,15 @@ namespace Mighty
 		{
 			if (connectionProvider == null)
 			{
-// #if !COREFX
-// 				connectionProvider = new ConfigFileConnectionProvider().Init(connectionStringOrName);
-// 				if (connectionProvider.ConnectionString == null)
-// #endif
+#if !COREFX
+				connectionProvider = new ConfigFileConnectionProvider().Init(connectionStringOrName);
+				if (connectionProvider.ConnectionString == null)
+#endif
 				{
 					connectionProvider = new PureConnectionStringProvider()
-// #if !COREFX
-// 						.UsedAfterConfigFile()
-// #endif
+#if !COREFX
+						.UsedAfterConfigFile()
+#endif
 						.Init(connectionStringOrName);
 				}
 			}
@@ -102,7 +102,8 @@ namespace Mighty
 				// manage wrapping transaction if required, and if we have not been passed an incoming connection
 				using (var trans = ((connection == null
 #if !COREFX
-					////&& Transaction.Current == null
+					// TransactionScope support
+					&& Transaction.Current == null
 #endif
 					&& _plugin.RequiresWrappingTransaction(command)) ? localConn.BeginTransaction() : null))
 				{

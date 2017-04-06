@@ -112,11 +112,11 @@ namespace Mighty
 			{
 				return Activator.CreateInstance(underlying);
 			}
-//#if COREFX
+#if COREFX
 			if(type.GetTypeInfo().IsValueType)
-//#else
-//			if(type.IsValueType)
-//#endif
+#else
+			if(type.IsValueType)
+#endif
 			{
 				return Activator.CreateInstance(type);
 			}

@@ -8,7 +8,9 @@ namespace Mighty.DatabasePlugins
 			{
 				case "mysql.data.mysqlclient":
 #if COREFX
-					//return "MySql.Data.MySqlClient.MySqlClientFactory, MySql.Data.Core"; // older/beta version
+					// was needed for older/beta version; can remove this conditional code change since
+					// they're now the same
+					//return "MySql.Data.MySqlClient.MySqlClientFactory, MySql.Data.Core";
 					return "MySql.Data.MySqlClient.MySqlClientFactory, MySql.Data";
 #else
 					return "MySql.Data.MySqlClient.MySqlClientFactory, MySql.Data";
