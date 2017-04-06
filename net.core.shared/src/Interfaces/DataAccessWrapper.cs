@@ -9,6 +9,10 @@ namespace Mighty.Interfaces
 	// (See ... MS document about DB classes; SO post about intefaces)
 	abstract public class DataAccessWrapper
 	{
+		// There should really be a logger interface: about to "Execute..."; no, I don't like this, it's too easy to mess up.
+		// And it's not separation of concerns.
+		abstract public bool EnableLogging { get; set; }
+
 		abstract public DbConnection OpenConnection();
 
 		abstract public IEnumerable<dynamic> Query(DbCommand command,
@@ -73,6 +77,7 @@ namespace Mighty.Interfaces
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args);
+		// this is not possible
 		abstract public dynamic PagedFromProcedure(string spName,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
