@@ -29,16 +29,16 @@ namespace Mighty.DatabasePlugins
 		{
 			string CountQuery = BuildSelect("COUNT(*)", mighty.Unthingify("FROM", tablesAndJoins), where);
 
-			// I think the basic SELECT in Oracle in Massive is technically wrong (you can never rely on the ordering of
-			// an inner SELECT being preserved in an outer SELECT), and we need to use this SQL if we want to limit things.
-			// (By the way, we probably don't, as we can just use the single result hint, can't we? And rely on the user
-			// passing sensible SQL for Single requests. i.e. if they don't, it's not unreasonable if the SELECT takes
+			// I think the SELECT with limit in Oracle in Massive is technically wrong (you can never rely on the ordering of
+			// an inner SELECT being preserved in an outer SELECT), and we would need to use this SQL if we want to limit things.
+			// (But we probably don't, as we can just use the single result hint, can't we? And rely on the user
+			// passing sensible SQL for Single requests; i.e. if they don't, it's not unreasonable if the SELECT takes
 			// a long time!)
 			//
-			// 't' outer table name will not conflict with any use of 't' table name in inner SELECT
+			// 't' outer query alias will not conflict with any use of 't' table/query alias in inner SELECT
 			//
 			// the idea is to to call the column ROW_NUMBER() and then remove it from any results, if we are going to be
-			// consistent across DBs - but maybe we don't need to be;
+			// consistent across DBs - but maybe we don't need to be
 			//
 			string PagingQuery =
 				string.Format("SELECT t.*" + CRLF +
