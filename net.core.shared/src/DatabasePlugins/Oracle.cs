@@ -1,5 +1,4 @@
 using System;
-using System.Data;
 using System.Data.Common;
 
 namespace Mighty.DatabasePlugins
@@ -7,8 +6,7 @@ namespace Mighty.DatabasePlugins
 	internal class Oracle : DatabasePlugin
 	{
 #region Provider support
-		// we must use new because there are no overrides on static methods
-		// e.g. http://stackoverflow.com/q/7839691
+		// we must use new because there are no overrides on static methods, see e.g. http://stackoverflow.com/q/7839691
 		new static internal string GetProviderFactoryClassName(string loweredProviderName)
 		{
 			switch (loweredProviderName)
@@ -29,8 +27,8 @@ namespace Mighty.DatabasePlugins
 		// Build a single query which returns two result sets: a scalar of the total count followed by
 		// a normal result set of the page of items.
 		// This really does vary per DB and can't be a standard virtual method which most things share.
-		override public string BuildPagingQuery(string columns, string tablesAndJoins, string orderBy, string where = null,
-			int pageSize = 1, int currentPage = 20)
+		override public string BuildPagingQuery(string columns, string tablesAndJoins, string orderBy, string where,
+			int limit, int offset)
 		{
 			throw new NotImplementedException();
 		}
@@ -57,64 +55,49 @@ namespace Mighty.DatabasePlugins
 		// This really does vary per DB and can't be a standard virtual method which most things share.
 		override public string BuildTableInfoQuery(string owner, string tableName)
 		{
-			throw new NotImplementedException();
+			return string.Format("SELECT * FROM USER_TAB_COLUMNS WHERE TABLE_NAME = {0}{1}",
+				tableName,
+				owner == null ? "": string.Format(" AND OWNER = {1}", owner));
 		}
 #endregion
 
 #region Prefix/deprefix parameters
-		// Needs to know whether this is for use in DbParameter name (cmd=null) or for escaping within the SQL fragment itself,
-		// and if it is for a DbParameter whether it is used for a stored procedure or for a SQL fragment.
 		override public string PrefixParameterName(string rawName, DbCommand cmd = null)
 		{
-			throw new NotImplementedException();
-		}
-		// Will always be from a DbParameter, but needs to know whether it was used for
-		// a stored procedure or for a SQL fragment.
-		override public string DeprefixParameterName(string dbParamName, DbCommand cmd)
-		{
-			throw new NotImplementedException();
-		}
-#endregion
-
-#region DbCommand
-		override public DbDataReader ExecuteDereferencingReader(DbCommand cmd, DbConnection conn)
-		{
-			throw new NotImplementedException();
-		}
-		override public bool RequiresWrappingTransaction(DbCommand cmd)
-		{
-			throw new NotImplementedException();
+			return (cmd != null) ? rawName : (":" + rawName);
 		}
 #endregion
 
 #region DbParameter
-		override public void SetDirection(DbParameter p, ParameterDirection direction)
-		{
-			throw new NotImplementedException();
-		}
 		override public void SetValue(DbParameter p, object value)
 		{
-			throw new NotImplementedException();
+			if (value is Guid)
+			{
+				p.Value = value.ToString();
+				p.Size = 36;
+			}
+			else
+			{
+				p.Value = value;
+				var valueAsString = value as string;
+				if(valueAsString != null)
+				{
+					// let the query optimizer have a fixed size to work with for reasonable-sized strings
+					p.Size = valueAsString.Length > 4000 ? -1 : 4000;
+				}
+			}
 		}
-		override public object GetValue(DbParameter p)
-		{
-			throw new NotImplementedException();
-		}
+
 		override public bool SetCursor(DbParameter p, object value)
 		{
-			throw new NotImplementedException();
+			p.SetRuntimeEnumProperty("OracleDbType", "RefCursor");
+			p.Value = value;
+			return true;
 		}
+
 		override public bool IsCursor(DbParameter p)
 		{
-			throw new NotImplementedException();
-		}
-		override public bool SetAnonymousParameter(DbParameter p)
-		{
-			throw new NotImplementedException();
-		}
-		override public bool IgnoresOutputTypes(DbParameter p)
-		{
-			throw new NotImplementedException();
+			return p.GetRuntimeEnumProperty("OracleDbType") == "RefCursor";
 		}
 #endregion
 	}

@@ -11,15 +11,17 @@ namespace Mighty.DatabasePlugins
 		public MightyORM mighty { get; internal set; }
 
 #region Provider support
-		// Returns the provider factory class name for the known provider(s) for this DB.
+		// Returns the provider factory class name for the known provider(s) for this DB;
+		// should simply return null if the plugin does not know that it can support the
+		// named provider.
 		//
 		// There is no C# syntax to enforce sub-classes of DatabasePlugin to provide a static method with this name,
-		// but they must do so.
+		// but they must do so (failure to do so results in a runtime exception).
 		//
-		// If you wan't to plug in a new provider for a known database, simply subclass the plugin of
-		// that database and provide a different implementation of this method. Then, either call DatabasePluginManager.RegisterPlugin
-		// to use it with extended connection strings, or else pass to the MightyORM constructor via your own
-		// sub-class of ConnectionProvider.
+		// If you wan't to create a new plugin for unknown provider for a known database, subclass the existing plugin
+		// for that database and provide your own implementation of just this method. Then either call
+		// <see cref="DatabasePluginManager.RegisterPlugin"/> to register the plugin for use with extended connection
+		// strings, or pass it to the MightyORM constructor using your own sub-class of <see cref="ConnectionProvider"/>.
 		//
 		static public string GetProviderFactoryClassName(string providerName)
 		{
@@ -62,16 +64,22 @@ namespace Mighty.DatabasePlugins
 		// Build a single query which returns two result sets: a scalar of the total count followed by
 		// a normal result set of the page of items.
 		// This really does vary per DB and can't be a standard virtual method which most things share.
-		abstract public string BuildPagingQuery(string columns, string tablesAndJoins, string orderBy, string where = null,
-			int pageSize = 1, int currentPage = 20);
+		abstract public string BuildPagingQuery(string columns, string tablesAndJoins, string orderBy, string where,
+			int limit, int offset);
 #endregion
 
 #region Table info
-		// owner is for owner/schema, will be null if none was specified
-		// This really does vary per DB and can't be a standard virtual method which most things share.
-		abstract public string BuildTableInfoQuery(string owner, string tableName);
+		// Owner is for owner/schema, will be null if none was specified by the user.
+		// This is exactly the same on MySQL, PostgreSQL and SQL Server, override on the others.
+		virtual public string BuildTableInfoQuery(string owner, string tableName)
+		{
+			return string.Format("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = {0}{1}",
+				tableName,
+				owner == null ? "": string.Format(" AND TABLE_SCHEMA = {1}", owner));
+		}
 
-		// if the table info comes from the semi-standard INFORMATION_SCHEMA table then we don't need to override this 
+		// If the table info comes in the semi-standard INFORMATION_SCHEMA format (which it does, though from a
+		// differently name table, on Oracle as well as on the above three) then we don't need to override this.
 		virtual public IEnumerable<dynamic> NormaliseTableInfo(IEnumerable<dynamic> results) { return results; }
 #endregion
 
@@ -79,24 +87,49 @@ namespace Mighty.DatabasePlugins
 		// Needs to know whether this is for use in DbParameter name (cmd=null) or for escaping within the SQL fragment itself,
 		// and if it is for a DbParameter whether it is used for a stored procedure or for a SQL fragment.
 		abstract public string PrefixParameterName(string rawName, DbCommand cmd = null);
+
 		// Will always be from a DbParameter, but needs to know whether it was used for
 		// a stored procedure or for a SQL fragment.
-		abstract public string DeprefixParameterName(string dbParamName, DbCommand cmd);
-#endregion
-
-#region DbCommand
-		abstract public DbDataReader ExecuteDereferencingReader(DbCommand cmd, DbConnection conn);
-		abstract public bool RequiresWrappingTransaction(DbCommand cmd);
+		virtual public string DeprefixParameterName(string dbParamName, DbCommand cmd) { return dbParamName; }
 #endregion
 
 #region DbParameter
-		abstract public void SetDirection(DbParameter p, ParameterDirection direction);
+		// Set Value (and implicitly DbType) for single parameter, adding support for provider unsupported types, etc.
 		abstract public void SetValue(DbParameter p, object value);
-		abstract public object GetValue(DbParameter p);
-		abstract public bool SetCursor(DbParameter p, object value);
-		abstract public bool IsCursor(DbParameter p);
-		abstract public bool SetAnonymousParameter(DbParameter p);
-		abstract public bool IgnoresOutputTypes(DbParameter p);
+
+		// Get the output Value from single parameter, adding support for provider unsupported types, etc.
+		virtual public object GetValue(DbParameter p) { return p.Value; }
+
+		// Set ParameterDirection for single parameter, correcting for unexpected handling in specific ADO.NET providers.
+		virtual public void SetDirection(DbParameter p, ParameterDirection direction) { p.Direction = direction; }
+		
+		// Set the parameter to DB specific cursor type.
+		// Return false if not supported on this provider.
+		virtual public bool SetCursor(DbParameter p, object value) { return false; }
+
+		// Return true iff this parameter is of DB specific cursor type.
+		virtual public bool IsCursor(DbParameter p) { return false; }
+
+		// Set anonymous DbParameter.
+		// Return false if not supported on this provider.
+		virtual public bool SetAnonymousParameter(DbParameter p) { return false; }
+
+		// Return true iff this ADO.NET provider ignores output parameter types when generating output data types.
+		// (To avoid forcing the user to have to provide these types if they would not have had to do so when programming
+		// against this provider directly.)
+		virtual public bool IgnoresOutputTypes(DbParameter p) { return false; }
+#endregion
+
+#region Npgsql cursor dereferencing
+		virtual public DbDataReader ExecuteDereferencingReader(DbCommand cmd, DbConnection conn)
+		{
+			return cmd.ExecuteReader();
+		}
+
+		virtual public bool RequiresWrappingTransaction(DbCommand cmd)
+		{
+			return false;
+		}
 #endregion
 	}
 }

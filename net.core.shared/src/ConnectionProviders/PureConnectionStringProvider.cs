@@ -45,7 +45,7 @@ namespace Mighty.ConnectionProviders
 			}
 			if (providerName == null)
 			{
-				throw new InvalidOperationException("Cannot find providerName=... in connection string passed to DynamicModel" + extraMessage);
+				throw new InvalidOperationException("Cannot find providerName=... in connection string passed to MightyORM" + extraMessage);
 			}
 			DatabasePluginType = MightyProviderFactories.GetDatabasePluginAsType(providerName);
 			ProviderFactoryInstance = MightyProviderFactories.GetFactory(providerName);

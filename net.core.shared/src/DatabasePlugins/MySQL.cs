@@ -7,8 +7,7 @@ namespace Mighty.DatabasePlugins
 	internal class MySQL : DatabasePlugin
 	{
 #region Provider support
-		// we must use new because there are no overrides on static methods
-		// e.g. http://stackoverflow.com/q/7839691
+		// we must use new because there are no overrides on static methods, see e.g. http://stackoverflow.com/q/7839691
 		new static internal string GetProviderFactoryClassName(string loweredProviderName)
 		{
 			switch (loweredProviderName)
@@ -28,79 +27,72 @@ namespace Mighty.DatabasePlugins
 #endregion
 
 #region SQL
-		// Build a single query which returns two result sets: a scalar of the total count followed by
-		// a normal result set of the page of items.
-		// This really does vary per DB and can't be a standard virtual method which most things share.
-		override public string BuildPagingQuery(string columns, string tablesAndJoins, string orderBy, string where = null,
-			int pageSize = 1, int currentPage = 20)
-		{
-			throw new NotImplementedException();
-		}
-#endregion
-
-#region Table info
-		// owner is for owner/schema, will be null if none was specified
-		// This really does vary per DB and can't be a standard virtual method which most things share.
-		override public string BuildTableInfoQuery(string owner, string tableName)
+		override public string BuildPagingQuery(string columns, string tablesAndJoins, string orderBy, string where,
+			int limit, int offset)
 		{
 			throw new NotImplementedException();
 		}
 #endregion
 
 #region Prefix/deprefix parameters
-		// Needs to know whether this is for use in DbParameter name (cmd=null) or for escaping within the SQL fragment itself,
-		// and if it is for a DbParameter whether it is used for a stored procedure or for a SQL fragment.
 		override public string PrefixParameterName(string rawName, DbCommand cmd = null)
 		{
-			throw new NotImplementedException();
+			return (cmd != null && cmd.CommandType == CommandType.StoredProcedure) ? rawName : ("@" + rawName);
 		}
-		// Will always be from a DbParameter, but needs to know whether it was used for
-		// a stored procedure or for a SQL fragment.
+
 		override public string DeprefixParameterName(string dbParamName, DbCommand cmd)
 		{
-			throw new NotImplementedException();
-		}
-#endregion
-
-#region DbCommand
-		override public DbDataReader ExecuteDereferencingReader(DbCommand cmd, DbConnection conn)
-		{
-			throw new NotImplementedException();
-		}
-		override public bool RequiresWrappingTransaction(DbCommand cmd)
-		{
-			throw new NotImplementedException();
+			return cmd.CommandType == CommandType.StoredProcedure ? dbParamName : dbParamName.Substring(1);
 		}
 #endregion
 
 #region DbParameter
-		override public void SetDirection(DbParameter p, ParameterDirection direction)
-		{
-			throw new NotImplementedException();
-		}
 		override public void SetValue(DbParameter p, object value)
 		{
-			throw new NotImplementedException();
+			p.Value = value;
+			var valueAsString = value as string;
+			if (valueAsString != null)
+			{
+				// let the query optimizer have a fixed size to work with for reasonable-sized strings
+				p.Size = valueAsString.Length > 4000 ? -1 : 4000;
+				return;
+			}
+			var valueAsBool = value as bool?;
+			if (valueAsBool != null)
+			{
+				// this is required for our bool fix-up for Oracle/MySQL, and does not change a thing on Devart
+				p.DbType = DbType.Boolean;
+				return;
+			}
+			var valueAsSByte = value as sbyte?;
+			if (valueAsSByte != null)
+			{
+				// we have to set this to what it already is at this point, to ensure they know we don't want it to change
+				p.SetRuntimeEnumProperty("MySqlType", "TinyInt", false);
+				return;
+			}
 		}
+
 		override public object GetValue(DbParameter p)
 		{
-			throw new NotImplementedException();
-		}
-		override public bool SetCursor(DbParameter p, object value)
-		{
-			throw new NotImplementedException();
-		}
-		override public bool IsCursor(DbParameter p)
-		{
-			throw new NotImplementedException();
-		}
-		override public bool SetAnonymousParameter(DbParameter p)
-		{
-			throw new NotImplementedException();
-		}
-		override public bool IgnoresOutputTypes(DbParameter p)
-		{
-			throw new NotImplementedException();
+			object value = p.Value;
+			if (value == DBNull.Value)
+			{
+				return value;
+			}
+			if (p.DbType == DbType.Boolean)
+			{
+				return (1 == Convert.ToInt32(value));
+			}
+			if (p.GetRuntimeEnumProperty("MySqlType") == "Bit")
+			{
+				return (1 == Convert.ToInt32(value));
+			}
+			if (p.GetRuntimeEnumProperty("MySqlType") == "TinyInt")
+			{
+				return Convert.ToSByte(value);
+			}
+			return value;
 		}
 #endregion
 	}

@@ -20,7 +20,7 @@ namespace Mighty
 	{
 		protected string _connectionString;
 		protected DbProviderFactory _factory;
-		private DatabasePlugin _plugin = null;
+		internal DatabasePlugin _plugin = null;
 
 		// these should all be properties
 		// initialise table name from class name, but only if not == MicroORM(!); get, set, throw
@@ -176,6 +176,11 @@ namespace Mighty
 			throw new NotImplementedException();
 		}
 
+		public DbCommand CreateCommand(string sql, DbConnection connection = null)
+		{
+			throw new NotImplementedException();
+		}
+
 		public DbCommand CreateCommandWithParams(string sql,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false,
 			DbConnection connection = null,
@@ -183,6 +188,11 @@ namespace Mighty
 		{
 			throw new NotImplementedException();
 		}
+#endregion
+
+#region Would be NpgsqlCursorController abstract class interface if we had multiple inheritance
+		public bool NpgsqlAutoDereferenceCursors { get; set; } = true;
+		public int NpgsqlAutoDereferenceFetchSize { get; set; } = 10000;
 #endregion
 	}
 }
