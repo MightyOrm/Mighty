@@ -22,9 +22,6 @@ namespace Mighty.DatabasePlugins
 #endregion
 
 #region SQL
-		// Build a single query which returns two result sets: a scalar of the total count followed by
-		// a normal result set of the page of items.
-		// This really does vary per DB and can't be a standard virtual method which most things share.
 		override public string BuildPagingQuery(string columns, string tablesAndJoins, string orderBy, string where,
 			int limit, int offset)
 		{
