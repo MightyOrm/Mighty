@@ -1,8 +1,6 @@
 using System.Collections.Specialized;
 using NUnit.Framework;
 
-using Mighty;
-
 namespace Mighty.Tests.MySql
 {
 	public class MyNVC : NameValueCollection

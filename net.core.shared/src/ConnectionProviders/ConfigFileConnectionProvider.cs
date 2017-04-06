@@ -1,4 +1,4 @@
-#if !COREFX
+#if !true//COREFX
 using System;
 using System.Configuration;
 using System.Data;

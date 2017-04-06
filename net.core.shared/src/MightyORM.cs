@@ -39,13 +39,13 @@ namespace Mighty
 		{
 			if (connectionProvider == null)
 			{
-#if !COREFX
+#if !true//COREFX
 				connectionProvider = new ConfigFileConnectionProvider().Init(connectionStringOrName);
 				if (connectionProvider.ConnectionString == null)
 #endif
 				{
 					connectionProvider = new PureConnectionStringProvider()
-#if !COREFX
+#if !true//COREFX
 						.UsedAfterConfigFile()
 #endif
 						.Init(connectionStringOrName);
@@ -101,7 +101,7 @@ namespace Mighty
 				}
 				// manage wrapping transaction if required, and if we have not been passed an incoming connection
 				using (var trans = ((connection == null
-#if !COREFX
+#if !true//COREFX
 					// TransactionScope support
 					&& Transaction.Current == null
 #endif

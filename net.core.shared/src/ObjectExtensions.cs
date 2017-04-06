@@ -112,7 +112,7 @@ namespace Mighty
 			{
 				return Activator.CreateInstance(underlying);
 			}
-#if COREFX
+#if true//COREFX
 			if(type.GetTypeInfo().IsValueType)
 #else
 			if(type.IsValueType)
