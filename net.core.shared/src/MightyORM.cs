@@ -60,7 +60,7 @@ namespace Mighty
 			_factory = connectionProvider.ProviderFactoryInstance;
 			Type pluginType = connectionProvider.DatabasePluginType;
 			_plugin = (DatabasePlugin)Activator.CreateInstance(pluginType, false);
-			_plugin.mightyInstance = this;
+			_plugin.mighty = this;
 
 			if (tableName != null)
 			{
@@ -85,6 +85,16 @@ namespace Mighty
 		static public MightyORM DB(string connectionStringOrName = null)
 		{
 			return new MightyORM(connectionStringOrName);
+		}
+
+		public string Thingify(string thing, string sql, bool addLeadingSpace = true)
+		{
+			throw new NotImplementedException();
+		}
+
+		public string Unthingify(string thing, string sql)
+		{
+			throw new NotImplementedException();
 		}
 
 		private IEnumerable<T> QueryNWithParams<T>(string sql, object args, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, DbConnection connection = null, DbCommand command = null)
