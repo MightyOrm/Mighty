@@ -22,14 +22,6 @@ namespace Mighty.DatabasePlugins
 		}
 #endregion
 
-#region SQL
-		override public string BuildPagingQuery(string columns, string tablesAndJoins, string orderBy, string where,
-			int limit, int offset)
-		{
-			throw new NotImplementedException();
-		}
-#endregion
-
 #region Prefix/deprefix parameters
 		override public string PrefixParameterName(string rawName, DbCommand cmd = null)
 		{

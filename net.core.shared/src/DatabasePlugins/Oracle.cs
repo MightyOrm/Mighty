@@ -27,47 +27,8 @@ namespace Mighty.DatabasePlugins
 		override public string BuildPagingQuery(string columns, string tablesAndJoins, string orderBy, string where,
 			int limit, int offset)
 		{
-			string CountQuery = BuildSelect("COUNT(*)", mighty.Unthingify("FROM", tablesAndJoins), where);
-
-			// I think the SELECT with limit in Oracle in Massive is technically wrong (you can never rely on the ordering of
-			// an inner SELECT being preserved in an outer SELECT), and we would need to use this SQL if we want to limit things.
-			// (But we probably don't, as we can just use the single result hint, can't we? And rely on the user
-			// passing sensible SQL for Single requests; i.e. if they don't, it's not unreasonable if the SELECT takes
-			// a long time!)
-			//
-			// 't' outer query alias will not conflict with any use of 't' table/query alias in inner SELECT
-			//
-			// the idea is to to call the column ROW_NUMBER() and then remove it from any results, if we are going to be
-			// consistent across DBs - but maybe we don't need to be
-			//
-			string PagingQuery =
-				string.Format("SELECT t.*" + CRLF +
-							  "FROM" + CRLF +
-							  "(" + CRLF +
-							  "    SELECT ROW_NUMBER() OVER ({3}) \"" + ROWCOL + "\", {0}" + CRLF +
-							  "    FROM {1}" + CRLF +
-							  "{2}" +
-							  ") t" + CRLF +
-							  "WHERE {5}\"" + ROWCOL + "\" < {4}" + CRLF +
-							  "ORDER BY \"" + ROWCOL + "\";",
-					mighty.Unthingify("SELECT", columns),
-					mighty.Unthingify("FROM", tablesAndJoins),
-					where == null ? "" : string.Format("    {0}" + CRLF, mighty.Thingify("WHERE", where)),
-					mighty.Thingify("ORDER BY", orderBy),
-					limit + 1,
-					offset > 0 ? string.Format("{0} > {1} AND ", "{0}", offset) : ""
-				);
-			return CountQuery + CRLF + PagingQuery;
+			return BuildRowNumberPagingQuery(columns, tablesAndJoins, orderBy, where, limit, offset);
 		}
-		// SELECT t.*
-		// FROM
-		// (
-		// 		SELECT ROW_NUMBER() OVER (ORDER BY t.Salary DESC, t.Employee_ID) "ROW_NUMBER()", t.*
-		// 		FROM employees t
-		// 		WHERE t.last_name LIKE '%i%'
-		// ) t
-		// WHERE "ROW_NUMBER()" > 10 AND "ROW_NUMBER()" < 21
-		// ORDER BY "ROW_NUMBER()";
 #endregion
 
 #region Table info

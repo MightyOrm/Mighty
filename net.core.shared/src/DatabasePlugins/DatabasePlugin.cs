@@ -8,8 +8,6 @@ namespace Mighty.DatabasePlugins
 	abstract public class DatabasePlugin
 	{
 		protected const string CRLF = "\r\n";
-		// This is a weird column name, but it is a column name, it gets escaped in the DBs which need it.
-		internal const string ROWCOL = "ROW_NUMBER()";
 		
 		// the instance which we are pluged in to
 		public MightyORM mighty { get; internal set; }
@@ -67,9 +65,51 @@ namespace Mighty.DatabasePlugins
 
 		// Build a single query which returns two result sets: a scalar of the total count followed by
 		// a normal result set of the page of items.
-		// This really does vary per DB and can't be a standard virtual method which most things share.
-		abstract public string BuildPagingQuery(string columns, string tablesAndJoins, string orderBy, string where,
-			int limit, int offset);
+		// Default to the LIMIT OFFSET pattern, which works exactly the same in all DBs which support it.
+		virtual public string BuildPagingQuery(string columns, string tablesAndJoins, string orderBy, string where,
+			int limit, int offset)
+		{
+			string tj = mighty.Unthingify("FROM", tablesAndJoins);
+			string CountQuery = BuildSelect("COUNT(*)", tj, where);
+			string PagingQuery =
+				string.Format("SELECT {0} FROM {1}{2} ORDER BY {3} LIMIT {4}{5}",
+					mighty.Unthingify("SELECT", columns),
+					tj,
+					where == null ? "" : string.Format(" WHERE {0}" + CRLF, mighty.Unthingify("WHERE", where)),
+					mighty.Unthingify("ORDER BY", orderBy),
+					limit,
+					offset > 0 ? string.Format(" OFFSET {0}", offset) : ""
+				);
+			return CountQuery + CRLF + PagingQuery;
+		}
+
+		// Utility method to provide the ROW_NUMBER() paging pattern; contrary to popular belief, *exactly* the same
+		// pattern can be used on Oracle and SQL Server.
+		protected string BuildRowNumberPagingQuery(string columns, string tablesAndJoins, string orderBy, string where,
+			int limit, int offset)
+		{
+			string tj = mighty.Unthingify("FROM", tablesAndJoins);
+			string CountQuery = BuildSelect("COUNT(*)", tj, where);
+			// 't_' outer query alias does not conflict with any use of 't_' table/query alias in user SELECT.
+			string PagingQuery =
+				string.Format("SELECT t_.*" + CRLF +
+							  "FROM" + CRLF +
+							  "(" + CRLF +
+							  "    SELECT ROW_NUMBER() OVER (ORDER BY {3}) RowNum, {0}" + CRLF +
+							  "    FROM {1}" + CRLF +
+							  "{2}" +
+							  ") t_" + CRLF +
+							  "WHERE {5}RowNum < {4}" + CRLF +
+							  "ORDER BY RowNum;",
+					mighty.Unthingify("SELECT", columns),
+					tj,
+					where == null ? "" : string.Format("    WHERE {0}" + CRLF, mighty.Unthingify("WHERE", where)),
+					mighty.Unthingify("ORDER BY", orderBy),
+					limit + 1,
+					offset > 0 ? string.Format("RowNum > {0} AND ", offset) : ""
+				);
+			return CountQuery + CRLF + PagingQuery;
+		}
 #endregion
 
 #region Table info

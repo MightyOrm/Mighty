@@ -24,14 +24,6 @@ namespace Mighty.DatabasePlugins
 		}
 #endregion
 
-#region SQL
-		override public string BuildPagingQuery(string columns, string tablesAndJoins, string orderBy, string where,
-			int limit, int offset)
-		{
-			throw new NotImplementedException();
-		}
-#endregion
-
 #region Table info
 		override public string BuildTableInfoQuery(string owner, string tableName)
 		{
