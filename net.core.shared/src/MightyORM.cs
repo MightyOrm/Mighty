@@ -87,16 +87,26 @@ namespace Mighty
 			return new MightyORM(connectionStringOrName);
 		}
 
-		public string Thingify(string thing, string sql, bool addLeadingSpace = true)
+		public string Thingify(string thing, string sql, bool yes = true)
 		{
-			if (string.IsNullOrWhiteSpace(thing)) return string.Empty;
-			throw new NotImplementedException();
+			if (sql == null) return string.Empty;
+			sql = sql.Trim();
+			if (sql == string.Empty) return string.Empty;
+			if (sql.Length > thing.Length &&
+				sql.StartsWith(thing, StringComparison.OrdinalIgnoreCase) &&
+				string.IsNullOrWhiteSpace(sql.Substring(thing.Length, 1)))
+			{
+				return yes ? sql.Substring(thing.Length + 1).Trim() : sql;
+			}
+			else
+			{
+				return yes ? sql : string.Format("{0} {1}", thing, sql.Trim());
+			}
 		}
 
 		public string Unthingify(string thing, string sql)
 		{
-			if (string.IsNullOrWhiteSpace(thing)) return string.Empty;
-			throw new NotImplementedException();
+			return Thingify(thing, sql, false);
 		}
 
 		private IEnumerable<T> QueryNWithParams<T>(string sql, object args, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, DbConnection connection = null, DbCommand command = null)
