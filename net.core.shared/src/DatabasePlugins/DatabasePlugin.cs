@@ -5,6 +5,8 @@ using System.Data.Common;
 
 namespace Mighty.DatabasePlugins
 {
+	// Abstract class for database plugins; we're trying to put as much shared code as possible in here, while
+	// maintaining reasonable readability.
 	abstract public class DatabasePlugin
 	{
 		protected const string CRLF = "\r\n";
@@ -20,7 +22,7 @@ namespace Mighty.DatabasePlugins
 		// There is no C# syntax to enforce sub-classes of DatabasePlugin to provide a static method with this name,
 		// but they must do so (failure to do so results in a runtime exception).
 		//
-		// If you wan't to create a new plugin for unknown provider for a known database, subclass the existing plugin
+		// If you wan't to create a new plugin for an unknown provider for a known database, subclass the existing plugin
 		// for that database and provide your own implementation of just this method. Then either call
 		// <see cref="DatabasePluginManager.RegisterPlugin"/> to register the plugin for use with extended connection
 		// strings, or pass it to the MightyORM constructor using your own sub-class of <see cref="ConnectionProvider"/>.
@@ -125,6 +127,11 @@ namespace Mighty.DatabasePlugins
 		// If the table info comes in the semi-standard INFORMATION_SCHEMA format (which it does, though from a
 		// differently name table, on Oracle as well as on the above three) then we don't need to override this.
 		virtual public IEnumerable<dynamic> NormaliseTableInfo(IEnumerable<dynamic> results) { return results; }
+#endregion
+
+#region Keys and sequences
+		virtual public bool IsSequenceBased { get; protected set; } = false;
+		virtual public string KeyRetrievalFunction { get; protected set; }
 #endregion
 
 #region Prefix/deprefix parameters

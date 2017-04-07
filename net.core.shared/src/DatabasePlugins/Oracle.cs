@@ -42,6 +42,10 @@ namespace Mighty.DatabasePlugins
 		}
 #endregion
 
+#region Keys and sequences
+		override public bool IsSequenceBased { get; protected set; } = true;
+#endregion
+
 #region Prefix/deprefix parameters
 		override public string PrefixParameterName(string rawName, DbCommand cmd = null)
 		{

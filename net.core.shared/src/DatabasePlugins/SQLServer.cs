@@ -27,6 +27,10 @@ namespace Mighty.DatabasePlugins
 		}
 #endregion
 
+#region Keys and sequences
+		override public string KeyRetrievalFunction { get; protected set; } = "SCOPE_IDENTITY()";
+#endregion
+
 #region Prefix/deprefix parameters
 		override public string PrefixParameterName(string rawName, DbCommand cmd = null)
 		{

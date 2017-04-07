@@ -30,12 +30,12 @@ namespace Mighty
 		public List<string> PrimaryKeyList; // separated PK(s)
 		public string DefaultColumns;
 
-		// primaryKeySequence is for sequence-based databases (Oracle, PostgreSQL) - there is no default, specify either null or empty string to disable and manually specify your PK values;
-		// primaryKeyRetrievalFunction is for non-sequence based databases (MySQL, SQL Server, SQLite) - defaults to default for DB, specify empty string to disable and manually specify your PK values;
-		// primaryKeyFields is a comma separated list; if it has more than one column, you cannot specify primaryKeySequence or primaryKeyRetrievalFunction
-		// (if neither primaryKeySequence nor primaryKeyRetrievalFunction are set (which is always the case for compound primary keys), you MUST specify non-null, non-default values for every column in your primary key
+		// sequence is for sequence-based databases (Oracle, PostgreSQL) - there is no default, specify either null or empty string to disable and manually specify your PK values;
+		// keyRetrievalFunction is for non-sequence based databases (MySQL, SQL Server, SQLite) - defaults to default for DB, specify empty string to disable and manually specify your PK values;
+		// primaryKeyFields is a comma separated list; if it has more than one column, you cannot specify sequence or keyRetrievalFunction
+		// (if neither sequence nor keyRetrievalFunction are set (which is always the case for compound primary keys), you MUST specify non-null, non-default values for every column in your primary key
 		// before saving an object)
-		public MightyORM(string connectionStringOrName = null, string tableName = null, string primaryKeyFields = null, string primaryKeySequence = null, string primaryKeyRetrievalFunction = null, string defaultColumns = null, ConnectionProvider connectionProvider = null)
+		public MightyORM(string connectionStringOrName = null, string tableName = null, string primaryKeyFields = null, string sequence = null, string keyRetrievalFunction = null, string defaultColumns = null, ConnectionProvider connectionProvider = null)
 		{
 			if (connectionProvider == null)
 			{
