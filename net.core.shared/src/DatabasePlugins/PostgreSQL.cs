@@ -110,7 +110,7 @@ namespace Mighty.DatabasePlugins
 			}
 			// If we've got cursor parameters these are actually just placeholders to kick off cursor support (i.e. the wrapping transaction); we need to remove them before executing the command.
 			bool isCursorCommand = false;
-			cmd.Parameters.Cast<DbParameter>().Where(p => mighty._plugin.IsCursor(p)).ToList().ForEach(p => { isCursorCommand = true; cmd.Parameters.Remove(p); });
+			cmd.Parameters.Cast<DbParameter>().Where(p => IsCursor(p)).ToList().ForEach(p => { isCursorCommand = true; cmd.Parameters.Remove(p); });
 			return isCursorCommand;
 		}
 #endregion
