@@ -69,3 +69,23 @@ You're welcome!
 ### Transactions
 
 > Note: Go easy on transactions, they're often not as necessary as you think. For instance, you (almost certainly) don't normally update your C# objects within C# 'transactions', do you? Yet things work fine. Database transactions tend to lock everything up, often unecessarily. It is usually far better to use good database design to prevent inconsistent data from even being possible, and then to carry on lightly, treating updates the way you already treat C# updates. (Obviously there *are* cases where correct transactional handling is very important, the canonical example being financial software; but database transactions are an expensive solution to an expensive problem - don't think that they come for free, just because they are supported for when you really need them.)
+
+## What's next?
+
+Coming soon:
+
+- Firebird database support
+- Async support
+- Possibly, *optional* generically typed return value support; for now, if you are sure you really need that, try PetaPoco
+	- My guess is you'll find you really don't *need* that; try Mighty for a bit, you'll get used to working with dynamic objects pretty quickly, and you'll start to miss them in other contexts, where you can't use them!
+
+## Using Mighty with .NET Web API 2
+
+This just works out of the box, and it's very easy to do:
+
+
+However, out of the box this works with JSON, but not with XML - because XML wants to specify the type of each object it is returning, and `dynamic` objects don't have any specific type. Unfortunately, if you use a browser to look at the results from your RESTFUL API (which is a pretty reasonable thing to do) then your browser won't specify either JSON or XML and Web API 2 will chose to return XML by default. The simplest solution to disable XML support, so that JSON is the only (and therefore the default) input and output type:
+
+Another more complex solution (I don't claim that the below is complete or fully correct, it's a quick hack to show the general idea) is to add 'fake' ExpandoObject support to the WebAPI 2 XML output:
+
+This is arguably an abuse of XML since now '&lt;DynamicObject&gt;' will occur in all your API responses but will contain appropriate, but different, data in each different API you provide.
