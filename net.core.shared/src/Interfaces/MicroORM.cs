@@ -26,7 +26,7 @@ namespace Mighty.Interfaces
 	//	  parameter under all circumstances - so can never be used for direct SQL injection. In general (i.e. assuming
 	//	  you aren't building SQL from the value yourself, anywhere) strings, etc., which are passed in will NOT need any escaping.
 	//
-	abstract public class MicroORM
+	abstract public partial class MicroORM
 	{
 #region Properties
 		// initialise table name from class name, but only if we are a *subclass* of MightyORM(!)
