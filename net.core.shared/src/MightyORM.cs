@@ -8,6 +8,7 @@ using System.Reflection;
 
 using Mighty.ConnectionProviders;
 using Mighty.DatabasePlugins;
+using Mighty.Validation;
 //using Mighty.Interfaces;
 
 namespace Mighty
@@ -21,6 +22,7 @@ namespace Mighty
 		protected string _connectionString;
 		protected DbProviderFactory _factory;
 		internal DatabasePlugin _plugin = null;
+		internal Validator _validator;
 
 		// these should all be properties
 		// initialise table name from class name, but only if not == MicroORM(!); get, set, throw
@@ -35,7 +37,12 @@ namespace Mighty
 		// primaryKeyFields is a comma separated list; if it has more than one column, you cannot specify sequence or keyRetrievalFunction
 		// (if neither sequence nor keyRetrievalFunction are set (which is always the case for compound primary keys), you MUST specify non-null, non-default values for every column in your primary key
 		// before saving an object)
-		public MightyORM(string connectionStringOrName = null, string tableName = null, string primaryKeyFields = null, string sequence = null, string keyRetrievalFunction = null, string defaultColumns = null, ConnectionProvider connectionProvider = null)
+		public MightyORM(string connectionStringOrName = null,
+						 string table = null, string primaryKey = null,
+						 string sequence = null,
+						 string columns = null,
+						 Validator validator = null,
+						 ConnectionProvider connectionProvider = null)
 		{
 			if (connectionProvider == null)
 			{
@@ -62,9 +69,9 @@ namespace Mighty
 			_plugin = (DatabasePlugin)Activator.CreateInstance(pluginType, false);
 			_plugin.mighty = this;
 
-			if (tableName != null)
+			if (table != null)
 			{
-				TableName = tableName;
+				TableName = table;
 			}
 			else
 			{
@@ -76,9 +83,10 @@ namespace Mighty
 					TableName = CreateTableNameFromClassName(me.Name);
 				}
 			}
-			PrimaryKeyString = primaryKeyFields;
-			PrimaryKeyList = primaryKeyFields.Split(',').Select(k => k.Trim()).ToList();
-			DefaultColumns = defaultColumns;
+			PrimaryKeyString = primaryKey;
+			PrimaryKeyList = primaryKey.Split(',').Select(k => k.Trim()).ToList();
+			DefaultColumns = columns;
+			_validator = validator;
 		}
 
 		// mini-factory for non-table specific access
@@ -183,6 +191,11 @@ namespace Mighty
 		}
 
 #region Not Implemented - TEMP
+		public void Save(object[] items)
+		{
+			if (_validator != null) _validator.PrevalidateActions(Mighty.Validation.Action.Save, items);
+		}
+		
 		public DbConnection OpenConnection()
 		{
 			throw new NotImplementedException();
