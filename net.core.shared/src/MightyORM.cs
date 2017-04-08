@@ -180,7 +180,7 @@ namespace Mighty
 			DbConnection connection = null,
 			params object[] args)
 		{
-			throw new NotImplementedException();
+			return PagedFromSelect(columns, CheckTableName(), orderBy, where, pageSize, currentPage, connection, args);
 		}
 
 		// save (insert or update) one or more items
@@ -253,7 +253,13 @@ namespace Mighty
 		}
 		override public int DeleteByKey(DbConnection connection, params object[] keys)
 		{
-			throw new NotImplementedException();
+			int sum = 0;
+			foreach (var key in keys)
+			{
+				var sql = _plugin.BuildDelete(CheckTableName(), WhereForKey());
+				sum += Execute(sql, key);
+			}
+			return sum;
 		}
 
 		// for safety you MUST specify the where clause yourself (use "1=1" to delete all rows)
@@ -362,7 +368,12 @@ namespace Mighty
 		override public int Execute(DbCommand command,
 			DbConnection connection = null)
 		{
-			throw new NotImplementedException();
+			// using only applied to local connection
+			using (var localConn = ((connection == null) ? OpenConnection() : null))
+			{
+				command.Connection = connection ?? localConn;
+				return command.ExecuteNonQuery();
+			}
 		}
 		// no connection, easy args
 		override public int Execute(string sql,
@@ -396,7 +407,12 @@ namespace Mighty
 		override public object Scalar(DbCommand command,
 			DbConnection connection = null)
 		{
-			throw new NotImplementedException();
+			// using only applied to local connection
+			using (var localConn = ((connection == null) ? OpenConnection() : null))
+			{
+				command.Connection = connection ?? localConn;
+				return command.ExecuteScalar();
+			}
 		}
 		// no connection, easy args
 		override public object Scalar(string sql,
@@ -683,11 +699,12 @@ namespace Mighty
 			{
 				behavior = CommandBehavior.SingleResult;
 			}
+			// using only applied to local connection
 			using (var localConn = (connection == null ? OpenConnection() : null))
 			{
 				if (command != null)
 				{
-					command.Connection = localConn;
+					command.Connection = connection ?? localConn;
 				}
 				else
 				{
