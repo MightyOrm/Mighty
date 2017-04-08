@@ -2,6 +2,8 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 
+using Mighty.Npgsql;
+
 namespace Mighty.DatabasePlugins
 {
 	internal class PostgreSQL : DatabasePlugin

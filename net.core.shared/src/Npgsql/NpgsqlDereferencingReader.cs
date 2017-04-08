@@ -3,10 +3,10 @@ using System.Data;
 using System.Data.Common;
 using System.Collections.Generic;
 
-namespace Mighty.DatabasePlugins
+namespace Mighty.Npgsql
 {
 	// Cursor dereferencing data reader, which may go back into Npgsql at some point
-	internal class NpgsqlDereferencingReader : DbDataReader, IDisposable
+	public class NpgsqlDereferencingReader : DbDataReader, IDisposable
 	{
 		private DbConnection Connection;
 		private MightyORM Db;
@@ -32,7 +32,7 @@ namespace Mighty.DatabasePlugins
 		/// https://github.com/npgsql/npgsql/issues/438
 		/// http://stackoverflow.com/questions/42292341/
 		/// </remarks>
-		internal NpgsqlDereferencingReader(DbDataReader reader, DbConnection connection, MightyORM db)
+		public NpgsqlDereferencingReader(DbDataReader reader, DbConnection connection, MightyORM db)
 		{
 			FetchSize = db.NpgsqlAutoDereferenceFetchSize;
 			Connection = connection;
@@ -62,7 +62,7 @@ namespace Mighty.DatabasePlugins
 		/// <param name="reader">The reader to check</param>
 		/// <returns>Are there cursors?</returns>
 		/// <remarks>Really a part of NpgsqlDereferencingReader</remarks>
-		static internal bool CanDereference(DbDataReader reader)
+		static public bool CanDereference(DbDataReader reader)
 		{
 			bool hasCursors = false;
 			for(int i = 0; i < reader.FieldCount; i++)
