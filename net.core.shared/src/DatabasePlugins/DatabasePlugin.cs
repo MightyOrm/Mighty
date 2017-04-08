@@ -180,9 +180,9 @@ namespace Mighty.DatabasePlugins
 #endregion
 
 #region Npgsql cursor dereferencing
-		virtual public DbDataReader ExecuteDereferencingReader(DbCommand cmd, DbConnection conn)
+		virtual public DbDataReader ExecuteDereferencingReader(DbCommand cmd, CommandBehavior behavior, DbConnection conn)
 		{
-			return cmd.ExecuteReader();
+			return cmd.ExecuteReader(behavior);
 		}
 
 		virtual public bool RequiresWrappingTransaction(DbCommand cmd)

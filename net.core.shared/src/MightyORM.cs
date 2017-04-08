@@ -316,7 +316,7 @@ namespace Mighty
 		{
 			return QueryNWithParams<dynamic>(spName,
 				inParams, outParams, ioParams, returnParams,
-				true,
+				isProcedure: true,
 				connection: connection, args: args);
 		}
 
@@ -347,7 +347,7 @@ namespace Mighty
 		{
 			return QueryNWithParams<IEnumerable<dynamic>>(spName,
 				inParams, outParams, ioParams, returnParams,
-				true,
+				isProcedure: true,
 				connection: connection, args: args);
 		}
 
@@ -360,7 +360,7 @@ namespace Mighty
 		override public int Execute(string sql,
 			params object[] args)
 		{
-			throw new NotImplementedException();
+			return ExecuteWithParams(sql, args: args);
 		}
 		// COULD add a RowCount class, like Cursor, to pick out the rowcount if required
 		override public dynamic ExecuteWithParams(string sql,
@@ -368,14 +368,21 @@ namespace Mighty
 			DbConnection connection = null,
 			params object[] args)
 		{
-			throw new NotImplementedException();
+			var command = CreateCommandWithParams(sql,
+			inParams, outParams, ioParams, returnParams,
+			args: args);
+			return Execute(command, connection);
 		}
 		override public dynamic ExecuteAsProcedure(string spName,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args)
 		{
-			throw new NotImplementedException();
+			var command = CreateCommandWithParams(spName,
+			inParams, outParams, ioParams, returnParams,
+			isProcedure: true,
+			args: args);
+			return Execute(command, connection);
 		}
 
 		override public object Scalar(DbCommand command,
@@ -387,21 +394,29 @@ namespace Mighty
 		override public object Scalar(string sql,
 			params object[] args)
 		{
-			throw new NotImplementedException();
+			var command = CreateCommand(sql, args);
+			return Scalar(command);
 		}
 		override public object ScalarWithParams(string sql,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args)
 		{
-			throw new NotImplementedException();
+			var command = CreateCommandWithParams(sql,
+			inParams, outParams, ioParams, returnParams,
+			args: args);
+			return Scalar(command, connection);
 		}
 		override public object ScalarFromProcedure(string spName,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args)
 		{
-			throw new NotImplementedException();
+			var command = CreateCommandWithParams(spName,
+			inParams, outParams, ioParams, returnParams,
+			isProcedure: true,
+			args: args);
+			return Scalar(command, connection);
 		}
 
 		// You must provide orderBy for a paged query; where is optional.
@@ -513,19 +528,25 @@ namespace Mighty
 			return sum;
 		}
 
-
 		private IEnumerable<dynamic> AllWithParams(
-			CommandBehavior behaviour,
+			CommandBehavior behavior,
 			string where = null, string orderBy = null, string columns = null,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args)
 		{
-			throw new NotImplementedException();
+			var sql = _plugin.BuildSelect(columns, CheckTableName(), where, orderBy);
+			return QueryNWithParams<dynamic>(sql,
+				inParams, outParams, ioParams, returnParams,
+				behavior: behavior, connection: connection, args: args);
 		}
 
-		private IEnumerable<T> QueryNWithParams<T>(string sql = null, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, DbCommand command = null, DbConnection connection = null, params object[] args)
+		private IEnumerable<T> QueryNWithParams<T>(string sql = null, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, DbCommand command = null, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, params object[] args)
 		{
+			if (behavior == CommandBehavior.Default && typeof(T) != typeof(IEnumerable<dynamic>))
+			{
+				behavior = CommandBehavior.SingleResult;
+			}
 			using (var localConn = (connection == null ? OpenConnection() : null))
 			{
 				if (command != null)
@@ -547,7 +568,7 @@ namespace Mighty
 					// TO DO: Apply single result hint when appropriate
 					// (since all the cursors we might dereference come in the first result set, we can do this even
 					// if we are dereferencing PostgreSQL cursors)
-					using (var rdr = _plugin.ExecuteDereferencingReader(command, connection ?? localConn))
+					using (var rdr = _plugin.ExecuteDereferencingReader(command, behavior, connection ?? localConn))
 					{
 						if (typeof(T) == typeof(IEnumerable<dynamic>))
 						{

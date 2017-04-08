@@ -32,27 +32,36 @@ namespace Mighty.Npgsql
 		/// https://github.com/npgsql/npgsql/issues/438
 		/// http://stackoverflow.com/questions/42292341/
 		/// </remarks>
-		public NpgsqlDereferencingReader(DbDataReader reader, DbConnection connection, MightyORM db)
+		public NpgsqlDereferencingReader(DbDataReader reader, CommandBehavior behavior, DbConnection connection, MightyORM db)
 		{
 			FetchSize = db.NpgsqlAutoDereferenceFetchSize;
 			Connection = connection;
 			Db = db;
 
-			// Supports 1x1 1xN Nx1 and NXM patterns of cursor data.
-			// If just some values are cursors we follow the pre-existing pattern set by the Oracle drivers, and dereference what we can.
-			while(reader.Read())
+			// We're not saving the behavior: this logic has already enforced SingleResult;
+			// for SingleRow, we rely on the user to one read one row and then dispose of everything.
+			bool earlyQuit = (behavior == CommandBehavior.SingleResult || behavior == CommandBehavior.SingleRow);
+
+			using (reader)
 			{
-				for(int i = 0; i < reader.FieldCount; i++)
+				// Supports 1x1 1xN Nx1 and NXM patterns of cursor data.
+				// If just some values are cursors we follow the pre-existing pattern set by the Oracle drivers, and dereference what we can.
+				while(reader.Read())
 				{
-					if(reader.GetDataTypeName(i) == "refcursor")
+					for(int i = 0; i < reader.FieldCount; i++)
 					{
-						// cursor name can potentially contain " so stop that breaking us
-						Cursors.Add(reader.GetString(i).Replace(@"""", @""""""));
+						if(reader.GetDataTypeName(i) == "refcursor")
+						{
+							// cursor name can potentially contain " so stop that breaking us
+							Cursors.Add(reader.GetString(i).Replace(@"""", @""""""));
+							if (earlyQuit) break;
+						}
 					}
+					if (earlyQuit) break;
 				}
 			}
-			reader.Dispose();
 
+			// initialize
 			NextResult();
 		}
 
