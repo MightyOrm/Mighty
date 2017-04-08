@@ -31,7 +31,7 @@ namespace Mighty.DatabasePlugins
 		{
 			// NB because of the way static methods work in C#, this method can never be found and called from
 			// a sub-class.
-			throw new NotImplementedException(string.Format("{0} should only ever be called on sub-classes of {1}",
+			throw new InvalidOperationException(string.Format("{0} should only ever be called on sub-classes of {1}",
 				nameof(GetProviderFactoryClassName), typeof(DatabasePlugin)));
 		}
 #endregion
@@ -132,6 +132,10 @@ namespace Mighty.DatabasePlugins
 #region Keys and sequences
 		virtual public bool IsSequenceBased { get; protected set; } = false;
 		virtual public string KeyRetrievalFunction { get; protected set; }
+#endregion
+
+#region DbCommand
+		virtual public void SetProviderSpecificCommandProperties(DbCommand command) { }
 #endregion
 
 #region Prefix/deprefix parameters

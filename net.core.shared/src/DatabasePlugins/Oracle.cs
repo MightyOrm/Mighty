@@ -46,6 +46,15 @@ namespace Mighty.DatabasePlugins
 		override public bool IsSequenceBased { get; protected set; } = true;
 #endregion
 
+#region DbCommand
+		override public void SetProviderSpecificCommandProperties(DbCommand command)
+		{
+			// These two settings and their comments taken direct from Massive - see CREDITS file
+			((dynamic)command).BindByName = true;   // keep true as the default as otherwise ODP.NET won't bind the parameters by name but by location.
+			((dynamic)command).InitialLONGFetchSize = -1;   // this is the ideal value, it obtains the LONG value in one go.
+		}
+#endregion
+
 #region Prefix/deprefix parameters
 		override public string PrefixParameterName(string rawName, DbCommand cmd = null)
 		{

@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Data;
 using System.Data.Common;
 using System.Dynamic;
@@ -265,7 +266,8 @@ namespace Mighty
 			DbConnection connection,
 			params object[] args)
 		{
-			throw new NotImplementedException();
+			var command = _plugin.BuildDelete(CheckTableName(), where);
+			return Execute(command, connection, args);
 		}
 			
 		// We can implement NewItem() and ColumnDefault()
@@ -286,7 +288,13 @@ namespace Mighty
 #region DataAccessWrapper interface
 		override public DbConnection OpenConnection()
 		{
-			throw new NotImplementedException();
+			var connection = Factory.CreateConnection();
+			if (connection != null)
+			{
+				connection.ConnectionString = ConnectionString;
+				connection.Open();
+			}
+			return connection;
 		}
 
 		override public IEnumerable<dynamic> Query(DbCommand command,
@@ -428,8 +436,11 @@ namespace Mighty
 			throw new NotImplementedException();
 		}
 
-		// note: no <see cref="DbConnection"/> param to either of these, because the connection for a command to use
+		// note 1: no <see cref="DbConnection"/> param to either of these, because the connection for a command to use
 		// is always passed in to the action which uses it, or else created by the microORM on the fly
+		// note 2: some API calls of the microORM take command objects, you are recommended to pass in commands created
+		// by these methods, as certain provider specific command properties are set by Massive on some providers, so
+		// your results may vary if you pass in a command not constructed here.
 		override public DbCommand CreateCommand(string sql,
 			params object[] args)
 		{
@@ -439,7 +450,16 @@ namespace Mighty
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false,
 			params object[] args)
 		{
-			throw new NotImplementedException();
+			var command = Factory.CreateCommand();
+			_plugin.SetProviderSpecificCommandProperties(command);
+			command.CommandText = sql;
+			if (isProcedure) command.CommandType = CommandType.StoredProcedure;
+			AddParams(command, args);
+			AddNamedParams(command, inParams, ParameterDirection.Input);
+			AddNamedParams(command, outParams, ParameterDirection.Output);
+			AddNamedParams(command, ioParams, ParameterDirection.InputOutput);
+			AddNamedParams(command, returnParams, ParameterDirection.ReturnValue);
+			return command;
 		}
 #endregion
 
@@ -463,6 +483,122 @@ namespace Mighty
 			else
 			{
 				return yes ? sql : string.Format("{0} {1}", thing, sql.Trim());
+			}
+		}
+#endregion
+
+#region Parameters
+		public void AddNamedParam(DbCommand cmd, object value, string name = null, ParameterDirection direction = ParameterDirection.Input, Type type = null)
+		{
+			var p = cmd.CreateParameter();
+			if (name == string.Empty)
+			{
+				if (!_plugin.SetAnonymousParameter(p))
+				{
+					throw new InvalidOperationException("Current ADO.NET provider does not support anonymous parameters");
+				}
+			}
+			else
+			{
+				p.ParameterName = _plugin.PrefixParameterName(name ?? cmd.Parameters.Count.ToString(), cmd);
+			}
+			_plugin.SetDirection(p, direction);
+			if (value == null)
+			{
+				if (type != null)
+				{
+					_plugin.SetValue(p, type.CreateInstance());
+					// explicitly lock type and size to the values which ADO.NET has just implicitly assigned
+					// (when only implictly assigned, setting Value to DBNull.Value later on causes these to reset, in at least the Npgsql and SQL Server providers)
+					p.DbType = p.DbType;
+					p.Size = p.Size;
+				}
+				// Some ADO.NET providers completely ignore the parameter DbType when deciding on the .NET type for return values, others do not
+				else if(direction != ParameterDirection.Input && !_plugin.IgnoresOutputTypes(p))
+				{
+					throw new InvalidOperationException("Parameter \"" + p.ParameterName + "\" - on this ADO.NET provider all output, input-output and return parameters require non-null value or fully typed property, to allow correct SQL parameter type to be inferred");
+				}
+				p.Value = DBNull.Value;
+			}
+			else
+			{
+				var cursor = value as Cursor;
+				if (cursor != null)
+				{
+					// Placeholder cursor ref; we only need the value if passing in a cursor by value
+					// doesn't work on Postgres.
+					if (!_plugin.SetCursor(p, cursor.Value))
+					{
+						throw new InvalidOperationException("ADO.NET provider does not support cursors");
+					}
+				}
+				else
+				{
+					// Note - the passed in parameter value can be a real cursor ref, this works - at least in Oracle
+					_plugin.SetValue(p, value);
+				}
+			}
+			cmd.Parameters.Add(p);
+		}
+
+		public void AddParams(DbCommand cmd, params object[] args)
+		{
+			if (args == null)
+			{
+				return;
+			}
+			foreach (var item in args)
+			{
+				AddNamedParam(cmd, item);
+			}
+		}
+
+		public void AddNamedParams(DbCommand cmd, object nameValuePairs, ParameterDirection direction = ParameterDirection.Input)
+		{
+			if (nameValuePairs == null)
+			{
+				return;
+			}
+
+			object[] values = nameValuePairs as object[];
+			if(values != null)
+			{
+				if (direction != ParameterDirection.Input)
+				{
+					throw new InvalidOperationException("object[] arguments supported for input parameters only");
+				}
+				// anonymous parameters from array
+				foreach (var value in values)
+				{
+					AddNamedParam(cmd, value, string.Empty);
+				}
+				return;
+			}
+
+			if (nameValuePairs is ExpandoObject)
+			{
+				foreach(var pair in (IDictionary<string, object>)nameValuePairs)
+				{
+					AddNamedParam(cmd, pair.Value, pair.Key, direction);
+				}
+				return;
+			}
+
+			if (nameValuePairs.GetType() == typeof(NameValueCollection) || nameValuePairs.GetType().GetTypeInfo().IsSubclassOf(typeof(NameValueCollection)))
+			{
+				var argsCollection = (NameValueCollection)nameValuePairs;
+				foreach(string name in argsCollection)
+				{
+					AddNamedParam(cmd, argsCollection[name], name);
+				}
+				return;
+			}
+
+			// names, values and types from properties of anonymous object or POCO
+			foreach (PropertyInfo property in nameValuePairs.GetType().GetProperties())
+			{
+				// Extra null in GetValue() required for .NET backwards compatibility
+				AddNamedParam(cmd, property.GetValue(nameValuePairs, null), property.Name, direction, property.PropertyType);
 			}
 		}
 #endregion
