@@ -6,7 +6,7 @@ namespace Mighty.Interfaces
 	// a properly constructed and tested PR for that project. Which is not to say it won't be done at some point.)
 	abstract public partial class MicroORM // NpgslCursorController
 	{
-		public bool NpgsqlAutoDereferenceCursors { get; set; } = true;
-		public int NpgsqlAutoDereferenceFetchSize { get; set; } = 10000;
+		virtual public bool NpgsqlAutoDereferenceCursors { get; set; } = true;
+		virtual public int NpgsqlAutoDereferenceFetchSize { get; set; } = 10000;
 	}
 }

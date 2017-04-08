@@ -1,6 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.Data.Common;
+
+using Mighty.DatabasePlugins;
+using Mighty.Validation;
 
 namespace Mighty.Interfaces
 {
@@ -9,7 +11,7 @@ namespace Mighty.Interfaces
 	//	- Compound PKs
 	//	- Cleaner support for sequences (incl. one less DB round-trip on sequence-based insert)
 	//	- With the new inner loop this really might be faster than Massive too. 'Kinell.
-	//  - True support for ulong for those ADO.NET providers which use it (MySQL...)
+	//  - True support for ulong for those ADO.NET providers which use it (MySQL...) [CHECK THIS!!]
 	// To Add:
 	//  - Firebird(?)
 	//  - Generics(??)
@@ -29,67 +31,34 @@ namespace Mighty.Interfaces
 	abstract public partial class MicroORM
 	{
 #region Properties
-		// initialise table name from class name, but only if we are a *subclass* of MightyORM(!)
-		// throw exception if attempt to use it when not set
-		// NB this may have a dot in to specify owner/schema, and then needs splitting by us, but ONLY when getting information schema
-		private string _TableName;
-		// this implementation should go in the actual class; and these definitions should be abstract
-		// and I think we should access the table name via a method, so that the user can see when this is null without an exception
-		// no, via a protected property called ProtectedTableName with the same backing field!, that's nicer
-		public string TableName {
-			get
-			{
-				if (_TableName == null)
-				{
-					throw new InvalidOperationException("No TableName available; this can be passed to the MightyORM constructor or automatically inferred from the class name of any sub-class of MighyORM");
-				}
-				return _TableName;
-			}
-			protected set
-			{
-				_TableName = value;
-			}
-		}
-		// probably similar exception processing for PrimaryKeyList, PrimaryKeyString and DefaultColumns...
-		// I think we just need private Get methods (!)
-		abstract public string PrimaryKeyString { get; protected set; }
-		abstract public List<string> PrimaryKeyList { get; protected set; }
-		abstract public string DefaultColumns { get; protected set; }
+		virtual public string ConnectionString { get; protected set; }
+		virtual public DbProviderFactory Factory { get; protected set; }
+		virtual public DatabasePlugin _plugin { get; protected set; }
+		virtual public Validator _validator { get; protected set; }
 
-		// We don't need this... but it might be sensible to make it visible; which leaves the question should it be the raw one passed in, or the processed one?
-		// Probably the raw one; the processed one will be visible (I think? yes) in any connections sent out.
-		abstract public string ConnectionString { get; protected set; }
-
-		// We need the table info so we can instantiate from form submit (or any other namevaluecollection-ish thing, via ToExpando),
-		// filtering to match columns; needs to buffer itself
-		abstract public IEnumerable<dynamic> TableInfo { get; protected set; }
-
-		// some reasonable use-cases don't require this, can help you see whether or not this trip to the database has been made for you
-		abstract public bool HasLoadedTableInfo { get; protected set; }
+		// these should all be properties
+		// initialise table name from class name, but only if not == MicroORM(!); get, set, throw
+		// exception if attempt to use it when not set
+		virtual public string TableName { get; protected set; } // NB this may have a dot in to specify owner/schema, and then needs splitting by us, but ONLY when getting information schema
+		virtual public string PrimaryKeyString { get; protected set; } // un-separated PK(s)
+		virtual public List<string> PrimaryKeyList { get; protected set; } // separated, lowered PK(s)
+		virtual public string DefaultColumns { get; protected set; }
 #endregion
 
-		// We can implement NewItem() and ColumnDefault()
-		// NB *VERY* useful for better PK handling; ColumnDefault needs to do buffering - actually, it doesn't because we may end up passing the very same object out twice
-		abstract public object ColumnDefault(string column);
+#region User hooks
+		// You could override this to establish, for example, the convention of using _ to separate schema/owner from table (just replace "_" with "." and return!)
+		virtual public string CreateTableNameFromClassName(string className) { return className; }
+#endregion
 
-		// Will instantiate item from superset, only including columns which match the table schema
-		// (read once from the database), (optionally) setting default values for any non-present columns.
-		// If called with no args, will create a fully populated prototype.
-		// NB You do NOT need to use this - you can create new items to pass in to Mighty more or less however you want!
-		// (Of course, you do need to make sure that YOU don't pass in columns which aren't in the underlying table, or this will throw errors,
-		// but whether you call this method to ensure that is up to you.)
-		// (Any fields specified as PK will contain null or default; DB defined defaults for all other columns will be noticed, interpreted and applied where possible.)
-		abstract public dynamic NewItem(object superset = null, bool addNonPresentAsDefaults = true);
-
+#region MircoORM interface
 		// NB MUST return object not int because of MySQL ulong return type
-		// Can I *advertise* correct support for DBs with long types? (i.e. am I sure it does it?)
 		abstract public object Count(string columns = "*", string where = null,
 			params object[] args);
 		abstract public object Count(string columns = "*", string where = null,
 			DbConnection connection = null,
 			params object[] args);
 
-		// Use this also for MAX, MIN, SUM, AVG (basically it's scalar on current table)
+		// Use this for MAX, MIN, SUM, AVG (basically it's scalar on current table)
 		abstract public object Aggregate(string expression, string where = null,
 			params object[] args);
 		abstract public object Aggregate(string expression, string where = null,
@@ -123,11 +92,11 @@ namespace Mighty.Interfaces
 
 		// ORM
 		abstract public IEnumerable<dynamic> All(
-			string where = null, string orderBy = null, int limit = 0, string columns = null,
+			string where = null, string orderBy = null, string columns = null,
 			params object[] args);
 
 		abstract public IEnumerable<dynamic> AllWithParams(
-			string where = null, string orderBy = null, int limit = 0, string columns = null,
+			string where = null, string orderBy = null, string columns = null,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args);
@@ -168,7 +137,7 @@ namespace Mighty.Interfaces
 		// exception can check whether we are compound; or whether we may be sequence, but just not set; or whether we have retrieval fn intentionally overridden to empty string;
 		// and give different messages.
 
-		// save/insert/update one or more items
+		// save (insert or update) one or more items
 		abstract public int Save(params object[] items);
 		abstract public int Save(DbConnection connection, params object[] items);
 		
@@ -208,19 +177,18 @@ namespace Mighty.Interfaces
 			DbConnection connection,
 			params object[] args);
 
-#region User hooks
-		// false => do nothing with this object but continue with the list
-		virtual public bool Inserting(dynamic item) { return true; }
-		virtual public void Inserted(dynamic item) {}
-		// false => do nothing with this object but continue with the list
-		virtual public bool Updating(dynamic item) { return true; }
-		virtual public void Updated(dynamic item) {}
-		// false => do nothing with this object but continue with the list
-		virtual public bool Deleting(dynamic item) { return true; }
-		virtual public void Deleted(dynamic item) {}
+		// We can implement NewItem() and ColumnDefault()
+		// NB *VERY* useful for better PK handling; ColumnDefault needs to do buffering - actually, it doesn't because we may end up passing the very same object out twice
+		abstract public object ColumnDefault(string column);
 
-		// You could override this to establish, for example, the convention of using _ to separate schema/owner from table (just replace "_" with "." and return!)
-		virtual public string CreateTableNameFromClassName(string className) { return className; }
+		// Will instantiate item from superset, only including columns which match the table schema
+		// (read once from the database), (optionally) setting default values for any non-present columns.
+		// If called with no args, will create a fully populated prototype.
+		// NB You do NOT need to use this - you can create new items to pass in to Mighty more or less however you want!
+		// (Of course, you do need to make sure that YOU don't pass in columns which aren't in the underlying table, or this will throw errors,
+		// but whether you call this method to ensure that is up to you.)
+		// (Any fields specified as PK will contain null or default; DB defined defaults for all other columns will be noticed, interpreted and applied where possible.)
+		abstract public dynamic CreateFrom(object nameValues = null, bool addNonPresentAsDefaults = true);
 #endregion
 	}
 }

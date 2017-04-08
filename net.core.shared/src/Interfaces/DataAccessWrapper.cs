@@ -9,10 +9,7 @@ namespace Mighty.Interfaces
 	// (See ... MS document about DB classes; SO post about intefaces)
 	abstract public partial class MicroORM // DataAccessWrapper
 	{
-		// There should really be a logger interface: about to "Execute..."; no, I don't like this, it's too easy to mess up.
-		// And it's not separation of concerns.
-		abstract public bool EnableLogging { get; set; }
-
+#region DataAccessWrapper
 		abstract public DbConnection OpenConnection();
 
 		abstract public IEnumerable<dynamic> Query(DbCommand command,
@@ -77,25 +74,16 @@ namespace Mighty.Interfaces
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args);
-		// this is not possible
-		abstract public dynamic PagedFromProcedure(string spName,
-			int pageSize = 20, int currentPage = 1,
-			DbConnection connection = null,
-			params object[] args);
 
-
+		// note: no <see cref="DbConnection"/> param to either of these, because the connection for a command to use
+		// is always passed in to the action which uses it, or else created by the microORM on the fly
 		abstract public DbCommand CreateCommand(string sql,
-			DbConnection conn = null, // do we need (no) or want (not sure) this, here? it is a prime purpose of a command to have a connection, so why not?
 			params object[] args);
 		abstract public DbCommand CreateCommandWithParams(string sql,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false,
-			DbConnection connection = null,
 			params object[] args);
 
-		// kv pair stuff for dropdowns, but it's not obvious you want your dropdown list in kv pair...
-		// it's a lot of extra code for this - you could add to kvpairs (whatever it's called) as
-		// an extension of IEnumerable<dynamic> ... if you can. That means almost no extra code.
-		// it is very easy for the user to do this conversion themselves
+		// kv pair stuff for dropdowns: maybe, at max, provide a method to convert IEnumerable<dynamic> to kv pair
 
 		// BASICALLY DONE THE BELOW, I THINK:
 		
@@ -110,5 +98,6 @@ namespace Mighty.Interfaces
 		//"System.Collections.Specialized": "4.0.1", ****
 		//"System.Threading.Overlapped": "4.0.1",
 		//"System.Xml.XmlDocument": "4.0.1"
+#endregion
 	}
 }
