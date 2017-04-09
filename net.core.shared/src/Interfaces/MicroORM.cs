@@ -37,7 +37,7 @@ namespace Mighty.Interfaces
 		virtual public Validator _validator { get; protected set; }
 
 		virtual public string TableName { get; protected set; } // NB this may have a dot in to specify owner/schema, and then needs splitting by us, but ONLY when getting information schema
-		virtual public string PrimaryKeyString { get; protected set; } // un-separated PK(s)
+		virtual public string PrimaryKeyFields { get; protected set; } // un-separated PK(s)
 		virtual public List<string> PrimaryKeyList { get; protected set; } // separated, lowered PK(s)
 		virtual public string DefaultColumns { get; protected set; }
 #endregion
@@ -99,7 +99,7 @@ namespace Mighty.Interfaces
 			params object[] args);
 
 		// ORM version (there is also a data wrapper version)
-		// You must provider orderBy, except you don't have to as it will order by PK if you don't (or exception if there is no PK defined)
+		// You must provide orderBy, except you don't have to as it will order by PK if you don't (or exception if there is no PK defined)
 		// columns (currently?) not first, as it's an override to something we (may) have already provided in the constructor...
 		abstract public dynamic Paged(string orderBy = null, string where = null,
 			string columns = null,

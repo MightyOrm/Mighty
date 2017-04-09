@@ -69,7 +69,7 @@ namespace Mighty
 					TableName = CreateTableNameFromClassName(me.Name);
 				}
 			}
-			PrimaryKeyString = primaryKey;
+			PrimaryKeyFields = primaryKey;
 			PrimaryKeyList = primaryKey.Split(',').Select(k => k.Trim()).ToList();
 			DefaultColumns = columns ?? "*";
 			_validator = validator;
@@ -170,16 +170,17 @@ namespace Mighty
 				args);		
 		}
 
-		// ORM version (there is also a data wrapper version)
-		// You must provider orderBy, except you don't have to as it will order by PK if you don't (or exception if there is no PK defined)
-		// columns (currently?) not first, as it's an override to something we (may) have already provided in the constructor...
+		// ORM version (there is also a data wrapper version).
+		// You may provide orderBy, if you don't it will try to order by PK (and will produce an exception if there is no PK defined).
+		// <see cref="columns"/> parameter not placed first, as it's an override to something we (may) have already
+		// provided in the constructor...
 		override public dynamic Paged(string orderBy = null, string where = null,
 			string columns = null,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args)
 		{
-			return PagedFromSelect(columns, CheckTableName(), orderBy, where, pageSize, currentPage, connection, args);
+			return PagedFromSelect(columns, CheckTableName(), orderBy ?? CheckPrimaryKeyFields(), where, pageSize, currentPage, connection, args);
 		}
 
 		// save (insert or update) one or more items
@@ -705,7 +706,7 @@ namespace Mighty
 		{
 			if (_whereForKey == null)
 			{
-				if (PrimaryKeyList.Count == 0)
+				if (PrimaryKeyList == null || PrimaryKeyList.Count == 0)
 				{
 					throw new InvalidOperationException("No primary key field(s) have been specified");
 				}
@@ -719,6 +720,15 @@ namespace Mighty
 				_whereForKey = sb.ToString();
 			}
 			return _whereForKey;
+		}
+
+		protected string CheckPrimaryKeyFields()
+		{
+			if (string.IsNullOrEmpty(PrimaryKeyFields))
+			{
+					throw new InvalidOperationException("No primary key field(s) have been specified");
+			}
+			return PrimaryKeyFields;
 		}
 
 		protected string CheckTableName()
