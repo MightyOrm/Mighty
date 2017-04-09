@@ -11,10 +11,6 @@ namespace Mighty.Interfaces
 	// (See ... MS document about DB classes; SO post about intefaces)
 	abstract public partial class MicroORM //DataAccessWrapper
 	{
-#region Properties
-		abstract public IEnumerable<dynamic> TableInfo { get; }
-#endregion
-
 		// All versions which simply redirect to other versions are defined here, not in the main class.
 #region DataAccessWrapper
 		abstract public DbConnection OpenConnection();

@@ -17,6 +17,31 @@ namespace Mighty
 {
 	public partial class MightyORM : MicroORM
 	{
+		// Only properties with a non-trivial implementation are here, the rest are in the MicroORM abstract class.
+#region Properties
+		protected IEnumerable<dynamic> _TableInfo;
+		override public IEnumerable<dynamic> TableInfo
+		{
+			get
+			{
+				if (_TableInfo == null)
+				{
+					string tableName = TableName;
+					string owner = null;
+					int i = tableName.LastIndexOf('.');
+					if (i >= 0)
+					{
+						owner = tableName.Substring(0, i);
+						tableName = tableName.Substring(i + 1);
+					}
+					var sql = _plugin.BuildTableInfoQuery(owner, tableName);
+					_TableInfo = _plugin.NormalizeTableInfo(Query(sql));
+				}
+				return _TableInfo;
+			}
+		}
+#endregion
+
 #region Constructors
 		// sequence is for sequence-based databases (Oracle, PostgreSQL) - there is no default, specify either null or empty string to disable and manually specify your PK values;
 		// keyRetrievalFunction is for non-sequence based databases (MySQL, SQL Server, SQLite) - defaults to default for DB, specify empty string to disable and manually specify your PK values;
@@ -79,14 +104,14 @@ namespace Mighty
 #region Convenience factory
 		// mini-factory for non-table specific access
 		// (equivalent to a constructor call)
+		// <remarks>static, so can't be defined anywhere but here</remarks>
 		static public MightyORM DB(string connectionStringOrName = null)
 		{
 			return new MightyORM(connectionStringOrName);
 		}
 #endregion
 
-		// All the elements of this interface which are purely defined in terms of other elements are implemented
-		// in the abstract class, not here.
+		// Only methods with a non-trivial implementation are here, the rest are in the MicroORM abstract class.
 #region MircoORM interace
 		// In theory COUNT expression could vary across SQL variants, in practice it doesn't.
 		override public object Count(string columns = "*", string where = null,
@@ -301,8 +326,7 @@ namespace Mighty
 		}
 #endregion
 
-		// All the elements of this interface which are purely defined in terms of other elements are implemented
-		// in the abstract class, not here.
+		// Only methods with a non-trivial implementation are here, the rest are in the DataAccessWrapper abstract class.
 #region DataAccessWrapper interface
 		override public DbConnection OpenConnection()
 		{
@@ -573,30 +597,6 @@ namespace Mighty
 			{
 				// Extra null in GetValue() required for .NET backwards compatibility
 				AddNamedParam(cmd, property.GetValue(nameValuePairs, null), property.Name, direction, property.PropertyType);
-			}
-		}
-#endregion
-
-#region Implementation
-		protected IEnumerable<dynamic> _TableInfo;
-		override public IEnumerable<dynamic> TableInfo
-		{
-			get
-			{
-				if (_TableInfo == null)
-				{
-					string tableName = TableName;
-					string owner = null;
-					int i = tableName.LastIndexOf('.');
-					if (i >= 0)
-					{
-						owner = tableName.Substring(0, i);
-						tableName = tableName.Substring(i + 1);
-					}
-					var sql = _plugin.BuildTableInfoQuery(owner, tableName);
-					_TableInfo = _plugin.NormalizeTableInfo(Query(sql));
-				}
-				return _TableInfo;
 			}
 		}
 #endregion

@@ -42,6 +42,8 @@ namespace Mighty.Interfaces
 		virtual public string PrimaryKeyFields { get; protected set; } // un-separated PK(s)
 		virtual public List<string> PrimaryKeyList { get; protected set; } // separated, lowered PK(s)
 		virtual public string DefaultColumns { get; protected set; }
+		
+		abstract public IEnumerable<dynamic> TableInfo { get; }
 #endregion
 
 #region User hooks
