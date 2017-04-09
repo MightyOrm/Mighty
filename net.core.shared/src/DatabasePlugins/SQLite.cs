@@ -1,3 +1,4 @@
+using System;
 using System.Data.Common;
 using System.Collections.Generic;
 
@@ -46,6 +47,30 @@ namespace Mighty.DatabasePlugins
 					IS_NULLABLE = rowAsDictionary["notnull"].ToString() == "0" ? "NO" : "YES",
 					COLUMN_DEFAULT = rowAsDictionary["dflt_value"] ?? string.Empty,
 				});
+			}
+			return result;
+		}
+
+		// This code from Massive - see CREDITS file
+		override public object GetColumnDefault(dynamic columnInfo)
+		{
+			string defaultValue = columnInfo.COLUMN_DEFAULT;
+			if(string.IsNullOrEmpty(defaultValue))
+			{
+				return null;
+			}
+			dynamic result = null;
+			switch(defaultValue.ToUpper())
+			{
+				case "CURRENT_TIME":
+					result = DateTime.UtcNow.ToString("HH:mm:ss");
+					break;
+				case "CURRENT_DATE":
+					result = DateTime.UtcNow.ToString("yyyy-MM-dd");
+					break;
+				case "CURRENT_TIMESTAMP":
+					result = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
+					break;
 			}
 			return result;
 		}

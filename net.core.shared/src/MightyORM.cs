@@ -236,19 +236,19 @@ namespace Mighty
 			params object[] args)
 		{
 			var values = new StringBuilder();
-			var fromDict = partialItem.ToExpando().AsDictionary();
+			var userDictionary = partialItem.ToExpando().AsDictionary();
 			var filteredItem = new ExpandoObject();
 			var toDict = filteredItem.AsDictionary();
 			int i = 0;
-			foreach (var fieldName in fromDict)
+			foreach (var pair in userDictionary)
 			{
-				if (!PrimaryKeyList.Any(key => key.Equals(fieldName, StringComparison.OrdinalIgnoreCase)))
+				if (!HasKey(pair.Key))
 				{
 					if (i > 0) values.Append(", ");
-					values.Append(fieldName).Append(" = ").Append(_plugin.PrefixParameterName(fieldName));
+					values.Append(pair.Key).Append(" = ").Append(_plugin.PrefixParameterName(pair.Key));
 					i++;
 
-					toDict.Add(fieldName, fromDict[fieldName]);
+					toDict.Add(pair.Key, pair.Value);
 				}
 			}
 			var sql = _plugin.BuildUpdate(CheckTableName(), values.ToString(), where);
@@ -293,19 +293,59 @@ namespace Mighty
 			var command = _plugin.BuildDelete(CheckTableName(), where);
 			return Execute(command, connection, args);
 		}
-			
-		// We can implement NewItem() and ColumnDefault()
-		// NB *VERY* useful for better PK handling; ColumnDefault needs to do buffering - actually, it doesn't because we may end up passing the very same object out twice
-		override public object ColumnDefault(string column)
+
+		override public bool HasKey(string fieldName)
 		{
-			throw new NotImplementedException();
+			return PrimaryKeyList.Any(key => key.Equals(fieldName, StringComparison.OrdinalIgnoreCase));
+		}
+
+		override public dynamic ColumnInfo(string column, bool ExceptionOnAbsent = true)
+		{
+			var info = TableInfo.Select(c => column.Equals(c.COLUMN_NAME, StringComparison.OrdinalIgnoreCase));
+			if (ExceptionOnAbsent && info == null)
+			{
+				throw new InvalidOperationException("Cannot find table info for column name " + column);
+			}
+			return column;
+		}
+	
+		// We can implement NewItem() and GetColumnDefault()
+		// NB *VERY* useful for better PK handling; GetColumnDefault needs to do buffering - actually, it doesn't because we may end up passing the very same object out twice
+		override public dynamic GetColumnDefault(string columnName)
+		{
+			var columnInfo = ColumnInfo(columnName);
+			return _plugin.GetColumnDefault(columnInfo);
 		}
 
 		// NB You do NOT have to use this - you can create new items to pass in to Mighty more or less however you want.
 		// The main convenience provided here is to automatically strip out any input which does not match your column names.
-		override public dynamic CreateFrom(object nameValues = null, bool addNonPresentAsDefaults = true)
+		override public dynamic NewFrom(object nameValues = null, bool addNonPresentAsDefaults = true)
 		{
-			throw new NotImplementedException();
+			var item = new ExpandoObject();
+			var newItemDictionary = item.AsDictionary();
+			var userDictionary = nameValues.ToExpando().AsDictionary();
+			// drive the loop by the actual column names
+			foreach (var columnInfo in TableInfo)
+			{
+				string columnName = columnInfo.COLUMN_NAME;
+				object userValue = null;
+				foreach (var pair in userDictionary)
+				{
+					if (pair.Key.Equals(columnName, StringComparison.OrdinalIgnoreCase))
+					{
+						userValue = pair.Value;
+					}
+				}
+				if (userValue != null)
+				{
+					newItemDictionary.Add(columnName, userValue);
+				}
+				else if (addNonPresentAsDefaults)
+				{
+					newItemDictionary.Add(columnName, GetColumnDefault(columnName));
+				}
+			}
+			return item;
 		}
 #endregion
 
@@ -487,7 +527,7 @@ namespace Mighty
 		override public DbCommand CreateCommand(string sql,
 			params object[] args)
 		{
-			return CreateCommand(sql, args: args);
+			return CreateCommandWithParams(sql, args: args);
 		}
 		override public DbCommand CreateCommandWithParams(string sql,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false,
@@ -624,6 +664,28 @@ namespace Mighty
 #endregion
 
 #region Implementation
+		protected IEnumerable<dynamic> _TableInfo;
+		override public IEnumerable<dynamic> TableInfo
+		{
+			get
+			{
+				if (_TableInfo == null)
+				{
+					string tableName = TableName;
+					string owner = null;
+					int i = tableName.LastIndexOf('.');
+					if (i >= 0)
+					{
+						owner = tableName.Substring(0, i);
+						tableName = tableName.Substring(i + 1);
+					}
+					var sql = _plugin.BuildTableInfoQuery(owner, tableName);
+					_TableInfo = _plugin.NormalizeTableInfo(Query(sql));
+				}
+				return _TableInfo;
+			}
+		}
+
 		// This is not required, in that passing a single key via args will do this anyway.
 		// It's just for exception checking.
 		protected object[] KeysFromKey(object key)

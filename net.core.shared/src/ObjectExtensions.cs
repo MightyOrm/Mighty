@@ -93,11 +93,12 @@ namespace Mighty
 		}
 #endregion
 
-		static public dynamic ToExpando(this object o)
+		static public ExpandoObject ToExpando(this object o)
 		{
-			if (o is ExpandoObject)
+			var oAsExpando = o as ExpandoObject;
+			if (oAsExpando != null)
 			{
-				return o;
+				return oAsExpando;
 			}
 			var e = new ExpandoObject();
 			var d = e.AsDictionary();

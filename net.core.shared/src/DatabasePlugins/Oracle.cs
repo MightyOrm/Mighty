@@ -40,6 +40,28 @@ namespace Mighty.DatabasePlugins
 				tableName,
 				owner == null ? "": string.Format(" AND OWNER = {1}", owner));
 		}
+
+		override public object GetColumnDefault(dynamic columnInfo)
+		{
+			// This code from Massive - see CREDITS file
+			string defaultValue = columnInfo.COLUMN_DEFAULT;
+			if(string.IsNullOrEmpty(defaultValue))
+			{
+				return null;
+			}
+			dynamic result;
+			switch(defaultValue)
+			{
+				case "SYSDATE":
+				case "(SYSDATE)":
+					result = DateTime.Now;
+					break;
+				default:
+					result = defaultValue.Replace("(", "").Replace(")", "");
+					break;
+			}
+			return result;
+		}
 #endregion
 
 #region Keys and sequences

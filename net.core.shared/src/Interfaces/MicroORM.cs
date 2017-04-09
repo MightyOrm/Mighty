@@ -174,9 +174,13 @@ namespace Mighty.Interfaces
 			DbConnection connection,
 			params object[] args);
 
-		// We can implement NewItem() and ColumnDefault()
-		// NB *VERY* useful for better PK handling; ColumnDefault needs to do buffering - actually, it doesn't because we may end up passing the very same object out twice
-		abstract public object ColumnDefault(string column);
+		abstract public bool HasKey(string fieldName);
+
+		abstract public dynamic ColumnInfo(string column, bool ExceptionOnAbsent = true);
+
+		// We can implement NewItem() and GetColumnDefault()
+		// NB *VERY* useful for better PK handling; GetColumnDefault needs to do buffering - actually, it doesn't because we may end up passing the very same object out twice
+		abstract public object GetColumnDefault(string column);
 
 		// Will instantiate item from superset, only including columns which match the table schema
 		// (read once from the database), (optionally) setting default values for any non-present columns.
@@ -185,7 +189,8 @@ namespace Mighty.Interfaces
 		// (Of course, you do need to make sure that YOU don't pass in columns which aren't in the underlying table, or this will throw errors,
 		// but whether you call this method to ensure that is up to you.)
 		// (Any fields specified as PK will contain null or default; DB defined defaults for all other columns will be noticed, interpreted and applied where possible.)
-		abstract public dynamic CreateFrom(object nameValues = null, bool addNonPresentAsDefaults = true);
+		virtual public dynamic New() { return NewFrom(); }
+		abstract public dynamic NewFrom(object nameValues = null, bool addNonPresentAsDefaults = true);
 #endregion
 	}
 }

@@ -26,6 +26,27 @@ namespace Mighty.DatabasePlugins
 		}
 #endregion
 
+#region Table info
+		override public object GetColumnDefault(dynamic columnInfo)
+		{
+			// This code from Massive - see CREDITS file
+			string defaultValue = columnInfo.COLUMN_DEFAULT;
+			if(string.IsNullOrEmpty(defaultValue))
+			{
+				return null;
+			}
+
+			dynamic result = null;
+			switch(defaultValue.ToUpper())
+			{
+				case "CURRENT_TIMESTAMP":
+					result = DateTime.Now;
+					break;
+			}
+			return result;
+		}
+#endregion
+
 #region Keys and sequences
 		override public string KeyRetrievalFunction { get; protected set; } = "LAST_INSERT_ID()";
 #endregion

@@ -1,3 +1,4 @@
+using System;
 using System.Data.Common;
 
 namespace Mighty.DatabasePlugins
@@ -24,6 +25,33 @@ namespace Mighty.DatabasePlugins
 			int limit, int offset)
 		{
 			return BuildRowNumberPagingQuery(columns, tablesAndJoins, orderBy, where, limit, offset);
+		}
+#endregion
+
+#region Table info
+		// This code from Massive - see CREDITS file
+		override public object GetColumnDefault(dynamic columnInfo)
+		{
+			string defaultValue = columnInfo.COLUMN_DEFAULT;
+			if(string.IsNullOrEmpty(defaultValue))
+			{
+				return null;
+			}
+			dynamic result;
+			switch(defaultValue)
+			{
+				case "getdate()":
+				case "(getdate())":
+					result = DateTime.Now;
+					break;
+				case "newid()":
+					result = Guid.NewGuid().ToString();
+					break;
+				default:
+					result = defaultValue.Replace("(", "").Replace(")", "");
+					break;
+			}
+			return result;
 		}
 #endregion
 
