@@ -72,7 +72,7 @@ namespace Mighty.DatabasePlugins
 			int limit, int offset)
 		{
 			string tj = mighty.Unthingify("FROM", tablesAndJoins);
-			string CountQuery = BuildSelect("COUNT(*)", tj, where);
+			string CountQuery = BuildSelect("COUNT(*) AS TotalCount", tj, where);
 			string PagingQuery =
 				string.Format("SELECT {0} FROM {1}{2} ORDER BY {3} LIMIT {4}{5}",
 					mighty.Unthingify("SELECT", columns),
@@ -91,7 +91,7 @@ namespace Mighty.DatabasePlugins
 			int limit, int offset)
 		{
 			string tj = mighty.Unthingify("FROM", tablesAndJoins);
-			string CountQuery = BuildSelect("COUNT(*)", tj, where);
+			string CountQuery = BuildSelect("COUNT(*) AS TotalCount", tj, where);
 			// 't_' outer query alias does not conflict with any use of 't_' table/query alias in user SELECT.
 			string PagingQuery =
 				string.Format("SELECT t_.*" + CRLF +

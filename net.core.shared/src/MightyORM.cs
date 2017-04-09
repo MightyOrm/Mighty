@@ -16,10 +16,6 @@ using Mighty.Validation;
 namespace Mighty
 {
 	public partial class MightyORM : MicroORM
-		// (- wait till we're ready to actually implement! -)
-		// : MicroORM
-		// , DataAccessWrapper
-		// , NpgsqlCursorController
 	{
 #region Constructors
 		// sequence is for sequence-based databases (Oracle, PostgreSQL) - there is no default, specify either null or empty string to disable and manually specify your PK values;
@@ -66,7 +62,7 @@ namespace Mighty
 			else
 			{
 				var me = this.GetType();
-				// leave table name unset if we are not a true sub-class
+				// leave table name unset if we are not a true sub-class;
 				// test enforces strict sub-class, does not pass for an instance of the class itself
 				if (me.GetTypeInfo().IsSubclassOf(typeof(MightyORM)))
 				{
@@ -90,7 +86,9 @@ namespace Mighty
 #endregion
 
 #region MircoORM interace
-		// NB MUST return object not int because of MySQL ulong return type
+		// NB MUST return object not int because of MySQL ulong return type.
+		// Note also: it is worth passing in something other than "*"; COUNT over any
+		// column which can contain null COUNTS only the non-null values.
 		override public object Count(string columns = "*", string where = null,
 			params object[] args)
 		{
@@ -100,7 +98,8 @@ namespace Mighty
 			DbConnection connection = null,
 			params object[] args)
 		{
-			return Aggregate("COUNT(*)", where, connection, args);
+			var expression = string.Format("COUNT({0})", columns);
+			return Aggregate(expression, where, connection, args);
 		}
 		// Use this for MAX, MIN, SUM, AVG (basically it's scalar on current table)
 		override public object Aggregate(string expression, string where = null,
@@ -444,12 +443,21 @@ namespace Mighty
 		}
 
 		// You must provide orderBy for a paged query; where is optional.
+		// In this one instance, because of the connection to the underlying logic of these queries, the user
+		// can pass "SELECT columns" instead of columns.
 		override public dynamic PagedFromSelect(string columns, string tablesAndJoins, string orderBy, string where = null,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args)
 		{
-			throw new NotImplementedException();
+			int limit = pageSize;
+			int offset = (currentPage - 1) * pageSize;
+			var sql = _plugin.BuildPagingQuery(columns, tablesAndJoins, orderBy, where, limit, offset);
+			var resultSets = QueryMultiple(sql);
+			dynamic result = new ExpandoObject();
+			result.TotalCount = resultSets.First().First().TotalCount;
+			result.Items = resultSets.Last();
+			return result;
 		}
 
 		// note 1: no <see cref="DbConnection"/> param to either of these, because the connection for a command to use

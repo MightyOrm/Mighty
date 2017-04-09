@@ -4,7 +4,8 @@ using System.Data.Common;
 namespace Mighty.Interfaces
 {
 
-	// Abstract class 'interface' for the ADO.NET Data Access Wrapper methods (i.e. the ones which can be used even if no table has been specified).
+	// Abstract class 'interface' for the ADO.NET Data Access Wrapper methods (i.e. the ones which can be used even if no table
+	// has been specified).
 	// Uses abstract class, not interface, because the semantics of interface means it can never have anything added to it!
 	// (See ... MS document about DB classes; SO post about intefaces)
 	abstract public partial class MicroORM // DataAccessWrapper
