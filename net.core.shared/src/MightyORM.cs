@@ -85,15 +85,10 @@ namespace Mighty
 		}
 #endregion
 
+		// All the elements of this interface which are purely defined in terms of other elements are implemented
+		// in the abstract class, not here.
 #region MircoORM interace
-		// NB MUST return object not int because of MySQL ulong return type.
-		// Note also: it is worth passing in something other than "*"; COUNT over any
-		// column which can contain null COUNTS only the non-null values.
-		override public object Count(string columns = "*", string where = null,
-			params object[] args)
-		{
-			return Count(columns, where, null, args);
-		}
+		// In theory COUNT expression could vary across SQL variants, in practice it doesn't.
 		override public object Count(string columns = "*", string where = null,
 			DbConnection connection = null,
 			params object[] args)
@@ -101,12 +96,8 @@ namespace Mighty
 			var expression = string.Format("COUNT({0})", columns);
 			return Aggregate(expression, where, connection, args);
 		}
-		// Use this for MAX, MIN, SUM, AVG (basically it's scalar on current table)
-		override public object Aggregate(string expression, string where = null,
-			params object[] args)
-		{
-			return Aggregate(expression, where, null, args);
-		}
+
+		// This just lets you pass in the aggregate expressions of your SQL variant, but SUM, AVG, MIN, MAX are supported on all.
 		override public object Aggregate(string expression, string where = null,
 			DbConnection connection = null,
 			params object[] args)
@@ -115,210 +106,7 @@ namespace Mighty
 				connection: connection, args: args);
 		}
 
-		// ORM: Single from our table
-		override public dynamic Single(object key, string columns = null,
-			DbConnection connection = null)
-		{
-			return Single(WhereForKey(), connection, columns, KeysFromKey(key));
-		}
-		override public dynamic Single(string where,
-			params object[] args)
-		{
-			return Single(where, null, null, args);
-		}
-		// THAT is it........ :-))))))
-		// DbConnection coming before columns spec is really useful, as it avoids ambiguity between a column spec and a first string arg
-		override public dynamic Single(string where,
-			DbConnection connection = null,
-			string columns = null,
-			params object[] args)
-		{
-			return SingleWithParams(where, columns, connection: connection, args: args);
-		}
-		
-		// WithParams version just in case; allows transactions for a start
-		override public dynamic SingleWithParams(string where, string columns = null,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args)
-		{
-			return AllWithParams(CommandBehavior.SingleRow,
-				null, null, columns,
-				inParams, outParams, ioParams, returnParams,
-				connection,
-				args).FirstOrDefault();
-		}
-
-		// ORM
-		override public IEnumerable<dynamic> All(
-			string where = null, string orderBy = null, string columns = null,
-			params object[] args)
-		{
-			return AllWithParams(where, orderBy, columns, args: args);
-		}
-
-		override public IEnumerable<dynamic> AllWithParams(
-			string where = null, string orderBy = null, string columns = null,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args)
-		{
-			return AllWithParams(CommandBehavior.Default,
-				where, orderBy, columns,
-				inParams, outParams, ioParams, returnParams,
-				connection,
-				args);		
-		}
-
-		// ORM version (there is also a data wrapper version).
-		// You may provide orderBy, if you don't it will try to order by PK (and will produce an exception if there is no PK defined).
-		// <see cref="columns"/> parameter not placed first, as it's an override to something we (may) have already
-		// provided in the constructor...
-		override public dynamic Paged(string orderBy = null, string where = null,
-			string columns = null,
-			int pageSize = 20, int currentPage = 1,
-			DbConnection connection = null,
-			params object[] args)
-		{
-			return PagedFromSelect(columns, CheckTableName(), orderBy ?? CheckPrimaryKeyFields(), where, pageSize, currentPage, connection, args);
-		}
-
-		// save (insert or update) one or more items
-		override public int Save(params object[] items)
-		{
-			return Save(null, items);
-		}
-		override public int Save(DbConnection connection, params object[] items)
-		{
-			return Action(ORMAction.Save, connection, items);
-		}
-		
-		override public int Insert(params object[] items)
-		{
-			return Insert(null, items);
-		}
-		override public int Insert(DbConnection connection, params object[] items)
-		{
-			return Action(ORMAction.Insert, connection, items);
-		}
-
-		override public int Update(params object[] items)
-		{
-			return Update(null, items);
-		}
-		override public int Update(DbConnection connection, params object[] items)
-		{
-			return Action(ORMAction.Update, connection, items);
-		}
-
-		// Apply all fields which are present in item to the row matching key.
-		// We *don't* filter by available columns - call with <see cref="CreateFrom"/>(<see cref="partialItem"/>) to do that.
-		override public int UpdateFrom(object partialItem, object key)
-		{
-			return UpdateFrom(partialItem, key, null);
-		}
-		override public int UpdateFrom(object partialItem, object key,
-			DbConnection connection)
-		{
-			return UpdateFrom(partialItem, WhereForKey(), KeysFromKey(key));
-		}
-
-		// apply all fields which are present in item to all rows matching where clause
-		// for safety you MUST specify the where clause yourself (use "1=1" to update all rows)
-		// this removes/ignores any PK fields from the action; keeps auto-named params for args,
-		// and uses named params for the update feilds.
-		override public int UpdateFrom(object partialItem, string where,
-			params object[] args)
-		{
-			return UpdateFrom(partialItem, where, null, args);
-		}
-		override public int UpdateFrom(object partialItem, string where,
-			DbConnection connection,
-			params object[] args)
-		{
-			var values = new StringBuilder();
-			var userDictionary = partialItem.ToExpando().AsDictionary();
-			var filteredItem = new ExpandoObject();
-			var toDict = filteredItem.AsDictionary();
-			int i = 0;
-			foreach (var pair in userDictionary)
-			{
-				if (!HasKey(pair.Key))
-				{
-					if (i > 0) values.Append(", ");
-					values.Append(pair.Key).Append(" = ").Append(_plugin.PrefixParameterName(pair.Key));
-					i++;
-
-					toDict.Add(pair.Key, pair.Value);
-				}
-			}
-			var sql = _plugin.BuildUpdate(CheckTableName(), values.ToString(), where);
-			return ExecuteWithParams(sql, args: args, inParams: filteredItem, connection: connection);
-		}
-
-		override public int Delete(params object[] items)
-		{
-			// ambiguous with other overloads otherwise
-			return Delete(connection: null, items: items);
-		}
-		override public int Delete(DbConnection connection, params object[] items)
-		{
-			return Action(ORMAction.Delete, connection, items);
-		}
-
-		override public int DeleteByKey(params object[] keys)
-		{
-			return DeleteByKey(null, keys);
-		}
-		override public int DeleteByKey(DbConnection connection, params object[] keys)
-		{
-			int sum = 0;
-			foreach (var key in keys)
-			{
-				var sql = _plugin.BuildDelete(CheckTableName(), WhereForKey());
-				sum += Execute(sql, key);
-			}
-			return sum;
-		}
-
-		// for safety you MUST specify the where clause yourself (use "1=1" to delete all rows)
-		override public int Delete(string where,
-			params object[] args)
-		{
-			return Delete(where, null, args);
-		}
-		override public int Delete(string where,
-			DbConnection connection,
-			params object[] args)
-		{
-			var command = _plugin.BuildDelete(CheckTableName(), where);
-			return Execute(command, connection, args);
-		}
-
-		override public bool HasKey(string fieldName)
-		{
-			return PrimaryKeyList.Any(key => key.Equals(fieldName, StringComparison.OrdinalIgnoreCase));
-		}
-
-		override public dynamic ColumnInfo(string column, bool ExceptionOnAbsent = true)
-		{
-			var info = TableInfo.Select(c => column.Equals(c.COLUMN_NAME, StringComparison.OrdinalIgnoreCase));
-			if (ExceptionOnAbsent && info == null)
-			{
-				throw new InvalidOperationException("Cannot find table info for column name " + column);
-			}
-			return column;
-		}
-	
-		// We can implement NewItem() and GetColumnDefault()
-		// NB *VERY* useful for better PK handling; GetColumnDefault needs to do buffering - actually, it doesn't because we may end up passing the very same object out twice
-		override public dynamic GetColumnDefault(string columnName)
-		{
-			var columnInfo = ColumnInfo(columnName);
-			return _plugin.GetColumnDefault(columnInfo);
-		}
-
-		// NB You do NOT have to use this - you can create new items to pass in to Mighty more or less however you want.
+		// You do NOT have to use this - you can create new items to pass in the microORM more or less however you want.
 		// The main convenience provided here is to automatically strip out any input which does not match your column names.
 		override public dynamic NewFrom(object nameValues = null, bool addNonPresentAsDefaults = true)
 		{
@@ -348,8 +136,173 @@ namespace Mighty
 			}
 			return item;
 		}
+
+		// Update from fields in the item sent in. If PK has been specified, any primary key fields in the
+		// item are ignored (this is an update, not an insert!). However the item is not filtered to remove fields
+		// not in the table. If you need that, call <see cref="NewFrom"/>(<see cref="partialItem"/>, false) first.
+		override public int UpdateFrom(object partialItem, string where,
+			DbConnection connection,
+			params object[] args)
+		{
+			var values = new StringBuilder();
+			var userDictionary = partialItem.ToExpando().AsDictionary();
+			var filteredItem = new ExpandoObject();
+			var toDict = filteredItem.AsDictionary();
+			int i = 0;
+			foreach (var pair in userDictionary)
+			{
+				if (!IsKey(pair.Key))
+				{
+					if (i > 0) values.Append(", ");
+					values.Append(pair.Key).Append(" = ").Append(_plugin.PrefixParameterName(pair.Key));
+					i++;
+
+					toDict.Add(pair.Key, pair.Value);
+				}
+			}
+			var sql = _plugin.BuildUpdate(CheckTableName(), values.ToString(), where);
+			return ExecuteWithParams(sql, args: args, inParams: filteredItem, connection: connection);
+		}
+
+		override public int DeleteByKey(DbConnection connection, params object[] keys)
+		{
+			int sum = 0;
+			foreach (var key in keys)
+			{
+				var sql = _plugin.BuildDelete(CheckTableName(), WhereForKeys());
+				sum += Execute(sql, key);
+			}
+			return sum;
+		}
+
+		override public int Delete(string where,
+			DbConnection connection,
+			params object[] args)
+		{
+			var sql = _plugin.BuildDelete(CheckTableName(), where);
+			return Execute(sql, connection, args);
+		}
+
+		override public bool IsKey(string fieldName)
+		{
+			return PrimaryKeyList.Any(key => key.Equals(fieldName, StringComparison.OrdinalIgnoreCase));
+		}
+
+		override public dynamic ColumnInfo(string column, bool ExceptionOnAbsent = true)
+		{
+			var info = TableInfo.Select(c => column.Equals(c.COLUMN_NAME, StringComparison.OrdinalIgnoreCase));
+			if (ExceptionOnAbsent && info == null)
+			{
+				throw new InvalidOperationException("Cannot find table info for column name " + column);
+			}
+			return column;
+		}
+	
+		// We can implement NewItem() and GetColumnDefault()
+		// NB *VERY* useful for better PK handling; GetColumnDefault needs to do buffering - actually, it doesn't because we may end up passing the very same object out twice
+		override public dynamic GetColumnDefault(string columnName)
+		{
+			var columnInfo = ColumnInfo(columnName);
+			return _plugin.GetColumnDefault(columnInfo);
+		}
+
+		// This is not required, in that passing a single key via args will do this anyway.
+		// It's just for exception checking.
+		override protected object[] KeyValuesFromKey(object key)
+		{
+			if (key == null) throw new ArgumentNullException(nameof(key));
+			var okey = key as object[];
+			if (okey == null) okey = new object[] { key };
+			if (okey.Length != PrimaryKeyList.Count)
+			{
+				throw new InvalidOperationException(okey.Length + " key values provided, " + PrimaryKeyList.Count + "expected");
+			}
+			return okey;
+		}
+
+		private string _whereForKeys;
+		override protected string WhereForKeys()
+		{
+			if (_whereForKeys == null)
+			{
+				if (PrimaryKeyList == null || PrimaryKeyList.Count == 0)
+				{
+					throw new InvalidOperationException("No primary key field(s) have been specified");
+				}
+				var sb = new StringBuilder();
+				int i = 0;
+				foreach (var keyName in PrimaryKeyList)
+				{
+					if (i > 0) sb.Append(" AND ");
+					sb.Append(keyName).Append(" = ").Append(_plugin.PrefixParameterName(i++.ToString()));
+				}
+				_whereForKeys = sb.ToString();
+			}
+			return _whereForKeys;
+		}
+
+		override protected string CheckPrimaryKeyFields()
+		{
+			if (string.IsNullOrEmpty(PrimaryKeyFields))
+			{
+					throw new InvalidOperationException("No primary key field(s) have been specified");
+			}
+			return PrimaryKeyFields;
+		}
+
+		override protected string CheckTableName()
+		{
+			if (string.IsNullOrEmpty(TableName))
+			{
+				throw new InvalidOperationException("No table name has been specified");
+			}
+			return TableName;
+		}
+
+		// In new version, null or default value for type in PK will save as new, as well as no PK field
+		// only we don't know what the pk type is... but we do after getting the schema, and we should just use = to compare without worrying too much about types
+		// is checking whether every item is valid before any saving - which is good - and not the same as checking
+		// something at inserting/updating time; still if we're going to use a transaction ANYWAY, and this does.... hmmm... no: rollback is EXPENSIVE
+		// returns the sum of the number of rows affected;
+		// *** insert WILL set the PK field, as long as the object was an expando in the first place (could upgrade that; to set PK
+		// in Expando OR in settable property of correct name)
+		// *** we can assume that it is NEVER valid for the user to specify the PK value manually - though they can of course specify the pkFieldName,
+		// and the pkSequence, for those databases which work that way; I strongly suspect we should be able to shove the sequence select into ONE round
+		// trip to the DB, as well.
+		// (Of course, this would mean that there would be no such thing as an ORM provided update, for a table without a PK. You know what? It *is* valid to
+		// set - and update based on - a compound PK. Which means it must BE valid to set a non-compound PK.)
+		// I think we want primaryKeySequence (for dbs which use that; defaults to no sequence) and primaryKeyRetrievalFunction (for dbs which use that; defaults to
+		// correct default to DB, but may be set to null). If both are null, you can still have a (potentially compound) PK.
+		// We can use INSERT seqname.nextval and then SELECT seqname.currval in Oracle.
+		// And INSERT nextval('seqname') and then currval('seqname') (or just lastval()) in PostgreSQL.
+		// (if neither primaryKeySequence nor primaryKeyRetrievalFunction are set (which is always the case for compound primary keys), you MUST specify non-null, non-default values for every column in your primary key
+		// before saving an object)
+		// *** okay, shite, how do we know if a compound key object is an insert or an update? I think we just provide Save, which is auto, but can't work for manual primary keys,
+		// and Insert and Update, which will do what they say on the tin, and which can.
+
+		// Cannot be used with manually controlled primary keys (which includes compound primary keys), as the microORM cannot tell apart an insert from an update in this case
+		// but I think this can just be an exception, as we really don't need to worry most users about it.
+		// exception can check whether we are compound; or whether we may be sequence, but just not set; or whether we have retrieval fn intentionally overridden to empty string;
+		// and give different messages.
+		override public int Action(ORMAction action, DbConnection connection, params object[] items)
+		{
+			int sum = 0;
+			if (_validator != null) _validator.PrevalidateActions(action, items);
+			foreach (var item in items)
+			{
+				if (_validator == null || _validator.PerformingAction(action, item))
+				{
+					//throw new NotImplementedException();
+
+					if (_validator != null) _validator.PerformedAction(action, item);
+				}
+			}
+			return sum;
+		}
 #endregion
 
+		// All the elements of this interface which are purely defined in terms of other elements are implemented
+		// in the abstract class, not here.
 #region DataAccessWrapper interface
 		override public DbConnection OpenConnection()
 		{
@@ -362,149 +315,28 @@ namespace Mighty
 			return connection;
 		}
 
-		override public IEnumerable<dynamic> Query(DbCommand command,
-			DbConnection connection = null)
-		{
-			return QueryNWithParams<dynamic>(command: command, connection: connection);
-		}
-		// no connection, easy args
-		override public IEnumerable<dynamic> Query(string sql,
-			params object[] args)
-		{
-			return QueryNWithParams<dynamic>(sql, args: args);
-		}
-		override public IEnumerable<dynamic> QueryWithParams(string sql,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args)
-		{
-			return QueryNWithParams<dynamic>(sql,
-				inParams, outParams, ioParams, returnParams,
-				connection: connection, args: args);
-		}
-		override public IEnumerable<dynamic> QueryFromProcedure(string spName,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args)
-		{
-			return QueryNWithParams<dynamic>(spName,
-				inParams, outParams, ioParams, returnParams,
-				isProcedure: true,
-				connection: connection, args: args);
-		}
-
-		override public IEnumerable<IEnumerable<dynamic>> QueryMultiple(DbCommand command,
-			DbConnection connection = null)
-		{
-			return QueryNWithParams<IEnumerable<dynamic>>(command: command, connection: connection);
-		}
-		// no connection, easy args
-		override public IEnumerable<IEnumerable<dynamic>> QueryMultiple(string sql,
-			params object[] args)
-		{
-			return QueryNWithParams<IEnumerable<dynamic>>(sql, args: args);
-		}
-		override public IEnumerable<IEnumerable<dynamic>> QueryMultipleWithParams(string sql,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args)
-		{
-			return QueryNWithParams<IEnumerable<dynamic>>(sql,
-				inParams, outParams, ioParams, returnParams,
-				connection: connection, args: args);
-		}
-		override public IEnumerable<IEnumerable<dynamic>> QueryMultipleFromProcedure(string spName,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args)
-		{
-			return QueryNWithParams<IEnumerable<dynamic>>(spName,
-				inParams, outParams, ioParams, returnParams,
-				isProcedure: true,
-				connection: connection, args: args);
-		}
-
 		override public int Execute(DbCommand command,
 			DbConnection connection = null)
 		{
-			// using only applied to local connection
+			// using applied only to local connection
 			using (var localConn = ((connection == null) ? OpenConnection() : null))
 			{
 				command.Connection = connection ?? localConn;
 				return command.ExecuteNonQuery();
 			}
 		}
-		// no connection, easy args
-		override public int Execute(string sql,
-			params object[] args)
-		{
-			return ExecuteWithParams(sql, args: args);
-		}
-		// COULD add a RowCount class, like Cursor, to pick out the rowcount if required
-		override public dynamic ExecuteWithParams(string sql,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args)
-		{
-			var command = CreateCommandWithParams(sql,
-			inParams, outParams, ioParams, returnParams,
-			args: args);
-			return Execute(command, connection);
-		}
-		override public dynamic ExecuteAsProcedure(string spName,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args)
-		{
-			var command = CreateCommandWithParams(spName,
-			inParams, outParams, ioParams, returnParams,
-			isProcedure: true,
-			args: args);
-			return Execute(command, connection);
-		}
 
 		override public object Scalar(DbCommand command,
 			DbConnection connection = null)
 		{
-			// using only applied to local connection
+			// using applied only to local connection
 			using (var localConn = ((connection == null) ? OpenConnection() : null))
 			{
 				command.Connection = connection ?? localConn;
 				return command.ExecuteScalar();
 			}
 		}
-		// no connection, easy args
-		override public object Scalar(string sql,
-			params object[] args)
-		{
-			var command = CreateCommand(sql, args);
-			return Scalar(command);
-		}
-		override public object ScalarWithParams(string sql,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args)
-		{
-			var command = CreateCommandWithParams(sql,
-			inParams, outParams, ioParams, returnParams,
-			args: args);
-			return Scalar(command, connection);
-		}
-		override public object ScalarFromProcedure(string spName,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args)
-		{
-			var command = CreateCommandWithParams(spName,
-			inParams, outParams, ioParams, returnParams,
-			isProcedure: true,
-			args: args);
-			return Scalar(command, connection);
-		}
 
-		// You must provide orderBy for a paged query; where is optional.
-		// In this one instance, because of the connection to the underlying logic of these queries, the user
-		// can pass "SELECT columns" instead of columns.
 		override public dynamic PagedFromSelect(string columns, string tablesAndJoins, string orderBy, string where = null,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
@@ -520,16 +352,6 @@ namespace Mighty
 			return result;
 		}
 
-		// note 1: no <see cref="DbConnection"/> param to either of these, because the connection for a command to use
-		// is always passed in to the action which uses it, or else created by the microORM on the fly
-		// note 2: some API calls of the microORM take command objects, you are recommended to pass in commands created
-		// by these methods, as certain provider specific command properties are set by Massive on some providers, so
-		// your results may vary if you pass in a command not constructed here.
-		override public DbCommand CreateCommand(string sql,
-			params object[] args)
-		{
-			return CreateCommandWithParams(sql, args: args);
-		}
 		override public DbCommand CreateCommandWithParams(string sql,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false,
 			params object[] args)
@@ -544,6 +366,88 @@ namespace Mighty
 			AddNamedParams(command, ioParams, ParameterDirection.InputOutput);
 			AddNamedParams(command, returnParams, ParameterDirection.ReturnValue);
 			return command;
+		}
+
+		override public dynamic ResultsAsExpando(DbCommand cmd)
+		{
+			dynamic e = new ExpandoObject();
+			var resultDictionary = e.AsDictionary();
+			for (int i = 0; i < cmd.Parameters.Count; i++)
+			{
+				var param = cmd.Parameters[i];
+				if (param.Direction != ParameterDirection.Input)
+				{
+					var name = _plugin.DeprefixParameterName(param.ParameterName, cmd);
+					var value = _plugin.GetValue(param);
+					resultDictionary.Add(name, value == DBNull.Value ? null : value);
+				}
+			}
+			return e;
+		}
+
+		override protected IEnumerable<dynamic> AllWithParams(
+			CommandBehavior behavior,
+			string where = null, string orderBy = null, string columns = null,
+			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+			DbConnection connection = null,
+			params object[] args)
+		{
+			if (columns == null)
+			{
+				columns = DefaultColumns;
+			}
+			var sql = _plugin.BuildSelect(columns, CheckTableName(), where, orderBy);
+			return QueryNWithParams<dynamic>(sql,
+				inParams, outParams, ioParams, returnParams,
+				behavior: behavior, connection: connection, args: args);
+		}
+
+		override protected IEnumerable<T> QueryNWithParams<T>(string sql = null, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, DbCommand command = null, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, params object[] args)
+		{
+			if (behavior == CommandBehavior.Default && typeof(T) != typeof(IEnumerable<dynamic>))
+			{
+				behavior = CommandBehavior.SingleResult;
+			}
+			// using applied only to local connection
+			using (var localConn = (connection == null ? OpenConnection() : null))
+			{
+				if (command != null)
+				{
+					command.Connection = connection ?? localConn;
+				}
+				else
+				{
+					command = CreateCommandWithParams(sql, inParams, outParams, ioParams, returnParams, isProcedure, connection ?? localConn, args);
+				}
+				// manage wrapping transaction if required, and if we have not been passed an incoming connection
+				// in which case assume user can/should manage it themselves
+				using (var trans = ((connection == null
+#if !true//COREFX
+					// TransactionScope support
+					&& Transaction.Current == null
+#endif
+					&& _plugin.RequiresWrappingTransaction(command)) ? localConn.BeginTransaction() : null))
+				{
+					using (var rdr = _plugin.ExecuteDereferencingReader(command, behavior, connection ?? localConn))
+					{
+						if (typeof(T) == typeof(IEnumerable<dynamic>))
+						{
+							// query multiple pattern
+							do
+							{
+								// cast is required because compiler doesn't see that we've just checked this!
+								yield return (T)rdr.YieldReturnExpandos();
+							}
+							while (rdr.NextResult());
+						}
+						else
+						{
+							rdr.YieldReturnExpandos();
+						}
+					}
+					if (trans != null) trans.Commit();
+				}
+			}
 		}
 #endregion
 
@@ -613,6 +517,15 @@ namespace Mighty
 			}
 		}
 
+		/// <remarks>
+		/// <see cref="NameValueCollection"/> *is* supported in .NET Core 1.1, but got a bit lost:
+		/// https://github.com/dotnet/corefx/issues/10338
+		/// For folks that hit missing types from one of these packages after upgrading to Microsoft.NETCore.UniversalWindowsPlatform they can reference the packages directly as follows.
+		/// "System.Collections.NonGeneric": "4.0.1",
+		/// "System.Collections.Specialized": "4.0.1", ****
+		/// "System.Threading.Overlapped": "4.0.1",
+		/// "System.Xml.XmlDocument": "4.0.1"
+		/// </remarks>
 		public void AddNamedParams(DbCommand cmd, object nameValuePairs, ParameterDirection direction = ParameterDirection.Input)
 		{
 			if (nameValuePairs == null)
@@ -685,157 +598,6 @@ namespace Mighty
 				}
 				return _TableInfo;
 			}
-		}
-
-		// This is not required, in that passing a single key via args will do this anyway.
-		// It's just for exception checking.
-		protected object[] KeysFromKey(object key)
-		{
-			if (key == null) throw new ArgumentNullException(nameof(key));
-			var okey = key as object[];
-			if (okey == null) okey = new object[] { key };
-			if (okey.Length != PrimaryKeyList.Count)
-			{
-				throw new InvalidOperationException(okey.Length + " key values provided, " + PrimaryKeyList.Count + "expected");
-			}
-			return okey;
-		}
-
-		private string _whereForKey;
-		protected string WhereForKey()
-		{
-			if (_whereForKey == null)
-			{
-				if (PrimaryKeyList == null || PrimaryKeyList.Count == 0)
-				{
-					throw new InvalidOperationException("No primary key field(s) have been specified");
-				}
-				var sb = new StringBuilder();
-				int i = 0;
-				foreach (var keyName in PrimaryKeyList)
-				{
-					if (i > 0) sb.Append(" AND ");
-					sb.Append(keyName).Append(" = ").Append(_plugin.PrefixParameterName(i++.ToString()));
-				}
-				_whereForKey = sb.ToString();
-			}
-			return _whereForKey;
-		}
-
-		protected string CheckPrimaryKeyFields()
-		{
-			if (string.IsNullOrEmpty(PrimaryKeyFields))
-			{
-					throw new InvalidOperationException("No primary key field(s) have been specified");
-			}
-			return PrimaryKeyFields;
-		}
-
-		protected string CheckTableName()
-		{
-			if (string.IsNullOrEmpty(TableName))
-			{
-				throw new InvalidOperationException("No table name has been specified");
-			}
-			return TableName;
-		}
-
-		private int Action(ORMAction action, DbConnection connection, params object[] items)
-		{
-			int sum = 0;
-			if (_validator != null) _validator.PrevalidateActions(action, items);
-			foreach (var item in items)
-			{
-				if (_validator == null || _validator.PerformingAction(action, item))
-				{
-					//throw new NotImplementedException();
-
-					if (_validator != null) _validator.PerformedAction(action, item);
-				}
-			}
-			return sum;
-		}
-
-		private IEnumerable<dynamic> AllWithParams(
-			CommandBehavior behavior,
-			string where = null, string orderBy = null, string columns = null,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args)
-		{
-			if (columns == null)
-			{
-				columns = DefaultColumns;
-			}
-			var sql = _plugin.BuildSelect(columns, CheckTableName(), where, orderBy);
-			return QueryNWithParams<dynamic>(sql,
-				inParams, outParams, ioParams, returnParams,
-				behavior: behavior, connection: connection, args: args);
-		}
-
-		private IEnumerable<T> QueryNWithParams<T>(string sql = null, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, DbCommand command = null, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, params object[] args)
-		{
-			if (behavior == CommandBehavior.Default && typeof(T) != typeof(IEnumerable<dynamic>))
-			{
-				behavior = CommandBehavior.SingleResult;
-			}
-			// using only applied to local connection
-			using (var localConn = (connection == null ? OpenConnection() : null))
-			{
-				if (command != null)
-				{
-					command.Connection = connection ?? localConn;
-				}
-				else
-				{
-					command = CreateCommandWithParams(sql, inParams, outParams, ioParams, returnParams, isProcedure, connection ?? localConn, args);
-				}
-				// manage wrapping transaction if required, and if we have not been passed an incoming connection
-				// in which case assume user can/should manage it themselves
-				using (var trans = ((connection == null
-#if !true//COREFX
-					// TransactionScope support
-					&& Transaction.Current == null
-#endif
-					&& _plugin.RequiresWrappingTransaction(command)) ? localConn.BeginTransaction() : null))
-				{
-					using (var rdr = _plugin.ExecuteDereferencingReader(command, behavior, connection ?? localConn))
-					{
-						if (typeof(T) == typeof(IEnumerable<dynamic>))
-						{
-							// query multiple pattern
-							do
-							{
-								// cast is required because compiler doesn't see that we've just checked this!
-								yield return (T)rdr.YieldReturnExpandos();
-							}
-							while (rdr.NextResult());
-						}
-						else
-						{
-							rdr.YieldReturnExpandos();
-						}
-					}
-					if (trans != null) trans.Commit();
-				}
-			}
-		}
-
-		public dynamic ResultsAsExpando(DbCommand cmd)
-		{
-			dynamic e = new ExpandoObject();
-			var resultDictionary = e.AsDictionary();
-			for (int i = 0; i < cmd.Parameters.Count; i++)
-			{
-				var param = cmd.Parameters[i];
-				if (param.Direction != ParameterDirection.Input)
-				{
-					var name = _plugin.DeprefixParameterName(param.ParameterName, cmd);
-					var value = _plugin.GetValue(param);
-					resultDictionary.Add(name, value == DBNull.Value ? null : value);
-				}
-			}
-			return e;
 		}
 #endregion
 	}

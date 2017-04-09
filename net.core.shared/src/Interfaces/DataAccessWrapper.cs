@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
 
 namespace Mighty.Interfaces
@@ -8,101 +9,188 @@ namespace Mighty.Interfaces
 	// has been specified).
 	// Uses abstract class, not interface, because the semantics of interface means it can never have anything added to it!
 	// (See ... MS document about DB classes; SO post about intefaces)
-	abstract public partial class MicroORM // DataAccessWrapper
+	abstract public partial class MicroORM //DataAccessWrapper
 	{
 #region Properties
 		abstract public IEnumerable<dynamic> TableInfo { get; }
 #endregion
 
+		// All versions which simply redirect to other versions are defined here, not in the main class.
 #region DataAccessWrapper
 		abstract public DbConnection OpenConnection();
 
-		abstract public IEnumerable<dynamic> Query(DbCommand command,
-			DbConnection connection = null);
-		// no connection, easy args
-		abstract public IEnumerable<dynamic> Query(string sql,
-			params object[] args);
-		abstract public IEnumerable<dynamic> QueryWithParams(string sql,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args);
-		abstract public IEnumerable<dynamic> QueryFromProcedure(string spName,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args);
+		virtual public IEnumerable<dynamic> Query(DbCommand command,
+			DbConnection connection = null)
+		{
+			return QueryNWithParams<dynamic>(command: command, connection: connection);
+		}
 
-		abstract public IEnumerable<IEnumerable<dynamic>> QueryMultiple(DbCommand command,
-			DbConnection connection = null);
 		// no connection, easy args
-		abstract public IEnumerable<IEnumerable<dynamic>> QueryMultiple(string sql,
-			params object[] args);
-		abstract public IEnumerable<IEnumerable<dynamic>> QueryMultipleWithParams(string sql,
+		virtual public IEnumerable<dynamic> Query(string sql,
+			params object[] args)
+		{
+			return QueryNWithParams<dynamic>(sql, args: args);
+		}
+
+		virtual public IEnumerable<dynamic> QueryWithParams(string sql,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
-			params object[] args);
-		abstract public IEnumerable<IEnumerable<dynamic>> QueryMultipleFromProcedure(string spName,
+			params object[] args)
+		{
+			return QueryNWithParams<dynamic>(sql,
+				inParams, outParams, ioParams, returnParams,
+				connection: connection, args: args);
+		}
+
+		virtual public IEnumerable<dynamic> QueryFromProcedure(string spName,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
-			params object[] args);
+			params object[] args)
+		{
+			return QueryNWithParams<dynamic>(spName,
+				inParams, outParams, ioParams, returnParams,
+				isProcedure: true,
+				connection: connection, args: args);
+		}
+
+		virtual public IEnumerable<IEnumerable<dynamic>> QueryMultiple(DbCommand command,
+			DbConnection connection = null)
+		{
+			return QueryNWithParams<IEnumerable<dynamic>>(command: command, connection: connection);
+		}
+
+		// no connection, easy args
+		virtual public IEnumerable<IEnumerable<dynamic>> QueryMultiple(string sql,
+			params object[] args)
+		{
+			return QueryNWithParams<IEnumerable<dynamic>>(sql, args: args);
+		}
+
+		virtual public IEnumerable<IEnumerable<dynamic>> QueryMultipleWithParams(string sql,
+			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+			DbConnection connection = null,
+			params object[] args)
+		{
+			return QueryNWithParams<IEnumerable<dynamic>>(sql,
+				inParams, outParams, ioParams, returnParams,
+				connection: connection, args: args);
+		}
+
+		virtual public IEnumerable<IEnumerable<dynamic>> QueryMultipleFromProcedure(string spName,
+			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+			DbConnection connection = null,
+			params object[] args)
+		{
+			return QueryNWithParams<IEnumerable<dynamic>>(spName,
+				inParams, outParams, ioParams, returnParams,
+				isProcedure: true,
+				connection: connection, args: args);
+		}
 
 		abstract public int Execute(DbCommand command,
 			DbConnection connection = null);
+
 		// no connection, easy args
-		abstract public int Execute(string sql,
-			params object[] args);
+		virtual public int Execute(string sql,
+			params object[] args)
+		{
+			return ExecuteWithParams(sql, args: args);
+		}
+
 		// COULD add a RowCount class, like Cursor, to pick out the rowcount if required
-		abstract public dynamic ExecuteWithParams(string sql,
+		virtual public dynamic ExecuteWithParams(string sql,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
-			params object[] args);
-		abstract public dynamic ExecuteAsProcedure(string spName,
+			params object[] args)
+		{
+			var command = CreateCommandWithParams(sql,
+			inParams, outParams, ioParams, returnParams,
+			args: args);
+			return Execute(command, connection);
+		}
+
+		virtual public dynamic ExecuteAsProcedure(string spName,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
-			params object[] args);
+			params object[] args)
+		{
+			var command = CreateCommandWithParams(spName,
+			inParams, outParams, ioParams, returnParams,
+			isProcedure: true,
+			args: args);
+			return Execute(command, connection);
+		}
 
 		abstract public object Scalar(DbCommand command,
 			DbConnection connection = null);
+
 		// no connection, easy args
-		abstract public object Scalar(string sql,
-			params object[] args);
-		abstract public object ScalarWithParams(string sql,
+		virtual public object Scalar(string sql,
+			params object[] args)
+		{
+			var command = CreateCommand(sql, args);
+			return Scalar(command);
+		}
+
+		virtual public object ScalarWithParams(string sql,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
-			params object[] args);
-		abstract public object ScalarFromProcedure(string spName,
+			params object[] args)
+		{
+			var command = CreateCommandWithParams(sql,
+			inParams, outParams, ioParams, returnParams,
+			args: args);
+			return Scalar(command, connection);
+		}
+
+		virtual public object ScalarFromProcedure(string spName,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
-			params object[] args);
+			params object[] args)
+		{
+			var command = CreateCommandWithParams(spName,
+			inParams, outParams, ioParams, returnParams,
+			isProcedure: true,
+			args: args);
+			return Scalar(command, connection);
+		}
 
 		// You must provide orderBy for a paged query; where is optional.
+		// In this one instance, because of the connection to the underlying logic of these queries, the user
+		// can pass "SELECT columns" instead of columns.
 		abstract public dynamic PagedFromSelect(string columns, string tablesAndJoins, string orderBy, string where = null,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args);
 
-		// note: no <see cref="DbConnection"/> param to either of these, because the connection for a command to use
+		// note 1: no <see cref="DbConnection"/> param to either of these, because the connection for a command to use
 		// is always passed in to the action which uses it, or else created by the microORM on the fly
-		abstract public DbCommand CreateCommand(string sql,
-			params object[] args);
+		// note 2: some API calls of the microORM take command objects, you are recommended to pass in commands created
+		// by these methods, as certain provider specific command properties are set by Massive on some providers, so
+		// your results may vary if you pass in a command not constructed here.
+		virtual public DbCommand CreateCommand(string sql,
+			params object[] args)
+		{
+			return CreateCommandWithParams(sql, args: args);
+		}
+
 		abstract public DbCommand CreateCommandWithParams(string sql,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false,
 			params object[] args);
 
-		// kv pair stuff for dropdowns: maybe, at max, provide a method to convert IEnumerable<dynamic> to kv pair
+		// Add kv pair stuff for dropdowns? Maybe, at max, provide a method to convert IEnumerable<dynamic> to kv pair.
+		// ...
 
-		// BASICALLY DONE THE BELOW, I THINK:
-		
-		// create item from form post, only filling in fields which are in the schema - not bad!
-		// (but the form post namevaluecollection is not in NET CORE1.1 anyway ... so what are they doing?
-		// no form posts per se in MVC, but what about that way I was reading back from a form, for files?)
-		// Oh bollocks, it was left out by mistake and a I can have it:
-		// https://github.com/dotnet/corefx/issues/10338
+		abstract public dynamic ResultsAsExpando(DbCommand cmd);
 
-		//For folks that hit missing types from one of these packages after upgrading to Microsoft.NETCore.UniversalWindowsPlatform they can reference the packages directly as follows.
-		//"System.Collections.NonGeneric": "4.0.1",
-		//"System.Collections.Specialized": "4.0.1", ****
-		//"System.Threading.Overlapped": "4.0.1",
-		//"System.Xml.XmlDocument": "4.0.1"
+		abstract protected IEnumerable<dynamic> AllWithParams(
+			CommandBehavior behavior,
+			string where = null, string orderBy = null, string columns = null,
+			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+			DbConnection connection = null,
+			params object[] args);
+
+		abstract protected IEnumerable<T> QueryNWithParams<T>(string sql = null, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, DbCommand command = null, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, params object[] args);
 #endregion
 	}
 }

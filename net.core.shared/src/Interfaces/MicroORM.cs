@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using System.Data;
 using System.Data.Common;
+using System.Linq;
 
 using Mighty.DatabasePlugins;
 using Mighty.Validation;
@@ -48,149 +50,208 @@ namespace Mighty.Interfaces
 #endregion
 
 #region MircoORM interface
-		// NB MUST return object not int because of MySQL ulong return type
-		abstract public object Count(string columns = "*", string where = null,
-			params object[] args);
+		// NB MUST return object not int because of MySQL ulong return type.
+		// Note also: it is worth passing in something other than "*"; COUNT over any
+		// column which can contain null COUNTS only the non-null values.
+		virtual public object Count(string columns = "*", string where = null,
+			params object[] args)
+		{
+			return Count(columns, where, null, args);
+		}
+
 		abstract public object Count(string columns = "*", string where = null,
 			DbConnection connection = null,
 			params object[] args);
 
 		// Use this for MAX, MIN, SUM, AVG (basically it's scalar on current table)
-		abstract public object Aggregate(string expression, string where = null,
-			params object[] args);
+		virtual public object Aggregate(string expression, string where = null,
+			params object[] args)
+		{
+			return Aggregate(expression, where, null, args);
+		}
+
 		abstract public object Aggregate(string expression, string where = null,
 			DbConnection connection = null,
 			params object[] args);
 
 		// ORM: Single from our table
-		abstract public dynamic Single(object key, string columns = null,
-			DbConnection connection = null);
+		virtual public dynamic Single(object key, string columns = null,
+			DbConnection connection = null)
+		{
+			return Single(WhereForKeys(), connection, columns, KeyValuesFromKey(key));
+		}
 
-		// I think there really are tricky problems with  this, aren't there?
-		// It's a problem because we've already told the user that they can set the columns,
-		// and now we're asking them to set them again; and not only that, it's getting in the
-		// way of the easy-to-use args-based api.
-		// We have to include columns (becasue I always want to use it), but the default HAS to
-		// be null or "" so that we don't automatically overwrite the columns they've already specified.
-		abstract public dynamic Single(string where,
-			params object[] args);
+		virtual public dynamic Single(string where,
+			params object[] args)
+		{
+			return Single(where, null, null, args);
+		}
+
 		// THAT is it........ :-))))))
 		// DbConnection coming before columns spec is really useful, as it avoids ambiguity between a column spec and a first string arg
-		abstract public dynamic Single(string where,
+		virtual public dynamic Single(string where,
 			DbConnection connection = null,
 			string columns = null,
-			params object[] args);
+			params object[] args)
+		{
+			return SingleWithParams(where, columns, connection: connection, args: args);
+		}
 		
 		// WithParams version just in case; allows transactions for a start
-		abstract public dynamic SingleWithParams(string where, string columns = null,
+		virtual public dynamic SingleWithParams(string where, string columns = null,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
-			params object[] args);
+			params object[] args)
+		{
+			return AllWithParams(CommandBehavior.SingleRow,
+				null, null, columns,
+				inParams, outParams, ioParams, returnParams,
+				connection,
+				args).FirstOrDefault();
+		}
 
 		// ORM
-		abstract public IEnumerable<dynamic> All(
+		virtual public IEnumerable<dynamic> All(
 			string where = null, string orderBy = null, string columns = null,
-			params object[] args);
+			params object[] args)
+		{
+			return AllWithParams(where, orderBy, columns, args: args);
+		}
 
-		abstract public IEnumerable<dynamic> AllWithParams(
+		virtual public IEnumerable<dynamic> AllWithParams(
 			string where = null, string orderBy = null, string columns = null,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
-			params object[] args);
+			params object[] args)
+		{
+			return AllWithParams(CommandBehavior.Default,
+				where, orderBy, columns,
+				inParams, outParams, ioParams, returnParams,
+				connection,
+				args);		
+		}
 
-		// ORM version (there is also a data wrapper version)
-		// You must provide orderBy, except you don't have to as it will order by PK if you don't (or exception if there is no PK defined)
-		// columns (currently?) not first, as it's an override to something we (may) have already provided in the constructor...
-		abstract public dynamic Paged(string orderBy = null, string where = null,
+		// ORM version (there is also a data wrapper version).
+		// You may provide orderBy, if you don't it will try to order by PK (and will produce an exception if there is no PK defined).
+		// <see cref="columns"/> parameter not placed first, as it's an override to something we may have already
+		// provided in the constructor...
+		virtual public dynamic Paged(string orderBy = null, string where = null,
 			string columns = null,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
-			params object[] args);
-
-		// does update OR insert, per item
-		// in my NEW version, null or default value for type in PK will save as new, as well as no PK field
-		// only we don't know what the pk type is... but we do after getting the schema, and we should just use = to compare without worrying too much about types
-		// is checking whether every item is valid before any saving - which is good - and not the same as checking
-		// something at inserting/updating time; still if we're going to use a transaction ANYWAY, and this does.... hmmm... no: rollback is EXPENSIVE
-		// returns the sum of the number of rows affected;
-		// *** insert WILL set the PK field, as long as the object was an expando in the first place (could upgrade that; to set PK
-		// in Expando OR in settable property of correct name)
-		// *** we can assume that it is NEVER valid for the user to specify the PK value manually - though they can of course specify the pkFieldName,
-		// and the pkSequence, for those databases which work that way; I strongly suspect we should be able to shove the sequence select into ONE round
-		// trip to the DB, as well.
-		// (Of course, this would mean that there would be no such thing as an ORM provided update, for a table without a PK. You know what? It *is* valid to
-		// set - and update based on - a compound PK. Which means it must BE valid to set a non-compound PK.)
-		// I think we want primaryKeySequence (for dbs which use that; defaults to no sequence) and primaryKeyRetrievalFunction (for dbs which use that; defaults to
-		// correct default to DB, but may be set to null). If both are null, you can still have a (potentially compound) PK.
-		// We can use INSERT seqname.nextval and then SELECT seqname.currval in Oracle.
-		// And INSERT nextval('seqname') and then currval('seqname') (or just lastval()) in PostgreSQL.
-		// (if neither primaryKeySequence nor primaryKeyRetrievalFunction are set (which is always the case for compound primary keys), you MUST specify non-null, non-default values for every column in your primary key
-		// before saving an object)
-		// *** okay, shite, how do we know if a compound key object is an insert or an update? I think we just provide Save, which is auto, but can't work for manual primary keys,
-		// and Insert and Update, which will do what they say on the tin, and which can.
-
-		// Cannot be used with manually controlled primary keys (which includes compound primary keys), as the microORM cannot tell apart an insert from an update in this case
-		// but I think this can just be an exception, as we really don't need to worry most users about it.
-		// exception can check whether we are compound; or whether we may be sequence, but just not set; or whether we have retrieval fn intentionally overridden to empty string;
-		// and give different messages.
+			params object[] args)
+		{
+			return PagedFromSelect(columns, CheckTableName(), orderBy ?? CheckPrimaryKeyFields(), where, pageSize, currentPage, connection, args);
+		}
 
 		// save (insert or update) one or more items
-		abstract public int Save(params object[] items);
-		abstract public int Save(DbConnection connection, params object[] items);
+		virtual public int Save(params object[] items)
+		{
+			return Save(null, items);
+		}
+
+		virtual public int Save(DbConnection connection, params object[] items)
+		{
+			return Action(ORMAction.Save, connection, items);
+		}
 		
-		abstract public int Insert(params object[] items);
-		abstract public int Insert(DbConnection connection, params object[] items);
+		virtual public int Insert(params object[] items)
+		{
+			return Insert(null, items);
+		}
 
-		abstract public int Update(params object[] items);
-		abstract public int Update(DbConnection connection, params object[] items);
+		virtual public int Insert(DbConnection connection, params object[] items)
+		{
+			return Action(ORMAction.Insert, connection, items);
+		}
 
-		// apply all fields which are present in item to the row matching key
-		abstract public int UpdateFrom(object partialItem, object key);
-		abstract public int UpdateFrom(object partialItem, object key,
-			DbConnection connection);
+		virtual public int Update(params object[] items)
+		{
+			return Update(null, items);
+		}
+
+		virtual public int Update(DbConnection connection, params object[] items)
+		{
+			return Action(ORMAction.Update, connection, items);
+		}
+
+		virtual public int Delete(params object[] items)
+		{
+			return Delete((DbConnection)null, items);
+		}
+
+		virtual public int Delete(DbConnection connection, params object[] items)
+		{
+			return Action(ORMAction.Delete, connection, items);
+		}
+
+		virtual  public dynamic New()
+		{
+			return NewFrom();
+		}
+
+		abstract public dynamic NewFrom(object nameValues = null, bool addNonPresentAsDefaults = true);
+
+		// Apply all fields which are present in item to the row matching key.
+		// We *don't* filter by available columns - call with <see cref="CreateFrom"/>(<see cref="partialItem"/>) to do that.
+		virtual public int UpdateFrom(object partialItem, object key)
+		{
+			return UpdateFrom(partialItem, key, null);
+		}
+
+		virtual public int UpdateFrom(object partialItem, object key,
+			DbConnection connection)
+		{
+			return UpdateFrom(partialItem, WhereForKeys(), KeyValuesFromKey(key));
+		}
 
 		// apply all fields which are present in item to all rows matching where clause
 		// for safety you MUST specify the where clause yourself (use "1=1" to update all rows)
-		abstract public int UpdateFrom(object partialItem, string where,
-			params object[] args);
+		// this removes/ignores any PK fields from the action; keeps auto-named params for args,
+		// and uses named params for the update feilds.
+		virtual public int UpdateFrom(object partialItem, string where,
+			params object[] args)
+		{
+			return UpdateFrom(partialItem, where, null, args);
+		}
+
 		abstract public int UpdateFrom(object partialItem, string where,
 			DbConnection connection,
 			params object[] args);
 
-		// delete item from table; what about deleting by object? (maybe key can be pk OR expando containing pk? no)
-		// also why the f does this fetch the item back before deleting it, when it's by PK? sod it, let the user
-		// fetch it; only delete by item, and only if (there's a PK and) the item contains the PK. that means
-		// the user has prefetched it. Good.
-		// I prefer this:
-		// delete one or more items
-		abstract public int Delete(params object[] items);
-		abstract public int Delete(DbConnection connection, params object[] items);
-		abstract public int DeleteByKey(params object[] keys);
+		virtual public int DeleteByKey(params object[] keys)
+		{
+			return DeleteByKey(null, keys);
+		}
+
 		abstract public int DeleteByKey(DbConnection connection, params object[] keys);
+
 		// for safety you MUST specify the where clause yourself (use "1=1" to delete all rows)
-		abstract public int Delete(string where,
-			params object[] args);
+		virtual public int Delete(string where,
+			params object[] args)
+		{
+			return Delete(where, null, args);
+		}
+
 		abstract public int Delete(string where,
 			DbConnection connection,
 			params object[] args);
 
-		abstract public bool HasKey(string fieldName);
+		abstract public bool IsKey(string fieldName);
 
 		abstract public dynamic ColumnInfo(string column, bool ExceptionOnAbsent = true);
 
-		// We can implement NewItem() and GetColumnDefault()
-		// NB *VERY* useful for better PK handling; GetColumnDefault needs to do buffering - actually, it doesn't because we may end up passing the very same object out twice
-		abstract public object GetColumnDefault(string column);
+		abstract public dynamic GetColumnDefault(string columnName);
 
-		// Will instantiate item from superset, only including columns which match the table schema
-		// (read once from the database), (optionally) setting default values for any non-present columns.
-		// If called with no args, will create a fully populated prototype.
-		// NB You do NOT need to use this - you can create new items to pass in to Mighty more or less however you want!
-		// (Of course, you do need to make sure that YOU don't pass in columns which aren't in the underlying table, or this will throw errors,
-		// but whether you call this method to ensure that is up to you.)
-		// (Any fields specified as PK will contain null or default; DB defined defaults for all other columns will be noticed, interpreted and applied where possible.)
-		virtual public dynamic New() { return NewFrom(); }
-		abstract public dynamic NewFrom(object nameValues = null, bool addNonPresentAsDefaults = true);
+		abstract protected object[] KeyValuesFromKey(object key);
+
+		abstract protected string WhereForKeys();
+
+		abstract protected string CheckPrimaryKeyFields();
+
+		abstract protected string CheckTableName();
+
+		abstract public int Action(ORMAction action, DbConnection connection, params object[] items);
 #endregion
 	}
 }
