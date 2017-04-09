@@ -40,7 +40,7 @@ namespace Mighty.ConnectionProviders
 			var f = type.GetField(INSTANCE_FIELD_NAME);
 			if (f == null)
 			{
-				throw new NotImplementedException("No " + INSTANCE_FIELD_NAME + " field/property found in intended DbProviderFactory class '" + factoryClassName + "'");
+				throw new FieldAccessException("No '" + INSTANCE_FIELD_NAME + "' field found in intended DbProviderFactory class '" + factoryClassName + "'");
 			}
 			return (DbProviderFactory)f.GetValue(null);
 		}
