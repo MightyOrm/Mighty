@@ -41,14 +41,14 @@ namespace Mighty.DatabasePlugins
 		virtual public string BuildSelect(string columns, string tableName, string where, string orderBy = null)
 		{
 			return string.Format("SELECT {0} FROM {1}{2}{3};",
-				columns, tableName, mighty.Thingify("WHERE", where), mighty.Thingify("ORDER BY", orderBy));
+				columns, tableName, where.Thingify("WHERE"), orderBy.Thingify("ORDERBY"));
 		}
 
 		// is the same for every (currently supported?) database
 		virtual public string BuildDelete(string tableName, string where)
 		{
 			return string.Format("DELETE FROM {0}{1};",
-				tableName, mighty.Thingify("WHERE", where));
+				tableName, where.Thingify("WHERE"));
 		}
 
 		// is the same for every (currently supported?) database
@@ -62,7 +62,7 @@ namespace Mighty.DatabasePlugins
 		virtual public string BuildUpdate(string tableName, string values, string where)
 		{
 			return string.Format("UPDATE {0} SET {1}{2};",
-				tableName, values, mighty.Thingify("WHERE", where));
+				tableName, values, where.Thingify("WHERE"));
 		}
 
 		// Build a single query which returns two result sets: a scalar of the total count followed by
@@ -71,14 +71,14 @@ namespace Mighty.DatabasePlugins
 		virtual public string BuildPagingQuery(string columns, string tablesAndJoins, string orderBy, string where,
 			int limit, int offset)
 		{
-			string tj = mighty.Unthingify("FROM", tablesAndJoins);
+			string tj = tablesAndJoins.Unthingify("FROM");
 			string CountQuery = BuildSelect("COUNT(*) AS TotalCount", tj, where);
 			string PagingQuery =
 				string.Format("SELECT {0} FROM {1}{2} ORDER BY {3} LIMIT {4}{5}",
-					mighty.Unthingify("SELECT", columns),
+					columns.Unthingify("SELECT"),
 					tj,
-					where == null ? "" : string.Format(" WHERE {0}" + CRLF, mighty.Unthingify("WHERE", where)),
-					mighty.Unthingify("ORDER BY", orderBy),
+					where == null ? "" : string.Format(" WHERE {0}" + CRLF, where.Unthingify("WHERE")),
+					orderBy.Unthingify("ORDERBY"),
 					limit,
 					offset > 0 ? string.Format(" OFFSET {0}", offset) : ""
 				);
@@ -90,7 +90,7 @@ namespace Mighty.DatabasePlugins
 		protected string BuildRowNumberPagingQuery(string columns, string tablesAndJoins, string orderBy, string where,
 			int limit, int offset)
 		{
-			string tj = mighty.Unthingify("FROM", tablesAndJoins);
+			string tj = tablesAndJoins.Unthingify("FROM");
 			string CountQuery = BuildSelect("COUNT(*) AS TotalCount", tj, where);
 			// 't_' outer query alias does not conflict with any use of 't_' table/query alias in user SELECT.
 			string PagingQuery =
@@ -103,10 +103,10 @@ namespace Mighty.DatabasePlugins
 							  ") t_" + CRLF +
 							  "WHERE {5}RowNum < {4}" + CRLF +
 							  "ORDER BY RowNum;",
-					mighty.Unthingify("SELECT", columns),
+					columns.Unthingify("SELECT"),
 					tj,
-					where == null ? "" : string.Format("    WHERE {0}" + CRLF, mighty.Unthingify("WHERE", where)),
-					mighty.Unthingify("ORDER BY", orderBy),
+					where == null ? "" : string.Format("    WHERE {0}" + CRLF, where.Unthingify("WHERE")),
+					orderBy.Unthingify("ORDERBY"),
 					limit + 1,
 					offset > 0 ? string.Format("RowNum > {0} AND ", offset) : ""
 				);

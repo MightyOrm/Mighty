@@ -69,6 +69,28 @@ namespace Mighty
 			}
 			return result;
 		}
+
+		static internal string Unthingify(this string sql, string thing)
+		{
+			return Thingify(thing, sql, false);
+		}
+
+		static internal string Thingify(this string sql, string thing, bool yes = true)
+		{
+			if (sql == null) return string.Empty;
+			sql = sql.Trim();
+			if (sql == string.Empty) return string.Empty;
+			if (sql.Length > thing.Length &&
+				sql.StartsWith(thing, StringComparison.OrdinalIgnoreCase) &&
+				string.IsNullOrWhiteSpace(sql.Substring(thing.Length, 1)))
+			{
+				return yes ? sql.Substring(thing.Length + 1).Trim() : sql;
+			}
+			else
+			{
+				return yes ? sql : string.Format("{0} {1}", thing, sql.Trim());
+			}
+		}
 #endregion
 
 		static public dynamic ToExpando(this object o)
