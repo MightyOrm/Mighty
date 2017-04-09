@@ -305,7 +305,7 @@ namespace Mighty
 		// *** okay, shite, how do we know if a compound key object is an insert or an update? I think we just provide Save, which is auto, but can't work for manual primary keys,
 		// and Insert and Update, which will do what they say on the tin, and which can.
 
-		// Cannot be used with manually controlled primary keys (which includes compound primary keys), as the microORM cannot tell apart an insert from an update in this case
+		// Save cannot be used with manually controlled primary keys (which includes compound primary keys), as the microORM cannot tell apart an insert from an update in this case
 		// but I think this can just be an exception, as we really don't need to worry most users about it.
 		// exception can check whether we are compound; or whether we may be sequence, but just not set; or whether we have retrieval fn intentionally overridden to empty string;
 		// and give different messages.
