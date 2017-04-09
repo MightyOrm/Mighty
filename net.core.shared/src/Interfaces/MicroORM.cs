@@ -43,6 +43,9 @@ namespace Mighty.Interfaces
 		virtual public List<string> PrimaryKeyList { get; protected set; } // separated, lowered PK(s)
 		virtual public string DefaultColumns { get; protected set; }
 		
+		// TO DO: Does it matter that this is different?
+		// We have the same difference in methods, below. Whether it matters depends on whether it drops in
+		// and compiles, and whether it drops in and links, to external code, changing either way....
 		abstract public IEnumerable<dynamic> TableInfo { get; }
 #endregion
 
@@ -89,7 +92,6 @@ namespace Mighty.Interfaces
 			return Single(where, null, null, args);
 		}
 
-		// THAT is it........ :-))))))
 		// DbConnection coming before columns spec is really useful, as it avoids ambiguity between a column spec and a first string arg
 		virtual public dynamic Single(string where,
 			DbConnection connection = null,

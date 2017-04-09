@@ -21,7 +21,7 @@ namespace Mighty.Interfaces
 			return QueryNWithParams<dynamic>(command: command, connection: connection);
 		}
 
-		// no connection, easy args
+		// no connection, easy args (use WithParams version for connection)
 		virtual public IEnumerable<dynamic> Query(string sql,
 			params object[] args)
 		{
@@ -55,7 +55,7 @@ namespace Mighty.Interfaces
 			return QueryNWithParams<IEnumerable<dynamic>>(command: command, connection: connection);
 		}
 
-		// no connection, easy args
+		// no connection, easy args (use WithParams version for connection)
 		virtual public IEnumerable<IEnumerable<dynamic>> QueryMultiple(string sql,
 			params object[] args)
 		{
@@ -86,7 +86,7 @@ namespace Mighty.Interfaces
 		abstract public int Execute(DbCommand command,
 			DbConnection connection = null);
 
-		// no connection, easy args
+		// no connection, easy args (use WithParams version for connection)
 		virtual public int Execute(string sql,
 			params object[] args)
 		{
@@ -120,7 +120,7 @@ namespace Mighty.Interfaces
 		abstract public object Scalar(DbCommand command,
 			DbConnection connection = null);
 
-		// no connection, easy args
+		// no connection, easy args (use WithParams version for connection)
 		virtual public object Scalar(string sql,
 			params object[] args)
 		{
