@@ -71,7 +71,7 @@ namespace Mighty
 			}
 			PrimaryKeyString = primaryKey;
 			PrimaryKeyList = primaryKey.Split(',').Select(k => k.Trim()).ToList();
-			DefaultColumns = columns;
+			DefaultColumns = columns ?? "*";
 			_validator = validator;
 		}
 #endregion
@@ -691,6 +691,10 @@ namespace Mighty
 			DbConnection connection = null,
 			params object[] args)
 		{
+			if (columns == null)
+			{
+				columns = DefaultColumns;
+			}
 			var sql = _plugin.BuildSelect(columns, CheckTableName(), where, orderBy);
 			return QueryNWithParams<dynamic>(sql,
 				inParams, outParams, ioParams, returnParams,
@@ -715,6 +719,7 @@ namespace Mighty
 					command = CreateCommandWithParams(sql, inParams, outParams, ioParams, returnParams, isProcedure, connection ?? localConn, args);
 				}
 				// manage wrapping transaction if required, and if we have not been passed an incoming connection
+				// in which case assume user can/should manage it themselves
 				using (var trans = ((connection == null
 #if !true//COREFX
 					// TransactionScope support
@@ -722,9 +727,6 @@ namespace Mighty
 #endif
 					&& _plugin.RequiresWrappingTransaction(command)) ? localConn.BeginTransaction() : null))
 				{
-					// TO DO: Apply single result hint when appropriate
-					// (since all the cursors we might dereference come in the first result set, we can do this even
-					// if we are dereferencing PostgreSQL cursors)
 					using (var rdr = _plugin.ExecuteDereferencingReader(command, behavior, connection ?? localConn))
 					{
 						if (typeof(T) == typeof(IEnumerable<dynamic>))
