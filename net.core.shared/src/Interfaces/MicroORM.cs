@@ -36,9 +36,6 @@ namespace Mighty.Interfaces
 		virtual public DatabasePlugin _plugin { get; protected set; }
 		virtual public Validator _validator { get; protected set; }
 
-		// these should all be properties
-		// initialise table name from class name, but only if not == MicroORM(!); get, set, throw
-		// exception if attempt to use it when not set
 		virtual public string TableName { get; protected set; } // NB this may have a dot in to specify owner/schema, and then needs splitting by us, but ONLY when getting information schema
 		virtual public string PrimaryKeyString { get; protected set; } // un-separated PK(s)
 		virtual public List<string> PrimaryKeyList { get; protected set; } // separated, lowered PK(s)

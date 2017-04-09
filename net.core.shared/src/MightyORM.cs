@@ -224,6 +224,8 @@ namespace Mighty
 
 		// apply all fields which are present in item to all rows matching where clause
 		// for safety you MUST specify the where clause yourself (use "1=1" to update all rows)
+		// this removes/ignores any PK fields from the action; keeps auto-named params for args,
+		// and uses named params for the update feilds.
 		override public int UpdateFrom(object partialItem, string where,
 			params object[] args)
 		{
@@ -233,7 +235,24 @@ namespace Mighty
 			DbConnection connection,
 			params object[] args)
 		{
-			throw new NotImplementedException();
+			var values = new StringBuilder();
+			var fromDict = partialItem.ToExpando().AsDictionary();
+			var filteredItem = new ExpandoObject();
+			var toDict = filteredItem.AsDictionary();
+			int i = 0;
+			foreach (var fieldName in fromDict)
+			{
+				if (!PrimaryKeyList.Any(key => key.Equals(fieldName, StringComparison.OrdinalIgnoreCase)))
+				{
+					if (i > 0) values.Append(", ");
+					values.Append(fieldName).Append(" = ").Append(_plugin.PrefixParameterName(fieldName));
+					i++;
+
+					toDict.Add(fieldName, fromDict[fieldName]);
+				}
+			}
+			var sql = _plugin.BuildUpdate(CheckTableName(), values.ToString(), where);
+			return ExecuteWithParams(sql, args: args, inParams: filteredItem, connection: connection);
 		}
 
 		override public int Delete(params object[] items)
@@ -575,9 +594,10 @@ namespace Mighty
 				return;
 			}
 
-			if (nameValuePairs is ExpandoObject)
+			var nvp = nameValuePairs as ExpandoObject;
+			if (nvp != null)
 			{
-				foreach(var pair in (IDictionary<string, object>)nameValuePairs)
+				foreach(var pair in nvp.AsDictionary())
 				{
 					AddNamedParam(cmd, pair.Value, pair.Key, direction);
 				}
@@ -632,7 +652,7 @@ namespace Mighty
 				foreach (var keyName in PrimaryKeyList)
 				{
 					if (i > 0) sb.Append(" AND ");
-					sb.Append(keyName).Append(" = ").Append(_plugin.PrefixParameterName(i.ToString()));
+					sb.Append(keyName).Append(" = ").Append(_plugin.PrefixParameterName(i++.ToString()));
 				}
 				_whereForKey = sb.ToString();
 			}
