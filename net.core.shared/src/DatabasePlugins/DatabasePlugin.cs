@@ -126,7 +126,7 @@ namespace Mighty.DatabasePlugins
 
 		// If the table info comes in the semi-standard INFORMATION_SCHEMA format (which it does, though from a
 		// differently name table, on Oracle as well as on the above three) then we don't need to override this.
-		virtual public IEnumerable<dynamic> NormaliseTableInfo(IEnumerable<dynamic> results) { return results; }
+		virtual public IEnumerable<dynamic> NormalizeTableInfo(IEnumerable<dynamic> results) { return results; }
 #endregion
 
 #region Keys and sequences
