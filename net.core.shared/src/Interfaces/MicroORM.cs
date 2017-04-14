@@ -17,6 +17,13 @@ namespace Mighty.Interfaces
 	// To Add:
 	//  - Firebird(?)
 	//  - Generics(??)
+	// We:
+	//  - Solve the problem of default values (https://samsaffron.com/archive/2012/01/16/that-annoying-insert-problem-getting-data-into-the-db-using-dapper)
+	//	  by ignoring them at Insert(), but by populating them (in a slightly fake, but working, way) on New()
+	//	- Are genuinely cross DB, unlike Dapper Rainbow (and possibly unlike other bits of Dapper?)
+	//  - Have a true System.Data hiding interface - you just don't use it *at all* unless you need transactions,
+	//	  in which case you use exactly enough of it to manage your transactions, and no more.
+	//	- Have an (arguably) nicer/simpler interface to parameter directions and output values than Dapper.
 
 	// Abstract class 'interface' for the ORM and ADO.NET Data Access Wrapper methods.
 	// Uses abstract class, not interface, because the semantics of interface means it can never have anything added to it!
