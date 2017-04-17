@@ -529,6 +529,7 @@ namespace Mighty
 			cmd.Parameters.Add(p);
 		}
 
+		// add auto-named parameters from an array of items (presumably passed in to microORM using C# params)
 		public void AddParams(DbCommand cmd, params object[] args)
 		{
 			if (args == null)
@@ -557,37 +558,39 @@ namespace Mighty
 				return;
 			}
 
-			object[] values = nameValuePairs as object[];
-			if(values != null)
+			// NB this is adding anonymous parameters (which will exception on the next call in on those dbs which don't
+			// support it); this is not the same as AddParams, which adds auto-named parameters.
+			object[] valueArray = nameValuePairs as object[];
+			if(valueArray != null)
 			{
 				if (direction != ParameterDirection.Input)
 				{
 					throw new InvalidOperationException("object[] arguments supported for input parameters only");
 				}
 				// anonymous parameters from array
-				foreach (var value in values)
+				foreach (var value in valueArray)
 				{
 					AddNamedParam(cmd, value, string.Empty);
 				}
 				return;
 			}
 
-			var nvp = nameValuePairs as ExpandoObject;
-			if (nvp != null)
+			var o = nameValuePairs as ExpandoObject;
+			if (o != null)
 			{
-				foreach(var pair in nvp.AsDictionary())
+				foreach(var pair in o.AsDictionary())
 				{
 					AddNamedParam(cmd, pair.Value, pair.Key, direction);
 				}
 				return;
 			}
 
-			if (nameValuePairs.GetType() == typeof(NameValueCollection) || nameValuePairs.GetType().GetTypeInfo().IsSubclassOf(typeof(NameValueCollection)))
+			var nvc = nameValuePairs as NameValueCollection;
+			if (nvc != null)
 			{
-				var argsCollection = (NameValueCollection)nameValuePairs;
-				foreach(string name in argsCollection)
+				foreach(string name in nvc)
 				{
-					AddNamedParam(cmd, argsCollection[name], name);
+					AddNamedParam(cmd, nvc[name], name);
 				}
 				return;
 			}
