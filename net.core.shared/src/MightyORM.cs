@@ -15,7 +15,7 @@ using Mighty.Validation;
 
 namespace Mighty
 {
-	public partial class MightyORM<T> : MicroORM<T> where T: new()
+	public partial class MightyORM<T> : MicroORM<T>, IPluginCallback where T: new()
 	{
 		// Only properties with a non-trivial implementation are here, the rest are in the MicroORM abstract class.
 #region Properties
@@ -78,7 +78,7 @@ namespace Mighty
 			Factory = connectionProvider.ProviderFactoryInstance;
 			Type pluginType = connectionProvider.DatabasePluginType;
 			_plugin = (DatabasePlugin)Activator.CreateInstance(pluginType, false);
-			_plugin.mighty = null; //(MightyORM<object>)this;
+			_plugin.mighty = (IPluginCallback)this;
 
 			if (table != null)
 			{

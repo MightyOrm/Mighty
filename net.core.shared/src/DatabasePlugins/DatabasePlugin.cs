@@ -11,8 +11,8 @@ namespace Mighty.DatabasePlugins
 	{
 		protected const string CRLF = "\r\n";
 		
-		// the instance which we are pluged in to
-		public MightyORM<object> mighty { get; internal set; }
+		// some bits of the instance which we are plugged in to
+		public IPluginCallback mighty { get; set; }
 
 #region Provider support
 		// Returns the provider factory class name for the known provider(s) for this DB;

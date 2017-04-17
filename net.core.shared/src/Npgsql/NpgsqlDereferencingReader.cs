@@ -3,13 +3,15 @@ using System.Data;
 using System.Data.Common;
 using System.Collections.Generic;
 
+using Mighty.DatabasePlugins;
+
 namespace Mighty.Npgsql
 {
 	// Cursor dereferencing data reader, which may go back into Npgsql at some point
 	public class NpgsqlDereferencingReader : DbDataReader, IDisposable
 	{
 		private DbConnection Connection;
-		private MightyORM<object> Db;
+		private IPluginCallback _mighty;
 		private int FetchSize;
 
 		private DbDataReader Reader = null; // current FETCH reader
@@ -32,11 +34,11 @@ namespace Mighty.Npgsql
 		/// https://github.com/npgsql/npgsql/issues/438
 		/// http://stackoverflow.com/questions/42292341/
 		/// </remarks>
-		public NpgsqlDereferencingReader(DbDataReader reader, CommandBehavior behavior, DbConnection connection, MightyORM<object> db)
+		public NpgsqlDereferencingReader(DbDataReader reader, CommandBehavior behavior, DbConnection connection, IPluginCallback mighty)
 		{
-			FetchSize = db.NpgsqlAutoDereferenceFetchSize;
+			FetchSize = mighty.NpgsqlAutoDereferenceFetchSize;
 			Connection = connection;
-			Db = db;
+			_mighty = mighty;
 
 			// We're not saving the behavior: this logic has already enforced SingleResult;
 			// for SingleRow, we rely on the user to one read one row and then dispose of everything.
@@ -123,7 +125,7 @@ namespace Mighty.Npgsql
 				{
 					return closeSql;
 				}
-				var closeCmd = Db.CreateCommand(closeSql, Connection); // new NpgsqlCommand(..., Connection);
+				var closeCmd = CreateCommand(closeSql, Connection); // new NpgsqlCommand(..., Connection);
 				closeCmd.ExecuteNonQuery();
 				closeCmd.Dispose();
 				Cursor = null;
@@ -145,9 +147,16 @@ namespace Mighty.Npgsql
 			// fetch next n from cursor;
 			// optionally close previous cursor;
 			// iff we're fetching all, we can close this cursor in this command
-			var fetchCmd = Db.CreateCommand(closePreviousSQL + FetchSQL() + (FetchSize <= 0 ? CloseSQL() : ""), Connection); // new NpgsqlCommand(..., Connection);
+			var fetchCmd = CreateCommand(closePreviousSQL + FetchSQL() + (FetchSize <= 0 ? CloseSQL() : ""), Connection); // new NpgsqlCommand(..., Connection);
 			Reader = fetchCmd.ExecuteReader(CommandBehavior.SingleResult);
 			Count = 0;
+		}
+
+		private DbCommand CreateCommand(string sql, DbConnection connection)
+		{
+			var command = _mighty.CreateCommand(sql);
+			command.Connection = connection;
+			return command;
 		}
 
 #region DbDataReader abstract interface
