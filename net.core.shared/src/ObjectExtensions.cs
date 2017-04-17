@@ -93,31 +93,6 @@ namespace Mighty
 		}
 #endregion
 
-		static public ExpandoObject ToExpando(this object o)
-		{
-			var oAsExpando = o as ExpandoObject;
-			if (oAsExpando != null)
-			{
-				return oAsExpando;
-			}
-			var e = new ExpandoObject();
-			var d = e.AsDictionary();
-			var nv = o as NameValueCollection;
-			if (nv != null)
-			{
-				nv.AllKeys.ToList().ForEach(key => d.Add(key, nv[key]));
-			}
-			// possible support for Newtonsoft JObject here?
-			else
-			{
-				foreach (var item in o.GetType().GetProperties())
-				{
-					d.Add(item.Name, item.GetValue(o));
-				}
-			}
-			return e;
-		}
-
 		/// <remarks>
 		/// This supports all the types listed in ADO.NET DbParameter type-inference documentation https://msdn.microsoft.com/en-us/library/yy6y35y8(v=vs.110).aspx , except for byte[] and Object.
 		/// Although this method supports all these types, the various ADO.NET providers do not:

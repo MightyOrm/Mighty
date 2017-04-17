@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Data;
 using System.Data.Common;
 using System.Dynamic;
@@ -11,6 +10,7 @@ using System.Text;
 using Mighty.ConnectionProviders;
 using Mighty.DatabasePlugins;
 using Mighty.Interfaces;
+using Mighty.Parameters;
 using Mighty.Validation;
 
 namespace Mighty
@@ -131,23 +131,24 @@ namespace Mighty
 				connection: connection, args: args);
 		}
 
-		// You do NOT have to use this - you can create new items to pass in the microORM more or less however you want.
+		// You do NOT have to use this - you can create new items to pass into the microORM more or less however you want.
 		// The main convenience provided here is to automatically strip out any input which does not match your column names.
 		override public dynamic NewFrom(object nameValues = null, bool addNonPresentAsDefaults = true)
 		{
 			var item = new ExpandoObject();
 			var newItemDictionary = item.AsDictionary();
-			var userDictionary = nameValues.ToExpando().AsDictionary();
+			var parameters = new ParamEnumerator(nameValues);
 			// drive the loop by the actual column names
 			foreach (var columnInfo in TableInfo)
 			{
 				string columnName = columnInfo.COLUMN_NAME;
 				object userValue = null;
-				foreach (var pair in userDictionary)
+				foreach (var paramInfo in parameters)
 				{
-					if (pair.Key.Equals(columnName, StringComparison.OrdinalIgnoreCase))
+					if (paramInfo.Name.Equals(columnName, StringComparison.OrdinalIgnoreCase))
 					{
-						userValue = pair.Value;
+						userValue = paramInfo.Value;
+						break;
 					}
 				}
 				if (userValue != null)
@@ -170,19 +171,19 @@ namespace Mighty
 			params object[] args)
 		{
 			var values = new StringBuilder();
-			var userDictionary = partialItem.ToExpando().AsDictionary();
+			var parameters = new ParamEnumerator(partialItem);
 			var filteredItem = new ExpandoObject();
 			var toDict = filteredItem.AsDictionary();
 			int i = 0;
-			foreach (var pair in userDictionary)
+			foreach (var paramInfo in parameters)
 			{
-				if (!IsKey(pair.Key))
+				if (!IsKey(paramInfo.Name))
 				{
 					if (i > 0) values.Append(", ");
-					values.Append(pair.Key).Append(" = ").Append(_plugin.PrefixParameterName(pair.Key));
+					values.Append(paramInfo.Name).Append(" = ").Append(_plugin.PrefixParameterName(paramInfo.Name));
 					i++;
 
-					toDict.Add(pair.Key, pair.Value);
+					toDict.Add(paramInfo.Name, paramInfo.Value);
 				}
 			}
 			var sql = _plugin.BuildUpdate(CheckTableName(), values.ToString(), where);
@@ -317,6 +318,16 @@ namespace Mighty
 			{
 				if (_validator == null || _validator.PerformingAction(action, item))
 				{
+					switch (action)
+					{
+						case ORMAction.Delete:
+							sum += Delete(item, connection);
+							break;
+
+						default:
+							sum += SaveItem(action, item, connection);
+							break;
+					}
 					//throw new NotImplementedException();
 
 					if (_validator != null) _validator.PerformedAction(action, item);
@@ -476,7 +487,7 @@ namespace Mighty
 #endregion
 
 #region Parameters
-		public void AddNamedParam(DbCommand cmd, object value, string name = null, ParameterDirection direction = ParameterDirection.Input, Type type = null)
+		public void AddParam(DbCommand cmd, object value, string name = null, ParameterDirection direction = ParameterDirection.Input, Type type = null)
 		{
 			var p = cmd.CreateParameter();
 			if (name == string.Empty)
@@ -536,71 +547,61 @@ namespace Mighty
 			{
 				return;
 			}
-			foreach (var item in args)
+			foreach (var value in args)
 			{
-				AddNamedParam(cmd, item);
+				AddParam(cmd, value);
 			}
 		}
 
-		/// <remarks>
-		/// <see cref="NameValueCollection"/> *is* supported in .NET Core 1.1, but got a bit lost:
-		/// https://github.com/dotnet/corefx/issues/10338
-		/// For folks that hit missing types from one of these packages after upgrading to Microsoft.NETCore.UniversalWindowsPlatform they can reference the packages directly as follows.
-		/// "System.Collections.NonGeneric": "4.0.1",
-		/// "System.Collections.Specialized": "4.0.1", ****
-		/// "System.Threading.Overlapped": "4.0.1",
-		/// "System.Xml.XmlDocument": "4.0.1"
-		/// </remarks>
 		public void AddNamedParams(DbCommand cmd, object nameValuePairs, ParameterDirection direction = ParameterDirection.Input)
 		{
 			if (nameValuePairs == null)
 			{
 				return;
 			}
-
-			// NB this is adding anonymous parameters (which will exception on the next call in on those dbs which don't
-			// support it); this is not the same as AddParams, which adds auto-named parameters.
-			object[] valueArray = nameValuePairs as object[];
-			if(valueArray != null)
+			foreach (var paramInfo in new ParamEnumerator(nameValuePairs))
 			{
-				if (direction != ParameterDirection.Input)
-				{
-					throw new InvalidOperationException("object[] arguments supported for input parameters only");
-				}
-				// anonymous parameters from array
-				foreach (var value in valueArray)
-				{
-					AddNamedParam(cmd, value, string.Empty);
-				}
-				return;
+				AddParam(cmd, paramInfo.Value, paramInfo.Name, direction, paramInfo.Type);
 			}
+		}
+#endregion
 
-			var o = nameValuePairs as ExpandoObject;
-			if (o != null)
-			{
-				foreach(var pair in o.AsDictionary())
-				{
-					AddNamedParam(cmd, pair.Value, pair.Key, direction);
-				}
-				return;
-			}
+#region ORM actions
+		private int Delete(object item, DbConnection connection)
+		{
+			throw new NotImplementedException();
+		}
 
-			var nvc = nameValuePairs as NameValueCollection;
-			if (nvc != null)
+		private int SaveItem(ORMAction action, object item, DbConnection connection)
+		{
+			if (!CheckHasKeys(item) || CheckHasNullOrDefaultKeys(item))
 			{
-				foreach(string name in nvc)
-				{
-					AddNamedParam(cmd, nvc[name], name);
-				}
-				return;
+				return InsertItem(item, connection);
 			}
+			else
+			{
+				return UpdateItem(item, connection);
+			}
+		}
 
-			// names, values and types from properties of anonymous object or POCO
-			foreach (PropertyInfo property in nameValuePairs.GetType().GetProperties())
-			{
-				// Extra null in GetValue() required for .NET backwards compatibility
-				AddNamedParam(cmd, property.GetValue(nameValuePairs, null), property.Name, direction, property.PropertyType);
-			}
+		private int InsertItem(object item, DbConnection connection)
+		{
+			throw new NotImplementedException();
+		}
+
+		private int UpdateItem(object item, DbConnection connection)
+		{
+			throw new NotImplementedException();
+		}
+
+		private bool CheckHasKeys(object item)
+		{
+			throw new NotImplementedException();
+		}
+
+		private bool CheckHasNullOrDefaultKeys(object item)
+		{
+			throw new NotImplementedException();
 		}
 #endregion
 	}

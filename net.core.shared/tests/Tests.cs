@@ -30,7 +30,6 @@ namespace Mighty.Tests.MySql
 			var nv = new MyNVC();
 			nv.Add("Mike", "Beaton");
 			nv.Add("Dan", "Evans");
-			var o = nv.ToExpando();
 			AssertExtensions.StrictlyEqual(1, (long)1);
 		}
 	}
