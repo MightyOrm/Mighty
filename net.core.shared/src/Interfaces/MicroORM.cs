@@ -37,7 +37,7 @@ namespace Mighty.Interfaces
 	//	  parameter under all circumstances - so can never be used for direct SQL injection. In general (i.e. assuming
 	//	  you aren't building SQL from the value yourself, anywhere) strings, etc., which are passed in will NOT need any escaping.
 	//
-	abstract public partial class MicroORM
+	abstract public partial class MicroORM<T>
 	{
 #region Properties
 		virtual public string ConnectionString { get; protected set; }
@@ -87,20 +87,20 @@ namespace Mighty.Interfaces
 			params object[] args);
 
 		// ORM: Single from our table
-		virtual public dynamic Single(object key, string columns = null,
+		virtual public T Single(object key, string columns = null,
 			DbConnection connection = null)
 		{
 			return Single(WhereForKeys(), connection, columns, KeyValuesFromKey(key));
 		}
 
-		virtual public dynamic Single(string where,
+		virtual public T Single(string where,
 			params object[] args)
 		{
 			return Single(where, null, null, args);
 		}
 
 		// DbConnection coming before columns spec is really useful, as it avoids ambiguity between a column spec and a first string arg
-		virtual public dynamic Single(string where,
+		virtual public T Single(string where,
 			DbConnection connection = null,
 			string columns = null,
 			params object[] args)
@@ -109,44 +109,38 @@ namespace Mighty.Interfaces
 		}
 		
 		// WithParams version just in case; allows transactions for a start
-		virtual public dynamic SingleWithParams(string where, string columns = null,
+		virtual public T SingleWithParams(string where, string columns = null,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args)
 		{
-			return AllWithParams(CommandBehavior.SingleRow,
+			return AllWithParams(
 				null, null, columns,
 				inParams, outParams, ioParams, returnParams,
-				connection,
+				CommandBehavior.SingleRow, connection,
 				args).FirstOrDefault();
 		}
 
 		// ORM
-		virtual public IEnumerable<dynamic> All(
+		virtual public IEnumerable<T> All(
 			string where = null, string orderBy = null, string columns = null,
 			params object[] args)
 		{
 			return AllWithParams(where, orderBy, columns, args: args);
 		}
 
-		virtual public IEnumerable<dynamic> AllWithParams(
+		abstract public IEnumerable<T> AllWithParams(
 			string where = null, string orderBy = null, string columns = null,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+			CommandBehavior behavior = CommandBehavior.Default,
 			DbConnection connection = null,
-			params object[] args)
-		{
-			return AllWithParams(CommandBehavior.Default,
-				where, orderBy, columns,
-				inParams, outParams, ioParams, returnParams,
-				connection,
-				args);		
-		}
+			params object[] args);
 
 		// ORM version (there is also a data wrapper version).
 		// You may provide orderBy, if you don't it will try to order by PK (and will produce an exception if there is no PK defined).
 		// <see cref="columns"/> parameter not placed first, as it's an override to something we may have already
 		// provided in the constructor...
-		virtual public dynamic Paged(string orderBy = null, string where = null,
+		virtual public T Paged(string orderBy = null, string where = null,
 			string columns = null,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
@@ -196,12 +190,12 @@ namespace Mighty.Interfaces
 			return Action(ORMAction.Delete, connection, items);
 		}
 
-		virtual  public dynamic New()
+		virtual  public T New()
 		{
 			return NewFrom();
 		}
 
-		abstract public dynamic NewFrom(object nameValues = null, bool addNonPresentAsDefaults = true);
+		abstract public T NewFrom(object nameValues = null, bool addNonPresentAsDefaults = true);
 
 		// Apply all fields which are present in item to the row matching key.
 		// We *don't* filter by available columns - call with <see cref="CreateFrom"/>(<see cref="partialItem"/>) to do that.
@@ -252,7 +246,7 @@ namespace Mighty.Interfaces
 
 		abstract public dynamic ColumnInfo(string column, bool ExceptionOnAbsent = true);
 
-		abstract public dynamic GetColumnDefault(string columnName);
+		abstract public object GetColumnDefault(string columnName);
 
 		abstract protected object[] KeyValuesFromKey(object key);
 

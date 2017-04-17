@@ -9,7 +9,7 @@ namespace Mighty.Npgsql
 	public class NpgsqlDereferencingReader : DbDataReader, IDisposable
 	{
 		private DbConnection Connection;
-		private MightyORM Db;
+		private MightyORM<object> Db;
 		private int FetchSize;
 
 		private DbDataReader Reader = null; // current FETCH reader
@@ -32,7 +32,7 @@ namespace Mighty.Npgsql
 		/// https://github.com/npgsql/npgsql/issues/438
 		/// http://stackoverflow.com/questions/42292341/
 		/// </remarks>
-		public NpgsqlDereferencingReader(DbDataReader reader, CommandBehavior behavior, DbConnection connection, MightyORM db)
+		public NpgsqlDereferencingReader(DbDataReader reader, CommandBehavior behavior, DbConnection connection, MightyORM<object> db)
 		{
 			FetchSize = db.NpgsqlAutoDereferenceFetchSize;
 			Connection = connection;

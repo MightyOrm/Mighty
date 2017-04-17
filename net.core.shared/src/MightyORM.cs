@@ -15,7 +15,7 @@ using Mighty.Validation;
 
 namespace Mighty
 {
-	public partial class MightyORM : MicroORM
+	public partial class MightyORM<T> : MicroORM<T> where T: new()
 	{
 		// Only properties with a non-trivial implementation are here, the rest are in the MicroORM abstract class.
 #region Properties
@@ -78,7 +78,7 @@ namespace Mighty
 			Factory = connectionProvider.ProviderFactoryInstance;
 			Type pluginType = connectionProvider.DatabasePluginType;
 			_plugin = (DatabasePlugin)Activator.CreateInstance(pluginType, false);
-			_plugin.mighty = this;
+			_plugin.mighty = null; //(MightyORM<object>)this;
 
 			if (table != null)
 			{
@@ -89,7 +89,8 @@ namespace Mighty
 				var me = this.GetType();
 				// leave table name unset if we are not a true sub-class;
 				// test enforces strict sub-class, does not pass for an instance of the class itself
-				if (me.GetTypeInfo().IsSubclassOf(typeof(MightyORM)))
+				// TO DO - *** this does not even apply to the generic version ***
+				if (me.GetTypeInfo().IsSubclassOf(typeof(MightyORM<T>)))
 				{
 					TableName = CreateTableNameFromClassName(me.Name);
 				}
@@ -105,9 +106,9 @@ namespace Mighty
 		// mini-factory for non-table specific access
 		// (equivalent to a constructor call)
 		// <remarks>static, so can't be defined anywhere but here</remarks>
-		static public MightyORM DB(string connectionStringOrName = null)
+		static public MightyORM<T> DB(string connectionStringOrName = null)
 		{
-			return new MightyORM(connectionStringOrName);
+			return new MightyORM<T>(connectionStringOrName);
 		}
 #endregion
 
@@ -133,7 +134,7 @@ namespace Mighty
 
 		// You do NOT have to use this - you can create new items to pass into the microORM more or less however you want.
 		// The main convenience provided here is to automatically strip out any input which does not match your column names.
-		override public dynamic NewFrom(object nameValues = null, bool addNonPresentAsDefaults = true)
+		override public T NewFrom(object nameValues = null, bool addNonPresentAsDefaults = true)
 		{
 			var item = new ExpandoObject();
 			var newItemDictionary = item.AsDictionary();
@@ -160,7 +161,8 @@ namespace Mighty
 					newItemDictionary.Add(columnName, GetColumnDefault(columnName));
 				}
 			}
-			return item;
+			// ********** TO DO **********
+			return default(T); //(T)item;
 		}
 
 		// Update from fields in the item sent in. If PK has been specified, any primary key fields in the
@@ -226,7 +228,7 @@ namespace Mighty
 	
 		// We can implement NewItem() and GetColumnDefault()
 		// NB *VERY* useful for better PK handling; GetColumnDefault needs to do buffering - actually, it doesn't because we may end up passing the very same object out twice
-		override public dynamic GetColumnDefault(string columnName)
+		override public object GetColumnDefault(string columnName)
 		{
 			var columnInfo = ColumnInfo(columnName);
 			return _plugin.GetColumnDefault(columnInfo);
@@ -350,7 +352,7 @@ namespace Mighty
 			return connection;
 		}
 
-		override public int Execute(DbCommand command,
+		override public dynamic Execute(DbCommand command,
 			DbConnection connection = null)
 		{
 			// using applied only to local connection
@@ -420,10 +422,10 @@ namespace Mighty
 			return e;
 		}
 
-		override protected IEnumerable<dynamic> AllWithParams(
-			CommandBehavior behavior,
+		override public IEnumerable<T> AllWithParams(
 			string where = null, string orderBy = null, string columns = null,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+			CommandBehavior behavior = CommandBehavior.Default,
 			DbConnection connection = null,
 			params object[] args)
 		{
@@ -432,14 +434,15 @@ namespace Mighty
 				columns = DefaultColumns;
 			}
 			var sql = _plugin.BuildSelect(columns, CheckTableName(), where, orderBy);
-			return QueryNWithParams<dynamic>(sql,
+			return QueryNWithParams<T>(sql,
 				inParams, outParams, ioParams, returnParams,
 				behavior: behavior, connection: connection, args: args);
 		}
 
-		override protected IEnumerable<T> QueryNWithParams<T>(string sql = null, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, DbCommand command = null, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, params object[] args)
+		// Call with either T for single or IEnumberable<T> for multiple
+		override protected IEnumerable<X> QueryNWithParams<X>(string sql = null, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, DbCommand command = null, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, params object[] args)
 		{
-			if (behavior == CommandBehavior.Default && typeof(T) != typeof(IEnumerable<dynamic>))
+			if (behavior == CommandBehavior.Default && typeof(X) == typeof(T))
 			{
 				behavior = CommandBehavior.SingleResult;
 			}
@@ -471,7 +474,7 @@ namespace Mighty
 							do
 							{
 								// cast is required because compiler doesn't see that we've just checked this!
-								yield return (T)rdr.YieldReturnExpandos();
+								yield return (X)rdr.YieldReturnExpandos();
 							}
 							while (rdr.NextResult());
 						}

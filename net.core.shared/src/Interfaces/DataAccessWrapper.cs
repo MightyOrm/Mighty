@@ -9,7 +9,7 @@ namespace Mighty.Interfaces
 	// has been specified).
 	// Uses abstract class, not interface, because the semantics of interface means it can never have anything added to it!
 	// (See ... MS document about DB classes; SO post about intefaces)
-	abstract public partial class MicroORM //DataAccessWrapper
+	abstract public partial class MicroORM<T> //DataAccessWrapper
 	{
 		// All versions which simply redirect to other versions are defined here, not in the main class.
 #region DataAccessWrapper
@@ -83,11 +83,13 @@ namespace Mighty.Interfaces
 				connection: connection, args: args);
 		}
 
-		abstract public int Execute(DbCommand command,
+		// TO DO: Should return int?
+		abstract public dynamic Execute(DbCommand command,
 			DbConnection connection = null);
 
+		// TO DO: Should return int?
 		// no connection, easy args (use WithParams version for connection)
-		virtual public int Execute(string sql,
+		virtual public dynamic Execute(string sql,
 			params object[] args)
 		{
 			return ExecuteWithParams(sql, args: args);
@@ -174,19 +176,12 @@ namespace Mighty.Interfaces
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false,
 			params object[] args);
 
-		// Add kv pair stuff for dropdowns? Maybe, at max, provide a method to convert IEnumerable<dynamic> to kv pair.
+		// Add kv pair stuff for dropdowns? Maybe, at max, provide a method to convert IEnumerable<T> to kv pair.
 		// ...
 
 		abstract public dynamic ResultsAsExpando(DbCommand cmd);
 
-		abstract protected IEnumerable<dynamic> AllWithParams(
-			CommandBehavior behavior,
-			string where = null, string orderBy = null, string columns = null,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args);
-
-		abstract protected IEnumerable<T> QueryNWithParams<T>(string sql = null, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, DbCommand command = null, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, params object[] args);
+		abstract protected IEnumerable<X> QueryNWithParams<X>(string sql = null, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, DbCommand command = null, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, params object[] args);
 #endregion
 	}
 }
