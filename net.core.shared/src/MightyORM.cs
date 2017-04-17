@@ -15,13 +15,43 @@ using Mighty.Validation;
 
 namespace Mighty
 {
-	public partial class MightyORM<T> : MicroORM<T>, IPluginCallback where T: new()
+	// The nice ;) dynamic version now uses the ugly generic version
+	public class MightyORM : MightyORM<dynamic>
+	{
+		public MightyORM(string connectionStringOrName = null,
+						 string table = null,
+						 string primaryKey = null,
+						 string sequence = null,
+						 string columns = null,
+						 Validator validator = null,
+						 ConnectionProvider connectionProvider = null)
+		{
+			if (table != null)
+			{
+				TableName = table;
+			}
+			else
+			{
+				var me = this.GetType();
+				// leave table name unset if we are not a true sub-class;
+				// this test enforces strict sub-class (i.e. does not pass for an instance of the class itself)
+				if (me.GetTypeInfo().IsSubclassOf(typeof(MightyORM)))
+				{
+					TableName = CreateTableNameFromClassName(me.Name);
+				}
+			}
+			Init(connectionStringOrName, primaryKey, sequence, columns, validator, connectionProvider);
+		}
+	}
+
+	public class MightyORM<T> : MicroORM<T>, IPluginCallback where T: new()
 	{
 		// Only properties with a non-trivial implementation are here, the rest are in the MicroORM abstract class.
 #region Properties
 		protected IEnumerable<dynamic> _TableInfo;
 		override public IEnumerable<dynamic> TableInfo
 		{
+			// TO DO: Might as well lock initialize properly
 			get
 			{
 				if (_TableInfo == null)
@@ -42,14 +72,32 @@ namespace Mighty
 		}
 #endregion
 
-#region Constructors
+#region Constructor
 		// sequence is for sequence-based databases (Oracle, PostgreSQL) - there is no default, specify either null or empty string to disable and manually specify your PK values;
 		// keyRetrievalFunction is for non-sequence based databases (MySQL, SQL Server, SQLite) - defaults to default for DB, specify empty string to disable and manually specify your PK values;
 		// primaryKeyFields is a comma separated list; if it has more than one column, you cannot specify sequence or keyRetrievalFunction
 		// (if neither sequence nor keyRetrievalFunction are set (which is always the case for compound primary keys), you MUST specify non-null, non-default values for every column in your primary key
 		// before saving an object)
 		public MightyORM(string connectionStringOrName = null,
-						 string table = null, string primaryKey = null,
+						 string primaryKey = null,
+						 string sequence = null,
+						 string columns = null,
+						 Validator validator = null,
+						 ConnectionProvider connectionProvider = null)
+		{
+			TableName = CreateTableNameFromClassName(typeof(T).Name);
+			Init(connectionStringOrName, primaryKey, sequence, columns, validator, connectionProvider);
+		}
+#endregion
+
+#region Shared initialiser
+		// sequence is for sequence-based databases (Oracle, PostgreSQL) - there is no default, specify either null or empty string to disable and manually specify your PK values;
+		// keyRetrievalFunction is for non-sequence based databases (MySQL, SQL Server, SQLite) - defaults to default for DB, specify empty string to disable and manually specify your PK values;
+		// primaryKeyFields is a comma separated list; if it has more than one column, you cannot specify sequence or keyRetrievalFunction
+		// (if neither sequence nor keyRetrievalFunction are set (which is always the case for compound primary keys), you MUST specify non-null, non-default values for every column in your primary key
+		// before saving an object)
+		public void Init(string connectionStringOrName = null,
+						 string primaryKey = null,
 						 string sequence = null,
 						 string columns = null,
 						 Validator validator = null,
@@ -80,25 +128,10 @@ namespace Mighty
 			_plugin = (DatabasePlugin)Activator.CreateInstance(pluginType, false);
 			_plugin.mighty = (IPluginCallback)this;
 
-			if (table != null)
-			{
-				TableName = table;
-			}
-			else
-			{
-				var me = this.GetType();
-				// leave table name unset if we are not a true sub-class;
-				// test enforces strict sub-class, does not pass for an instance of the class itself
-				// TO DO - *** this does not even apply to the generic version ***
-				if (me.GetTypeInfo().IsSubclassOf(typeof(MightyORM<T>)))
-				{
-					TableName = CreateTableNameFromClassName(me.Name);
-				}
-			}
 			PrimaryKeyFields = primaryKey;
 			PrimaryKeyList = primaryKey.Split(',').Select(k => k.Trim()).ToList();
 			DefaultColumns = columns ?? "*";
-			_validator = validator;
+			Validator = validator;
 		}
 #endregion
 
@@ -211,12 +244,7 @@ namespace Mighty
 			return Execute(sql, connection, args);
 		}
 
-		override public bool IsKey(string fieldName)
-		{
-			return PrimaryKeyList.Any(key => key.Equals(fieldName, StringComparison.OrdinalIgnoreCase));
-		}
-
-		override public dynamic ColumnInfo(string column, bool ExceptionOnAbsent = true)
+		override public dynamic GetColumnInfo(string column, bool ExceptionOnAbsent = true)
 		{
 			var info = TableInfo.Select(c => column.Equals(c.COLUMN_NAME, StringComparison.OrdinalIgnoreCase));
 			if (ExceptionOnAbsent && info == null)
@@ -230,7 +258,7 @@ namespace Mighty
 		// NB *VERY* useful for better PK handling; GetColumnDefault needs to do buffering - actually, it doesn't because we may end up passing the very same object out twice
 		override public object GetColumnDefault(string columnName)
 		{
-			var columnInfo = ColumnInfo(columnName);
+			var columnInfo = GetColumnInfo(columnName);
 			return _plugin.GetColumnDefault(columnInfo);
 		}
 
@@ -312,13 +340,13 @@ namespace Mighty
 		// but I think this can just be an exception, as we really don't need to worry most users about it.
 		// exception can check whether we are compound; or whether we may be sequence, but just not set; or whether we have retrieval fn intentionally overridden to empty string;
 		// and give different messages.
-		override public int Action(ORMAction action, DbConnection connection, params object[] items)
+		override internal int Action(ORMAction action, DbConnection connection, params object[] items)
 		{
 			int sum = 0;
-			if (_validator != null) _validator.PrevalidateActions(action, items);
+			if (Validator != null) Validator.PrevalidateActions(action, items);
 			foreach (var item in items)
 			{
-				if (_validator == null || _validator.PerformingAction(action, item))
+				if (Validator == null || Validator.PerformingAction(action, item))
 				{
 					switch (action)
 					{
@@ -332,7 +360,7 @@ namespace Mighty
 					}
 					//throw new NotImplementedException();
 
-					if (_validator != null) _validator.PerformedAction(action, item);
+					if (Validator != null) Validator.PerformedAction(action, item);
 				}
 			}
 			return sum;
@@ -490,7 +518,7 @@ namespace Mighty
 #endregion
 
 #region Parameters
-		public void AddParam(DbCommand cmd, object value, string name = null, ParameterDirection direction = ParameterDirection.Input, Type type = null)
+		internal void AddParam(DbCommand cmd, object value, string name = null, ParameterDirection direction = ParameterDirection.Input, Type type = null)
 		{
 			var p = cmd.CreateParameter();
 			if (name == string.Empty)
@@ -544,7 +572,7 @@ namespace Mighty
 		}
 
 		// add auto-named parameters from an array of items (presumably passed in to microORM using C# params)
-		public void AddParams(DbCommand cmd, params object[] args)
+		internal void AddParams(DbCommand cmd, params object[] args)
 		{
 			if (args == null)
 			{
@@ -556,7 +584,7 @@ namespace Mighty
 			}
 		}
 
-		public void AddNamedParams(DbCommand cmd, object nameValuePairs, ParameterDirection direction = ParameterDirection.Input)
+		internal void AddNamedParams(DbCommand cmd, object nameValuePairs, ParameterDirection direction = ParameterDirection.Input)
 		{
 			if (nameValuePairs == null)
 			{
@@ -605,6 +633,11 @@ namespace Mighty
 		private bool CheckHasNullOrDefaultKeys(object item)
 		{
 			throw new NotImplementedException();
+		}
+
+		internal bool IsKey(string fieldName)
+		{
+			return PrimaryKeyList.Any(key => key.Equals(fieldName, StringComparison.OrdinalIgnoreCase));
 		}
 #endregion
 	}

@@ -42,8 +42,8 @@ namespace Mighty.Interfaces
 #region Properties
 		virtual public string ConnectionString { get; protected set; }
 		virtual public DbProviderFactory Factory { get; protected set; }
-		virtual public DatabasePlugin _plugin { get; protected set; }
-		virtual public Validator _validator { get; protected set; }
+		virtual internal DatabasePlugin _plugin { get; set; }
+		virtual public Validator Validator { get; protected set; }
 
 		virtual public string TableName { get; protected set; } // NB this may have a dot in to specify owner/schema, and then needs splitting by us, but ONLY when getting information schema
 		virtual public string PrimaryKeyFields { get; protected set; } // un-separated PK(s)
@@ -57,6 +57,7 @@ namespace Mighty.Interfaces
 #endregion
 
 #region User hooks
+		// TO DO: This should be in another plugin class, along with other renames (field -> DB column; table name -> ID?)
 		// You could override this to establish, for example, the convention of using _ to separate schema/owner from table (just replace "_" with "." and return!)
 		virtual public string CreateTableNameFromClassName(string className) { return className; }
 #endregion
@@ -242,9 +243,7 @@ namespace Mighty.Interfaces
 			DbConnection connection,
 			params object[] args);
 
-		abstract public bool IsKey(string fieldName);
-
-		abstract public dynamic ColumnInfo(string column, bool ExceptionOnAbsent = true);
+		abstract public dynamic GetColumnInfo(string column, bool ExceptionOnAbsent = true);
 
 		abstract public object GetColumnDefault(string columnName);
 
@@ -256,7 +255,7 @@ namespace Mighty.Interfaces
 
 		abstract protected string CheckTableName();
 
-		abstract public int Action(ORMAction action, DbConnection connection, params object[] items);
+		abstract internal int Action(ORMAction action, DbConnection connection, params object[] items);
 #endregion
 	}
 }
