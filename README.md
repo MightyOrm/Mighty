@@ -89,3 +89,11 @@ However, out of the box this works with JSON, but not with XML - because XML wan
 Another more complex solution (I don't claim that the below is complete or fully correct, it's a quick hack to show the general idea) is to add 'fake' ExpandoObject support to the WebAPI 2 XML output:
 
 This is arguably an abuse of XML since now '&lt;DynamicObject&gt;' will occur in all your API responses but will contain appropriate, but different, data in each different API you provide.
+
+## Configuration
+
+For more advanced usage, the following properties can be set in the constructor:
+
+ - Validator - custom validation for per-item insert/update/delete
+ - Mapper - mapper from class and property names to table and column names
+ - ConnectionProvider - support custom ways of mapping from connection string to 

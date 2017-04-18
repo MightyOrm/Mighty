@@ -10,6 +10,7 @@ using System.Text;
 using Mighty.ConnectionProviders;
 using Mighty.DatabasePlugins;
 using Mighty.Interfaces;
+using Mighty.Mapping;
 using Mighty.Parameters;
 using Mighty.Validation;
 
@@ -24,24 +25,43 @@ namespace Mighty
 						 string sequence = null,
 						 string columns = null,
 						 Validator validator = null,
+						 Mapper mapper = null,
 						 ConnectionProvider connectionProvider = null)
 		{
+			if (mapper == null)
+			{
+				mapper = new Mapper();
+			}
+			string tableClassName = null;
 			if (table != null)
 			{
 				TableName = table;
 			}
 			else
 			{
+				// Class-based table name for override of MightyORM
+				
 				var me = this.GetType();
 				// leave table name unset if we are not a true sub-class;
 				// this test enforces strict sub-class (i.e. does not pass for an instance of the class itself)
 				if (me.GetTypeInfo().IsSubclassOf(typeof(MightyORM)))
 				{
-					TableName = CreateTableNameFromClassName(me.Name);
+					tableClassName = me.Name;
+					TableName = mapper.GetTableName(tableClassName);
 				}
 			}
-			Init(connectionStringOrName, primaryKey, sequence, columns, validator, connectionProvider);
+			Init(connectionStringOrName, primaryKey, sequence, columns, validator, mapper, connectionProvider, tableClassName);
 		}
+
+#region Convenience factory
+		// mini-factory for non-table specific access
+		// (equivalent to a constructor call)
+		// <remarks>static, so can't be defined anywhere but here</remarks>
+		new static public MightyORM DB(string connectionStringOrName = null)
+		{
+			return new MightyORM(connectionStringOrName);
+		}
+#endregion
 	}
 
 	public class MightyORM<T> : MicroORM<T>, IPluginCallback where T: new()
@@ -71,7 +91,7 @@ namespace Mighty
 			}
 		}
 
-		protected Dictionary<string, PropertyInfo> loweredNameToPropertyInfo;
+		protected Dictionary<string, PropertyInfo> columnNameToPropertyInfo;
 #endregion
 
 #region Constructor
@@ -84,34 +104,50 @@ namespace Mighty
 						 string primaryKey = null,
 						 string sequence = null,
 						 string columns = null,
-						 BindingFlags propertyBindingFlags = BindingFlags.Instance | BindingFlags.Public,
 						 Validator validator = null,
-						 ConnectionProvider connectionProvider = null)
+						 Mapper mapper = null,
+						 ConnectionProvider connectionProvider = null,
+						 BindingFlags propertyBindingFlags = BindingFlags.Instance | BindingFlags.Public)
 		{
-			TableName = CreateTableNameFromClassName(typeof(T).Name);
+			if (mapper == null)
+			{
+				mapper = new Mapper();
+			}
 
-			Init(connectionStringOrName, primaryKey, sequence, columns, validator, connectionProvider);
+			// Table name for MightyORM<T>
+			string tableClassName = typeof(T).Name;
+			TableName = mapper.GetTableName(tableClassName);
 
-			loweredNameToPropertyInfo = new Dictionary<string, PropertyInfo>();
+			Init(connectionStringOrName, primaryKey, sequence, columns, validator, mapper, connectionProvider, tableClassName);
+
+			columnNameToPropertyInfo = new Dictionary<string, PropertyInfo>();
 			foreach (var info in typeof(T).GetProperties(propertyBindingFlags))
 			{
-				loweredNameToPropertyInfo.Add(info.Name.ToLowerInvariant(), info);
+				var columnName = mapper.GetColumnName(tableClassName, info.Name);
+				if (mapper.UseCaseInsensitiveMapping)
+				{
+					columnName = columnName.ToLowerInvariant();
+				}
+				columnNameToPropertyInfo.Add(columnName, info);
 			}
 		}
 #endregion
 
 #region Shared initialiser
-		// sequence is for sequence-based databases (Oracle, PostgreSQL) - there is no default, specify either null or empty string to disable and manually specify your PK values;
-		// keyRetrievalFunction is for non-sequence based databases (MySQL, SQL Server, SQLite) - defaults to default for DB, specify empty string to disable and manually specify your PK values;
+		// sequence is for sequence-based databases (Oracle, PostgreSQL) - there is no default sequence, specify either null or empty string to disable and manually specify your PK values;
+		// for non-sequence-based databases, in unusual cases, you may specify this to specify an alternative key retrieval function
+		// (e.g. for example to use @@IDENTITY instead of SCOPE_IDENTITY(), in the case of SQL Server CE)
 		// primaryKeyFields is a comma separated list; if it has more than one column, you cannot specify sequence or keyRetrievalFunction
 		// (if neither sequence nor keyRetrievalFunction are set (which is always the case for compound primary keys), you MUST specify non-null, non-default values for every column in your primary key
 		// before saving an object)
-		public void Init(string connectionStringOrName = null,
-						 string primaryKey = null,
-						 string sequence = null,
-						 string columns = null,
-						 Validator validator = null,
-						 ConnectionProvider connectionProvider = null)
+		public void Init(string connectionStringOrName,
+						 string primaryKey,
+						 string sequence,
+						 string columns,
+						 Validator validator,
+						 Mapper mapper,
+						 ConnectionProvider connectionProvider,
+						 string tableClassName)
 		{
 			if (connectionProvider == null)
 			{
@@ -138,10 +174,18 @@ namespace Mighty
 			_plugin = (DatabasePlugin)Activator.CreateInstance(pluginType, false);
 			_plugin.mighty = (IPluginCallback)this;
 
+			if (primaryKey == null && tableClassName != null)
+			{
+				primaryKey = mapper.GetPrimaryKeyName(tableClassName);
+			}
 			PrimaryKeyFields = primaryKey;
-			PrimaryKeyList = primaryKey.Split(',').Select(k => k.Trim()).ToList();
+			if (primaryKey != null)
+			{
+				PrimaryKeyList = primaryKey.Split(',').Select(k => k.Trim()).ToList();
+			}
 			DefaultColumns = columns ?? "*";
 			Validator = validator;
+			Mapper = mapper;
 		}
 #endregion
 
@@ -653,8 +697,8 @@ namespace Mighty
 #endregion
 
 #region DbDataReader
-		// keep this in sync with the method below
-		internal IEnumerable<T> YieldReturnRows(DbDataReader reader)
+		// will need to keep this in sync with the unbuffered version below (once we are implementing both)
+		virtual internal IEnumerable<T> YieldReturnRows(DbDataReader reader)
 		{
 			if (reader.Read())
 			{
@@ -676,8 +720,20 @@ namespace Mighty
 				for (int i = 0; i < fieldCount; i++)
 				{
 					var columnName = reader.GetName(i);
-					if (useExpando) columnNames[i] = columnName;
-					else propertyInfo[i] = loweredNameToPropertyInfo[columnName.ToLowerInvariant()];
+					if (useExpando)
+					{
+						// use the case that comes back from the database
+						// TO DO: Test how this is working now in Oracle
+						columnNames[i] = columnName;
+					}
+					else
+					{
+						if (Mapper.UseCaseInsensitiveMapping)
+						{
+							columnName = columnName.ToLowerInvariant();
+						}
+						propertyInfo[i] = columnNameToPropertyInfo[columnName];
+					}
 				}
 				do
 				{
@@ -709,7 +765,7 @@ namespace Mighty
 		
 		// (will be needed for async support)
 		// keep this in sync with the method above
-		internal IEnumerable<T> ReturnRows(DbDataReader reader)
+		virtual internal IEnumerable<T> ReturnRows(DbDataReader reader)
 		{
 			throw new NotImplementedException();
 		}

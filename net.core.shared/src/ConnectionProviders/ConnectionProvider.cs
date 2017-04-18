@@ -1,7 +1,7 @@
 using System;
 using System.Data.Common;
 
-namespace Mighty
+namespace Mighty.ConnectionProviders
 {
 	abstract public class ConnectionProvider
 	{

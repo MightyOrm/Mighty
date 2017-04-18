@@ -4,6 +4,7 @@ using System.Data.Common;
 using System.Linq;
 
 using Mighty.DatabasePlugins;
+using Mighty.Mapping;
 using Mighty.Validation;
 
 namespace Mighty.Interfaces
@@ -44,6 +45,7 @@ namespace Mighty.Interfaces
 		virtual public DbProviderFactory Factory { get; protected set; }
 		virtual internal DatabasePlugin _plugin { get; set; }
 		virtual public Validator Validator { get; protected set; }
+		virtual public Mapper Mapper { get; protected set; }
 
 		virtual public string TableName { get; protected set; } // NB this may have a dot in to specify owner/schema, and then needs splitting by us, but ONLY when getting information schema
 		virtual public string PrimaryKeyFields { get; protected set; } // un-separated PK(s)
@@ -54,12 +56,6 @@ namespace Mighty.Interfaces
 		// We have the same difference in methods, below. Whether it matters depends on whether it drops in
 		// and compiles, and whether it drops in and links, to external code, changing either way....
 		abstract public IEnumerable<dynamic> TableInfo { get; }
-#endregion
-
-#region User hooks
-		// TO DO: This should be in another plugin class, along with other renames (field -> DB column; table name -> ID?)
-		// You could override this to establish, for example, the convention of using _ to separate schema/owner from table (just replace "_" with "." and return!)
-		virtual public string CreateTableNameFromClassName(string className) { return className; }
 #endregion
 
 #region MircoORM interface

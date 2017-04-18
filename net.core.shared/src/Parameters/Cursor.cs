@@ -1,4 +1,4 @@
-namespace Mighty
+namespace Mighty.Parameters
 {
 	public class Cursor
 	{
