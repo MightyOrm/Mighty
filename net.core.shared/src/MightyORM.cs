@@ -51,7 +51,7 @@ namespace Mighty
 		protected IEnumerable<dynamic> _TableInfo;
 		override public IEnumerable<dynamic> TableInfo
 		{
-			// TO DO: Might as well lock initialize properly
+			// TO DO: Might as well lock-initialize properly
 			get
 			{
 				if (_TableInfo == null)
@@ -70,6 +70,8 @@ namespace Mighty
 				return _TableInfo;
 			}
 		}
+
+		protected Dictionary<string, PropertyInfo> loweredNameToPropertyInfo;
 #endregion
 
 #region Constructor
@@ -82,11 +84,19 @@ namespace Mighty
 						 string primaryKey = null,
 						 string sequence = null,
 						 string columns = null,
+						 BindingFlags propertyBindingFlags = BindingFlags.Instance | BindingFlags.Public,
 						 Validator validator = null,
 						 ConnectionProvider connectionProvider = null)
 		{
 			TableName = CreateTableNameFromClassName(typeof(T).Name);
+
 			Init(connectionStringOrName, primaryKey, sequence, columns, validator, connectionProvider);
+
+			loweredNameToPropertyInfo = new Dictionary<string, PropertyInfo>();
+			foreach (var info in typeof(T).GetProperties(propertyBindingFlags))
+			{
+				loweredNameToPropertyInfo.Add(info.Name.ToLowerInvariant(), info);
+			}
 		}
 #endregion
 
@@ -255,7 +265,8 @@ namespace Mighty
 		}
 	
 		// We can implement NewItem() and GetColumnDefault()
-		// NB *VERY* useful for better PK handling; GetColumnDefault needs to do buffering - actually, it doesn't because we may end up passing the very same object out twice
+		// NB *VERY* useful for better PK handling; GetColumnDefault needs to do buffering - actually, it doesn't because
+		// otherwise we may end up passing the very same object out twice
 		override public object GetColumnDefault(string columnName)
 		{
 			var columnInfo = GetColumnInfo(columnName);
@@ -496,24 +507,68 @@ namespace Mighty
 				{
 					using (var rdr = _plugin.ExecuteDereferencingReader(command, behavior, connection ?? localConn))
 					{
-						if (typeof(T) == typeof(IEnumerable<dynamic>))
+						if (typeof(X) == typeof(IEnumerable<T>))
 						{
 							// query multiple pattern
 							do
 							{
 								// cast is required because compiler doesn't see that we've just checked this!
-								yield return (X)rdr.YieldReturnExpandos();
+								yield return (X)YieldReturnRows(rdr);
 							}
 							while (rdr.NextResult());
 						}
 						else
 						{
-							rdr.YieldReturnExpandos();
+							YieldReturnRows(rdr);
 						}
 					}
 					if (trans != null) trans.Commit();
 				}
 			}
+		}
+#endregion
+
+#region ORM actions
+		private int Delete(object item, DbConnection connection)
+		{
+			throw new NotImplementedException();
+		}
+
+		private int SaveItem(ORMAction action, object item, DbConnection connection)
+		{
+			if (!CheckHasKeys(item) || CheckHasNullOrDefaultKeys(item))
+			{
+				return InsertItem(item, connection);
+			}
+			else
+			{
+				return UpdateItem(item, connection);
+			}
+		}
+
+		private int InsertItem(object item, DbConnection connection)
+		{
+			throw new NotImplementedException();
+		}
+
+		private int UpdateItem(object item, DbConnection connection)
+		{
+			throw new NotImplementedException();
+		}
+
+		private bool CheckHasKeys(object item)
+		{
+			throw new NotImplementedException();
+		}
+
+		private bool CheckHasNullOrDefaultKeys(object item)
+		{
+			throw new NotImplementedException();
+		}
+
+		internal bool IsKey(string fieldName)
+		{
+			return PrimaryKeyList.Any(key => key.Equals(fieldName, StringComparison.OrdinalIgnoreCase));
 		}
 #endregion
 
@@ -597,47 +652,66 @@ namespace Mighty
 		}
 #endregion
 
-#region ORM actions
-		private int Delete(object item, DbConnection connection)
+#region DbDataReader
+		// keep this in sync with the method below
+		internal IEnumerable<T> YieldReturnRows(DbDataReader reader)
 		{
-			throw new NotImplementedException();
-		}
-
-		private int SaveItem(ORMAction action, object item, DbConnection connection)
-		{
-			if (!CheckHasKeys(item) || CheckHasNullOrDefaultKeys(item))
+			if (reader.Read())
 			{
-				return InsertItem(item, connection);
+				bool useExpando = (typeof(T) == typeof(object));
+
+				int fieldCount = reader.FieldCount;
+				object[] rowValues = new object[fieldCount];
+
+				// this is for expando
+				string[] columnNames = null;
+				// this is for generic
+				PropertyInfo[] propertyInfo = null;
+
+				if (useExpando) columnNames = new string[fieldCount];
+				else propertyInfo = new PropertyInfo[fieldCount];
+
+				// for generic, we need array of properties to set; we find this
+				// from fieldNames array, using a look up from lowered name -> property
+				for (int i = 0; i < fieldCount; i++)
+				{
+					var columnName = reader.GetName(i);
+					if (useExpando) columnNames[i] = columnName;
+					else propertyInfo[i] = loweredNameToPropertyInfo[columnName.ToLowerInvariant()];
+				}
+				do
+				{
+					reader.GetValues(rowValues);
+					if (useExpando)
+					{
+						dynamic e = new ExpandoObject();
+						IDictionary<string, object> d = e.AsDictionary();
+						for (int i = 0; i < fieldCount; i++)
+						{
+							var v = rowValues[i];
+							d.Add(columnNames[i], v == DBNull.Value ? null : v);
+						}
+						yield return e;
+					}
+					else
+					{
+						T t = new T();
+						for (int i = 0; i < fieldCount; i++)
+						{
+							var v = rowValues[i];
+							propertyInfo[i].SetValue(t, v == DBNull.Value ? null : v);
+						}
+						yield return t;
+					}
+				} while (reader.Read());
 			}
-			else
-			{
-				return UpdateItem(item, connection);
-			}
 		}
-
-		private int InsertItem(object item, DbConnection connection)
+		
+		// (will be needed for async support)
+		// keep this in sync with the method above
+		internal IEnumerable<T> ReturnRows(DbDataReader reader)
 		{
 			throw new NotImplementedException();
-		}
-
-		private int UpdateItem(object item, DbConnection connection)
-		{
-			throw new NotImplementedException();
-		}
-
-		private bool CheckHasKeys(object item)
-		{
-			throw new NotImplementedException();
-		}
-
-		private bool CheckHasNullOrDefaultKeys(object item)
-		{
-			throw new NotImplementedException();
-		}
-
-		internal bool IsKey(string fieldName)
-		{
-			return PrimaryKeyList.Any(key => key.Equals(fieldName, StringComparison.OrdinalIgnoreCase));
 		}
 #endregion
 	}

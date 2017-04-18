@@ -12,63 +12,6 @@ namespace Mighty
 	static internal partial class ObjectExtensions
 	{
 #region Internals
-		// keep this in sync with the method below
-		static internal IEnumerable<dynamic> YieldReturnExpandos(this DbDataReader reader)
-		{
-			if (reader.Read())
-			{
-				int fieldCount = reader.FieldCount;
-				object[] values = new object[fieldCount];
-				string[] fieldNames = new string[fieldCount];
-				for (int i = 0; i < fieldCount; i++)
-				{
-					fieldNames[i] = reader.GetName(i);
-				}
-				do
-				{
-					dynamic e = new ExpandoObject();
-					var d = e.AsDictionary();
-					reader.GetValues(values);
-					for(int i = 0; i < fieldCount; i++)
-					{
-						var v = values[i];
-						d.Add(fieldNames[i], v == DBNull.Value ? null : v);
-					}
-					yield return e;
-				} while (reader.Read());
-			}
-		}
-		
-		// (will be needed for async support)
-		// keep this in sync with the method above
-		static internal IEnumerable<dynamic> ReturnExpandos(this DbDataReader reader)
-		{
-			var result = new List<dynamic>();
-			if (reader.Read())
-			{
-				int fieldCount = reader.FieldCount;
-				object[] values = new object[fieldCount];
-				string[] fieldNames = new string[fieldCount];
-				for(int i = 0; i < fieldCount; i++)
-				{
-					fieldNames[i] = reader.GetName(i);
-				}
-				do
-				{
-					dynamic e = new ExpandoObject();
-					var d = e.AsDictionary();
-					reader.GetValues(values);
-					for(int i = 0; i < fieldCount; i++)
-					{
-						var v = values[i];
-						d.Add(fieldNames[i], v == DBNull.Value ? null : v);
-					}
-					result.Add(e);
-				} while (reader.Read());
-			}
-			return result;
-		}
-
 		static internal string Unthingify(this string sql, string thing)
 		{
 			return Thingify(thing, sql, false);
