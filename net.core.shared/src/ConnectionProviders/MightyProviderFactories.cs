@@ -45,16 +45,14 @@ namespace Mighty.ConnectionProviders
 			return (DbProviderFactory)f.GetValue(null);
 		}
 
-		// less readable but it loops through the enum, so you just need to add a new class with the
-		// right name and add its name to the enum, and nothing else
 		static private object GetProviderFactoryClassNameOrDatabasePluginType(string providerName, bool returnClassName)
 		{
 			string loweredProviderName = providerName.ToLowerInvariant();
 			foreach (var type in DatabasePluginManager.GetInstalledPluginTypes())
 			{
-				// Invokes static public method GetProviderFactoryClassName(loweredProviderName).
-				// The DatabasePlugin subclass must implement this method, although there is no syntax to
-				// enforce this at complile time.
+				// The DatabasePlugin subclass must implement this static GetProviderFactoryClassName method and will
+				// throw a reasonably meaningful exception here if not; unfortunately there is no syntax to enforce this
+				// at complile time.
 				string className = (string)type
 									.GetMethod(nameof(DatabasePlugin.GetProviderFactoryClassName), BindingFlags.Static)
 									.Invoke(null, new object[] { loweredProviderName });

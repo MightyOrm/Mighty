@@ -16,7 +16,8 @@ using Mighty.Validation;
 
 namespace Mighty
 {
-	// The nice ;) dynamic version now uses the ugly generic version
+	// In order to support generics, the nice ;) dynamic version now a sub-class of the generic version
+	// (though of course it is really a super class)
 	public class MightyORM : MightyORM<dynamic>
 	{
 		public MightyORM(string connectionStringOrName = null,
@@ -39,7 +40,7 @@ namespace Mighty
 			}
 			else
 			{
-				// Class-based table name for override of MightyORM
+				// Class-based table name override for dynamic MightyORM
 				
 				var me = this.GetType();
 				// leave table name unset if we are not a true sub-class;
