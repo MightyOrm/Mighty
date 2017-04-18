@@ -15,9 +15,9 @@ namespace Mighty.Interfaces
 	//	- Cleaner support for sequences (incl. one less DB round-trip on sequence-based insert)
 	//	- With the new inner loop this really might be faster than Massive too. 'Kinell.
 	//  - True support for ulong for those ADO.NET providers which use it (MySQL...) [CHECK THIS!!]
+	//  - Generics(!)
 	// To Add:
 	//  - Firebird(?)
-	//  - Generics(??)
 	// We:
 	//  - Solve the problem of default values (https://samsaffron.com/archive/2012/01/16/that-annoying-insert-problem-getting-data-into-the-db-using-dapper)
 	//	  by ignoring them at Insert(), but by populating them (in a slightly fake, but working, way) on New()
