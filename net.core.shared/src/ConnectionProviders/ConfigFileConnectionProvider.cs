@@ -1,7 +1,6 @@
-#if !true//COREFX
+#if !COREFX
 using System;
 using System.Configuration;
-using System.Data;
 using System.Data.Common;
 
 namespace Mighty.ConnectionProviders
@@ -14,12 +13,12 @@ namespace Mighty.ConnectionProviders
 			ConnectionStringSettings connectionStringSettings = GetConnectionStringSettings(connectionStringName);
 			if (connectionStringSettings != null)
 			{
-				connectionString = connectionStringSettings.connectionString;
-				string providerName = connectionStringSettings.providerName;
+				ConnectionString = connectionStringSettings.ConnectionString;
+				string providerName = connectionStringSettings.ProviderName;
 				if (providerName != null)
 				{
 					DatabasePluginType = MightyProviderFactories.GetDatabasePluginAsType(providerName);
-					ProviderFactory = DbProviderFactories.GetFactory(providerName);
+					ProviderFactoryInstance = DbProviderFactories.GetFactory(providerName);
 				}
 			}
 			return this;

@@ -6,6 +6,9 @@ using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+#if !COREFX
+using System.Transactions;
+#endif
 
 using Mighty.ConnectionProviders;
 using Mighty.DatabasePlugins;
@@ -45,7 +48,11 @@ namespace Mighty
 				var me = this.GetType();
 				// leave table name unset if we are not a true sub-class;
 				// this test enforces strict sub-class (i.e. does not pass for an instance of the class itself)
+#if COREFX
 				if (me.GetTypeInfo().IsSubclassOf(typeof(MightyORM)))
+#else
+				if (me.IsSubclassOf(typeof(MightyORM)))
+#endif
 				{
 					tableClassName = me.Name;
 					TableName = mapper.GetTableName(tableClassName);
@@ -152,13 +159,13 @@ namespace Mighty
 		{
 			if (connectionProvider == null)
 			{
-#if !true//COREFX
+#if !COREFX
 				connectionProvider = new ConfigFileConnectionProvider().Init(connectionStringOrName);
 				if (connectionProvider.ConnectionString == null)
 #endif
 				{
 					connectionProvider = new PureConnectionStringProvider()
-#if !true//COREFX
+#if !COREFX
 						.UsedAfterConfigFile()
 #endif
 						.Init(connectionStringOrName);
@@ -544,7 +551,7 @@ namespace Mighty
 				// manage wrapping transaction if required, and if we have not been passed an incoming connection
 				// in which case assume user can/should manage it themselves
 				using (var trans = ((connection == null
-#if !true//COREFX
+#if !COREFX
 					// TransactionScope support
 					&& Transaction.Current == null
 #endif
@@ -756,7 +763,7 @@ namespace Mighty
 						for (int i = 0; i < fieldCount; i++)
 						{
 							var v = rowValues[i];
-							propertyInfo[i].SetValue(t, v == DBNull.Value ? null : v);
+							propertyInfo[i].SetValue(t, v == DBNull.Value ? null : v, null);
 						}
 						yield return t;
 					}
