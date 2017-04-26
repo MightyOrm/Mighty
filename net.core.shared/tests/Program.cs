@@ -10,10 +10,10 @@ namespace Mighty.Tests.NUnit.ConsoleRunner
 		static int Main(string[] args)
 		{
 			return new AutoRun(
-#if COREFX
-				typeof(Program).GetTypeInfo().Assembly
-#else
+#if NETFRAMEWORK
 				typeof(Program).Assembly
+#else
+				typeof(Program).GetTypeInfo().Assembly
 #endif
 				)
 				.Execute(args, new ExtendedTextWrapper(Console.Out), Console.In);

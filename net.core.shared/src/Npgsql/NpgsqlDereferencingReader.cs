@@ -168,7 +168,7 @@ namespace Mighty.Npgsql
 		public override bool IsClosed { get { return Reader.IsClosed; } }
 		public override int RecordsAffected { get { return Reader.RecordsAffected; } }
 
-#if !COREFX
+#if NETFRAMEWORK
 		public override void Close()
 		{
 			CloseCursor();
@@ -195,7 +195,7 @@ namespace Mighty.Npgsql
 		public override int GetInt32(int i) { return Reader.GetInt32(i); }
 		public override long GetInt64(int i) { return Reader.GetInt64(i); }
 		public override string GetName(int i) { return Reader.GetName(i); }
-#if !COREFX
+#if NETFRAMEWORK
 		public override DataTable GetSchemaTable() { return Reader.GetSchemaTable(); }
 #endif
 		public override int GetOrdinal(string name) { return Reader.GetOrdinal(name); }

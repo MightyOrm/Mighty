@@ -49,10 +49,10 @@ namespace Mighty
 			{
 				return Activator.CreateInstance(underlying);
 			}
-#if COREFX
-			if(type.GetTypeInfo().IsValueType)
+#if NETFRAMEWORK
+			if (type.IsValueType)
 #else
-			if(type.IsValueType)
+			if (type.GetTypeInfo().IsValueType)
 #endif
 			{
 				return Activator.CreateInstance(type);

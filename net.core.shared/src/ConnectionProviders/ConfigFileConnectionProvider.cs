@@ -1,4 +1,4 @@
-#if !COREFX
+#if NETFRAMEWORK
 using System;
 using System.Configuration;
 using System.Data.Common;
