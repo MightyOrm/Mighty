@@ -196,28 +196,28 @@ namespace Mighty.Interfaces
 
 		// Apply all fields which are present in item to the row matching key.
 		// We *don't* filter by available columns - call with <see cref="CreateFrom"/>(<see cref="partialItem"/>) to do that.
-		virtual public int UpdateFrom(object partialItem, object key)
+		virtual public int UpdateUsing(object partialItem, object key)
 		{
-			return UpdateFrom(partialItem, key, null);
+			return UpdateUsing(partialItem, key, null);
 		}
 
-		virtual public int UpdateFrom(object partialItem, object key,
+		virtual public int UpdateUsing(object partialItem, object key,
 			DbConnection connection)
 		{
-			return UpdateFrom(partialItem, WhereForKeys(), KeyValuesFromKey(key));
+			return UpdateUsing(partialItem, WhereForKeys(), KeyValuesFromKey(key));
 		}
 
 		// apply all fields which are present in item to all rows matching where clause
 		// for safety you MUST specify the where clause yourself (use "1=1" to update all rows)
 		// this removes/ignores any PK fields from the action; keeps auto-named params for args,
 		// and uses named params for the update feilds.
-		virtual public int UpdateFrom(object partialItem, string where,
+		virtual public int UpdateUsing(object partialItem, string where,
 			params object[] args)
 		{
-			return UpdateFrom(partialItem, where, null, args);
+			return UpdateUsing(partialItem, where, null, args);
 		}
 
-		abstract public int UpdateFrom(object partialItem, string where,
+		abstract public int UpdateUsing(object partialItem, string where,
 			DbConnection connection,
 			params object[] args);
 

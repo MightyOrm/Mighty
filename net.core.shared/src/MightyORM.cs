@@ -263,7 +263,7 @@ namespace Mighty
 		// Update from fields in the item sent in. If PK has been specified, any primary key fields in the
 		// item are ignored (this is an update, not an insert!). However the item is not filtered to remove fields
 		// not in the table. If you need that, call <see cref="NewFrom"/>(<see cref="partialItem"/>, false) first.
-		override public int UpdateFrom(object partialItem, string where,
+		override public int UpdateUsing(object partialItem, string where,
 			DbConnection connection,
 			params object[] args)
 		{
