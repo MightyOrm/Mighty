@@ -30,12 +30,12 @@ namespace Mighty
 						 string sequence = null,
 						 string columns = null,
 						 Validator validator = null,
-						 Mapper mapper = null,
+						 SqlNamingMapper mapper = null,
 						 ConnectionProvider connectionProvider = null)
 		{
 			if (mapper == null)
 			{
-				mapper = new Mapper();
+				mapper = new SqlNamingMapper();
 			}
 			string tableClassName = null;
 			if (table != null)
@@ -104,23 +104,32 @@ namespace Mighty
 #endregion
 
 #region Constructor
-		// sequence is for sequence-based databases (Oracle, PostgreSQL) - there is no default, specify either null or empty string to disable and manually specify your PK values;
-		// keyRetrievalFunction is for non-sequence based databases (MySQL, SQL Server, SQLite) - defaults to default for DB, specify empty string to disable and manually specify your PK values;
-		// primaryKeyFields is a comma separated list; if it has more than one column, you cannot specify sequence or keyRetrievalFunction
-		// (if neither sequence nor keyRetrievalFunction are set (which is always the case for compound primary keys), you MUST specify non-null, non-default values for every column in your primary key
-		// before saving an object)
+		/// <summary>
+		/// <see cref="MightyORM"> constructor.
+		/// </summary>
+		/// <param name="connectionStringOrName">Connection string with support for additional, non-standard
+		/// "ProviderName=" property</param>
+		/// <param name="primaryKey">Primary key field name; or comma separated list of names for compound PK</param>
+		/// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; optionally override
+		/// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" for SQL CE); as a special case
+		/// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
+		/// <param name="columns">Default column list</param>
+		/// <param name="validator">Optional validator</param>
+		/// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
+		/// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyORM)</param>
+		/// <param name="propertyBindingFlags">Specify which properties should be managed by the ORM</param>
 		public MightyORM(string connectionStringOrName = null,
 						 string primaryKey = null,
 						 string sequence = null,
 						 string columns = null,
 						 Validator validator = null,
-						 Mapper mapper = null,
+						 SqlNamingMapper mapper = null,
 						 ConnectionProvider connectionProvider = null,
 						 BindingFlags propertyBindingFlags = BindingFlags.Instance | BindingFlags.Public)
 		{
 			if (mapper == null)
 			{
-				mapper = new Mapper();
+				mapper = new SqlNamingMapper();
 			}
 
 			// Table name for MightyORM<T>
@@ -154,7 +163,7 @@ namespace Mighty
 						 string sequence,
 						 string columns,
 						 Validator validator,
-						 Mapper mapper,
+						 SqlNamingMapper mapper,
 						 ConnectionProvider connectionProvider,
 						 string tableClassName)
 		{
@@ -195,6 +204,22 @@ namespace Mighty
 			DefaultColumns = columns ?? "*";
 			Validator = validator;
 			Mapper = mapper;
+			if (!_plugin.IsSequenceBased)
+			{
+				// empty string on identity-based DB specifies that PK is manually controlled
+				if (sequence == "") SequenceNameOrIdentityFn = null;
+				// other non-null value overrides default identity retrieval fn (e.g. use "@@IDENTITY" on SQL CE)
+				else if (sequence != null) SequenceNameOrIdentityFn = sequence;
+				// default fn
+				else SequenceNameOrIdentityFn = _plugin.IdentityRetrievalFunction;
+			}
+			else
+			{
+				// NB on identity-based DBs using an identity on the PK is the default mode of operation (i.e. unless
+				// empty string is specified in 'sequence'), whereas on sequence-based DBs NOT having a sequence is
+				// the default (i.e. unless something is specified in 'sequence')
+				SequenceNameOrIdentityFn = sequence;
+			}
 		}
 #endregion
 
@@ -583,25 +608,33 @@ namespace Mighty
 				}
 			}
 		}
-#endregion
+		#endregion
 
-#region ORM actions
+		#region ORM actions
 		/// <summary>
 		/// Save, Insert, Update or Delete an item.
-		/// Save means: update if PK field(s) is (are) present and at non-default values, insert otherwise.
-		/// On insert, the PK field of the item is created if not present and filled with the new PK value,
-		/// where possible (i.e. not on immutable objects such as anonymous type objects).
+		/// Save means: update item if PK field or fields are present and at non-default values, insert otherwise.
+		/// On inserting an item with a single PK and a sequence/identity 1) the PK of the new item is returned;
+		/// 2) the PK field of the item itself is a) created if not present and b) filled with the new PK value,
+		/// where this is possible (e.g. fields can't be created on POCOs, property values can't be set on immutable
+		/// items such as anonymously typed objects).
 		/// </summary>
 		/// <param name="action">Save, Insert, Update or Delete</param>
 		/// <param name="item">item</param>
 		/// <param name="connection">connection to use</param>
 		/// <returns>The PK of the inserted item, iff a new auto-generated PK value is available.</returns>
-		/// <remarks></remarks>
+		/// <remarks>
+		/// It *is* technically possibly (by writing to private backing fields) to change the field value in anonymously
+		/// typed objects - http://stackoverflow.com/a/30242237/795690 - and bizarrely VB supports writing to fields in
+		/// anonymously typed objects natively even though C# doesn't - http://stackoverflow.com/a/9065678/795690 (which
+		/// sounds as if it means that if this part of the library was written in VB then doing this would be officially
+		/// supported? not quite sure, that assumes that the different implementations of anonymous types can co-exist)
+		/// </remarks>
 		private object ActionOnItem(ORMAction action, object item, DbConnection connection)
 		{
 			int nKeys = 0;
 			int nDefaultKeyValues = 0;
-			// TO DO: Create and append to these conditional upon need
+			// TO DO(?): Only create and append to these list conditional upon potential need
 			List<string> insertNames = new List<string>();
 			List<string> insertValues = new List<string>(); // list of param names, not actual values
 			List<string> updateNameValuePairs = new List<string>();
@@ -663,6 +696,8 @@ namespace Mighty
 					break;
 					
 				case ORMAction.Insert:
+					// *** TO DO *** : Insert needs to return the new PK value, and it needs to check
+					// whether there is a sequence or not whilst it is building the fragments
 					command = CreateInsertCommand(item, insertNames, insertValues, nDefaultKeyValues > 0 ? PkFilter.NoKeys : PkFilter.DoNotFilter);
 					break;
 					
@@ -677,7 +712,7 @@ namespace Mighty
 			if (action == ORMAction.Insert /*&& sequence != null*/)
 			{
 				var pk = command.ExecuteScalar();
-				InsertPK(item, pk);
+				WriteNewPKToItem(item, pk);
 				return pk;
 			}
 			else
@@ -714,8 +749,8 @@ namespace Mighty
 			return command;
 		}
 
-		// PK may be int or long depending on the DB
-		private void InsertPK(object item, object pk)
+		// Note PK may be int or long depending on the current database
+		private void WriteNewPKToItem(object item, object pk)
 		{
 		}
 

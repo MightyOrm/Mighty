@@ -48,7 +48,7 @@ namespace Mighty.DatabasePlugins
 #endregion
 
 #region Keys and sequences
-		override public string KeyRetrievalFunction { get; protected set; } = "LAST_INSERT_ID()";
+		override public string IdentityRetrievalFunction { get; protected set; } = "LAST_INSERT_ID()";
 #endregion
 
 #region Prefix/deprefix parameters

@@ -134,7 +134,7 @@ namespace Mighty.DatabasePlugins
 
 #region Keys and sequences
 		virtual public bool IsSequenceBased { get; protected set; } = false;
-		virtual public string KeyRetrievalFunction { get; protected set; }
+		virtual public string IdentityRetrievalFunction { get; protected set; }
 #endregion
 
 #region DbCommand

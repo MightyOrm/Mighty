@@ -45,13 +45,14 @@ namespace Mighty.Interfaces
 		virtual public DbProviderFactory Factory { get; protected set; }
 		virtual internal DatabasePlugin _plugin { get; set; }
 		virtual public Validator Validator { get; protected set; }
-		virtual public Mapper Mapper { get; protected set; }
+		virtual public SqlNamingMapper Mapper { get; protected set; }
 
-		virtual public string TableName { get; protected set; } // NB this may have a dot in to specify owner/schema, and then needs splitting by us, but ONLY when getting information schema
-		virtual public string PrimaryKeyFields { get; protected set; } // un-separated PK(s)
-		virtual public List<string> PrimaryKeyList { get; protected set; } // separated, lowered PK(s)
+		virtual public string TableName { get; protected set; } // NB this may have a dot in to specify owner/schema, and then needs splitting by us, but only when getting the information schema
+		virtual public string PrimaryKeyFields { get; protected set; } // un-separated PK field names
+		virtual public List<string> PrimaryKeyList { get; protected set; } // separated, lowered PK field names
 		virtual public string DefaultColumns { get; protected set; }
-		
+		virtual public string SequenceNameOrIdentityFn { get; protected set; }
+
 		// TO DO: Does it matter that this is different?
 		// We have the same difference in methods, below. Whether it matters depends on whether it drops in
 		// and compiles, and whether it drops in and links, to external code, changing either way....
