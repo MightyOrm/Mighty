@@ -66,9 +66,12 @@ namespace Mighty.DatabasePlugins
 
 #region Keys and sequences
 		override public bool IsSequenceBased { get; protected set; } = true;
+		override public string BuildNextval(string sequence) { return string.Format("{0}.nextval", sequence); }
+		override public string BuildCurrval(string sequence) { return string.Format("{0}.currval", sequence); }
+		virtual public string NoTable() { return " FROM DUAL"; }
 #endregion
 
-#region DbCommand
+		#region DbCommand
 		override public void SetProviderSpecificCommandProperties(DbCommand command)
 		{
 			// These two settings and their comments taken direct from Massive - see CREDITS file

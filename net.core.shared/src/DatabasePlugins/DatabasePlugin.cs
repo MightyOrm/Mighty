@@ -134,6 +134,9 @@ namespace Mighty.DatabasePlugins
 
 #region Keys and sequences
 		virtual public bool IsSequenceBased { get; protected set; } = false;
+		virtual public string BuildNextval(string sequence) => throw new NotImplementedException();
+		virtual public string BuildCurrval(string sequence) => throw new NotImplementedException();
+		virtual public string FromNoTable() { return ""; }
 		virtual public string IdentityRetrievalFunction { get; protected set; }
 #endregion
 

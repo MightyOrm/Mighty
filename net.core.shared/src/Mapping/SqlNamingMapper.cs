@@ -10,6 +10,7 @@ namespace Mighty.Mapping
 		virtual public string GetTableName(string className) { return className; }
 		// field and class provided to help with naming
 		virtual public string GetColumnName(string className, string fieldName) { return fieldName; }
+		// TO DO: virtual method to split the name at the dots rejoin it, with single overrideable method to quote the individual parts
 		virtual public string QuoteDatabaseName(string name) { return name; }
 		// If this is not overridden then no primary key will be defined by default
 		virtual public string GetPrimaryKeyName(string className) { return null; }

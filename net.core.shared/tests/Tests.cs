@@ -1,6 +1,10 @@
 using System.Collections.Specialized;
 using NUnit.Framework;
 
+using Mighty;
+using Mighty.Interfaces;
+
+
 namespace Mighty.Tests.MySql
 {
 	public class MyNVC : NameValueCollection
@@ -16,7 +20,6 @@ namespace Mighty.Tests.MySql
 		{
 			var db = MightyORM.DB("northwind");
 			var db2 = new MightyORM<object>(validator: null);
-			db2.Delete("foo");
 			Assert.AreEqual(1, 1);
 		}
 

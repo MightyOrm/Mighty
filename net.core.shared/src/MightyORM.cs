@@ -204,21 +204,34 @@ namespace Mighty
 			DefaultColumns = columns ?? "*";
 			Validator = validator;
 			Mapper = mapper;
+			// After all this, SequenceNameOrIdentityFn is only non-null if we really are expecting to use it
+			// (which entails exactly one PK)
 			if (!_plugin.IsSequenceBased)
 			{
-				// empty string on identity-based DB specifies that PK is manually controlled
-				if (sequence == "") SequenceNameOrIdentityFn = null;
-				// other non-null value overrides default identity retrieval fn (e.g. use "@@IDENTITY" on SQL CE)
-				else if (sequence != null) SequenceNameOrIdentityFn = sequence;
-				// default fn
-				else SequenceNameOrIdentityFn = _plugin.IdentityRetrievalFunction;
+				if (PrimaryKeyList.Count != 1)
+				{
+					SequenceNameOrIdentityFn = null;
+				}
+				else
+				{
+					// empty string on identity-based DB specifies that PK is manually controlled
+					if (sequence == "") SequenceNameOrIdentityFn = null;
+					// other non-null value overrides default identity retrieval fn (e.g. use "@@IDENTITY" on SQL CE)
+					else if (sequence != null) SequenceNameOrIdentityFn = sequence;
+					// default fn
+					else SequenceNameOrIdentityFn = _plugin.IdentityRetrievalFunction;
+				}
 			}
 			else
 			{
 				// NB on identity-based DBs using an identity on the PK is the default mode of operation (i.e. unless
-				// empty string is specified in 'sequence'), whereas on sequence-based DBs NOT having a sequence is
-				// the default (i.e. unless something is specified in 'sequence')
-				SequenceNameOrIdentityFn = sequence;
+				// empty string is specified in 'sequence'; or unless there is > 1 primary key), whereas on sequence-based
+				// DBs NOT having a sequence is the default (i.e. unless a specific sequence is passed in).
+				if (PrimaryKeyList.Count != 1)
+				{
+					throw new InvalidOperationException("Sequence may only be specified for tables with a single primary key");
+				}
+				SequenceNameOrIdentityFn = mapper.QuoteDatabaseName(sequence);
 			}
 		}
 #endregion
@@ -399,7 +412,7 @@ namespace Mighty
 		private string _whereForKeys;
 
 		/// <summary>
-		/// WHERE clause taking auto-named parameters, for the current primary keys
+		/// Return a WHERE clause with auto-named parameters for the primary keys
 		/// </summary>
 		/// <returns></returns>
 		override protected string WhereForKeys()
@@ -740,7 +753,7 @@ namespace Mighty
 		{
 			int nKeys = 0;
 			int nDefaultKeyValues = 0;
-			// TO DO(?): Only create and append to these list conditional upon potential need
+			// TO DO(?): Only create and append to these lists conditional upon potential need
 			List<string> insertNames = new List<string>();
 			List<string> insertValues = new List<string>(); // list of param names, not actual values
 			List<string> updateNameValuePairs = new List<string>();
@@ -751,21 +764,37 @@ namespace Mighty
 				var name = nvt.Name;
 				var value = nvt.Value;
 				var prefixedName = _plugin.PrefixParameterName(name);
-				insertNames.Add(name);
-				insertValues.Add(prefixedName);
 				if (IsKey(name))
 				{
-					nKeys++;
-					if (value == nvt.Type.GetDefaultValue())
+					nKeys++;					
+					if (value == null || value == nvt.Type.GetDefaultValue())
 					{
 						nDefaultKeyValues++;
 					}
+
+					if (SequenceNameOrIdentityFn == null)
+					{
+						insertNames.Add(name);
+						insertValues.Add(prefixedName);
+					}
+					else
+					{
+						if (_plugin.IsSequenceBased)
+						{
+							insertNames.Add(name);
+							insertValues.Add(string.Format(_plugin.BuildNextval(SequenceNameOrIdentityFn)));
+						}
+					}
+
 					whereNameValuePairs.Add(name);
 					whereNameValuePairs.Add(" = ");
 					whereNameValuePairs.Add(prefixedName);
 				}
 				else
 				{
+					insertNames.Add(name);
+					insertValues.Add(prefixedName);
+
 					updateNameValuePairs.Add(name);
 					updateNameValuePairs.Add(" = ");
 					updateNameValuePairs.Add(prefixedName);
@@ -802,8 +831,8 @@ namespace Mighty
 					break;
 					
 				case ORMAction.Insert:
-					// *** TO DO *** : Insert needs to return the new PK value, and it needs to check
-					// whether there is a sequence or not whilst it is building the fragments
+					// TO DO: Hang on, we've got a different check here from SequenceNameOrIdentityFn != null;
+					// either one or other is right, or else some exceptions should be thrown if they come apart.
 					command = CreateInsertCommand(item, insertNames, insertValues, nDefaultKeyValues > 0 ? PkFilter.NoKeys : PkFilter.DoNotFilter);
 					break;
 					
@@ -815,7 +844,7 @@ namespace Mighty
 					throw new InvalidOperationException("Internal error, unknown " + nameof(ORMAction) + "=" + action + " sent to " + nameof(ActionOnItem));
 			}
 			command.Connection = connection;
-			if (action == ORMAction.Insert /*&& sequence != null*/)
+			if (action == ORMAction.Insert && SequenceNameOrIdentityFn != null)
 			{
 				var pk = command.ExecuteScalar();
 				WriteNewPKToItem(item, pk);
@@ -857,6 +886,13 @@ namespace Mighty
 		private DbCommand CreateInsertCommand(object item, List<string> insertNames, List<string> insertValues, PkFilter pkFilter)
 		{
 			string sql = _plugin.BuildInsert(TableName, string.Join(", ", insertNames), string.Join(", ", insertValues));
+			if (SequenceNameOrIdentityFn != null)
+			{
+				sql += ";\r\n" +
+					   "SELECT " +
+					   (_plugin.IsSequenceBased ? _plugin.BuildCurrval(SequenceNameOrIdentityFn) : SequenceNameOrIdentityFn) +
+					   _plugin.FromNoTable() + ";";
+			}
 			var command = CreateCommand(sql);
 			AddNamedParams(command, item, pkFilter: pkFilter);
 			return command;
