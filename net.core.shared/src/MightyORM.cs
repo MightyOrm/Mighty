@@ -841,7 +841,7 @@ namespace Mighty
 					break;
 					
 				default:
-					throw new InvalidOperationException("Internal error, unknown " + nameof(ORMAction) + "=" + action + " sent to " + nameof(ActionOnItem));
+					throw new InvalidOperationException("Internal error, incorrect " + nameof(ORMAction) + "=" + action + " at action choice in " + nameof(ActionOnItem));
 			}
 			command.Connection = connection;
 			if (action == ORMAction.Insert && SequenceNameOrIdentityFn != null)
