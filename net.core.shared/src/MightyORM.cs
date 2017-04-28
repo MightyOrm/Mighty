@@ -23,6 +23,7 @@ namespace Mighty
 	// (though of course it is really a super class)
 	public class MightyORM : MightyORM<dynamic>
 	{
+		// ctor - disallow, or just ignore?, sequence spec when we have multiple PKs
 		public MightyORM(string connectionStringOrName = null,
 						 string table = null,
 						 string primaryKey = null,
@@ -229,11 +230,13 @@ namespace Mighty
 
 		// You do NOT have to use this - you can create new items to pass into the microORM more or less however you want.
 		// The main convenience provided here is to automatically strip out any input which does not match your column names.
+		// TO DO: This is slightly dodgy because it does not get the values from the DB itself - it is possible that with the
+		// correct select we can get the DB to send us the values.
 		override public T NewFrom(object nameValues = null, bool addNonPresentAsDefaults = true)
 		{
 			var item = new ExpandoObject();
 			var newItemDictionary = item.AsDictionary();
-			var parameters = new ParamEnumerator(nameValues);
+			var parameters = new NameValueTypeEnumerator(nameValues);
 			// drive the loop by the actual column names
 			foreach (var columnInfo in TableInfo)
 			{
@@ -268,7 +271,7 @@ namespace Mighty
 			params object[] args)
 		{
 			var values = new StringBuilder();
-			var parameters = new ParamEnumerator(partialItem);
+			var parameters = new NameValueTypeEnumerator(partialItem);
 			var filteredItem = new ExpandoObject();
 			var toDict = filteredItem.AsDictionary();
 			int i = 0;
@@ -403,30 +406,26 @@ namespace Mighty
 		// but I think this can just be an exception, as we really don't need to worry most users about it.
 		// exception can check whether we are compound; or whether we may be sequence, but just not set; or whether we have retrieval fn intentionally overridden to empty string;
 		// and give different messages.
-		override internal int Action(ORMAction action, DbConnection connection, params object[] items)
+		override internal object ActionOnItems(ORMAction action, DbConnection connection, params object[] items)
 		{
-			int sum = 0;
-			if (Validator != null) Validator.PrevalidateActions(action, items);
+			object pk = null;
+			int count = 0;
+			if (Validator != null) Validator.PrevalidateAllActions(action, items);
 			foreach (var item in items)
 			{
 				if (Validator == null || Validator.PerformingAction(action, item))
 				{
-					switch (action)
+					var _pk = ActionOnItem(action, item, connection);
+					if (count == 0)
 					{
-						case ORMAction.Delete:
-							sum += Delete(item, connection);
-							break;
-
-						default:
-							sum += SaveItem(action, item, connection);
-							break;
+						pk = _pk;
 					}
-					//throw new NotImplementedException();
-
 					if (Validator != null) Validator.PerformedAction(action, item);
 				}
+				count++;
 			}
-			return sum;
+			if (action == ORMAction.Insert) return pk;
+			else return count;
 		}
 #endregion
 
@@ -480,13 +479,19 @@ namespace Mighty
 			return result;
 		}
 
-		override public DbCommand CreateCommandWithParams(string sql,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false,
-			params object[] args)
+		internal DbCommand CreateCommand(string sql)
 		{
 			var command = Factory.CreateCommand();
 			_plugin.SetProviderSpecificCommandProperties(command);
 			command.CommandText = sql;
+			return command;
+		}
+
+		override public DbCommand CreateCommandWithParams(string sql,
+			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false,
+			params object[] args)
+		{
+			var command = CreateCommand(sql);
 			if (isProcedure) command.CommandType = CommandType.StoredProcedure;
 			AddParams(command, args);
 			AddNamedParams(command, inParams, ParameterDirection.Input);
@@ -581,41 +586,137 @@ namespace Mighty
 #endregion
 
 #region ORM actions
-		private int Delete(object item, DbConnection connection)
+		/// <summary>
+		/// Save, Insert, Update or Delete an item.
+		/// Save means: update if PK field(s) is (are) present and at non-default values, insert otherwise.
+		/// On insert, the PK field of the item is created if not present and filled with the new PK value,
+		/// where possible (i.e. not on immutable objects such as anonymous type objects).
+		/// </summary>
+		/// <param name="action">Save, Insert, Update or Delete</param>
+		/// <param name="item">item</param>
+		/// <param name="connection">connection to use</param>
+		/// <returns>The PK of the inserted item, iff a new auto-generated PK value is available.</returns>
+		/// <remarks></remarks>
+		private object ActionOnItem(ORMAction action, object item, DbConnection connection)
 		{
-			throw new NotImplementedException();
-		}
-
-		private int SaveItem(ORMAction action, object item, DbConnection connection)
-		{
-			if (!CheckHasKeys(item) || CheckHasNullOrDefaultKeys(item))
+			int nKeys = 0;
+			int nDefaultKeyValues = 0;
+			// TO DO: Create and append to these conditional upon need
+			List<string> insertNames = new List<string>();
+			List<string> insertValues = new List<string>(); // list of param names, not actual values
+			List<string> updateNameValuePairs = new List<string>();
+			List<string> whereNameValuePairs = new List<string>();
+			var count = 0;
+			foreach (var nvt in new NameValueTypeEnumerator(item))
 			{
-				return InsertItem(item, connection);
+				var name = nvt.Name;
+				var value = nvt.Value;
+				var prefixedName = _plugin.PrefixParameterName(name);
+				insertNames.Add(name);
+				insertValues.Add(prefixedName);
+				if (IsKey(name))
+				{
+					nKeys++;
+					if (value == nvt.Type.GetDefaultValue())
+					{
+						nDefaultKeyValues++;
+					}
+					whereNameValuePairs.Add(name);
+					whereNameValuePairs.Add(" = ");
+					whereNameValuePairs.Add(prefixedName);
+				}
+				else
+				{
+					updateNameValuePairs.Add(name);
+					updateNameValuePairs.Add(" = ");
+					updateNameValuePairs.Add(prefixedName);
+				}
+				count++;
+			}
+			if (nKeys > 0)
+			{
+				if (nKeys != this.PrimaryKeyList.Count)
+				{
+					throw new InvalidOperationException("All or no primary key fields must be present in item for " + action);
+				}
+				if (nDefaultKeyValues > 0 && nDefaultKeyValues != nKeys)
+				{
+					throw new InvalidOperationException("All or no primary key fields must start with their default values in item for " + action);
+				}
+			}
+			DbCommand command = null;
+			if (action == ORMAction.Save)
+			{
+				if (nKeys > 0 && nDefaultKeyValues == 0)
+				{
+					action = ORMAction.Update;
+				}
+				else
+				{
+					action = ORMAction.Insert;
+				}
+			}
+			switch (action)
+			{
+				case ORMAction.Update:
+					command = CreateUpdateCommand(item, updateNameValuePairs, whereNameValuePairs);
+					break;
+					
+				case ORMAction.Insert:
+					command = CreateInsertCommand(item, insertNames, insertValues, nDefaultKeyValues > 0 ? PkFilter.NoKeys : PkFilter.DoNotFilter);
+					break;
+					
+				case ORMAction.Delete:
+					command = CreateDeleteCommand(item, whereNameValuePairs);
+					break;
+					
+				default:
+					throw new InvalidOperationException("Internal error, unknown " + nameof(ORMAction) + "=" + action + " sent to " + nameof(ActionOnItem));
+			}
+			command.Connection = connection;
+			if (action == ORMAction.Insert /*&& sequence != null*/)
+			{
+				var pk = command.ExecuteScalar();
+				InsertPK(item, pk);
+				return pk;
 			}
 			else
 			{
-				return UpdateItem(item, connection);
+				int n = command.ExecuteNonQuery();
+				// should this be checked? is it reasonable for this to be zero sometimes?
+				if (n != 1)
+				{
+					throw new InvalidOperationException("Could not " + action + " item");
+				}
+				return null;
 			}
 		}
 
-		private int InsertItem(object item, DbConnection connection)
+		private DbCommand CreateUpdateCommand(object item, List<string> updateNameValuePairs, List<string> whereNameValuePairs)
 		{
-			throw new NotImplementedException();
+			string sql = _plugin.BuildUpdate(TableName, string.Join(", ", updateNameValuePairs), string.Join(" AND ", whereNameValuePairs));
+			return CreateCommandWithParams(sql, inParams: item);
 		}
 
-		private int UpdateItem(object item, DbConnection connection)
+		private DbCommand CreateInsertCommand(object item, List<string> insertNames, List<string> insertValues, PkFilter pkFilter)
 		{
-			throw new NotImplementedException();
+			string sql = _plugin.BuildInsert(TableName, string.Join(", ", insertNames), string.Join(", ", insertValues));
+			var command = CreateCommand(sql);
+			AddNamedParams(command, item, pkFilter: pkFilter);
+			return command;
 		}
 
-		private bool CheckHasKeys(object item)
+		private DbCommand CreateDeleteCommand(object item, List<string> whereNameValuePairs)
 		{
-			throw new NotImplementedException();
+			string sql = _plugin.BuildDelete(TableName,string.Join(" AND ", whereNameValuePairs));
+			var command = CreateCommand(sql);
+			AddNamedParams(command, item, pkFilter: PkFilter.KeysOnly);
+			return command;
 		}
 
-		private bool CheckHasNullOrDefaultKeys(object item)
+		// PK may be int or long depending on the DB
+		private void InsertPK(object item, object pk)
 		{
-			throw new NotImplementedException();
 		}
 
 		internal bool IsKey(string fieldName)
@@ -644,7 +745,7 @@ namespace Mighty
 			{
 				if (type != null)
 				{
-					_plugin.SetValue(p, type.CreateInstance());
+					_plugin.SetValue(p, type.GetDefaultValue());
 					// explicitly lock type and size to the values which ADO.NET has just implicitly assigned
 					// (when only implictly assigned, setting Value to DBNull.Value later on causes these to reset, in at least the Npgsql and SQL Server providers)
 					p.DbType = p.DbType;
@@ -691,15 +792,25 @@ namespace Mighty
 			}
 		}
 
-		internal void AddNamedParams(DbCommand cmd, object nameValuePairs, ParameterDirection direction = ParameterDirection.Input)
+		internal enum PkFilter
+		{
+			DoNotFilter,
+			KeysOnly,
+			NoKeys
+		}
+
+		internal void AddNamedParams(DbCommand cmd, object nameValuePairs, ParameterDirection direction = ParameterDirection.Input, PkFilter pkFilter = PkFilter.DoNotFilter)
 		{
 			if (nameValuePairs == null)
 			{
 				return;
 			}
-			foreach (var paramInfo in new ParamEnumerator(nameValuePairs))
+			foreach (var paramInfo in new NameValueTypeEnumerator(nameValuePairs))
 			{
-				AddParam(cmd, paramInfo.Value, paramInfo.Name, direction, paramInfo.Type);
+				if (pkFilter == PkFilter.DoNotFilter || (IsKey(paramInfo.Name) == (pkFilter == PkFilter.KeysOnly)))
+				{
+					AddParam(cmd, paramInfo.Value, paramInfo.Name, direction, paramInfo.Type);
+				}
 			}
 		}
 #endregion

@@ -17,7 +17,7 @@ namespace Mighty.Parameters
 	/// "System.Threading.Overlapped": "4.0.1",
 	/// "System.Xml.XmlDocument": "4.0.1"
 	/// </remarks>
-	internal class ParamEnumerator : IEnumerable<LazyParamInfo>, IEnumerable
+	internal class NameValueTypeEnumerator : IEnumerable<LazyNameValueTypeInfo>, IEnumerable
 	{
 		private object _o;
 		private ParameterDirection _direction;
@@ -26,8 +26,8 @@ namespace Mighty.Parameters
 
 		// We don't default to output parameters as such, but we do default to complaining
 		// if object[] is passed in in any context except for directional parameters with
-		// the direction at Input.
-		internal ParamEnumerator(object o, ParameterDirection direction = ParameterDirection.Output)
+		// the direction at Input (see <see cref="GetEnumerator" />)
+		internal NameValueTypeEnumerator(object o, ParameterDirection direction = ParameterDirection.Output)
 		{
 			_o = o;
 			_direction = direction;
@@ -38,7 +38,7 @@ namespace Mighty.Parameters
 			return GetEnumerator();
 		}
 
-		public IEnumerator<LazyParamInfo> GetEnumerator()
+		public IEnumerator<LazyNameValueTypeInfo> GetEnumerator()
 		{
 			// This is for adding anonymous parameters (this will cause an exception later on, in AddParam, if used on
 			// a DB which doesn't support it; even on DBs which do support it, it only makes sense on input parameters).
@@ -54,7 +54,7 @@ namespace Mighty.Parameters
 				// anonymous parameters from array
 				foreach (var value in valueArray)
 				{
-					yield return new LazyParamInfo(string.Empty, () => value);
+					yield return new LazyNameValueTypeInfo(string.Empty, () => value);
 				}
 				yield break;
 			}
@@ -64,7 +64,7 @@ namespace Mighty.Parameters
 			{
 				foreach (var pair in o.AsDictionary())
 				{
-					yield return new LazyParamInfo(pair.Key, () => pair.Value);
+					yield return new LazyNameValueTypeInfo(pair.Key, () => pair.Value);
 				}
 				yield break;
 			}
@@ -74,7 +74,7 @@ namespace Mighty.Parameters
 			{
 				foreach (string name in nvc)
 				{
-					yield return new LazyParamInfo(name, () =>  nvc[name]);
+					yield return new LazyNameValueTypeInfo(name, () =>  nvc[name]);
 				}
 				yield break;
 			}
@@ -84,7 +84,7 @@ namespace Mighty.Parameters
 			// names, values and types from properties of anonymous object or POCOs
 			foreach (PropertyInfo property in _o.GetType().GetProperties())
 			{
-				yield return new LazyParamInfo(property.Name, () => property.GetValue(_o, null), property.PropertyType);
+				yield return new LazyNameValueTypeInfo(property.Name, () => property.GetValue(_o, null), property.PropertyType);
 			}
 		}
 	}

@@ -26,7 +26,7 @@ namespace Mighty.Validation
 		abstract public void PerformedAction(ORMAction action, dynamic item);
 
 		// TO DO: accessibility?
-		virtual public void PrevalidateActions(ORMAction action, object[] items)
+		virtual public void PrevalidateAllActions(ORMAction action, object[] items)
 		{
 			// Intention of non-shared error list is thread safety
 			List<object> Errors = new List<object>();

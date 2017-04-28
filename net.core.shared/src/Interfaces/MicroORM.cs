@@ -154,37 +154,37 @@ namespace Mighty.Interfaces
 
 		virtual public int Save(DbConnection connection, params object[] items)
 		{
-			return Action(ORMAction.Save, connection, items);
+			return (int)ActionOnItems(ORMAction.Save, connection, items);
 		}
 		
-		virtual public int Insert(params object[] items)
+		virtual public object Insert(params object[] items)
 		{
 			return Insert(null, items);
 		}
 
 		virtual public int Insert(DbConnection connection, params object[] items)
 		{
-			return Action(ORMAction.Insert, connection, items);
+			return (int)ActionOnItems(ORMAction.Insert, connection, items);
 		}
 
 		virtual public int Update(params object[] items)
 		{
-			return Update(null, items);
+			return (int)Update(null, items);
 		}
 
 		virtual public int Update(DbConnection connection, params object[] items)
 		{
-			return Action(ORMAction.Update, connection, items);
+			return (int)ActionOnItems(ORMAction.Update, connection, items);
 		}
 
 		virtual public int Delete(params object[] items)
 		{
-			return Delete((DbConnection)null, items);
+			return (int)Delete((DbConnection)null, items);
 		}
 
 		virtual public int Delete(DbConnection connection, params object[] items)
 		{
-			return Action(ORMAction.Delete, connection, items);
+			return (int)ActionOnItems(ORMAction.Delete, connection, items);
 		}
 
 		virtual  public T New()
@@ -251,7 +251,7 @@ namespace Mighty.Interfaces
 
 		abstract protected string CheckTableName();
 
-		abstract internal int Action(ORMAction action, DbConnection connection, params object[] items);
+		abstract internal object ActionOnItems(ORMAction action, DbConnection connection, params object[] items);
 #endregion
 	}
 }

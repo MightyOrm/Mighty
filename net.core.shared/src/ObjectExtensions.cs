@@ -42,7 +42,7 @@ namespace Mighty
 		///
 		/// Not sure whether this should be public...?
 		/// </remarks>
-		static internal object CreateInstance(this Type type)
+		static internal object GetDefaultValue(this Type type)
 		{
 			Type underlying = Nullable.GetUnderlyingType(type);
 			if(underlying != null)
@@ -61,7 +61,7 @@ namespace Mighty
 			{
 				return "";
 			}
-			throw new InvalidOperationException("CreateInstance does not support type " + type);
+			throw new InvalidOperationException(nameof(GetDefaultValue) + " does not support Type=" + type);
 		}
 
 		static internal void SetRuntimeEnumProperty(this object o, string enumPropertyName, string enumStringValue, bool throwException = true)
