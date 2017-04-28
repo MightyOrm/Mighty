@@ -16,6 +16,7 @@ namespace Mighty.Tests.MySql
 		{
 			var db = MightyORM.DB("northwind");
 			var db2 = new MightyORM<object>(validator: null);
+			db2.Delete("foo");
 			Assert.AreEqual(1, 1);
 		}
 

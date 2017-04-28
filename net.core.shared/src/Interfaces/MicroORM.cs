@@ -229,7 +229,14 @@ namespace Mighty.Interfaces
 
 		abstract public int DeleteByKey(DbConnection connection, params object[] keys);
 
-		// for safety you MUST specify the where clause yourself (use "1=1" to delete all rows)
+		/// <summary>
+		/// Delete rows from ORM table based on WHERE clause.
+		/// </summary>
+		/// <param name="where">
+		/// Non-optional where clause.
+		/// Specify "1=1" if you are sure that you want to delete all rows.</param>
+		/// <param name="args">Optional auto-named parameters for the WHERE clause</param>
+		/// <returns></returns>
 		virtual public int Delete(string where,
 			params object[] args)
 		{

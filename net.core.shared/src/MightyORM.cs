@@ -326,6 +326,15 @@ namespace Mighty
 			return sum;
 		}
 
+		/// <summary>
+		/// Delete rows from ORM table based on WHERE clause.
+		/// </summary>
+		/// <param name="where">
+		/// Non-optional where clause.
+		/// Specify "1=1" if you are sure that you want to delete all rows.</param>
+		/// <param name="connection">The DbConnection to use</param>
+		/// <param name="args">Optional auto-named parameters for the WHERE clause</param>
+		/// <returns></returns>
 		override public int Delete(string where,
 			DbConnection connection,
 			params object[] args)
@@ -334,6 +343,12 @@ namespace Mighty
 			return Execute(sql, connection, args);
 		}
 
+		/// <summary>
+		/// Get the meta-data for a single column
+		/// </summary>
+		/// <param name="column">Column name</param>
+		/// <param name="ExceptionOnAbsent">If true throw an exception if there is no such column, otherwise return null.</param>
+		/// <returns></returns>
 		override public dynamic GetColumnInfo(string column, bool ExceptionOnAbsent = true)
 		{
 			var info = TableInfo.Select(c => column.Equals(c.COLUMN_NAME, StringComparison.OrdinalIgnoreCase));
@@ -343,18 +358,32 @@ namespace Mighty
 			}
 			return column;
 		}
-	
-		// We can implement NewItem() and GetColumnDefault()
-		// NB *VERY* useful for better PK handling; GetColumnDefault needs to do buffering - actually, it doesn't because
-		// otherwise we may end up passing the very same object out twice
+
+		/// <summary>
+		/// Get the default value for a column.
+		/// </summary>
+		/// <param name="columnName"></param>
+		/// <returns></returns>
+		/// <remarks>
+		/// Although it might look more efficient, GetColumnDefault should not do buffering, as we don't
+		/// want to pass out the same actual object more than once.
+		/// TO DO: Should this actually be used for checking whether PKs are at their default values?
+		/// I would say probably not.
+		/// </remarks>
 		override public object GetColumnDefault(string columnName)
 		{
 			var columnInfo = GetColumnInfo(columnName);
 			return _plugin.GetColumnDefault(columnInfo);
 		}
 
-		// This is not required, in that passing a single key via args will do this anyway.
-		// It's just for exception checking.
+		/// <summary>
+		/// Return array of key values from passed in key values.
+		/// Raise exception if the wrong number of keys are provided.
+		/// The wrapping of a single item into an array which this does would happen automatically anyway
+		/// in C# params handling, so this code is only required for the exception checking.
+		/// </summary>
+		/// <param name="key">The key value or values</param>
+		/// <returns></returns>
 		override protected object[] KeyValuesFromKey(object key)
 		{
 			if (key == null) throw new ArgumentNullException(nameof(key));
@@ -368,6 +397,11 @@ namespace Mighty
 		}
 
 		private string _whereForKeys;
+
+		/// <summary>
+		/// WHERE clause taking auto-named parameters, for the current primary keys
+		/// </summary>
+		/// <returns></returns>
 		override protected string WhereForKeys()
 		{
 			if (_whereForKeys == null)
@@ -388,6 +422,10 @@ namespace Mighty
 			return _whereForKeys;
 		}
 
+		/// <summary>
+		/// Return comma-separated list of primary key fields, raising an exception if there are none.
+		/// </summary>
+		/// <returns></returns>
 		override protected string CheckPrimaryKeyFields()
 		{
 			if (string.IsNullOrEmpty(PrimaryKeyFields))
@@ -397,6 +435,10 @@ namespace Mighty
 			return PrimaryKeyFields;
 		}
 
+		/// <summary>
+		/// Return current table name, raising an exception if there isn't one.
+		/// </summary>
+		/// <returns></returns>
 		override protected string CheckTableName()
 		{
 			if (string.IsNullOrEmpty(TableName))
@@ -431,10 +473,21 @@ namespace Mighty
 		// but I think this can just be an exception, as we really don't need to worry most users about it.
 		// exception can check whether we are compound; or whether we may be sequence, but just not set; or whether we have retrieval fn intentionally overridden to empty string;
 		// and give different messages.
+
+		/// <summary>
+		/// Perform CRUD action for the item or items in the params list.
+		/// For insert only, the PK of the first item is returned.
+		/// For all others, the number of items affected is returned.
+		/// </summary>
+		/// <param name="action">The ORM action</param>
+		/// <param name="connection">The DbConnection</param>
+		/// <param name="items">The item or items</param>
+		/// <returns></returns>
 		override internal object ActionOnItems(ORMAction action, DbConnection connection, params object[] items)
 		{
 			object pk = null;
 			int count = 0;
+			int affected = 0;
 			if (Validator != null) Validator.PrevalidateAllActions(action, items);
 			foreach (var item in items)
 			{
@@ -446,16 +499,24 @@ namespace Mighty
 						pk = _pk;
 					}
 					if (Validator != null) Validator.PerformedAction(action, item);
+					affected++;
 				}
 				count++;
 			}
 			if (action == ORMAction.Insert) return pk;
-			else return count;
+			else return affected;
 		}
 #endregion
 
 		// Only methods with a non-trivial implementation are here, the rest are in the DataAccessWrapper abstract class.
 #region DataAccessWrapper interface
+		/// <summary>
+		/// Creates a new DbConnection. You do not normally need to call this! (MightyORM normally manages its own
+		/// connections. Create a connection here and pass it on to other MightyORM commands only in non-standard
+		/// cases where you need to explicitly manage transactions or share connections, e.g. when using explicit
+		/// cursors).
+		/// </summary>
+		/// <returns></returns>
 		override public DbConnection OpenConnection()
 		{
 			var connection = Factory.CreateConnection();
@@ -467,6 +528,12 @@ namespace Mighty
 			return connection;
 		}
 
+		/// <summary>
+		/// Execute DbCommand
+		/// </summary>
+		/// <param name="command">The command</param>
+		/// <param name="connection">Optional DbConnection to use</param>
+		/// <returns></returns>
 		override public dynamic Execute(DbCommand command,
 			DbConnection connection = null)
 		{
@@ -478,6 +545,12 @@ namespace Mighty
 			}
 		}
 
+		/// <summary>
+		/// Return scalar from DbCommand
+		/// </summary>
+		/// <param name="command">The command</param>
+		/// <param name="connection">Optional DbConnection to use</param>
+		/// <returns></returns>
 		override public object Scalar(DbCommand command,
 			DbConnection connection = null)
 		{
@@ -489,6 +562,18 @@ namespace Mighty
 			}
 		}
 
+		/// <summary>
+		/// Return paged results from arbitrary select statement.
+		/// </summary>
+		/// <param name="columns">The SELECT columns</param>
+		/// <param name="tablesAndJoins">The FROM tables and joins</param>
+		/// <param name="orderBy">The ORDER BY clause</param>
+		/// <param name="where">The WHERE clause</param>
+		/// <param name="pageSize">Page size</param>
+		/// <param name="currentPage">Current page</param>
+		/// <param name="connection">Optional DbConnection to use</param>
+		/// <param name="args">Optional parameters to the SQL</param>
+		/// <returns></returns>
 		override public dynamic PagedFromSelect(string columns, string tablesAndJoins, string orderBy, string where = null,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
@@ -504,6 +589,11 @@ namespace Mighty
 			return result;
 		}
 
+		/// <summary>
+		/// Create command, setting any provider specific features which we assume elsewhere.
+		/// </summary>
+		/// <param name="sql">The command text</param>
+		/// <returns></returns>
 		internal DbCommand CreateCommand(string sql)
 		{
 			var command = Factory.CreateCommand();
@@ -512,6 +602,9 @@ namespace Mighty
 			return command;
 		}
 
+		/// <summary>
+		/// Create command with named, typed, directional parameters.
+		/// </summary>
 		override public DbCommand CreateCommandWithParams(string sql,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false,
 			params object[] args)
@@ -526,6 +619,12 @@ namespace Mighty
 			return command;
 		}
 
+		/// <summary>
+		/// Put all output and return parameter values into an expando.
+		/// Due to ADO.NET limitations, should only be called after disposing of any associated reader.
+		/// </summary>
+		/// <param name="cmd">The command</param>
+		/// <returns></returns>
 		override public dynamic ResultsAsExpando(DbCommand cmd)
 		{
 			dynamic e = new ExpandoObject();
@@ -543,6 +642,10 @@ namespace Mighty
 			return e;
 		}
 
+		/// <summary>
+		/// Return all matching items.
+		/// </summary>
+		/// <remarks>TO DO(?): May require LIMIT (although I think this was really mainly for Single support on Massive)</remarks>
 		override public IEnumerable<T> AllWithParams(
 			string where = null, string orderBy = null, string columns = null,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
@@ -560,7 +663,10 @@ namespace Mighty
 				behavior: behavior, connection: connection, args: args);
 		}
 
-		// Call with either T for single or IEnumberable<T> for multiple
+		/// <summary>
+		/// Yield return values for Query or QueryMultiple.
+		/// Use with &lt;T&gt; for single or &lt;IEnumberable&lt;T&gt;&gt; for multiple.
+		/// </summary>
 		override protected IEnumerable<X> QueryNWithParams<X>(string sql = null, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, DbCommand command = null, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, params object[] args)
 		{
 			if (behavior == CommandBehavior.Default && typeof(X) == typeof(T))
@@ -727,12 +833,27 @@ namespace Mighty
 			}
 		}
 
+		/// <summary>
+		/// Create update command
+		/// </summary>
+		/// <param name="item"></param>
+		/// <param name="updateNameValuePairs"></param>
+		/// <param name="whereNameValuePairs"></param>
+		/// <returns></returns>
 		private DbCommand CreateUpdateCommand(object item, List<string> updateNameValuePairs, List<string> whereNameValuePairs)
 		{
 			string sql = _plugin.BuildUpdate(TableName, string.Join(", ", updateNameValuePairs), string.Join(" AND ", whereNameValuePairs));
 			return CreateCommandWithParams(sql, inParams: item);
 		}
 
+		/// <summary>
+		/// Create insert command
+		/// </summary>
+		/// <param name="item"></param>
+		/// <param name="insertNames"></param>
+		/// <param name="insertValues"></param>
+		/// <param name="pkFilter"></param>
+		/// <returns></returns>
 		private DbCommand CreateInsertCommand(object item, List<string> insertNames, List<string> insertValues, PkFilter pkFilter)
 		{
 			string sql = _plugin.BuildInsert(TableName, string.Join(", ", insertNames), string.Join(", ", insertValues));
@@ -741,6 +862,12 @@ namespace Mighty
 			return command;
 		}
 
+		/// <summary>
+		/// Create delete command
+		/// </summary>
+		/// <param name="item"></param>
+		/// <param name="whereNameValuePairs"></param>
+		/// <returns></returns>
 		private DbCommand CreateDeleteCommand(object item, List<string> whereNameValuePairs)
 		{
 			string sql = _plugin.BuildDelete(TableName,string.Join(" AND ", whereNameValuePairs));
@@ -749,11 +876,23 @@ namespace Mighty
 			return command;
 		}
 
-		// Note PK may be int or long depending on the current database
+		/// <summary>
+		/// Write new PK value into item.
+		/// The PK field is a) created if not present and b) filled with the new PK value, where this is possible
+		/// (e.g. fields can't be created on POCOs, and property values can't be set on immutable items such as
+		/// anonymously typed objects).
+		/// </summary>
+		/// <param name="item">The item to modify</param>
+		/// <param name="pk">The PK value (PK may be int or long depending on the current database)</param>
 		private void WriteNewPKToItem(object item, object pk)
 		{
 		}
 
+		/// <summary>
+		/// Is the string passed in the name of a PK field?
+		/// </summary>
+		/// <param name="fieldName">The name to check</param>
+		/// <returns></returns>
 		internal bool IsKey(string fieldName)
 		{
 			return PrimaryKeyList.Any(key => key.Equals(fieldName, StringComparison.OrdinalIgnoreCase));
@@ -761,6 +900,14 @@ namespace Mighty
 #endregion
 
 #region Parameters
+		/// <summary>
+		/// Add a parameter to a command
+		/// </summary>
+		/// <param name="cmd">The command</param>
+		/// <param name="value">The value</param>
+		/// <param name="name">Optional parameter name</param>
+		/// <param name="direction">Optional parameter direction</param>
+		/// <param name="type">Optional parameter type (for typed NULL support)</param>
 		internal void AddParam(DbCommand cmd, object value, string name = null, ParameterDirection direction = ParameterDirection.Input, Type type = null)
 		{
 			var p = cmd.CreateParameter();
@@ -814,7 +961,12 @@ namespace Mighty
 			cmd.Parameters.Add(p);
 		}
 
-		// add auto-named parameters from an array of items (presumably passed in to microORM using C# params)
+		/// <summary>
+		/// Add auto-named parameters from an array of parameter values (normally would have been passed in to microORM
+		/// using C# params syntax)
+		/// </summary>
+		/// <param name="cmd"></param>
+		/// <param name="args"></param>
 		internal void AddParams(DbCommand cmd, params object[] args)
 		{
 			if (args == null)
@@ -827,6 +979,9 @@ namespace Mighty
 			}
 		}
 
+		/// <summary>
+		/// Optional control whether to add only or no PKs when created parameters from object.
+		/// </summary>
 		internal enum PkFilter
 		{
 			DoNotFilter,
@@ -834,6 +989,13 @@ namespace Mighty
 			NoKeys
 		}
 
+		/// <summary>
+		/// Add named, typed directional params to DbCommand.
+		/// </summary>
+		/// <param name="cmd">The command</param>
+		/// <param name="nameValuePairs">Parameters to add (POCO, anonymous type, NameValueCollection, ExpandoObject, etc.) </param>
+		/// <param name="direction">Parameter direction</param>
+		/// <param name="pkFilter">Optional PK filter control</param>
 		internal void AddNamedParams(DbCommand cmd, object nameValuePairs, ParameterDirection direction = ParameterDirection.Input, PkFilter pkFilter = PkFilter.DoNotFilter)
 		{
 			if (nameValuePairs == null)
@@ -851,7 +1013,11 @@ namespace Mighty
 #endregion
 
 #region DbDataReader
-		// will need to keep this in sync with the unbuffered version below (once we are implementing both)
+		/// <summary>
+		/// Reasonably fast inner loop to yield-return objects of the required type from the DbDataReader.
+		/// </summary>
+		/// <param name="reader">The reader</param>
+		/// <returns></returns>
 		virtual internal IEnumerable<T> YieldReturnRows(DbDataReader reader)
 		{
 			if (reader.Read())
@@ -861,9 +1027,9 @@ namespace Mighty
 				int fieldCount = reader.FieldCount;
 				object[] rowValues = new object[fieldCount];
 
-				// this is for expando
+				// this is for dynamic support
 				string[] columnNames = null;
-				// this is for generic
+				// this is for generic<T> support
 				PropertyInfo[] propertyInfo = null;
 
 				if (useExpando) columnNames = new string[fieldCount];
@@ -876,7 +1042,7 @@ namespace Mighty
 					var columnName = reader.GetName(i);
 					if (useExpando)
 					{
-						// use the case that comes back from the database
+						// For dynamics, create fields using the case that comes back from the database
 						// TO DO: Test how this is working now in Oracle
 						columnNames[i] = columnName;
 					}
@@ -916,9 +1082,13 @@ namespace Mighty
 				} while (reader.Read());
 			}
 		}
-		
-		// (will be needed for async support)
-		// keep this in sync with the method above
+
+		/// <summary>
+		/// Will be needed for async support.
+		/// Keep this in sync with the method above.
+		/// </summary>
+		/// <param name="reader"></param>
+		/// <returns></returns>
 		virtual internal IEnumerable<T> ReturnRows(DbDataReader reader)
 		{
 			throw new NotImplementedException();
