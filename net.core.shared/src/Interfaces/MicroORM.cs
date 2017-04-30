@@ -38,6 +38,8 @@ namespace Mighty.Interfaces
 	//	  parameter under all circumstances - so can never be used for direct SQL injection. In general (i.e. assuming
 	//	  you aren't building SQL from the value yourself, anywhere) strings, etc., which are passed in will NOT need any escaping.
 	//
+	// NB MicroORM is dynamic-focussed, so even when you are using MightyORM<T> instead of MightyORM (dynamic by default), the
+	// T determines the output type, but not the input type (which can still come from arbitrary objects)
 	abstract public partial class MicroORM<T>
 	{
 #region Properties
@@ -260,6 +262,8 @@ namespace Mighty.Interfaces
 		abstract protected string CheckTableName();
 
 		abstract internal object ActionOnItems(ORMAction action, DbConnection connection, params object[] items);
+
+		abstract public bool IsValid(object item, ORMAction action, List<object> Errors);
 #endregion
 	}
 }

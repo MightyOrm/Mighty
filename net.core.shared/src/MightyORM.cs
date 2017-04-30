@@ -4,6 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Dynamic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 #if NETFRAMEWORK
@@ -19,8 +20,8 @@ using Mighty.Validation;
 
 namespace Mighty
 {
-	// In order to support generics, the nice ;) dynamic version now a sub-class of the generic version
-	// (though of course it is really a super class)
+	// In order to support generics, the nice dynamic version now a specific sub-class of the generic version
+	// (though of course it is really the nicest version)
 	public class MightyORM : MightyORM<dynamic>
 	{
 		// ctor - disallow, or just ignore?, sequence spec when we have multiple PKs
@@ -73,7 +74,128 @@ namespace Mighty
 #endregion
 	}
 
-	public class MightyORM<T> : MicroORM<T>, IPluginCallback where T: new()
+	/// <summary>
+	/// Wrapper to provide dynamic methods (needed as we can't do direct multiple inheritance)
+	/// </summary>
+	/// <returns></returns>
+	internal class DynamicMethodProvider<T> : DynamicObject where T : new()
+	{
+		private MightyORM<T> mighty;
+
+		/// <summary>
+		/// Wrap MightyORM to provide Massive-compatible dynamic methods.
+		/// You can access almost all this functionality non-dynamically (and if you do, you get IntelliSense, which makes life easier).
+		/// </summary>
+		/// <param name="me"></param>
+		internal DynamicMethodProvider(MightyORM<T> me)
+		{
+			mighty = me;
+		}
+
+		/// <summary>
+		/// Provides the implementation for operations that invoke a member. This method implementation tries to create queries from the methods being invoked based on the name
+		/// of the invoked method.
+		/// </summary>
+		/// <param name="binder">Provides information about the dynamic operation. The binder.Name property provides the name of the member on which the dynamic operation is performed. 
+		/// For example, for the statement sampleObject.SampleMethod(100), where sampleObject is an instance of the class derived from the <see cref="T:System.Dynamic.DynamicObject" /> class, 
+		/// binder.Name returns "SampleMethod". The binder.IgnoreCase property specifies whether the member name is case-sensitive.</param>
+		/// <param name="args">The arguments that are passed to the object member during the invoke operation. For example, for the statement sampleObject.SampleMethod(100), where sampleObject is 
+		/// derived from the <see cref="T:System.Dynamic.DynamicObject" /> class, <paramref name="args[0]" /> is equal to 100.</param>
+		/// <param name="result">The result of the member invocation.</param>
+		/// <returns>
+		/// true if the operation is successful; otherwise, false. If this method returns false, the run-time binder of the language determines the behavior. (In most cases, a language-specific 
+		/// run-time exception is thrown.)
+		/// </returns>
+		/// <remarks>Massive code (see CREDITS file), with added columns support (which is only possible using named arguments).</remarks>
+		public override bool TryInvokeMember(InvokeMemberBinder binder, object[] args, out object result)
+		{
+			result = null;
+			var info = binder.CallInfo;
+			if (info.ArgumentNames.Count != args.Length)
+			{
+				throw new InvalidOperationException("Use named arguments for dynamically invoked queries: this can be a field name, 'orderby', 'colums', 'where' or 'args'");
+			}
+
+			var columns = "*";
+			var orderBy = mighty.PrimaryKeyFields;
+			var wherePredicates = new List<string>();
+			var nameValueArgs = new ExpandoObject();
+			var nameValueDictionary = nameValueArgs.AsDictionary();
+			object[] userArgs = null;
+			if (info.ArgumentNames.Count > 0)
+			{
+				for (int i = 0; i < args.Length; i++)
+				{
+					var name = info.ArgumentNames[i];
+					switch (name.ToLowerInvariant())
+					{
+						case "orderby":
+							orderBy = args[i].ToString();
+							break;
+						case "columns":
+							columns = args[i].ToString();
+							break;
+						case "where":
+							// this is an arbitrary SQL WHERE specification, so we have to wrap it in brackets to avoid operator precedence issues
+							wherePredicates.Add("( " + args[i].ToString().Unthingify("WHERE") + " )");
+							break;
+						case "args":
+							// wrap anything other than an array in an array (this is what C# params basically does anyway)
+							userArgs = args[i] as object[];
+							if (userArgs == null)
+							{
+								userArgs = new object[] { args[i] };
+							}
+							break;
+						default:
+							// treat anything else as a name-value pair
+							wherePredicates.Add(string.Format("{0} = {1}", name, mighty._plugin.PrefixParameterName(name)));
+							nameValueDictionary.Add(name, args[i]);
+							break;
+					}
+				}
+			}
+			var whereClause = string.Empty;
+			if (wherePredicates.Count > 0)
+			{
+				whereClause = " WHERE " + string.Join(" AND ", wherePredicates);
+			}
+
+			var op = binder.Name;
+			var uOp = op.ToUpperInvariant();
+			switch (uOp)
+			{
+				case "COUNT":
+				case "SUM":
+				case "MAX":
+				case "MIN":
+				case "AVG":
+					// **** Missing method
+					result = null; ///mighty.AggregateWithParams(string.Format("{0}({1})", uOp, columns), whereClause, inParams: nameValueArgs, args: userArgs);
+					break;
+				default:
+					var justOne = uOp.StartsWith("FIRST") || uOp.StartsWith("LAST") || uOp.StartsWith("GET") || uOp.StartsWith("FIND") || uOp.StartsWith("SINGLE");
+					// For Last only, sort by DESC on the PK (PK sort is the default)
+					if (uOp.StartsWith("LAST"))
+					{
+						orderBy = orderBy + " DESC";
+					}
+					if (justOne)
+					{
+						// **** Requires order by
+						result = mighty.SingleWithParams(whereClause, /*orderBy,*/ columns, inParams: nameValueArgs, args: userArgs);
+					}
+					else
+					{
+						result = mighty.AllWithParams(whereClause, orderBy, columns, inParams: nameValueArgs, args: userArgs);
+					}
+					break;
+			}
+			return true;
+		}
+	}
+
+	public class MightyORM<T> : MicroORM<T>, IDynamicMetaObjectProvider, IPluginCallback where T: new()
 	{
 		// Only properties with a non-trivial implementation are here, the rest are in the MicroORM abstract class.
 #region Properties
@@ -148,6 +270,20 @@ namespace Mighty
 				}
 				columnNameToPropertyInfo.Add(columnName, info);
 			}
+		}
+#endregion
+
+#region Dynamic method support
+		private DynamicMethodProvider<T> DynamicMethodProvider;
+
+		/// <summary>
+		/// Support dynamic methods via a wrapper object (needed as we can't do direct multiple inheritance)
+		/// </summary>
+		/// <param name="parameter"></param>
+		/// <returns></returns>
+		public DynamicMetaObject GetMetaObject(Expression parameter)
+		{
+			return ((IDynamicMetaObjectProvider)DynamicMethodProvider).GetMetaObject(parameter);
 		}
 #endregion
 
@@ -233,6 +369,8 @@ namespace Mighty
 				}
 				SequenceNameOrIdentityFn = mapper.QuoteDatabaseName(sequence);
 			}
+
+			DynamicMethodProvider = new DynamicMethodProvider<T>(this);
 		}
 #endregion
 
@@ -501,23 +639,38 @@ namespace Mighty
 			object pk = null;
 			int count = 0;
 			int affected = 0;
-			if (Validator != null) Validator.PrevalidateAllActions(action, items);
+			if (Validator != null) Validator.Prevalidate(items, action);
 			foreach (var item in items)
 			{
-				if (Validator == null || Validator.PerformingAction(action, item))
+				if (Validator == null || Validator.PerformingAction(item, action))
 				{
 					var _pk = ActionOnItem(action, item, connection);
 					if (count == 0)
 					{
 						pk = _pk;
 					}
-					if (Validator != null) Validator.PerformedAction(action, item);
+					if (Validator != null) Validator.PerformedAction(item, action);
 					affected++;
 				}
 				count++;
 			}
 			if (action == ORMAction.Insert) return pk;
 			else return affected;
+		}
+
+		/// <summary>
+		/// Is the passed in item valid against the current validator for the specified ORMAction?
+		/// </summary>
+		/// <param name="item"></param>
+		/// <param name="Errors"></param>
+		/// <returns></returns>
+		override public bool IsValid(object item, ORMAction action, List<object> Errors)
+		{
+			if (Validator == null)
+			{
+				return true;
+			}
+			return Validator.IsValidForAction(item, action, Errors);
 		}
 #endregion
 
