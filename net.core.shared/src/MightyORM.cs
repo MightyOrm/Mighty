@@ -20,8 +20,8 @@ using Mighty.Validation;
 
 namespace Mighty
 {
-	// In order to support generics, the nice dynamic version now a specific sub-class of the generic version
-	// (though of course it is really the nicest version)
+	// In order to support generics, the nice dynamic version now a sub-class of the generic version
+	// (though of course it is really the super-nicest version)
 	public class MightyORM : MightyORM<dynamic>
 	{
 		// ctor - disallow, or just ignore?, sequence spec when we have multiple PKs
@@ -64,9 +64,12 @@ namespace Mighty
 		}
 
 #region Convenience factory
-		// mini-factory for non-table specific access
-		// (equivalent to a constructor call)
-		// <remarks>static, so can't be defined anywhere but here</remarks>
+		/// <summary>
+		/// Mini-factory for non-table specific access (equivalent to a constructor call)
+		/// </summary>
+		/// <param name="connectionStringOrName"></param>
+		/// <returns></returns>
+		/// <remarks>Static, so can't be made part of any kind of interface</remarks>
 		new static public MightyORM DB(string connectionStringOrName = null)
 		{
 			return new MightyORM(connectionStringOrName);
