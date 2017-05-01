@@ -71,45 +71,115 @@ namespace Mighty.Interfaces
 			return Count(columns, where, null, args);
 		}
 
+		/// <summary>
+		/// Perform COUNT on current table
+		/// </summary>
+		/// <param name="columns">Columns (defaults to *, but can be specified, e.g., to count non-nulls in a field)</param>
+		/// <param name="where">Optional where clause</param>
+		/// <param name="connection">Optional connection</param>
+		/// <param name="args">Args</param>
+		/// <returns></returns>
 		abstract public object Count(string columns = "*", string where = null,
 			DbConnection connection = null,
 			params object[] args);
 
-		// Use this for MAX, MIN, SUM, AVG (basically it's scalar on current table)
+		/// <summary>
+		/// Perform scalar operation on the current table (use for SUM, MAX, MIN, AVG, etc.)
+		/// </summary>
+		/// <param name="expression">Scalar expression</param>
+		/// <param name="where">Optional where clause</param>
+		/// <param name="args">Parameters</param>
+		/// <returns></returns>
 		virtual public object Aggregate(string expression, string where = null,
 			params object[] args)
 		{
 			return Aggregate(expression, where, null, args);
 		}
 
-		abstract public object Aggregate(string expression, string where = null,
+		/// <summary>
+		/// Perform scalar operation on the current table (use for SUM, MAX, MIN, AVG, etc.)
+		/// </summary>
+		/// <param name="expression">Scalar expression</param>
+		/// <param name="where">Optional where clause</param>
+		/// <param name="connection">Optional connection</param>
+		/// <param name="args">Parameters</param>
+		/// <returns></returns>
+		virtual public object Aggregate(string expression, string where = null,
+			DbConnection connection = null,
+			params object[] args)
+		{
+			return AggregateWithParams(expression, where, connection: connection, args: args);
+		}
+
+		/// <summary>
+		/// Perform scalar operation on the current table (use for SUM, MAX, MIN, AVG, etc.), with support for named params.
+		/// </summary>
+		/// <param name="expression">Scalar expression</param>
+		/// <param name="where">Optional where clause</param>
+		/// <param name="inParams">Optional input parameters</param>
+		/// <param name="outParams">Optional output parameters</param>
+		/// <param name="ioParams">Optional input-output parameters</param>
+		/// <param name="returnParams">Optional return parameters</param>
+		/// <param name="connection">Optional connection</param>
+		/// <param name="args">Optional auto-named input parameters</param>
+		/// <returns></returns>
+		abstract public object AggregateWithParams(string expression, string where = null,
+			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args);
 
-		// ORM: Single from our table
+		/// <summary>
+		/// Get a single object from the current table by primary key value
+		/// </summary>
+		/// <param name="key">Single key (or any reasonable multi-value item for compound keys)</param>
+		/// <param name="columns">Optional columns to retrieve</param>
+		/// <param name="connection">Optional connection</param>
+		/// <returns></returns>
 		virtual public T Single(object key, string columns = null,
 			DbConnection connection = null)
 		{
 			return Single(WhereForKeys(), connection, columns, KeyValuesFromKey(key));
 		}
 
+		/// <summary>
+		/// Get a single object from the current table with where specification.
+		/// </summary>
+		/// <param name="where">Where clause</param>
+		/// <param name="args">Optional auto-named params</param>
+		/// <returns></returns>
+		/// <remarks>
+		/// 'Easy-calling' version, optional args straight after where.
+		/// </remarks>
 		virtual public T Single(string where,
 			params object[] args)
 		{
-			return Single(where, null, null, args);
+			return SingleWithParams(where, args: args);
 		}
 
-		// DbConnection coming before columns spec is really useful, as it avoids ambiguity between a column spec and a first string arg
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="where"></param>
+		/// <param name="connection"></param>
+		/// <param name="orderBy"></param>
+		/// <param name="columns"></param>
+		/// <param name="args"></param>
+		/// <returns></returns>
+		/// <remarks>
+		/// DbConnection coming early (not just before args) in this one case is really useful, as it avoids ambiguity between
+		/// the <see cref="columns" /> and <see cref="orderBy" /> strings and optional string args.
+		/// </remarks>
 		virtual public T Single(string where,
 			DbConnection connection = null,
+			string orderBy = null,
 			string columns = null,
 			params object[] args)
 		{
-			return SingleWithParams(where, columns, connection: connection, args: args);
+			return SingleWithParams(where, orderBy, columns, connection: connection, args: args);
 		}
 		
 		// WithParams version just in case; allows transactions for a start
-		virtual public T SingleWithParams(string where, string columns = null,
+		virtual public T SingleWithParams(string where, string orderBy = null, string columns = null,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args)

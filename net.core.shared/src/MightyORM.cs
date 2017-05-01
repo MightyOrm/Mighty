@@ -170,20 +170,21 @@ namespace Mighty
 				case "MAX":
 				case "MIN":
 				case "AVG":
-					// **** Missing method
-					result = null; ///mighty.AggregateWithParams(string.Format("{0}({1})", uOp, columns), whereClause, inParams: nameValueArgs, args: userArgs);
+					result = mighty.AggregateWithParams(string.Format("{0}({1})", uOp, columns), whereClause, inParams: nameValueArgs, args: userArgs);
 					break;
 				default:
 					var justOne = uOp.StartsWith("FIRST") || uOp.StartsWith("LAST") || uOp.StartsWith("GET") || uOp.StartsWith("FIND") || uOp.StartsWith("SINGLE");
 					// For Last only, sort by DESC on the PK (PK sort is the default)
 					if (uOp.StartsWith("LAST"))
 					{
+						// this will be incorrect if multiple PKs are present, but note that the ORDER BY may be from a dynamic method
+						// argument by this point; this could be done correctly for compund PKs, but not in general for user input (it
+						// would involve parsing SQL, which we never do)
 						orderBy = orderBy + " DESC";
 					}
 					if (justOne)
 					{
-						// **** Requires order by
-						result = mighty.SingleWithParams(whereClause, /*orderBy,*/ columns, inParams: nameValueArgs, args: userArgs);
+						result = mighty.SingleWithParams(whereClause, orderBy, columns, inParams: nameValueArgs, args: userArgs);
 					}
 					else
 					{
@@ -392,11 +393,26 @@ namespace Mighty
 			params object[] args)
 		{
 			var expression = string.Format("COUNT({0})", columns);
-			return Aggregate(expression, where, connection, args);
+			return AggregateWithParams(expression, where, connection, args);
 		}
 
-		// This just lets you pass in the aggregate expressions of your SQL variant, but SUM, AVG, MIN, MAX are supported on all.
-		override public object Aggregate(string expression, string where = null,
+		/// <summary>
+		/// Perform scalar operation on the current table (use for SUM, MAX, MIN, AVG, etc.), with support for named params.
+		/// </summary>
+		/// <param name="expression">Scalar expression</param>
+		/// <param name="where">Optional where clause</param>
+		/// <param name="inParams">Optional input parameters</param>
+		/// <param name="outParams">Optional output parameters</param>
+		/// <param name="ioParams">Optional input-output parameters</param>
+		/// <param name="returnParams">Optional return parameters</param>
+		/// <param name="connection">Optional connection</param>
+		/// <param name="args">Optional auto-named input parameters</param>
+		/// <returns></returns>
+		/// <remarks>
+		/// This only lets you pass in the aggregate expressions of your SQL variant, but SUM, AVG, MIN, MAX are supported on all.
+		/// </remarks>
+		override public object AggregateWithParams(string expression, string where = null,
+			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args)
 		{
