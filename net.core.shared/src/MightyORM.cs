@@ -322,6 +322,12 @@ namespace Mighty
 						 ConnectionProvider connectionProvider = null,
 						 BindingFlags propertyBindingFlags = BindingFlags.Instance | BindingFlags.Public)
 		{
+			if (this is MightyORM)
+			{
+				// let they dynamic type constructor do all the work
+				return;
+			}
+
 			if (mapper == null)
 			{
 				mapper = new NamingMapper();
