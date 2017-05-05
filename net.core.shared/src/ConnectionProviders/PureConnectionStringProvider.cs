@@ -5,6 +5,7 @@ namespace Mighty.ConnectionProviders
 {
 	internal class PureConnectionStringProvider : ConnectionProvider
 	{
+#if NETFRAMEWORK
 		internal bool _usedAfterConfigFile;
 
 		// fluent API
@@ -13,12 +14,15 @@ namespace Mighty.ConnectionProviders
 			_usedAfterConfigFile = true;
 			return this;
 		}
+#endif
 
 		// fluent API
 		override public ConnectionProvider Init(string connectionString)
 		{
 			string providerName = null;
+#if NETFRAMEWORK
 			var extraMessage = _usedAfterConfigFile ? " (and is not a valid connection string name)" : "";
+#endif
 			StringBuilder ConnectionString = new StringBuilder();
 			try
 			{
@@ -41,11 +45,19 @@ namespace Mighty.ConnectionProviders
 			}
 			catch (Exception ex)
 			{
-				throw new InvalidOperationException("Cannot parse as connection string \"" + connectionString + "\"" + extraMessage, ex);
+				throw new InvalidOperationException("Cannot parse as connection string \"" + connectionString + "\""
+#if NETFRAMEWORK
+					+ extraMessage
+#endif
+					, ex);
 			}
 			if (providerName == null)
 			{
-				throw new InvalidOperationException("Cannot find providerName=... in connection string passed to MightyORM" + extraMessage);
+				throw new InvalidOperationException("Cannot find ProviderName=... in connection string passed to MightyORM"
+#if NETFRAMEWORK
+					+ extraMessage
+#endif
+					);
 			}
 			DatabasePluginType = MightyProviderFactories.GetDatabasePluginAsType(providerName);
 			ProviderFactoryInstance = MightyProviderFactories.GetFactory(providerName);

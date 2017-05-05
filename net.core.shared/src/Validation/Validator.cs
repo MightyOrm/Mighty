@@ -3,7 +3,7 @@ using System.Collections.Generic;
 namespace Mighty.Validation
 {
 	// Override this class to make a validator for your table items.
-	public abstract class Validator
+	public class Validator
 	{
 		/// <summary>
 		/// If true (default) the prevalidator will stop after the first item which gives an errors.
@@ -21,9 +21,9 @@ namespace Mighty.Validation
 		/// </summary>
 		/// <param name="action">You could choose to ignore this and do the same validation for every action... or not. Up to you!</param>
 		/// <param name="item">The item to validate. NB this can be whatever you pass in as input objects.</param>
-		/// <param name="Errors">Append your errors to this list. You may choose to append strings, or a more complex object if you wish.</param>
+		/// <param name="Errors">Append your errors to this list. You may choose to append strings, or a more complex object if you wish. NB Adding one or more errors indicates that the item fails, adding nothing to the errors indicates success.</param>
 		/// <returns></returns>
-		abstract public bool IsValidForAction(object item, ORMAction action, List<object> Errors);
+		virtual public void ValidateForAction(dynamic item, ORMAction action, List<object> Errors) { }
 
 		/// <summary>
 		/// This is called one item at time, just before the processing for that specific item.
@@ -34,34 +34,9 @@ namespace Mighty.Validation
 		/// <param name="item">The item for which the action is about to be performed.
 		/// The type of this is NOT normalised, and depends on what you pass in.</param>
 		/// <returns></returns>
-		abstract public bool PerformingAction(object item, ORMAction action);
+		virtual public bool PerformingAction(dynamic item, ORMAction action) { return true; }
 
 		// This is called one item at time, after processing for that specific item.
-		abstract public void PerformedAction(object item, ORMAction action);
-
-		/// <summary>
-		/// Checks that every item in the list is valid for the action to be undertaken.
-		/// Normally you should not need to override this, but override <see cref="IsValidForAction" /> instead.
-		/// </summary>
-		/// <param name="action">The ORM action</param>
-		/// <param name="items">The list of items. (Can be T, dynamic, or anything else with suitable name-value (and optional type) data in it.)</param>
-		virtual public void Prevalidate(object[] items, ORMAction action)
-		{
-			// Intention of non-shared error list is thread safety
-			List<object> Errors = new List<object>();
-			bool valid = true;
-			foreach (var item in items)
-			{
-				if (!IsValidForAction(item, action, Errors))
-				{
-					valid = false;
-					if (LazyPrevalidation) break;
-				}
-			}
-			if (valid == false || Errors.Count > 0)	
-			{
-				throw new ValidationException(Errors, "Prevalidation failed for one or more items for " + action);
-			}
-		}
+		virtual public void PerformedAction(dynamic item, ORMAction action) { }
 	}
 }

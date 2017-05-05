@@ -2,7 +2,7 @@ namespace Mighty.Mapping
 {
 	// Using class not interface to allow for later extensions; and not an abstract class because we can define
 	// a sensible default implementation.
-	public class SqlNamingMapper
+	public class NamingMapper
 	{
 		// instruct the microORM whether to use case-invariant mapping between db names and class names
 		virtual public bool UseCaseInsensitiveMapping { get; protected set; } = true;

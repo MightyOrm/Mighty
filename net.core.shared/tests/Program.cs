@@ -1,4 +1,5 @@
-﻿using NUnit.Common;
+﻿#if NET40 || CORE10
+using NUnit.Common;
 using NUnitLite;
 using System;
 using System.Reflection;
@@ -20,3 +21,4 @@ namespace Mighty.Tests.NUnit.ConsoleRunner
 		}
 	}
 }
+#endif

@@ -18,17 +18,16 @@ namespace Mighty.DatabasePlugins
 					return null;
 			}
 		}
-#endregion
+		#endregion
 
-#region SQL
-		override public string BuildPagingQuery(string columns, string tablesAndJoins, string orderBy, string where,
-			int limit, int offset)
+		#region SQL
+		override public string BuildLimitOffsetSelect(string columns, string tablesAndJoins, string where, string orderBy, int limit, int offset)
 		{
-			return BuildRowNumberPagingQuery(columns, tablesAndJoins, orderBy, where, limit, offset);
+			return BuildRowNumberLimitOffsetSelect(columns, tablesAndJoins, where, orderBy, limit, offset);
 		}
-#endregion
+		#endregion
 
-#region Table info
+		#region Table info
 		// This code from Massive - see CREDITS file
 		override public object GetColumnDefault(dynamic columnInfo)
 		{

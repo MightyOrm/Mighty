@@ -4,12 +4,34 @@ using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 
+using Mighty.Parameters;
+
 namespace Mighty
 {
 	// There is no need to make these extensions public (note that access modifiers on extension methods are relative to the package they are defined in,
 	// not relative to the package which they extend); making some of them public turns them into utilty methods which are provided as part of the microORM.
-	static internal partial class ObjectExtensions
+	static public partial class ObjectExtensions
 	{
+		static public dynamic ToExpando(this object o)
+		{
+			var oAsExpando = o as ExpandoObject;
+			if (oAsExpando != null) return oAsExpando;
+			var result = new ExpandoObject();
+			var dict = result.AsDictionary();
+			foreach (var info in new NameValueTypeEnumerator(o))
+			{
+				dict.Add(info.Name, info.Value);
+			}
+			return result;
+		}
+
+		// Not sure whether this is really useful or not... syntax is nicer and saves a little typing, even though functionality is obviously very simple.
+		// Hopefully compiler removes any apparent inefficiency.
+		static public IDictionary<string, object> AsDictionary(this ExpandoObject o)
+		{
+			return (IDictionary<string, object>)o;
+		}
+
 		static internal string Unthingify(this string sql, string thing)
 		{
 			return Thingify(thing, sql, false);
@@ -80,13 +102,6 @@ namespace Mighty
 			// Both these lines can be simpler in .NET 4.5
 			PropertyInfo pinfoEnumProperty = o.GetType().GetProperties().Where(property => property.Name == enumPropertyName).FirstOrDefault();
 			return pinfoEnumProperty == null ? null : pinfoEnumProperty.GetValue(o, null).ToString();
-		}
-
-		// Not sure whether this is really useful or not... syntax is nicer and saves a little typing, even though functionality is obviously very simple.
-		// Hopefully compiler removes any apparent inefficiency.
-		static internal IDictionary<string, object> AsDictionary(this ExpandoObject o)
-		{
-			return (IDictionary<string, object>)o;
 		}
 	}
 }

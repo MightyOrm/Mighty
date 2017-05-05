@@ -40,6 +40,12 @@ namespace Mighty.Parameters
 
 		public IEnumerator<LazyNameValueTypeInfo> GetEnumerator()
 		{
+			// enumerate nothing if null
+			if (_o == null)
+			{
+				yield break;
+			}
+
 			// This is for adding anonymous parameters (this will cause an exception later on, in AddParam, if used on
 			// a DB which doesn't support it; even on DBs which do support it, it only makes sense on input parameters).
 			// NB This is not the same as the auto-named parameters added by AddParams(), which also use object[] but with a

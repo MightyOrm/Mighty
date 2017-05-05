@@ -120,11 +120,11 @@ namespace Mighty.DatabasePlugins
 
 			// Remarks: Do not consider dereferencing if no returned columns are cursors, but if just some are cursors then follow the pre-existing convention set by
 			// the Oracle drivers and dereference what we can. The rest of the pattern is that we only ever try to dereference on Query and Scalar, never on Execute.
-			if (mighty.NpgsqlAutoDereferenceCursors && NpgsqlDereferencingReader.CanDereference(reader))
+			if (Mighty.NpgsqlAutoDereferenceCursors && NpgsqlDereferencingReader.CanDereference(reader))
 			{
 				// TO DO: Pass behavior in to dereferencing reader, and use it where we can
 				// (e.g. dereference only the first cursor, or only the first row of the first cursor)
-				return new NpgsqlDereferencingReader(reader, behavior, Connection, mighty);
+				return new NpgsqlDereferencingReader(reader, behavior, Connection, Mighty);
 			}
 
 			return reader;
@@ -141,7 +141,7 @@ namespace Mighty.DatabasePlugins
 		/// </remarks>
 		override public bool RequiresWrappingTransaction(DbCommand cmd)
 		{
-			if (!mighty.NpgsqlAutoDereferenceCursors)
+			if (!Mighty.NpgsqlAutoDereferenceCursors)
 			{
 				// Do not request wrapping transaction if auto-dereferencing is off
 				return false;

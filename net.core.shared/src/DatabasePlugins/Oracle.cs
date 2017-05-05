@@ -24,10 +24,9 @@ namespace Mighty.DatabasePlugins
 #endregion
 
 #region SQL
-		override public string BuildPagingQuery(string columns, string tablesAndJoins, string orderBy, string where,
-			int limit, int offset)
+		override public string BuildLimitOffsetSelect(string columns, string tablesAndJoins, string where, string orderBy, int limit, int offset)
 		{
-			return BuildRowNumberPagingQuery(columns, tablesAndJoins, orderBy, where, limit, offset);
+			return BuildRowNumberLimitOffsetSelect(columns, tablesAndJoins, where, orderBy, limit, offset);
 		}
 #endregion
 

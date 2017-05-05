@@ -84,15 +84,25 @@ namespace Mighty.Interfaces
 		}
 
 		// TO DO: Should return int?
+		// connection, easy args
 		abstract public dynamic Execute(DbCommand command,
 			DbConnection connection = null);
 
 		// TO DO: Should return int?
-		// no connection, easy args (use WithParams version for connection)
+		// no connection, easy args
 		virtual public dynamic Execute(string sql,
 			params object[] args)
 		{
 			return ExecuteWithParams(sql, args: args);
+		}
+
+		// TO DO: Should return int?
+		// connection, easy args
+		virtual public dynamic Execute(string sql,
+			DbConnection connection,
+			params object[] args)
+		{
+			return ExecuteWithParams(sql, connection: connection, args: args);
 		}
 
 		// COULD add a RowCount class, like Cursor, to pick out the rowcount if required
@@ -161,9 +171,7 @@ namespace Mighty.Interfaces
 			DbConnection connection = null,
 			params object[] args);
 
-		// note 1: no <see cref="DbConnection"/> param to either of these, because the connection for a command to use
-		// is always passed in to the action which uses it, or else created by the microORM on the fly
-		// note 2: some API calls of the microORM take command objects, you are recommended to pass in commands created
+		// Some API calls of the microORM take command objects, you are recommended to pass in commands created
 		// by these methods, as certain provider specific command properties are set by Massive on some providers, so
 		// your results may vary if you pass in a command not constructed here.
 		virtual public DbCommand CreateCommand(string sql,
@@ -172,8 +180,16 @@ namespace Mighty.Interfaces
 			return CreateCommandWithParams(sql, args: args);
 		}
 
+		virtual public DbCommand CreateCommand(string sql,
+			DbConnection connection,
+			params object[] args)
+		{
+			return CreateCommandWithParams(sql, args: args);
+		}
+
 		abstract public DbCommand CreateCommandWithParams(string sql,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false,
+			DbConnection connection = null,
 			params object[] args);
 
 		// Add kv pair stuff for dropdowns? Maybe, at max, provide a method to convert IEnumerable<T> to kv pair.

@@ -11,7 +11,7 @@ namespace Mighty.Npgsql
 	public class NpgsqlDereferencingReader : DbDataReader, IDisposable
 	{
 		private DbConnection Connection;
-		private IPluginCallback _mighty;
+		private IPluginCallback Mighty;
 		private int FetchSize;
 
 		private DbDataReader Reader = null; // current FETCH reader
@@ -38,7 +38,7 @@ namespace Mighty.Npgsql
 		{
 			FetchSize = mighty.NpgsqlAutoDereferenceFetchSize;
 			Connection = connection;
-			_mighty = mighty;
+			Mighty = mighty;
 
 			// We're not saving the behavior: this logic has already enforced SingleResult;
 			// for SingleRow, we rely on the user to one read one row and then dispose of everything.
@@ -154,7 +154,7 @@ namespace Mighty.Npgsql
 
 		private DbCommand CreateCommand(string sql, DbConnection connection)
 		{
-			var command = _mighty.CreateCommand(sql);
+			var command = Mighty.CreateCommand(sql);
 			command.Connection = connection;
 			return command;
 		}

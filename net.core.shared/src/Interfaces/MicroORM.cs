@@ -5,6 +5,7 @@ using System.Linq;
 
 using Mighty.DatabasePlugins;
 using Mighty.Mapping;
+//using Mighty.Profiling;
 using Mighty.Validation;
 
 namespace Mighty.Interfaces
@@ -45,11 +46,14 @@ namespace Mighty.Interfaces
 #region Properties
 		virtual public string ConnectionString { get; protected set; }
 		virtual public DbProviderFactory Factory { get; protected set; }
-		virtual internal DatabasePlugin _plugin { get; set; }
+		virtual internal DatabasePlugin Plugin { get; set; }
 		virtual public Validator Validator { get; protected set; }
-		virtual public SqlNamingMapper Mapper { get; protected set; }
+		virtual public NamingMapper Mapper { get; protected set; }
+		virtual public Profiler Profiler { get; protected set; }
 
-		virtual public string TableName { get; protected set; } // NB this may have a dot in to specify owner/schema, and then needs splitting by us, but only when getting the information schema
+		virtual public string TableName { get; protected set; }
+		virtual public string TableOwner { get; protected set; }
+		virtual public string BareTableName { get; protected set; }
 		virtual public string PrimaryKeyFields { get; protected set; } // un-separated PK field names
 		virtual public List<string> PrimaryKeyList { get; protected set; } // separated, lowered PK field names
 		virtual public string DefaultColumns { get; protected set; }
@@ -62,15 +66,6 @@ namespace Mighty.Interfaces
 #endregion
 
 #region MircoORM interface
-		// NB MUST return object not int because of MySQL ulong return type.
-		// Note also: it is worth passing in something other than "*"; COUNT over any
-		// column which can contain null COUNTS only the non-null values.
-		virtual public object Count(string columns = "*", string where = null,
-			params object[] args)
-		{
-			return Count(columns, where, null, args);
-		}
-
 		/// <summary>
 		/// Perform COUNT on current table
 		/// </summary>
@@ -82,19 +77,6 @@ namespace Mighty.Interfaces
 		abstract public object Count(string columns = "*", string where = null,
 			DbConnection connection = null,
 			params object[] args);
-
-		/// <summary>
-		/// Perform scalar operation on the current table (use for SUM, MAX, MIN, AVG, etc.)
-		/// </summary>
-		/// <param name="expression">Scalar expression</param>
-		/// <param name="where">Optional where clause</param>
-		/// <param name="args">Parameters</param>
-		/// <returns></returns>
-		virtual public object Aggregate(string expression, string where = null,
-			params object[] args)
-		{
-			return Aggregate(expression, where, null, args);
-		}
 
 		/// <summary>
 		/// Perform scalar operation on the current table (use for SUM, MAX, MIN, AVG, etc.)
@@ -185,7 +167,7 @@ namespace Mighty.Interfaces
 			params object[] args)
 		{
 			return AllWithParams(
-				null, null, columns,
+				where, orderBy, columns, 1,
 				inParams, outParams, ioParams, returnParams,
 				CommandBehavior.SingleRow, connection,
 				args).FirstOrDefault();
@@ -193,14 +175,14 @@ namespace Mighty.Interfaces
 
 		// ORM
 		virtual public IEnumerable<T> All(
-			string where = null, string orderBy = null, string columns = null,
+			string where = null, string orderBy = null, string columns = null, int limit = 0,
 			params object[] args)
 		{
 			return AllWithParams(where, orderBy, columns, args: args);
 		}
 
 		abstract public IEnumerable<T> AllWithParams(
-			string where = null, string orderBy = null, string columns = null,
+			string where = null, string orderBy = null, string columns = null, int limit = 0,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			CommandBehavior behavior = CommandBehavior.Default,
 			DbConnection connection = null,
@@ -219,8 +201,14 @@ namespace Mighty.Interfaces
 			return PagedFromSelect(columns, CheckTableName(), orderBy ?? CheckPrimaryKeyFields(), where, pageSize, currentPage, connection, args);
 		}
 
+		// save single item
+		virtual public int Save(object item)
+		{
+			return Save(new object[] { item });
+		}
+
 		// save (insert or update) one or more items
-		virtual public int Save(params object[] items)
+		virtual public int Save(IEnumerable<object> items)
 		{
 			return Save(null, items);
 		}
@@ -229,18 +217,28 @@ namespace Mighty.Interfaces
 		{
 			return (int)ActionOnItems(ORMAction.Save, connection, items);
 		}
-		
-		virtual public object Insert(params object[] items)
+
+		virtual public dynamic Insert(object item)
+		{
+			return Insert(new object[] { item });
+		}
+
+		virtual public dynamic Insert(IEnumerable<object> items)
 		{
 			return Insert(null, items);
 		}
 
-		virtual public int Insert(DbConnection connection, params object[] items)
+		virtual public dynamic Insert(DbConnection connection, params object[] items)
 		{
 			return (int)ActionOnItems(ORMAction.Insert, connection, items);
 		}
 
-		virtual public int Update(params object[] items)
+		virtual public int Update(object item)
+		{
+			return Update(new object[] { item });
+		}
+
+		virtual public int Update(IEnumerable<object> items)
 		{
 			return (int)Update(null, items);
 		}
@@ -250,7 +248,12 @@ namespace Mighty.Interfaces
 			return (int)ActionOnItems(ORMAction.Update, connection, items);
 		}
 
-		virtual public int Delete(params object[] items)
+		virtual public int Delete(object item)
+		{
+			return Delete(new object[] { item });
+		}
+
+		virtual public int Delete(IEnumerable<object> items)
 		{
 			return (int)Delete((DbConnection)null, items);
 		}
@@ -331,9 +334,11 @@ namespace Mighty.Interfaces
 
 		abstract protected string CheckTableName();
 
-		abstract internal object ActionOnItems(ORMAction action, DbConnection connection, params object[] items);
+		abstract internal object ActionOnItems(ORMAction action, DbConnection connection, IEnumerable<object> items);
 
-		abstract public bool IsValid(object item, ORMAction action, List<object> Errors);
+		abstract public bool IsValid(object item);
+
+		abstract public void IsValid(object item, ORMAction action, List<object> Errors);
 #endregion
 	}
 }

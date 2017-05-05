@@ -12,7 +12,7 @@ namespace Mighty.DatabasePlugins
 		protected const string CRLF = "\r\n";
 		
 		// some bits of the instance which we are plugged in to
-		public IPluginCallback mighty { get; set; }
+		public IPluginCallback Mighty { get; set; }
 
 #region Provider support
 		// Returns the provider factory class name for the known provider(s) for this DB;
@@ -44,6 +44,60 @@ namespace Mighty.DatabasePlugins
 				columns, tableName, where.Thingify("WHERE"), orderBy.Thingify("ORDERBY"));
 		}
 
+		/// <summary>
+		/// Build limit-offset style select
+		/// </summary>
+		/// <param name="columns"></param>
+		/// <param name="tablesAndJoins"></param>
+		/// <param name="where"></param>
+		/// <param name="orderBy">Order by is required</param>
+		/// <param name="limit"></param>
+		/// <param name="offset"></param>
+		/// <returns></returns>
+		virtual public string BuildLimitOffsetSelect(string columns, string tablesAndJoins, string where, string orderBy, int limit, int offset)
+		{
+			return string.Format("SELECT {0} FROM {1}{2} ORDER BY {3} LIMIT {4}{5}",
+				columns,
+				tablesAndJoins,
+				where == null ? "" : string.Format(" {0}", where.Thingify("WHERE")),
+				orderBy.Unthingify("ORDER BY"),
+				limit,
+				offset > 0 ? string.Format(" OFFSET {0}", offset) : ""
+			);
+		}
+
+		/// <summary>
+		/// Utility method to provide the ROW_NUMBER() paging pattern; contrary to popular belief, *exactly* the same
+		/// pattern can be used on Oracle and SQL Server.
+		/// </summary>
+		/// <param name="columns"></param>
+		/// <param name="tablesAndJoins"></param>
+		/// <param name="where"></param>
+		/// <param name="orderBy">Order by is required</param>
+		/// <param name="limit"></param>
+		/// <param name="offset"></param>
+		/// <returns></returns>
+		protected string BuildRowNumberLimitOffsetSelect(string columns, string tablesAndJoins, string where, string orderBy, int limit, int offset)
+		{
+			// we have to use t_.* in the outer select as columns may refer to table names or aliases which are only in scope in the inner select
+			return string.Format("SELECT t_.*" + CRLF +
+								 "FROM" + CRLF +
+								 "(" + CRLF +
+								 "    SELECT ROW_NUMBER() OVER (ORDER BY {3}) RowNum, {0}" + CRLF +
+								 "    FROM {1}" + CRLF +
+								 "{2}" +
+								 ") t_" + CRLF +
+								 "WHERE {5}RowNum < {4}" + CRLF +
+								 "ORDER BY RowNum",
+				columns,
+				tablesAndJoins,
+				where == null ? "" : string.Format("    {0}" + CRLF, where.Thingify("WHERE")),
+				orderBy.Unthingify("ORDER BY"),
+				limit + 1,
+				offset > 0 ? string.Format("RowNum > {0} AND ", offset) : ""
+			);
+		}
+
 		// is the same for every (currently supported?) database
 		virtual public string BuildDelete(string tableName, string where)
 		{
@@ -73,44 +127,8 @@ namespace Mighty.DatabasePlugins
 		{
 			string tj = tablesAndJoins.Unthingify("FROM");
 			string CountQuery = BuildSelect("COUNT(*) AS TotalCount", tj, where);
-			string PagingQuery =
-				string.Format("SELECT {0} FROM {1}{2} ORDER BY {3} LIMIT {4}{5}",
-					columns.Unthingify("SELECT"),
-					tj,
-					where == null ? "" : string.Format(" WHERE {0}" + CRLF, where.Unthingify("WHERE")),
-					orderBy.Unthingify("ORDERBY"),
-					limit,
-					offset > 0 ? string.Format(" OFFSET {0}", offset) : ""
-				);
-			return CountQuery + CRLF + PagingQuery;
-		}
-
-		// Utility method to provide the ROW_NUMBER() paging pattern; contrary to popular belief, *exactly* the same
-		// pattern can be used on Oracle and SQL Server.
-		protected string BuildRowNumberPagingQuery(string columns, string tablesAndJoins, string orderBy, string where,
-			int limit, int offset)
-		{
-			string tj = tablesAndJoins.Unthingify("FROM");
-			string CountQuery = BuildSelect("COUNT(*) AS TotalCount", tj, where);
-			// 't_' outer query alias does not conflict with any use of 't_' table/query alias in user SELECT.
-			string PagingQuery =
-				string.Format("SELECT t_.*" + CRLF +
-							  "FROM" + CRLF +
-							  "(" + CRLF +
-							  "    SELECT ROW_NUMBER() OVER (ORDER BY {3}) RowNum, {0}" + CRLF +
-							  "    FROM {1}" + CRLF +
-							  "{2}" +
-							  ") t_" + CRLF +
-							  "WHERE {5}RowNum < {4}" + CRLF +
-							  "ORDER BY RowNum;",
-					columns.Unthingify("SELECT"),
-					tj,
-					where == null ? "" : string.Format("    WHERE {0}" + CRLF, where.Unthingify("WHERE")),
-					orderBy.Unthingify("ORDERBY"),
-					limit + 1,
-					offset > 0 ? string.Format("RowNum > {0} AND ", offset) : ""
-				);
-			return CountQuery + CRLF + PagingQuery;
+			string PagingQuery = BuildLimitOffsetSelect(columns.Unthingify("SELECT"), tj, where, orderBy, limit, offset);
+			return CountQuery + ";" + CRLF + PagingQuery + ";";
 		}
 #endregion
 

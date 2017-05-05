@@ -66,13 +66,11 @@ namespace Mighty.DatabasePlugins
 							{
 								AssembleDefaultPlugins();
 							}
-							catch
+							finally
 							{
-								// try-catch  (or try-finally) ensures that even after exception we register that
-								// Initialize has been called
+								// try-finally ensures that even after exception we register that Initialize has been called
+								// (the exception is still thrown after the finally code has happened)
 								_initState = ConnectionState.Open;
-								// NB: MS reference code was a finally, with no re-throw
-								throw;
 							}
 							break;
 
