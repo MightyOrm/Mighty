@@ -3,7 +3,6 @@ using NUnit.Common;
 using NUnitLite;
 using System;
 using System.Reflection;
-#endif
 
 namespace Mighty.Tests.NUnit.ConsoleRunner
 {
@@ -26,3 +25,4 @@ namespace Mighty.Tests.NUnit.ConsoleRunner
 		}
 	}
 }
+#endif
