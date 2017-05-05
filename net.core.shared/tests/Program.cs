@@ -3,6 +3,7 @@ using NUnit.Common;
 using NUnitLite;
 using System;
 using System.Reflection;
+#endif
 
 namespace Mighty.Tests.NUnit.ConsoleRunner
 {
@@ -10,6 +11,7 @@ namespace Mighty.Tests.NUnit.ConsoleRunner
 	{
 		static int Main(string[] args)
 		{
+#if NET40 || CORE10
 			return new AutoRun(
 #if NETFRAMEWORK
 				typeof(Program).Assembly
@@ -18,7 +20,9 @@ namespace Mighty.Tests.NUnit.ConsoleRunner
 #endif
 				)
 				.Execute(args, new ExtendedTextWrapper(Console.Out), Console.In);
+#else
+			return 0;
+#endif
 		}
 	}
 }
-#endif

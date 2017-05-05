@@ -16,7 +16,7 @@ using Mighty.DatabasePlugins;
 using Mighty.Interfaces;
 using Mighty.Mapping;
 using Mighty.Parameters;
-//using Mighty.Profiling;
+using Mighty.Profiling;
 using Mighty.Validation;
 
 namespace Mighty

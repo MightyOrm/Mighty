@@ -5,7 +5,7 @@ using System.Linq;
 
 using Mighty.DatabasePlugins;
 using Mighty.Mapping;
-//using Mighty.Profiling;
+using Mighty.Profiling;
 using Mighty.Validation;
 
 namespace Mighty.Interfaces
