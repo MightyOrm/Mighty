@@ -105,18 +105,18 @@ namespace Mighty
 	/// Wrapper to provide dynamic methods (needed as we can't do direct multiple inheritance)
 	/// </summary>
 	/// <returns></returns>
-	internal class DynamicMethodProvider<T> : DynamicObject where T : new()
+	internal class DynamicObjectWrapper<T> : DynamicObject where T : new()
 	{
-		private MightyORM<T> mighty;
+		private MightyORM<T> Mighty;
 
 		/// <summary>
 		/// Wrap MightyORM to provide Massive-compatible dynamic methods.
 		/// You can access almost all this functionality non-dynamically (and if you do, you get IntelliSense, which makes life easier).
 		/// </summary>
 		/// <param name="me"></param>
-		internal DynamicMethodProvider(MightyORM<T> me)
+		internal DynamicObjectWrapper(MightyORM<T> me)
 		{
-			mighty = me;
+			Mighty = me;
 		}
 
 		/// <summary>
@@ -144,7 +144,7 @@ namespace Mighty
 			}
 
 			var columns = "*";
-			var orderBy = mighty.PrimaryKeyFields;
+			var orderBy = Mighty.PrimaryKeyFields;
 			var wherePredicates = new List<string>();
 			var nameValueArgs = new ExpandoObject();
 			var nameValueDictionary = nameValueArgs.AsDictionary();
@@ -176,7 +176,7 @@ namespace Mighty
 							break;
 						default:
 							// treat anything else as a name-value pair
-							wherePredicates.Add(string.Format("{0} = {1}", name, mighty.Plugin.PrefixParameterName(name)));
+							wherePredicates.Add(string.Format("{0} = {1}", name, Mighty.Plugin.PrefixParameterName(name)));
 							nameValueDictionary.Add(name, args[i]);
 							break;
 					}
@@ -197,7 +197,7 @@ namespace Mighty
 				case "MAX":
 				case "MIN":
 				case "AVG":
-					result = mighty.AggregateWithParams(string.Format("{0}({1})", uOp, columns), whereClause, inParams: nameValueArgs, args: userArgs);
+					result = Mighty.AggregateWithParams(string.Format("{0}({1})", uOp, columns), whereClause, inParams: nameValueArgs, args: userArgs);
 					break;
 				default:
 					var justOne = uOp.StartsWith("FIRST") || uOp.StartsWith("LAST") || uOp.StartsWith("GET") || uOp.StartsWith("FIND") || uOp.StartsWith("SINGLE");
@@ -211,11 +211,11 @@ namespace Mighty
 					}
 					if (justOne)
 					{
-						result = mighty.SingleWithParams(whereClause, orderBy, columns, inParams: nameValueArgs, args: userArgs);
+						result = Mighty.SingleWithParams(whereClause, orderBy, columns, inParams: nameValueArgs, args: userArgs);
 					}
 					else
 					{
-						result = mighty.AllWithParams(whereClause, orderBy, columns, inParams: nameValueArgs, args: userArgs);
+						result = Mighty.AllWithParams(whereClause, orderBy, columns, inParams: nameValueArgs, args: userArgs);
 					}
 					break;
 			}
@@ -224,17 +224,17 @@ namespace Mighty
 	}
 	#endregion
 
-	public class MightyORM<T> : MicroORM<T>, IDynamicMetaObjectProvider, IPluginCallback where T : new()
+	public class MightyORM<T> : MicroORM<T>, /*IDynamicMetaObjectProvider,*/ IPluginCallback where T : new()
 	{
 		// Only properties with a non-trivial implementation are here, the rest are in the MicroORM abstract class.
 		#region Properties
-		protected IEnumerable<dynamic> _TableInfo;
-		override public IEnumerable<dynamic> TableInfo
+		protected IEnumerable<dynamic> _TableMetaData;
+		override public IEnumerable<dynamic> TableMetaData
 		{
 			get
 			{
-				InitializeTableInfo();
-				return _TableInfo;
+				InitializeTableMetaData();
+				return _TableMetaData;
 			}
 		}
 
@@ -246,17 +246,17 @@ namespace Mighty
 		// https://referencesource.microsoft.com/#System.Data/System/Data/Common/DbProviderFactories.cs
 
 		// called within the lock
-		private void LoadTableInfo()
+		private void LoadTableMetaData()
 		{
-			var sql = Plugin.BuildTableInfoQuery(TableOwner, BareTableName);
-			_TableInfo = Plugin.NormalizeTableInfo(Query(sql));
+			var sql = Plugin.BuildTableMetaDataQuery(!string.IsNullOrEmpty(TableOwner));
+			_TableMetaData = Plugin.PostProcessTableMetaData(Query(sql, TableName, TableOwner));
 		}
 
-		// fields for thread-safe initialization of TableInfo
+		// fields for thread-safe initialization of TableMetaData
 		private static ConnectionState _initState; // closed (default value), connecting, open
 		private static object _lockobj = new object();
 
-		private void InitializeTableInfo()
+		private void InitializeTableMetaData()
 		{
 			// MS code (re-)uses database connection states
 			if (_initState != ConnectionState.Open)
@@ -271,7 +271,7 @@ namespace Mighty
 							_initState = ConnectionState.Connecting;
 							try
 							{
-								LoadTableInfo();
+								LoadTableMetaData();
 							}
 							finally
 							{
@@ -353,7 +353,7 @@ namespace Mighty
 		#endregion
 
 		#region Dynamic method support
-		private DynamicMethodProvider<T> DynamicMethodProvider;
+		private DynamicObjectWrapper<T> DynamicObjectWrapper;
 
 		/// <summary>
 		/// Support dynamic methods via a wrapper object (needed as we can't do direct multiple inheritance)
@@ -362,7 +362,7 @@ namespace Mighty
 		/// <returns></returns>
 		public DynamicMetaObject GetMetaObject(Expression parameter)
 		{
-			return ((IDynamicMetaObjectProvider)DynamicMethodProvider).GetMetaObject(parameter);
+			return DynamicObjectWrapper.GetMetaObject(parameter);
 		}
 		#endregion
 
@@ -431,7 +431,11 @@ namespace Mighty
 				primaryKey = mapper.GetPrimaryKeyName(tableClassName);
 			}
 			PrimaryKeyFields = primaryKey;
-			if (primaryKey != null)
+			if (primaryKey == null)
+			{
+				PrimaryKeyList = new List<string>();
+			}
+			else
 			{
 				PrimaryKeyList = primaryKey.Split(',').Select(k => k.Trim()).ToList();
 			}
@@ -469,7 +473,7 @@ namespace Mighty
 				SequenceNameOrIdentityFn = mapper.QuoteDatabaseName(sequence);
 			}
 
-			DynamicMethodProvider = new DynamicMethodProvider<T>(this);
+			DynamicObjectWrapper = new DynamicObjectWrapper<T>(this);
 		}
 		#endregion
 
@@ -491,7 +495,7 @@ namespace Mighty
 			params object[] args)
 		{
 			var expression = string.Format("COUNT({0})", columns);
-			return AggregateWithParams(expression, where, connection, args);
+			return AggregateWithParams(expression, where, connection, args: args);
 		}
 
 		/// <summary>
@@ -528,7 +532,7 @@ namespace Mighty
 			var newItemDictionary = item.AsDictionary();
 			var parameters = new NameValueTypeEnumerator(nameValues);
 			// drive the loop by the actual column names
-			foreach (var columnInfo in TableInfo)
+			foreach (var columnInfo in TableMetaData)
 			{
 				string columnName = columnInfo.COLUMN_NAME;
 				object userValue = null;
@@ -616,12 +620,12 @@ namespace Mighty
 		/// <returns></returns>
 		override public dynamic GetColumnInfo(string column, bool ExceptionOnAbsent = true)
 		{
-			var info = TableInfo.Select(c => column.Equals(c.COLUMN_NAME, StringComparison.OrdinalIgnoreCase));
+			var info = TableMetaData.Where(c => column.Equals(c.COLUMN_NAME, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
 			if (ExceptionOnAbsent && info == null)
 			{
 				throw new InvalidOperationException("Cannot find table info for column name " + column);
 			}
-			return column;
+			return info;
 		}
 
 		/// <summary>
@@ -944,7 +948,7 @@ namespace Mighty
 		/// <returns></returns>
 		override public dynamic ResultsAsExpando(DbCommand cmd)
 		{
-			dynamic e = new ExpandoObject();
+			var e = new ExpandoObject();
 			var resultDictionary = e.AsDictionary();
 			for (int i = 0; i < cmd.Parameters.Count; i++)
 			{
@@ -988,6 +992,7 @@ namespace Mighty
 		{
 			if (behavior == CommandBehavior.Default && typeof(X) == typeof(T))
 			{
+				// this means single result set, not single row...
 				behavior = CommandBehavior.SingleResult;
 			}
 			// using applied only to local connection
@@ -1010,7 +1015,7 @@ namespace Mighty
 #endif
 					&& Plugin.RequiresWrappingTransaction(command)) ? localConn.BeginTransaction() : null))
 				{
-					using (var rdr = Plugin.ExecuteDereferencingReader(command, behavior, connection ?? localConn))
+					using (var reader = Plugin.ExecuteDereferencingReader(command, behavior, connection ?? localConn))
 					{
 						if (typeof(X) == typeof(IEnumerable<T>))
 						{
@@ -1018,13 +1023,75 @@ namespace Mighty
 							do
 							{
 								// cast is required because compiler doesn't see that we've just checked this!
-								yield return (X)YieldReturnRows(rdr);
+								yield return (X)YieldReturnRows(reader);
 							}
-							while (rdr.NextResult());
+							while (reader.NextResult());
 						}
 						else
 						{
-							YieldReturnRows(rdr);
+							// TO DO: I can't currently see a way to avoid explicitly copying
+							// all of the YieldReturnRows code here...
+							if (reader.Read())
+							{
+								bool useExpando = (typeof(T) == typeof(object));
+
+								int fieldCount = reader.FieldCount;
+								object[] rowValues = new object[fieldCount];
+
+								// this is for dynamic support
+								string[] columnNames = null;
+								// this is for generic<T> support
+								PropertyInfo[] propertyInfo = null;
+
+								if (useExpando) columnNames = new string[fieldCount];
+								else propertyInfo = new PropertyInfo[fieldCount];
+
+								// for generic, we need array of properties to set; we find this
+								// from fieldNames array, using a look up from lowered name -> property
+								for (int i = 0; i < fieldCount; i++)
+								{
+									var columnName = reader.GetName(i);
+									if (useExpando)
+									{
+										// For dynamics, create fields using the case that comes back from the database
+										// TO DO: Test how this is working now in Oracle
+										columnNames[i] = columnName;
+									}
+									else
+									{
+										if (Mapper.UseCaseInsensitiveMapping)
+										{
+											columnName = columnName.ToLowerInvariant();
+										}
+										propertyInfo[i] = columnNameToPropertyInfo[columnName];
+									}
+								}
+								do
+								{
+									reader.GetValues(rowValues);
+									if (useExpando)
+									{
+										ExpandoObject e = new ExpandoObject();
+										IDictionary<string, object> d = e.AsDictionary();
+										for (int i = 0; i < fieldCount; i++)
+										{
+											var v = rowValues[i];
+											d.Add(columnNames[i], v == DBNull.Value ? null : v);
+										}
+										yield return (X)(object)e;
+									}
+									else
+									{
+										T t = new T();
+										for (int i = 0; i < fieldCount; i++)
+										{
+											var v = rowValues[i];
+											propertyInfo[i].SetValue(t, v == DBNull.Value ? null : v, null);
+										}
+										yield return (X)(object)t;
+									}
+								} while (reader.Read());
+							}
 						}
 					}
 					if (trans != null) trans.Commit();

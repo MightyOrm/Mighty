@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Linq;
 
 namespace Mighty.DatabasePlugins
 {
@@ -135,16 +136,20 @@ namespace Mighty.DatabasePlugins
 #region Table info
 		// Owner is for owner/schema, will be null if none was specified by the user.
 		// This is exactly the same on MySQL, PostgreSQL and SQL Server, override on the others.
-		virtual public string BuildTableInfoQuery(string owner, string tableName)
+		virtual public string BuildTableMetaDataQuery(bool addOwner)
 		{
 			return string.Format("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = {0}{1}",
-				tableName,
-				owner == null ? "": string.Format(" AND TABLE_SCHEMA = {1}", owner));
+				PrefixParameterName("0"),
+				addOwner ? string.Format(" AND TABLE_SCHEMA = {1}", PrefixParameterName("1")) : "");
 		}
 
 		// If the table info comes in the semi-standard INFORMATION_SCHEMA format (which it does, though from a
-		// differently name table, on Oracle as well as on the above three) then we don't need to override this.
-		virtual public IEnumerable<dynamic> NormalizeTableInfo(IEnumerable<dynamic> results) { return results; }
+		// differently named table, on Oracle as well as on the above three) then we don't need to override this;
+		// however, this DOES need ToList, as it is converting from delayed execution to something ready to use.
+		virtual public IEnumerable<dynamic> PostProcessTableMetaData(IEnumerable<dynamic> results)
+		{
+			return results.ToList();
+		}
 
 		// TO DO: accessibility?
 		abstract public object GetColumnDefault(dynamic columnInfo);

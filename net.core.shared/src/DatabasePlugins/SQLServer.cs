@@ -7,7 +7,7 @@ namespace Mighty.DatabasePlugins
 	{
 #region Provider support
 		// we must use new because there are no overrides on static methods, see e.g. http://stackoverflow.com/q/7839691
-		new static public string GetProviderFactoryClassName(string loweredProviderName)
+		new static internal string GetProviderFactoryClassName(string loweredProviderName)
 		{
 			switch (loweredProviderName)
 			{

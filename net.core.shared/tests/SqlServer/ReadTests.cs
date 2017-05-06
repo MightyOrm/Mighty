@@ -55,10 +55,10 @@ namespace Mighty.Tests.SqlServer
 
 
 		[Test]
-		public void SchemaMetaDataRetrieval()
+		public void SchemaTableMetaDataRetrieval()
 		{
 			var soh = new SalesOrderHeader();
-			var metaData = soh.TableInfo;
+			var metaData = soh.TableMetaData;
 			Assert.IsNotNull(metaData);
 			Assert.AreEqual(26, metaData.Count());
 			Assert.IsTrue(metaData.All(v=>v.TABLE_NAME==soh.BareTableName));

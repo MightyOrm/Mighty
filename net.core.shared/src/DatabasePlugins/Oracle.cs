@@ -33,11 +33,11 @@ namespace Mighty.DatabasePlugins
 #region Table info
 		// owner is for owner/schema, will be null if none was specified
 		// This really does vary per DB and can't be a standard virtual method which most things share.
-		override public string BuildTableInfoQuery(string owner, string tableName)
+		override public string BuildTableMetaDataQuery(bool addOwner)
 		{
 			return string.Format("SELECT * FROM USER_TAB_COLUMNS WHERE TABLE_NAME = {0}{1}",
-				tableName,
-				owner == null ? "": string.Format(" AND OWNER = {1}", owner));
+				PrefixParameterName("0"),
+				addOwner ? string.Format(" AND OWNER = {1}", PrefixParameterName("0")) : "");
 		}
 
 		override public object GetColumnDefault(dynamic columnInfo)

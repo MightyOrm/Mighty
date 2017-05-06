@@ -25,18 +25,18 @@ namespace Mighty.DatabasePlugins
 #endregion
 
 #region Table info
-		override public string BuildTableInfoQuery(string owner, string tableName)
+		override public string BuildTableMetaDataQuery(bool addOwner)
 		{
 			// SQLite does not have schema/owner
-			return string.Format("PRAGMA table_info({0})", tableName);
+			return string.Format("PRAGMA table_info({0})", PrefixParameterName("0"));
 		}
 
-		override public IEnumerable<dynamic> NormalizeTableInfo(IEnumerable<dynamic> rawTableInfo)
+		override public IEnumerable<dynamic> PostProcessTableMetaData(IEnumerable<dynamic> rawTableMetaData)
 		{
 			// TO DO: TEST that this and the other ones are working
 			// NB various null checks removed in this one, were these needed?
 			var result = new List<dynamic>();
-			foreach (var row in rawTableInfo)
+			foreach (var row in rawTableMetaData)
 			{
 				var rowAsDictionary = row.AsDictionary();
 				result.Add(new

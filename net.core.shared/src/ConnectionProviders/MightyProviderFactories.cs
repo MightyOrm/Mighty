@@ -45,7 +45,7 @@ namespace Mighty.ConnectionProviders
 			return (DbProviderFactory)f.GetValue(null);
 		}
 
-		static private object GetProviderFactoryClassNameOrDatabasePluginType(string providerName, bool returnClassName)
+		static private object GetProviderFactoryClassNameOrDatabasePluginType(string providerName, bool returnClassType)
 		{
 			string loweredProviderName = providerName.ToLowerInvariant();
 			foreach (var type in DatabasePluginManager.GetInstalledPluginTypes())
@@ -53,13 +53,17 @@ namespace Mighty.ConnectionProviders
 				// The DatabasePlugin subclass must implement this static GetProviderFactoryClassName method and will
 				// throw a reasonably meaningful exception here if not; unfortunately there is no syntax to enforce this
 				// at complile time.
-				string className = (string)type
-									.GetMethod(nameof(DatabasePlugin.GetProviderFactoryClassName), BindingFlags.Static)
-									.Invoke(null, new object[] { loweredProviderName });
+				var methodName = nameof(DatabasePlugin.GetProviderFactoryClassName);
+				var method = type.GetMethod(methodName, BindingFlags.Static | BindingFlags.NonPublic);
+				if (method == null)
+				{
+					throw new Exception(type + " does not implement static internal " + methodName);
+				}
+				string className = (string)method.Invoke(null, new object[] { loweredProviderName });
 				if (className != null)
 				{
-					if (returnClassName) return className;
-					else return type;
+					if (returnClassType) return type;
+					else return className;
 				}
 			}
 			throw new InvalidOperationException("Unknown database provider: " + providerName);

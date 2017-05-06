@@ -34,7 +34,7 @@ namespace Mighty
 
 		static internal string Unthingify(this string sql, string thing)
 		{
-			return Thingify(thing, sql, false);
+			return Thingify(sql, thing, false);
 		}
 
 		static internal string Thingify(this string sql, string thing, bool yes = true)
@@ -46,11 +46,11 @@ namespace Mighty
 				sql.StartsWith(thing, StringComparison.OrdinalIgnoreCase) &&
 				string.IsNullOrWhiteSpace(sql.Substring(thing.Length, 1)))
 			{
-				return yes ? sql.Substring(thing.Length + 1).Trim() : sql;
+				return yes ? string.Format(" {0}", sql) : sql.Substring(thing.Length + 1).Trim();
 			}
 			else
 			{
-				return yes ? sql : string.Format("{0} {1}", thing, sql.Trim());
+				return yes ? string.Format(" {0} {1}", thing, sql) : sql;
 			}
 		}
 

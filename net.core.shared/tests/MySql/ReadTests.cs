@@ -80,10 +80,10 @@ namespace Mighty.Tests.MySql
 
 
 		[Test]
-		public void SchemaMetaDataRetrieval()
+		public void SchemaTableMetaDataRetrieval()
 		{
 			var film = new Film(ProviderName);
-			var metaData = film.TableInfo;
+			var metaData = film.TableMetaData;
 			Assert.IsNotNull(metaData);
 			Assert.AreEqual(13, metaData.Count());
 			Assert.IsTrue(metaData.All(v => v.TABLE_NAME == film.BareTableName));

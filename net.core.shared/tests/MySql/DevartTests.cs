@@ -33,7 +33,8 @@ namespace Mighty.Tests.MySql
 			((dynamic)command).ParameterCheck = true; // dynamic trick to set the underlying property
 			command.Prepare(); // makes a round-trip to the database
 			command.Parameters["param1"].Value = 10;
-			var result = db.Execute(command);
+			db.Execute(command);
+			var result = db.ResultsAsExpando(command);
 			Assert.AreEqual(20, result.param2);
 		}
 		#endregion

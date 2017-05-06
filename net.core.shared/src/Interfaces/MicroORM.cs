@@ -62,7 +62,7 @@ namespace Mighty.Interfaces
 		// TO DO: Does it matter that this is different?
 		// We have the same difference in methods, below. Whether it matters depends on whether it drops in
 		// and compiles, and whether it drops in and links, to external code, changing either way....
-		abstract public IEnumerable<dynamic> TableInfo { get; }
+		abstract public IEnumerable<dynamic> TableMetaData { get; }
 #endregion
 
 #region MircoORM interface
@@ -178,7 +178,7 @@ namespace Mighty.Interfaces
 			string where = null, string orderBy = null, string columns = null, int limit = 0,
 			params object[] args)
 		{
-			return AllWithParams(where, orderBy, columns, args: args);
+			return AllWithParams(where, orderBy, columns, limit, args: args);
 		}
 
 		abstract public IEnumerable<T> AllWithParams(
