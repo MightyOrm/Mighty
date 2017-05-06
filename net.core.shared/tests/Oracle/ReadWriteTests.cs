@@ -42,7 +42,8 @@ namespace Mighty.Tests.Oracle
 			var outParams = new { val = new Guid() };
 			var command = db.CreateCommandWithParams("begin :val := :inval; end;", inParams: inParams, outParams: outParams);
 			Assert.AreEqual(DbType.String, command.Parameters[0].DbType);
-			var item = db.Execute(command);
+			db.Execute(command);
+			var item = db.ResultsAsExpando(command);
 			Assert.AreEqual(typeof(string), item.val.GetType());
 			Assert.AreEqual(guid, new Guid(item.val));
 		}

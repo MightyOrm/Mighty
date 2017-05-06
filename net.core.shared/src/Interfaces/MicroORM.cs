@@ -43,7 +43,7 @@ namespace Mighty.Interfaces
 	// T determines the output type, but not the input type (which can still come from arbitrary objects)
 	abstract public partial class MicroORM<T>
 	{
-#region Properties
+		#region Properties
 		virtual public string ConnectionString { get; protected set; }
 		virtual public DbProviderFactory Factory { get; protected set; }
 		virtual internal DatabasePlugin Plugin { get; set; }
@@ -63,9 +63,9 @@ namespace Mighty.Interfaces
 		// We have the same difference in methods, below. Whether it matters depends on whether it drops in
 		// and compiles, and whether it drops in and links, to external code, changing either way....
 		abstract public IEnumerable<dynamic> TableMetaData { get; }
-#endregion
+		#endregion
 
-#region MircoORM interface
+		#region MircoORM interface
 		/// <summary>
 		/// Perform COUNT on current table
 		/// </summary>
@@ -159,7 +159,7 @@ namespace Mighty.Interfaces
 		{
 			return SingleWithParams(where, orderBy, columns, connection: connection, args: args);
 		}
-		
+
 		// WithParams version just in case; allows transactions for a start
 		virtual public T SingleWithParams(string where, string orderBy = null, string columns = null,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
@@ -263,7 +263,7 @@ namespace Mighty.Interfaces
 			return (int)ActionOnItems(ORMAction.Delete, connection, items);
 		}
 
-		virtual  public T New()
+		virtual public T New()
 		{
 			return NewFrom();
 		}
@@ -339,6 +339,6 @@ namespace Mighty.Interfaces
 		abstract public bool IsValid(object item);
 
 		abstract public void IsValid(object item, ORMAction action, List<object> Errors);
-#endregion
+		#endregion
 	}
 }

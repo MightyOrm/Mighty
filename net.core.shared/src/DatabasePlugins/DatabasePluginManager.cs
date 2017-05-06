@@ -8,10 +8,11 @@ namespace Mighty.DatabasePlugins
 	public class DatabasePluginManager
 	{
 		// I think this method doesn't need to be public, but it seems friendly/useful to make it be
-        static public List<Type> GetInstalledPluginTypes() {
-            Initialize();
-            return _installedPluginTypes;
-        }
+		static public List<Type> GetInstalledPluginTypes()
+		{
+			Initialize();
+			return _installedPluginTypes;
+		}
 
 		// Register a new database plugin for use with PureConnectionStringProvider
 		// (If are going to pass the type of your own DatabasePlugin via your own subclass of
@@ -45,23 +46,23 @@ namespace Mighty.DatabasePlugins
 			}
 		}
 
-#region Thread-safe initializer 
+		#region Thread-safe initializer 
 		// Thread-safe initialization based on Microsoft DbProviderFactories reference 
 		// https://referencesource.microsoft.com/#System.Data/System/Data/Common/DbProviderFactories.cs
-		
+
 		// fields for thread safe access to the list of default + registered database plugins
 		private static ConnectionState _initState; // closed (default value), connecting, open
-        private static List<Type> _installedPluginTypes;
-        private static object _lockobj = new object();
+		private static List<Type> _installedPluginTypes;
+		private static object _lockobj = new object();
 
-        static private void Initialize()
+		static private void Initialize()
 		{
 			// MS code (re-)uses database connection states
-            if (_initState != ConnectionState.Open)
+			if (_initState != ConnectionState.Open)
 			{
-                lock (_lockobj)
+				lock (_lockobj)
 				{
-                    switch (_initState)
+					switch (_initState)
 					{
 						case ConnectionState.Closed:
 							// 'Connecting' state only relevant if the thread which has the lock can recurse back into here
@@ -86,9 +87,9 @@ namespace Mighty.DatabasePlugins
 						default:
 							throw new Exception("unexpected state");
 					}
-                }
-            }
-        }
-#endregion
+				}
+			}
+		}
+		#endregion
 	}
 }

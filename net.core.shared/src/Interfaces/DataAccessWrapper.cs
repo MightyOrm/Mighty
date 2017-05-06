@@ -12,7 +12,7 @@ namespace Mighty.Interfaces
 	abstract public partial class MicroORM<T> //DataAccessWrapper
 	{
 		// All versions which simply redirect to other versions are defined here, not in the main class.
-#region DataAccessWrapper
+		#region DataAccessWrapper
 		abstract public DbConnection OpenConnection();
 
 		virtual public IEnumerable<dynamic> Query(DbCommand command,
@@ -83,26 +83,23 @@ namespace Mighty.Interfaces
 				connection: connection, args: args);
 		}
 
-		// TO DO: Should return int?
-		// connection, easy args
-		abstract public dynamic Execute(DbCommand command,
+		abstract public int Execute(DbCommand command,
 			DbConnection connection = null);
 
-		// TO DO: Should return int?
 		// no connection, easy args
-		virtual public dynamic Execute(string sql,
+		virtual public int Execute(string sql,
 			params object[] args)
 		{
-			return ExecuteWithParams(sql, args: args);
+			var command = CreateCommandWithParams(sql, args: args);
+			return Execute(command);
 		}
 
-		// TO DO: Should return int?
-		// connection, easy args
-		virtual public dynamic Execute(string sql,
+		virtual public int Execute(string sql,
 			DbConnection connection,
 			params object[] args)
 		{
-			return ExecuteWithParams(sql, connection: connection, args: args);
+			var command = CreateCommandWithParams(sql, args: args);
+			return Execute(command, connection);
 		}
 
 		// COULD add a RowCount class, like Cursor, to pick out the rowcount if required
@@ -114,7 +111,8 @@ namespace Mighty.Interfaces
 			var command = CreateCommandWithParams(sql,
 			inParams, outParams, ioParams, returnParams,
 			args: args);
-			return Execute(command, connection);
+			Execute(command, connection);
+			return ResultsAsExpando(command);
 		}
 
 		virtual public dynamic ExecuteAsProcedure(string spName,
@@ -126,7 +124,8 @@ namespace Mighty.Interfaces
 			inParams, outParams, ioParams, returnParams,
 			isProcedure: true,
 			args: args);
-			return Execute(command, connection);
+			Execute(command, connection);
+			return ResultsAsExpando(command);
 		}
 
 		abstract public object Scalar(DbCommand command,
@@ -198,6 +197,6 @@ namespace Mighty.Interfaces
 		abstract public dynamic ResultsAsExpando(DbCommand cmd);
 
 		abstract protected IEnumerable<X> QueryNWithParams<X>(string sql = null, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, DbCommand command = null, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, params object[] args);
-#endregion
+		#endregion
 	}
 }

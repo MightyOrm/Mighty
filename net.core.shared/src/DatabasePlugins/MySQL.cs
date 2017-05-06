@@ -6,7 +6,7 @@ namespace Mighty.DatabasePlugins
 {
 	internal class MySQL : DatabasePlugin
 	{
-#region Provider support
+		#region Provider support
 		// we must use new because there are no overrides on static methods, see e.g. http://stackoverflow.com/q/7839691
 		new static internal string GetProviderFactoryClassName(string loweredProviderName)
 		{
@@ -24,20 +24,33 @@ namespace Mighty.DatabasePlugins
 					return null;
 			}
 		}
-#endregion
+		#endregion
 
-#region Table info
+		#region SQL
+		override public string BuildSelect(string columns, string tableName, string where, string orderBy = null, int limit = 0)
+		{
+			return BuildLimitSelect(columns, tableName, where, orderBy, limit);
+		}
+
+		override public string BuildPagingQuery(string columns, string tablesAndJoins, string orderBy, string where,
+			int limit, int offset)
+		{
+			return BuildLimitOffsetPagingQuery(columns, tablesAndJoins, orderBy, where, limit, offset);
+		}
+		#endregion
+
+		#region Table info
 		override public object GetColumnDefault(dynamic columnInfo)
 		{
 			// This code from Massive - see CREDITS file
 			string defaultValue = columnInfo.COLUMN_DEFAULT;
-			if(string.IsNullOrEmpty(defaultValue))
+			if (string.IsNullOrEmpty(defaultValue))
 			{
 				return null;
 			}
 
 			dynamic result = null;
-			switch(defaultValue.ToUpper())
+			switch (defaultValue.ToUpper())
 			{
 				case "CURRENT_TIMESTAMP":
 					result = DateTime.Now;
@@ -45,13 +58,13 @@ namespace Mighty.DatabasePlugins
 			}
 			return result;
 		}
-#endregion
+		#endregion
 
-#region Keys and sequences
+		#region Keys and sequences
 		override public string IdentityRetrievalFunction { get; protected set; } = "LAST_INSERT_ID()";
-#endregion
+		#endregion
 
-#region Prefix/deprefix parameters
+		#region Prefix/deprefix parameters
 		override public string PrefixParameterName(string rawName, DbCommand cmd = null)
 		{
 			return (cmd != null && cmd.CommandType == CommandType.StoredProcedure) ? rawName : ("@" + rawName);
@@ -61,9 +74,9 @@ namespace Mighty.DatabasePlugins
 		{
 			return cmd.CommandType == CommandType.StoredProcedure ? dbParamName : dbParamName.Substring(1);
 		}
-#endregion
+		#endregion
 
-#region DbParameter
+		#region DbParameter
 		override public void SetValue(DbParameter p, object value)
 		{
 			base.SetValue(p, value);
@@ -103,6 +116,6 @@ namespace Mighty.DatabasePlugins
 			}
 			return value;
 		}
-#endregion
+		#endregion
 	}
 }

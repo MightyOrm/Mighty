@@ -50,6 +50,7 @@ namespace Mighty
 		public MightyORM(string connectionString = null,
 						 string table = null,
 						 string primaryKey = null,
+						 string lookupTableValueField = null,
 						 string sequence = null,
 						 string columns = null,
 						 Validator validator = null,
@@ -83,7 +84,7 @@ namespace Mighty
 					TableName = mapper.GetTableName(tableClassName);
 				}
 			}
-			Init(connectionString, primaryKey, sequence, columns, validator, mapper, profiler, connectionProvider, tableClassName);
+			Init(connectionString, primaryKey, lookupTableValueField, sequence, columns, validator, mapper, profiler, connectionProvider, tableClassName);
 		}
 
 		#region Convenience factory
@@ -253,8 +254,9 @@ namespace Mighty
 		}
 
 		// fields for thread-safe initialization of TableMetaData
-		private static ConnectionState _initState; // closed (default value), connecting, open
-		private static object _lockobj = new object();
+		// (done once or less per instance of MightyORM, so not static)
+		private ConnectionState _initState; // closed (default value), connecting, open
+		private object _lockobj = new object();
 
 		private void InitializeTableMetaData()
 		{
@@ -314,6 +316,7 @@ namespace Mighty
 		/// <param name="propertyBindingFlags">Specify which properties should be managed by the ORM</param>
 		public MightyORM(string connectionString = null,
 						 string primaryKey = null,
+						 string lookupTableValueField = null,
 						 string sequence = null,
 						 string columns = null,
 						 Validator validator = null,
@@ -337,7 +340,7 @@ namespace Mighty
 			string tableClassName = typeof(T).Name;
 			TableName = mapper.GetTableName(tableClassName);
 
-			Init(connectionString, primaryKey, sequence, columns, validator, mapper, profiler, connectionProvider, tableClassName);
+			Init(connectionString, primaryKey, lookupTableValueField, sequence, columns, validator, mapper, profiler, connectionProvider, tableClassName);
 
 			columnNameToPropertyInfo = new Dictionary<string, PropertyInfo>();
 			foreach (var info in typeof(T).GetProperties(propertyBindingFlags))
@@ -378,6 +381,7 @@ namespace Mighty
 		//
 		public void Init(string connectionString,
 						 string primaryKey,
+						 string lookupTableValueField,
 						 string sequence,
 						 string columns,
 						 Validator validator,
@@ -386,6 +390,10 @@ namespace Mighty
 						 ConnectionProvider connectionProvider,
 						 string tableClassName)
 		{
+			if (!string.IsNullOrEmpty(lookupTableValueField))
+			{
+				throw new NotImplementedException(nameof(lookupTableValueField));
+			}
 			if (TableName != null)
 			{
 				int i = TableName.LastIndexOf('.');
@@ -853,7 +861,7 @@ namespace Mighty
 		/// <param name="command">The command</param>
 		/// <param name="connection">Optional DbConnection to use</param>
 		/// <returns></returns>
-		override public dynamic Execute(DbCommand command,
+		override public int Execute(DbCommand command,
 			DbConnection connection = null)
 		{
 			// using applied only to local connection
@@ -978,7 +986,7 @@ namespace Mighty
 			{
 				columns = DefaultColumns;
 			}
-			var sql = limit == 0 ? Plugin.BuildSelect(columns, CheckTableName(), where, orderBy) : Plugin.BuildLimitOffsetSelect(columns, CheckTableName(), where, orderBy, 1, 0);
+			var sql = Plugin.BuildSelect(columns, CheckTableName(), where, orderBy, limit);
 			return QueryNWithParams<T>(sql,
 				inParams, outParams, ioParams, returnParams,
 				behavior: behavior, connection: connection, args: args);

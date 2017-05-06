@@ -48,11 +48,11 @@ namespace Mighty.Npgsql
 			{
 				// Supports 1x1 1xN Nx1 and NXM patterns of cursor data.
 				// If just some values are cursors we follow the pre-existing pattern set by the Oracle drivers, and dereference what we can.
-				while(reader.Read())
+				while (reader.Read())
 				{
-					for(int i = 0; i < reader.FieldCount; i++)
+					for (int i = 0; i < reader.FieldCount; i++)
 					{
-						if(reader.GetDataTypeName(i) == "refcursor")
+						if (reader.GetDataTypeName(i) == "refcursor")
 						{
 							// cursor name can potentially contain " so stop that breaking us
 							Cursors.Add(reader.GetString(i).Replace(@"""", @""""""));
@@ -76,9 +76,9 @@ namespace Mighty.Npgsql
 		static public bool CanDereference(DbDataReader reader)
 		{
 			bool hasCursors = false;
-			for(int i = 0; i < reader.FieldCount; i++)
+			for (int i = 0; i < reader.FieldCount; i++)
 			{
-				if(reader.GetDataTypeName(i) == "refcursor")
+				if (reader.GetDataTypeName(i) == "refcursor")
 				{
 					hasCursors = true;
 					break;
@@ -113,15 +113,15 @@ namespace Mighty.Npgsql
 		private string CloseCursor(bool ExecuteNow = true)
 		{
 			// close and dispose current fetch reader for this cursor
-			if(Reader != null && !Reader.IsClosed)
+			if (Reader != null && !Reader.IsClosed)
 			{
 				Reader.Dispose();
 			}
 			// close cursor itself
-			if(FetchSize > 0 && !string.IsNullOrEmpty(Cursor))
+			if (FetchSize > 0 && !string.IsNullOrEmpty(Cursor))
 			{
 				var closeSql = CloseSQL();
-				if(!ExecuteNow)
+				if (!ExecuteNow)
 				{
 					return closeSql;
 				}
@@ -140,7 +140,7 @@ namespace Mighty.Npgsql
 		private void FetchNextNFromCursor(string closePreviousSQL = "")
 		{
 			// close and dispose previous fetch reader for this cursor
-			if(Reader != null && !Reader.IsClosed)
+			if (Reader != null && !Reader.IsClosed)
 			{
 				Reader.Dispose();
 			}
@@ -159,7 +159,7 @@ namespace Mighty.Npgsql
 			return command;
 		}
 
-#region DbDataReader abstract interface
+		#region DbDataReader abstract interface
 		public override object this[string name] { get { return Reader[name]; } }
 		public override object this[int i] { get { return Reader[i]; } }
 		public override int Depth { get { return Reader.Depth; } }
@@ -207,7 +207,7 @@ namespace Mighty.Npgsql
 		public override bool NextResult()
 		{
 			var closeSql = CloseCursor(Index >= Cursors.Count);
-			if(Index >= Cursors.Count)
+			if (Index >= Cursors.Count)
 			{
 				return false;
 			}
@@ -218,16 +218,16 @@ namespace Mighty.Npgsql
 
 		public override bool Read()
 		{
-			if(Reader != null)
+			if (Reader != null)
 			{
 				bool cursorHasNextRow = Reader.Read();
-				if(cursorHasNextRow)
+				if (cursorHasNextRow)
 				{
 					Count++;
 					return true;
 				}
 				// if we did FETCH ALL or if rows expired before requested count, there is nothing more to fetch on this cursor
-				if(FetchSize <= 0 || Count < FetchSize)
+				if (FetchSize <= 0 || Count < FetchSize)
 				{
 					return false;
 				}
@@ -237,12 +237,12 @@ namespace Mighty.Npgsql
 			// recursive self-call
 			return Read();
 		}
-#endregion
+		#endregion
 
 		public new void Dispose()
 		{
 			CloseCursor();
 			base.Dispose();
 		}
-	}	
+	}
 }

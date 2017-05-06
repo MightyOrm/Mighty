@@ -9,7 +9,7 @@ namespace Mighty.DatabasePlugins
 {
 	internal class PostgreSQL : DatabasePlugin
 	{
-#region Provider support
+		#region Provider support
 		// we must use new because there are no overrides on static methods, see e.g. http://stackoverflow.com/q/7839691
 		new static internal string GetProviderFactoryClassName(string loweredProviderName)
 		{
@@ -22,19 +22,32 @@ namespace Mighty.DatabasePlugins
 					return null;
 			}
 		}
-#endregion
+		#endregion
 
-#region Table info
+		#region SQL
+		override public string BuildSelect(string columns, string tableName, string where, string orderBy = null, int limit = 0)
+		{
+			return BuildLimitSelect(columns, tableName, where, orderBy, limit);
+		}
+
+		override public string BuildPagingQuery(string columns, string tablesAndJoins, string orderBy, string where,
+			int limit, int offset)
+		{
+			return BuildLimitOffsetPagingQuery(columns, tablesAndJoins, orderBy, where, limit, offset);
+		}
+		#endregion
+
+		#region Table info
 		// This code from Massive - see CREDITS file
 		override public object GetColumnDefault(dynamic columnInfo)
 		{
 			string defaultValue = columnInfo.COLUMN_DEFAULT;
-			if(string.IsNullOrEmpty(defaultValue))
+			if (string.IsNullOrEmpty(defaultValue))
 			{
 				return null;
 			}
 			dynamic result;
-			switch(defaultValue)
+			switch (defaultValue)
 			{
 				case "current_date":
 				case "(current_date)":
@@ -50,22 +63,22 @@ namespace Mighty.DatabasePlugins
 			}
 			return result;
 		}
-#endregion
+		#endregion
 
-#region Keys and sequences
+		#region Keys and sequences
 		override public bool IsSequenceBased { get; protected set; } = true;
 		override public string BuildNextval(string sequence) { return string.Format("nextval('{0}')", sequence); }
 		override public string BuildCurrval(string sequence) { return string.Format("currval('{0}')", sequence); }
-#endregion
+		#endregion
 
 		#region Prefix/deprefix parameters
 		override public string PrefixParameterName(string rawName, DbCommand cmd = null)
 		{
 			return (cmd != null) ? rawName : (":" + rawName);
 		}
-#endregion
+		#endregion
 
-#region DbParameter
+		#region DbParameter
 		override public void SetDirection(DbParameter p, ParameterDirection direction)
 		{
 			// PostgreSQL/Npgsql specific fix: if used, return params always return unchanged; return values must
@@ -97,9 +110,9 @@ namespace Mighty.DatabasePlugins
 		{
 			return true;
 		}
-#endregion
+		#endregion
 
-#region Npgsql cursor dereferencing
+		#region Npgsql cursor dereferencing
 		/// <summary>
 		/// Dereference cursors in more or less the way which used to be supported within Npgsql itself, only now considerably improved from that removed, partial support.
 		/// </summary>
@@ -151,6 +164,6 @@ namespace Mighty.DatabasePlugins
 			cmd.Parameters.Cast<DbParameter>().Where(p => IsCursor(p)).ToList().ForEach(p => { isCursorCommand = true; cmd.Parameters.Remove(p); });
 			return isCursorCommand;
 		}
-#endregion
+		#endregion
 	}
 }
