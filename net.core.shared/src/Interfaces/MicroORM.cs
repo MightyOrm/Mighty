@@ -201,64 +201,170 @@ namespace Mighty.Interfaces
 			return PagedFromSelect(columns, CheckTableName(), orderBy ?? CheckPrimaryKeyFields(), where, pageSize, currentPage, connection, args);
 		}
 
-		// save single item
-		virtual public int Save(object item)
+		/// <summary>
+		/// Save one or more items using params style arguments
+		/// </summary>
+		/// <param name="items">The items</param>
+		/// <returns></returns>
+		virtual public int Save(params object[] items)
 		{
-			return Save(new object[] { item });
+			return (int)ActionOnItems(ORMAction.Save, null, items);
 		}
 
-		// save (insert or update) one or more items
-		virtual public int Save(IEnumerable<object> items)
-		{
-			return Save(null, items);
-		}
-
+		/// <summary>
+		/// Save one or more items using pre-specified DbConnection
+		/// </summary>
+		/// <param name="connection">The connection</param>
+		/// <param name="items">The items</param>
+		/// <returns></returns>
 		virtual public int Save(DbConnection connection, params object[] items)
 		{
 			return (int)ActionOnItems(ORMAction.Save, connection, items);
 		}
 
-		virtual public dynamic Insert(object item)
+		/// <summary>
+		/// Save array or other IEnumerable of items
+		/// </summary>
+		/// <param name="items">The items</param>
+		/// <returns></returns>
+		virtual public int Save(IEnumerable<object> items)
 		{
-			return Insert(new object[] { item });
+			return (int)ActionOnItems(ORMAction.Save, null, items);
 		}
 
-		virtual public dynamic Insert(IEnumerable<object> items)
+		/// <summary>
+		/// Save array or other IEnumerable of items using pre-specified DbConnection
+		/// </summary>
+		/// <param name="connection">The connection</param>
+		/// <param name="items">The items</param>
+		/// <returns></returns>
+		virtual public int Save(DbConnection connection, IEnumerable<object> items)
 		{
-			return Insert(null, items);
+			return (int)ActionOnItems(ORMAction.Save, connection, items);
 		}
 
+		/// <summary>
+		/// Insert one or more items using params style arguments
+		/// </summary>
+		/// <param name="items">The items</param>
+		/// <returns></returns>
+		virtual public dynamic Insert(params object[] items)
+		{
+			return ActionOnItems(ORMAction.Insert, null, items);
+		}
+
+		/// <summary>
+		/// Insert one or more items using pre-specified DbConnection
+		/// </summary>
+		/// <param name="connection">The connection</param>
+		/// <param name="items">The items</param>
+		/// <returns></returns>
 		virtual public dynamic Insert(DbConnection connection, params object[] items)
 		{
-			return (int)ActionOnItems(ORMAction.Insert, connection, items);
+			return ActionOnItems(ORMAction.Insert, connection, items);
 		}
 
-		virtual public int Update(object item)
+		/// <summary>
+		/// Insert array or other IEnumerable of items
+		/// </summary>
+		/// <param name="items">The items</param>
+		/// <returns></returns>
+		virtual public dynamic Insert(IEnumerable<object> items)
 		{
-			return Update(new object[] { item });
+			return ActionOnItems(ORMAction.Insert, null, items);
 		}
 
-		virtual public int Update(IEnumerable<object> items)
+		/// <summary>
+		/// Insert array or other IEnumerable of items using pre-specified DbConnection
+		/// </summary>
+		/// <param name="connection">The connection</param>
+		/// <param name="items">The items</param>
+		/// <returns></returns>
+		virtual public dynamic Insert(DbConnection connection, IEnumerable<object> items)
 		{
-			return (int)Update(null, items);
+			return ActionOnItems(ORMAction.Insert, connection, items);
 		}
 
+		/// <summary>
+		/// Update one or more items using params style arguments
+		/// </summary>
+		/// <param name="items">The items</param>
+		/// <returns></returns>
+		virtual public int Update(params object[] items)
+		{
+			return (int)ActionOnItems(ORMAction.Update, null, items);
+		}
+
+		/// <summary>
+		/// Update one or more items using pre-specified DbConnection
+		/// </summary>
+		/// <param name="connection">The connection</param>
+		/// <param name="items">The items</param>
+		/// <returns></returns>
 		virtual public int Update(DbConnection connection, params object[] items)
 		{
 			return (int)ActionOnItems(ORMAction.Update, connection, items);
 		}
 
-		virtual public int Delete(object item)
+		/// <summary>
+		/// Update array or other IEnumerable of items
+		/// </summary>
+		/// <param name="items">The items</param>
+		/// <returns></returns>
+		virtual public int Update(IEnumerable<object> items)
 		{
-			return Delete(new object[] { item });
+			return (int)ActionOnItems(ORMAction.Update, null, items);
 		}
 
+		/// <summary>
+		/// Update array or other IEnumerable of items using pre-specified DbConnection
+		/// </summary>
+		/// <param name="connection">The connection</param>
+		/// <param name="items">The items</param>
+		/// <returns></returns>
+		virtual public int Update(DbConnection connection, IEnumerable<object> items)
+		{
+			return (int)ActionOnItems(ORMAction.Update, connection, items);
+		}
+
+		/// <summary>
+		/// Delete one or more items using params style arguments
+		/// </summary>
+		/// <param name="items">The items</param>
+		/// <returns></returns>
+		virtual public int Delete(params object[] items)
+		{
+			return (int)ActionOnItems(ORMAction.Delete, null, items);
+		}
+
+		/// <summary>
+		/// Delete one or more items using pre-specified DbConnection
+		/// </summary>
+		/// <param name="connection">The connection</param>
+		/// <param name="items">The items</param>
+		/// <returns></returns>
+		virtual public int Delete(DbConnection connection, params object[] items)
+		{
+			return (int)ActionOnItems(ORMAction.Delete, connection, items);
+		}
+
+		/// <summary>
+		/// Delete array or other IEnumerable of items
+		/// </summary>
+		/// <param name="items">The items</param>
+		/// <returns></returns>
 		virtual public int Delete(IEnumerable<object> items)
 		{
-			return (int)Delete((DbConnection)null, items);
+			return (int)ActionOnItems(ORMAction.Delete, null, items);
 		}
 
-		virtual public int Delete(DbConnection connection, params object[] items)
+		/// <summary>
+		/// Delete array or other IEnumerable of items using pre-specified DbConnection
+		/// </summary>
+		/// <param name="connection">The connection</param>
+		/// <param name="items">The items</param>
+		/// <returns></returns>
+		virtual public int Delete(DbConnection connection, IEnumerable<object> items)
 		{
 			return (int)ActionOnItems(ORMAction.Delete, connection, items);
 		}
@@ -297,6 +403,15 @@ namespace Mighty.Interfaces
 			DbConnection connection,
 			params object[] args);
 
+		/// <summary>
+		/// Delete one or more items by primary key
+		/// </summary>
+		/// <param name="keys">One or more keys; for compound primary keys each elemennt of keys can be any reasonable collection of key values, which need to be in the originally specified PK order.</param>
+		/// <returns></returns>
+		/// <remarks>
+		/// Careful of folding this into the other kind of delete... although that would be very clever,
+		/// it might (or mighty not) conflict with the weird Massive syntax for Update(obj, pk).
+		/// </remarks>
 		virtual public int DeleteByKey(params object[] keys)
 		{
 			return DeleteByKey(null, keys);

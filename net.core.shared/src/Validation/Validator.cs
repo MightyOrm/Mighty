@@ -10,7 +10,7 @@ namespace Mighty.Validation
 		/// If false, errors will be collected for all items, then the process will stop.
 		/// </summary>
 		/// <returns></returns>
-		virtual public bool LazyPrevalidation { get; set; } = true;
+		virtual public AutoPrevalidation AutoPrevalidation { get; set; } = AutoPrevalidation.Off;
 
 		/// <summary>
 		/// <see cref="Prevalidate" /> calls this one item at a time before any real actions are done.

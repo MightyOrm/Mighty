@@ -12,7 +12,7 @@ namespace Mighty
 	// not relative to the package which they extend); making some of them public turns them into utilty methods which are provided as part of the microORM.
 	static public partial class ObjectExtensions
 	{
-		static public dynamic ToExpando(this object o)
+		static public ExpandoObject ToExpando(this object o)
 		{
 			var oAsExpando = o as ExpandoObject;
 			if (oAsExpando != null) return oAsExpando;

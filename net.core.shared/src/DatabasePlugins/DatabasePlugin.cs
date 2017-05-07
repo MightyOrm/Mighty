@@ -94,7 +94,7 @@ namespace Mighty.DatabasePlugins
 		// is the same for every (currently supported?) database
 		virtual public string BuildInsert(string tableName, string columns, string values)
 		{
-			return string.Format("INSERT {0} ({1}) VALUES {2}",
+			return string.Format("INSERT INTO {0} ({1}) VALUES ({2})",
 				tableName, columns, values);
 		}
 

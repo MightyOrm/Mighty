@@ -85,7 +85,7 @@ namespace Mighty.DatabasePlugins
 		override public bool IsSequenceBased { get; protected set; } = true;
 		override public string BuildNextval(string sequence) { return string.Format("{0}.nextval", sequence); }
 		override public string BuildCurrval(string sequence) { return string.Format("{0}.currval", sequence); }
-		virtual public string NoTable() { return " FROM DUAL"; }
+		override public string FromNoTable() { return " FROM DUAL"; }
 		#endregion
 
 		#region DbCommand

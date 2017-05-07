@@ -87,6 +87,15 @@ namespace Mighty.Parameters
 
 			// possible support for Newtonsoft JObject here...
 
+			var type = _o.GetType();
+			if (!type
+#if !NETFRAMEWORK
+				.GetTypeInfo()
+#endif
+				.IsClass)
+			{
+				throw new InvalidOperationException("Invalid object of type " + type + " found instead of class");
+			}
 			// names, values and types from properties of anonymous object or POCOs
 			foreach (PropertyInfo property in _o.GetType().GetProperties())
 			{

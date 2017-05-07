@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Specialized;
 using System.Data;
 using System.Data.Common;
 using System.Dynamic;
@@ -250,7 +251,7 @@ namespace Mighty
 		private void LoadTableMetaData()
 		{
 			var sql = Plugin.BuildTableMetaDataQuery(!string.IsNullOrEmpty(TableOwner));
-			_TableMetaData = Plugin.PostProcessTableMetaData(Query(sql, TableName, TableOwner));
+			_TableMetaData = Plugin.PostProcessTableMetaData(Query(sql, BareTableName, TableOwner));
 		}
 
 		// fields for thread-safe initialization of TableMetaData
@@ -469,7 +470,7 @@ namespace Mighty
 					else SequenceNameOrIdentityFn = Plugin.IdentityRetrievalFunction;
 				}
 			}
-			else
+			else if (sequence != null)
 			{
 				// NB on identity-based DBs using an identity on the PK is the default mode of operation (i.e. unless
 				// empty string is specified in 'sequence'; or unless there is > 1 primary key), whereas on sequence-based
@@ -562,7 +563,7 @@ namespace Mighty
 				}
 			}
 			// ********** TO DO **********
-			return default(T); //(T)item;
+			return (T)(object)item;
 		}
 
 		// Update from fields in the item sent in. If PK has been specified, any primary key fields in the
@@ -793,6 +794,10 @@ namespace Mighty
 		/// <param name="items">The list of items. (Can be T, dynamic, or anything else with suitable name-value (and optional type) data in it.)</param>
 		virtual internal void Prevalidate(IEnumerable<object> items, ORMAction action)
 		{
+			if (Validator.AutoPrevalidation == AutoPrevalidation.Off)
+			{
+				return;
+			}
 			// Intention of non-shared error list is thread safety
 			List<object> Errors = new List<object>();
 			bool valid = true;
@@ -803,7 +808,7 @@ namespace Mighty
 				if (Errors.Count > oldCount)
 				{
 					valid = false;
-					if (Validator.LazyPrevalidation) break;
+					if (Validator.AutoPrevalidation == AutoPrevalidation.TestToFirstFailure) break;
 				}
 			}
 			if (valid == false || Errors.Count > 0)
@@ -908,6 +913,7 @@ namespace Mighty
 		{
 			int limit = pageSize;
 			int offset = (currentPage - 1) * pageSize;
+			if (columns == null) columns = DefaultColumns;
 			var sql = Plugin.BuildPagingQuery(columns, tablesAndJoins, orderBy, where, limit, offset);
 			var resultSets = QueryMultiple(sql);
 			dynamic result = new ExpandoObject();
@@ -994,7 +1000,7 @@ namespace Mighty
 
 		/// <summary>
 		/// Yield return values for Query or QueryMultiple.
-		/// Use with &lt;T&gt; for single or &lt;IEnumberable&lt;T&gt;&gt; for multiple.
+		/// Use with &lt;T&gt; for single or &lt;IEnumerable&lt;T&gt;&gt; for multiple.
 		/// </summary>
 		override protected IEnumerable<X> QueryNWithParams<X>(string sql = null, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, DbCommand command = null, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, params object[] args)
 		{
@@ -1165,18 +1171,14 @@ namespace Mighty
 						}
 					}
 
-					whereNameValuePairs.Add(name);
-					whereNameValuePairs.Add(" = ");
-					whereNameValuePairs.Add(prefixedName);
+					whereNameValuePairs.Add(string.Format("{0} = {1}", name, prefixedName));
 				}
 				else
 				{
 					insertNames.Add(name);
 					insertValues.Add(prefixedName);
 
-					updateNameValuePairs.Add(name);
-					updateNameValuePairs.Add(" = ");
-					updateNameValuePairs.Add(prefixedName);
+					updateNameValuePairs.Add(string.Format("{0} = {1}", name, prefixedName));
 				}
 				count++;
 			}
@@ -1210,6 +1212,12 @@ namespace Mighty
 					break;
 
 				case ORMAction.Insert:
+					if (SequenceNameOrIdentityFn != null && Plugin.IsSequenceBased)
+					{
+						// local copy of SequenceNameOrIdentityFn is only left non-null if there is a single PK
+						insertNames.Add(PrimaryKeyFields);
+						insertValues.Add(Plugin.BuildNextval(SequenceNameOrIdentityFn));
+					}
 					// TO DO: Hang on, we've got a different check here from SequenceNameOrIdentityFn != null;
 					// either one or other is right, or else some exceptions should be thrown if they come apart.
 					command = CreateInsertCommand(item, insertNames, insertValues, nDefaultKeyValues > 0 ? PkFilter.NoKeys : PkFilter.DoNotFilter);
@@ -1220,19 +1228,22 @@ namespace Mighty
 					break;
 
 				default:
-					// using 'Exception' for strictly internal/should not happen/our fault exceptions
+					// use 'Exception' for strictly internal/should not happen/our fault exceptions
 					throw new Exception("incorrect " + nameof(ORMAction) + "=" + action + " at action choice in " + nameof(ActionOnItem));
 			}
 			command.Connection = connection;
 			if (action == ORMAction.Insert && SequenceNameOrIdentityFn != null)
 			{
-				var pk = command.ExecuteScalar();
-				var result = WriteNewPKToItem(item, pk);
+				// All DBs return a massive size for their identity by default, we are normalising to int
+				var pk = Convert.ToInt32(Scalar(command));
+				var result = UpsertItemPK(item, pk);
+				// return value not used if we were originally a Save (so in that case user
+				// must send in a mutable object if they want to see the updated PK)
 				return result;
 			}
 			else
 			{
-				int n = command.ExecuteNonQuery();
+				int n = Execute(command);
 				// should this be checked? is it reasonable for this to be zero sometimes?
 				if (n != 1)
 				{
@@ -1300,10 +1311,30 @@ namespace Mighty
 		/// </summary>
 		/// <param name="item">The item to modify</param>
 		/// <param name="pk">The PK value (PK may be int or long depending on the current database)</param>
-		private object WriteNewPKToItem(object item, object pk)
+		private object UpsertItemPK(object item, object pk)
 		{
-			// Write the PK into the item if it has a writeable field, or create a new dyanmic object if not.
-			return item;
+			var itemAsExpando = item as ExpandoObject;
+			if (itemAsExpando != null)
+			{
+				var dict = itemAsExpando.AsDictionary();
+				dict[PrimaryKeyFields] = pk;
+				return item;
+			}
+			var nvc = item as NameValueCollection;
+			if (nvc != null)
+			{
+				nvc[PrimaryKeyFields] = pk.ToString();
+				return item;
+			}
+			// TO DO: Update field where possible in POCO
+			// (The below will work, but will always convert to expando, which is not what we want)
+			{
+				// Convert POCO to expando
+				var result = item.ToExpando();
+				var dict = result.AsDictionary();
+				dict[PrimaryKeyFields] = pk;
+				return result;
+			}
 		}
 
 		/// <summary>
