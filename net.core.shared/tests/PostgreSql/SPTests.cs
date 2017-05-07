@@ -119,7 +119,10 @@ namespace Mighty.Tests.PostgreSql
 		public void DefaultValueFromNullInputOutputParam_Npgsql()
 		{
 			var db = new SPTestsDatabase();
-			// NB This would not work on other ADO.NET providers.
+			// the two lines create a null w param with a no type; on most DB providers this only works
+			// for input params, where a null is a null is a null, but not on output params, where
+			// we need to know what type the output var should be; but some providers plain ignore
+			// the output type - in which case we do not insist that the user provide one
 			dynamic wArgs = new ExpandoObject();
 			wArgs.w = null;
 			// w := w + 2; v := w - 1; x := w + 1

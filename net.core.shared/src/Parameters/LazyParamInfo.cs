@@ -37,7 +37,7 @@ namespace Mighty.Parameters
 		{
 			get
 			{
-				if (_type == null)
+				if (_type == null && _value != null)
 				{
 					_type = _value.GetType();
 				}
