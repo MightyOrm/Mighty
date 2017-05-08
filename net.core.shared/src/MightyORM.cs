@@ -226,7 +226,7 @@ namespace Mighty
 	}
 	#endregion
 
-	public class MightyORM<T> : MicroORM<T>, /*IDynamicMetaObjectProvider,*/ IPluginCallback where T : new()
+	public class MightyORM<T> : MicroORM<T>, IDynamicMetaObjectProvider, IPluginCallback where T : new()
 	{
 		// Only properties with a non-trivial implementation are here, the rest are in the MicroORM abstract class.
 		#region Properties
@@ -364,9 +364,35 @@ namespace Mighty
 		/// </summary>
 		/// <param name="parameter"></param>
 		/// <returns></returns>
+		/// <remarks>
+		/// Much thanks to http://stackoverflow.com/a/17634595/795690
+		/// </remarks>
 		public DynamicMetaObject GetMetaObject(Expression parameter)
 		{
-			return DynamicObjectWrapper.GetMetaObject(parameter);
+			return new DelegatingMetaObject(DynamicObjectWrapper, parameter, BindingRestrictions.GetTypeRestriction(parameter, this.GetType()), this);
+		}
+
+		private class DelegatingMetaObject : DynamicMetaObject
+		{
+			private readonly IDynamicMetaObjectProvider innerProvider;
+
+			public DelegatingMetaObject(IDynamicMetaObjectProvider innerProvider, Expression expr, BindingRestrictions restrictions)
+				: base(expr, restrictions)
+			{
+				this.innerProvider = innerProvider;
+			}
+
+			public DelegatingMetaObject(IDynamicMetaObjectProvider innerProvider, Expression expr, BindingRestrictions restrictions, object value)
+				: base(expr, restrictions, value)
+			{
+				this.innerProvider = innerProvider;
+			}
+
+			public override DynamicMetaObject BindInvokeMember(InvokeMemberBinder binder, DynamicMetaObject[] args)
+			{
+				var innerMetaObject = innerProvider.GetMetaObject(Expression.Constant(innerProvider));
+				return innerMetaObject.BindInvokeMember(binder, args);
+			}
 		}
 		#endregion
 
