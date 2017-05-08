@@ -88,7 +88,7 @@ namespace Mighty.DatabasePlugins
 		virtual public string BuildDelete(string tableName, string where)
 		{
 			return string.Format("DELETE FROM {0}{1}",
-				tableName, where.Thingify("WHERE"));
+				tableName, where.Compulsify("WHERE", "DELETE"));
 		}
 
 		// is the same for every (currently supported?) database
@@ -102,7 +102,7 @@ namespace Mighty.DatabasePlugins
 		virtual public string BuildUpdate(string tableName, string values, string where)
 		{
 			return string.Format("UPDATE {0} SET {1}{2}",
-				tableName, values, where.Thingify("WHERE"));
+				tableName, values, where.Compulsify("WHERE", "UPDATE"));
 		}
 
 		/// <summary>

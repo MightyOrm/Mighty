@@ -27,6 +27,12 @@ namespace Mighty
 
 		// Not sure whether this is really useful or not... syntax is nicer and saves a little typing, even though functionality is obviously very simple.
 		// Hopefully compiler removes any apparent inefficiency.
+
+		/// <summary>
+		/// Convert ExpandoObject to dictionary.
+		/// </summary>
+		/// <param name="o"></param>
+		/// <returns></return>
 		static public IDictionary<string, object> AsDictionary(this ExpandoObject o)
 		{
 			return (IDictionary<string, object>)o;
@@ -37,11 +43,21 @@ namespace Mighty
 			return Thingify(sql, thing, false);
 		}
 
-		static internal string Thingify(this string sql, string thing, bool yes = true)
+		static internal string Compulsify(this string sql, string thing, string op)
 		{
-			if (sql == null) return string.Empty;
-			sql = sql.Trim();
-			if (sql == string.Empty) return string.Empty;
+			return Thingify(sql, thing, compulsory: true, op: op);
+		}
+
+		static internal string Thingify(this string sql, string thing, bool yes = true, bool compulsory = false, string op = null)
+		{
+			if (sql == null || (sql = sql.Trim()) == string.Empty)
+			{
+				if (compulsory)
+				{
+					throw new InvalidOperationException(string.Format("Abandoning {0}, empty {1} clause{2}", op, thing, thing == "WHERE" ? " (specify 1=1 to affect all rows)" : ""));
+				}
+				return string.Empty;
+			}
 			if (sql.Length > thing.Length &&
 				sql.StartsWith(thing, StringComparison.OrdinalIgnoreCase) &&
 				string.IsNullOrWhiteSpace(sql.Substring(thing.Length, 1)))
