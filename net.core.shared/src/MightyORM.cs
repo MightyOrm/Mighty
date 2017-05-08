@@ -166,7 +166,7 @@ namespace Mighty
 							break;
 						case "where":
 							// this is an arbitrary SQL WHERE specification, so we have to wrap it in brackets to avoid operator precedence issues
-							wherePredicates.Add("( " + args[i].ToString().Unthingify("WHERE") + " )");
+							wherePredicates.Add("(" + args[i].ToString().Unthingify("WHERE") + ")");
 							break;
 						case "args":
 							// wrap anything other than an array in an array (this is what C# params basically does anyway)
@@ -365,33 +365,34 @@ namespace Mighty
 		/// <param name="parameter"></param>
 		/// <returns></returns>
 		/// <remarks>
-		/// Much thanks to http://stackoverflow.com/a/17634595/795690
+		/// Modified from http://stackoverflow.com/a/17634595/795690
 		/// </remarks>
 		public DynamicMetaObject GetMetaObject(Expression parameter)
 		{
-			return new DelegatingMetaObject(DynamicObjectWrapper, parameter, BindingRestrictions.GetTypeRestriction(parameter, this.GetType()), this);
+			var parentDMO = new DynamicMetaObject(parameter, BindingRestrictions.Empty, this);
+			return new DelegatingMetaObject(DynamicObjectWrapper, parentDMO, parameter, BindingRestrictions.Empty, this);
 		}
 
 		private class DelegatingMetaObject : DynamicMetaObject
 		{
 			private readonly IDynamicMetaObjectProvider innerProvider;
+			private readonly DynamicMetaObject parentDMO;
 
-			public DelegatingMetaObject(IDynamicMetaObjectProvider innerProvider, Expression expr, BindingRestrictions restrictions)
-				: base(expr, restrictions)
-			{
-				this.innerProvider = innerProvider;
-			}
-
-			public DelegatingMetaObject(IDynamicMetaObjectProvider innerProvider, Expression expr, BindingRestrictions restrictions, object value)
+			public DelegatingMetaObject(IDynamicMetaObjectProvider innerProvider,
+				DynamicMetaObject parentDMO,
+				Expression expr, BindingRestrictions restrictions, object value)
 				: base(expr, restrictions, value)
 			{
 				this.innerProvider = innerProvider;
+				this.parentDMO = parentDMO;
 			}
 
 			public override DynamicMetaObject BindInvokeMember(InvokeMemberBinder binder, DynamicMetaObject[] args)
 			{
 				var innerMetaObject = innerProvider.GetMetaObject(Expression.Constant(innerProvider));
-				return innerMetaObject.BindInvokeMember(binder, args);
+				var retval = innerMetaObject.BindInvokeMember(binder, args);
+				var newretval = binder.FallbackInvokeMember(parentDMO, args, retval);
+				return newretval;
 			}
 		}
 		#endregion
@@ -554,12 +555,13 @@ namespace Mighty
 			params object[] args)
 		{
 			return ScalarWithParams(Plugin.BuildSelect(expression, CheckTableName(), where),
-				connection: connection, args: args);
+				inParams, outParams, ioParams, returnParams,
+				connection, args);
 		}
 
-		// You do NOT have to use this - you can create new items to pass into the microORM more or less however you want.
+		// You do not have to use this - you can create new items to pass into the microORM more or less however you want.
 		// The main convenience provided here is to automatically strip out any input which does not match your column names.
-		// TO DO: This is slightly dodgy because it does not get the values from the DB itself - it is possible that with the
+		// TO DO: This may be slightly dodgy because it does not get the values from the DB itself - it is possible that with the
 		// correct select we can get the DB to send us the values.
 		override public T NewFrom(object nameValues = null, bool addNonPresentAsDefaults = true)
 		{
@@ -843,26 +845,20 @@ namespace Mighty
 			}
 		}
 
-		override public bool IsValid(object item)
-		{
-			List<object> Errors = new List<object>();
-			IsValid(item, ORMAction.Save, Errors);
-			return Errors.Count > 0;
-		}
-
 		/// <summary>
 		/// Is the passed in item valid against the current validator for the specified ORMAction?
 		/// </summary>
-		/// <param name="item"></param>
-		/// <param name="Errors"></param>
+		/// <param name="item">The item</param>
+		/// <param name="action">Optional action type (defaults to Save)</param>
 		/// <returns></returns>
-		override public void IsValid(object item, ORMAction action, List<object> Errors)
+		override public List<object> IsValid(object item, ORMAction action = ORMAction.Save)
 		{
-			if (Validator == null)
+			List<object> Errors = new List<object>();
+			if (Validator != null)
 			{
-				return;
+				Validator.ValidateForAction(item, action, Errors);
 			}
-			Validator.ValidateForAction(item, action, Errors);
+			return Errors;
 		}
 		#endregion
 
@@ -1536,7 +1532,7 @@ namespace Mighty
 					if (useExpando)
 					{
 						dynamic e = new ExpandoObject();
-						IDictionary<string, object> d = e.AsDictionary();
+						IDictionary<string, object> d = ((ExpandoObject)e).AsDictionary();
 						for (int i = 0; i < fieldCount; i++)
 						{
 							var v = rowValues[i];

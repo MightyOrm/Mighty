@@ -94,7 +94,7 @@ namespace Mighty.Parameters
 #endif
 				.IsClass)
 			{
-				throw new InvalidOperationException("Invalid object of type " + type + " found instead of class");
+				throw new InvalidOperationException("Found " + type + " instead of item with usable names and values");
 			}
 			// names, values and types from properties of anonymous object or POCOs
 			foreach (PropertyInfo property in _o.GetType().GetProperties())

@@ -373,13 +373,11 @@ namespace Mighty.Tests.SqlServer
 			dynamic soh = new SalesOrderHeader();
 			var toValidate = soh.Find(SalesOrderID: 45816);
 			// is invalid
-			Assert.IsFalse(soh.IsValid(toValidate));
-			Assert.AreEqual(1, soh.Errors.Count);
+			Assert.AreEqual(1, soh.IsValid(toValidate).Count);
 
 			toValidate = soh.Find(SalesOrderID: 45069);
 			// is valid
-			Assert.IsTrue(soh.IsValid(toValidate));
-			Assert.AreEqual(0, soh.Errors.Count);
+			Assert.AreEqual(0, soh.IsValid(toValidate).Count);
 		}
 
 

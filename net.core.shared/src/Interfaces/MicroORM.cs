@@ -409,8 +409,10 @@ namespace Mighty.Interfaces
 		/// <param name="keys">One or more keys; for compound primary keys each elemennt of keys can be any reasonable collection of key values, which need to be in the originally specified PK order.</param>
 		/// <returns></returns>
 		/// <remarks>
-		/// Careful of folding this into the other kind of delete... although that would be very clever,
+		/// TO DO: Careful of folding this into the other kind of delete... although that would be very clever,
 		/// it might (or mighty not) conflict with the weird Massive syntax for Update(obj, pk).
+		/// Okay, we can fix that one by only allowing this for delete; but then we still need to
+		/// allow value,value collections. Which should also be okay, as they don't look like name,value collections.
 		/// </remarks>
 		virtual public int DeleteByKey(params object[] keys)
 		{
@@ -451,9 +453,7 @@ namespace Mighty.Interfaces
 
 		abstract internal object ActionOnItems(ORMAction action, DbConnection connection, IEnumerable<object> items);
 
-		abstract public bool IsValid(object item);
-
-		abstract public void IsValid(object item, ORMAction action, List<object> Errors);
+		abstract public List<object> IsValid(object item, ORMAction action = ORMAction.Save);
 		#endregion
 	}
 }

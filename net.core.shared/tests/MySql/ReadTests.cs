@@ -355,13 +355,11 @@ namespace Mighty.Tests.MySql
 			dynamic film = new Film(ProviderName);
 			var toValidate = film.Find(film_id: 72);
 			// is invalid
-			Assert.IsFalse(film.IsValid(toValidate));
-			Assert.AreEqual(1, film.Errors.Count);
+			Assert.AreEqual(1, film.IsValid(toValidate).Count);
 
 			toValidate = film.Find(film_id: 2);
 			// is valid
-			Assert.IsTrue(film.IsValid(toValidate));
-			Assert.AreEqual(0, film.Errors.Count);
+			Assert.AreEqual(0, film.IsValid(toValidate).Count);
 		}
 
 
