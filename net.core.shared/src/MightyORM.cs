@@ -1187,8 +1187,7 @@ namespace Mighty
 			var argsItem = new ExpandoObject();
 			var argsItemDict = argsItem.AsDictionary();
 			var count = 0;
-			// ParameterDirection.Input to allow value collection as PK collections
-			foreach (var nvt in new NameValueTypeEnumerator(item, ParameterDirection.Input))
+			foreach (var nvt in new NameValueTypeEnumerator(item, action: action))
 			{
 				var name = nvt.Name;
 				if (name == string.Empty)

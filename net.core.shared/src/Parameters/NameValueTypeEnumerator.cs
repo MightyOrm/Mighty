@@ -6,6 +6,8 @@ using System.Data;
 using System.Dynamic;
 using System.Reflection;
 
+using Mighty.Validation;
+
 namespace Mighty.Parameters
 {
 	/// <remarks>
@@ -20,17 +22,16 @@ namespace Mighty.Parameters
 	internal class NameValueTypeEnumerator : IEnumerable<LazyNameValueTypeInfo>, IEnumerable
 	{
 		private object _o;
-		private ParameterDirection _direction;
+		private ParameterDirection? _direction;
+		private ORMAction? _action;
 
 		internal ParameterInfo Current { get; set; }
 
-		// We don't default to output parameters as such, but we do default to complaining
-		// if object[] is passed in in any context except for directional parameters with
-		// the direction at Input (see <see cref="GetEnumerator" />)
-		internal NameValueTypeEnumerator(object o, ParameterDirection direction = ParameterDirection.Output)
+		internal NameValueTypeEnumerator(object o, ParameterDirection? direction = null, ORMAction? action = null)
 		{
 			_o = o;
 			_direction = direction;
+			_action = action;
 		}
 
 		IEnumerator IEnumerable.GetEnumerator()
@@ -40,7 +41,7 @@ namespace Mighty.Parameters
 
 		public IEnumerator<LazyNameValueTypeInfo> GetEnumerator()
 		{
-			// enumerate nothing if null
+			// enumerate empty list if null
 			if (_o == null)
 			{
 				yield break;
@@ -84,16 +85,35 @@ namespace Mighty.Parameters
 				valueArray = _o as object[];
 			}
 
-			// This is for adding anonymous parameters (this will cause an exception later on, in AddParam, if used on
+			// This is for adding anonymous parameters (which will cause a different exception later on, in AddParam, if used on
 			// a DB which doesn't support it; even on DBs which do support it, it only makes sense on input parameters).
-			// NB This is not the same thing as the auto-named parameters added by AddParams() which also uses object[],
-			// but with a different meaning (namely the values for auto-named params @0, @1 or :0, :1 etc.).
-			// Value only processing now used to support value-only collections of PK values when performing ORMAction on an item.
+			// NB This is not the same thing as the auto-named parameters added by AddParams(), which also use object[]
+			// but with a different meaning (namely the values for the auto-named params @0, @1 or :0, :1 etc.).
+			// Value-only processing now also used to support value-only collections of PK values when performing ORMAction on an item.
 			if (valueArray != null)
 			{
-				if (_direction != ParameterDirection.Input)
+				string msg = null;
+				if (_action != null)
 				{
-					throw new InvalidOperationException("object[] arguments supported for input parameters only");
+					if (_action != ORMAction.Delete)
+					{
+						msg = "Value-only collections not supported for action " + _action;
+						if (_action == ORMAction.Update)
+						{
+							msg += "; use Update(item), not Update(item, pk)";
+						}
+					}
+				}
+				else
+				{
+					if (_direction != ParameterDirection.Input)
+					{
+						msg = "object[] arguments supported for input parameters only";
+					}
+				}
+				if (msg != null)
+				{
+					throw new InvalidOperationException(msg);
 				}
 				// anonymous parameters from array
 				foreach (var value in valueArray)
