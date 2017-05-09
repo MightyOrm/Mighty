@@ -41,10 +41,15 @@ namespace Mighty.DatabasePlugins
 			}
 		}
 
-		override public string BuildPagingQuery(string columns, string tablesAndJoins, string orderBy, string where,
+		override public dynamic BuildPagingQueryPair(string columns, string tablesAndJoins, string where, string orderBy,
 			int limit, int offset)
 		{
-			return BuildRowNumberPagingQuery(columns, tablesAndJoins, orderBy, where, limit, offset);
+			return BuildRowNumberPagingQueryPair(columns, tablesAndJoins, where, orderBy, limit, offset);
+		}
+
+		override public string WrapCommandBlock(string block)
+		{
+			return string.Format("BEGIN\r\n{0}\r\nEND;", block);
 		}
 		#endregion
 

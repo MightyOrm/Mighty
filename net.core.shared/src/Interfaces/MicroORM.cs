@@ -188,17 +188,28 @@ namespace Mighty.Interfaces
 			DbConnection connection = null,
 			params object[] args);
 
-		// ORM version (there is also a data wrapper version).
-		// You may provide orderBy, if you don't it will try to order by PK (and will produce an exception if there is no PK defined).
-		// <see cref="columns"/> parameter not placed first, as it's an override to something we may have already
-		// provided in the constructor...
+		/// <summary>
+		/// Table-specific paging; there is also a data wrapper version of paging <see cref="PagedFromSelect"/>.
+		/// </summary>
+		/// <param name="orderBy">You may provide orderBy, if you don't it will try to order by PK and will produce an exception if there is no PK defined.</param>
+		/// <param name="where"></param>
+		/// <param name="columns"></param>
+		/// <param name="pageSize"></param>
+		/// <param name="currentPage"></param>
+		/// <param name="connection"></param>
+		/// <param name="args"></param>
+		/// <returns>The result of the paged query. Result properties are Items, TotalPages, and TotalRecords.</returns>
+		/// <remarks>
+		/// <see cref="columns"/> parameter is not placed first because it's an override to something we may have alread provided in the constructor
+		/// (so we don't want the user to have to non-fluently re-type it, or else type null, every time).
+		/// </remarks>
 		virtual public T Paged(string orderBy = null, string where = null,
 			string columns = null,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args)
 		{
-			return PagedFromSelect(columns, CheckTableName(), orderBy ?? CheckPrimaryKeyFields(), where, pageSize, currentPage, connection, args);
+			return PagedFromSelect(columns, CheckTableName(), where, orderBy ?? CheckPrimaryKeyFields(), pageSize, currentPage, connection, args);
 		}
 
 		/// <summary>

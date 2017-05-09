@@ -129,13 +129,33 @@ namespace Mighty.Tests.Oracle
 		[Test]
 		public void Paged_SqlSpecification()
 		{
+			// TO DO: Separate tests, with lambdas
+			// Exception on "*" columns
+			InvalidOperationException ex1 = Assert.Throws<InvalidOperationException>(new TestDelegate(TestStarWithJoin));
+			// Exception on empty order by
+			InvalidOperationException ex2 = Assert.Throws<InvalidOperationException>(new TestDelegate(TestPagedNoOrderBy));
+
 			var depts = new Department(ProviderName);
-			var page2 = depts.Paged(orderBy: "DEPTNO", pageSize: 10, currentPage: 2);
+			var page2 = depts.PagedFromSelect("EMPNO, ENAME, DNAME", "SCOTT.EMP e INNER JOIN SCOTT.DEPT d ON e.DEPTNO = d.DEPTNO", null, "EMPNO", pageSize: 5, currentPage: 2);
 			var pageItems = ((IEnumerable<dynamic>)page2.Items).ToList();
-			Assert.AreEqual(10, pageItems.Count);
-			Assert.AreEqual(60, page2.TotalRecords);
+			Assert.AreEqual(5, pageItems.Count);
+			Assert.AreEqual(14, page2.TotalRecords);
+			Assert.AreEqual(3, page2.TotalPages);
 		}
 
+		private void TestStarWithJoin()
+		{
+			var depts = new Department(ProviderName);
+			var page2 = depts.PagedFromSelect("*", "SCOTT.EMP e INNER JOIN SCOTT.DEPT d ON e.DEPTNO = d.DEPTNO", null, "EMPNO", pageSize: 2, currentPage: 2);
+			var pageItems = ((IEnumerable<dynamic>)page2.Items).ToList();
+		}
+
+		private void TestPagedNoOrderBy()
+		{
+			var depts = new Department(ProviderName);
+			var page2 = depts.PagedFromSelect("EMPNO, ENAME, DNAME", "SCOTT.EMP e INNER JOIN SCOTT.DEPT d ON e.DEPTNO = d.DEPTNO", null, null, pageSize: 2, currentPage: 2);
+			var pageItems = ((IEnumerable<dynamic>)page2.Items).ToList();
+		}
 
 		[Test]
 		public void Insert_SingleRow()

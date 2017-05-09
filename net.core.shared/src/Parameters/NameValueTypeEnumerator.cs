@@ -68,7 +68,7 @@ namespace Mighty.Parameters
 			var o = _o as ExpandoObject;
 			if (o != null)
 			{
-				foreach (var pair in o.AsDictionary())
+				foreach (var pair in o)
 				{
 					yield return new LazyNameValueTypeInfo(pair.Key, () => pair.Value);
 				}

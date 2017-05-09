@@ -32,10 +32,10 @@ namespace Mighty.DatabasePlugins
 			return BuildLimitSelect(columns, tableName, where, orderBy, limit);
 		}
 
-		override public string BuildPagingQuery(string columns, string tablesAndJoins, string orderBy, string where,
+		override public dynamic BuildPagingQueryPair(string columns, string tablesAndJoins, string where, string orderBy,
 			int limit, int offset)
 		{
-			return BuildLimitOffsetPagingQuery(columns, tablesAndJoins, orderBy, where, limit, offset);
+			return BuildLimitOffsetPagingQueryPair(columns, tablesAndJoins, where, orderBy, limit, offset);
 		}
 		#endregion
 

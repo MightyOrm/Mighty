@@ -919,16 +919,21 @@ namespace Mighty
 		/// <summary>
 		/// Return paged results from arbitrary select statement.
 		/// </summary>
-		/// <param name="columns">The SELECT columns</param>
-		/// <param name="tablesAndJoins">The FROM tables and joins</param>
-		/// <param name="orderBy">The ORDER BY clause</param>
-		/// <param name="where">The WHERE clause</param>
-		/// <param name="pageSize">Page size</param>
-		/// <param name="currentPage">Current page</param>
-		/// <param name="connection">Optional DbConnection to use</param>
-		/// <param name="args">Optional parameters to the SQL</param>
-		/// <returns></returns>
-		override public dynamic PagedFromSelect(string columns, string tablesAndJoins, string orderBy, string where = null,
+		/// <param name="columns">Column spec</param>
+		/// <param name="tablesAndJoins">Single table name, or join specification</param>
+		/// <param name="where">Optional</param>
+		/// <param name="orderBy">Required</param>
+		/// <param name="pageSize"></param>
+		/// <param name="currentPage"></param>
+		/// <param name="connection"></param>
+		/// <param name="args"></param>
+		/// <returns>The result of the paged query. Result properties are Items, TotalPages, and TotalRecords.</returns>
+		/// <remarks>
+		/// In this one instance, because of the connection to the underlying logic of these queries, the user
+		/// can pass "SELECT columns" instead of columns.
+		/// TO DO: Cancel the above!
+		/// </remarks>
+		override public dynamic PagedFromSelect(string columns, string tablesAndJoins, string where, string orderBy,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args)
@@ -936,11 +941,11 @@ namespace Mighty
 			int limit = pageSize;
 			int offset = (currentPage - 1) * pageSize;
 			if (columns == null) columns = DefaultColumns;
-			var sql = Plugin.BuildPagingQuery(columns, tablesAndJoins, orderBy, where, limit, offset);
-			var resultSets = QueryMultiple(sql);
+			var pagingQueryPair = Plugin.BuildPagingQueryPair(columns, tablesAndJoins, where, orderBy, limit, offset);
 			dynamic result = new ExpandoObject();
-			result.TotalCount = resultSets.First().First().TotalCount;
-			result.Items = resultSets.Last();
+			result.TotalRecords = Convert.ToInt32(Scalar(pagingQueryPair.CountQuery));
+			result.TotalPages = (result.TotalRecords + pageSize - 1) / pageSize;
+			result.Items = Query(pagingQueryPair.PagingQuery);
 			return result;
 		}
 
@@ -1165,12 +1170,24 @@ namespace Mighty
 			List<string> insertValues = new List<string>(); // list of param names, not actual values
 			List<string> updateNameValuePairs = new List<string>();
 			List<string> whereNameValuePairs = new List<string>();
+			var argsItem = new ExpandoObject();
+			var argsItemDict = argsItem.AsDictionary();
 			var count = 0;
 			foreach (var nvt in new NameValueTypeEnumerator(item))
 			{
 				var name = nvt.Name;
 				var value = nvt.Value;
-				var prefixedName = Plugin.PrefixParameterName(name);
+				string paramName;
+				if (value == null)
+				{
+					// Sending NULL in the SQL, and not in a param, is *required* for obscure cases (such as SQL Server Image) where the column will not accept a varchar NULL param
+					paramName = "NULL";
+				}
+				else
+				{
+					paramName = Plugin.PrefixParameterName(name);
+					argsItemDict.Add(name, value);
+				}
 				if (IsKey(name))
 				{
 					nKeys++;
@@ -1182,7 +1199,7 @@ namespace Mighty
 					if (SequenceNameOrIdentityFn == null)
 					{
 						insertNames.Add(name);
-						insertValues.Add(prefixedName);
+						insertValues.Add(paramName);
 					}
 					else
 					{
@@ -1193,14 +1210,14 @@ namespace Mighty
 						}
 					}
 
-					whereNameValuePairs.Add(string.Format("{0} = {1}", name, prefixedName));
+					whereNameValuePairs.Add(string.Format("{0} = {1}", name, paramName));
 				}
 				else
 				{
 					insertNames.Add(name);
-					insertValues.Add(prefixedName);
+					insertValues.Add(paramName);
 
-					updateNameValuePairs.Add(string.Format("{0} = {1}", name, prefixedName));
+					updateNameValuePairs.Add(string.Format("{0} = {1}", name, paramName));
 				}
 				count++;
 			}
@@ -1230,7 +1247,7 @@ namespace Mighty
 			switch (action)
 			{
 				case ORMAction.Update:
-					command = CreateUpdateCommand(item, updateNameValuePairs, whereNameValuePairs);
+					command = CreateUpdateCommand(argsItem, updateNameValuePairs, whereNameValuePairs);
 					break;
 
 				case ORMAction.Insert:
@@ -1242,11 +1259,11 @@ namespace Mighty
 					}
 					// TO DO: Hang on, we've got a different check here from SequenceNameOrIdentityFn != null;
 					// either one or other is right, or else some exceptions should be thrown if they come apart.
-					command = CreateInsertCommand(item, insertNames, insertValues, nDefaultKeyValues > 0 ? PkFilter.NoKeys : PkFilter.DoNotFilter);
+					command = CreateInsertCommand(argsItem, insertNames, insertValues, nDefaultKeyValues > 0 ? PkFilter.NoKeys : PkFilter.DoNotFilter);
 					break;
 
 				case ORMAction.Delete:
-					command = CreateDeleteCommand(item, whereNameValuePairs);
+					command = CreateDeleteCommand(argsItem, whereNameValuePairs);
 					break;
 
 				default:
@@ -1305,6 +1322,7 @@ namespace Mighty
 					   "SELECT " +
 					   (Plugin.IsSequenceBased ? Plugin.BuildCurrval(SequenceNameOrIdentityFn) : SequenceNameOrIdentityFn) +
 					   Plugin.FromNoTable() + ";";
+				sql = Plugin.WrapCommandBlock(sql);
 			}
 			var command = CreateCommand(sql);
 			AddNamedParams(command, item, pkFilter: pkFilter);
@@ -1473,7 +1491,7 @@ namespace Mighty
 			{
 				return;
 			}
-			foreach (var paramInfo in new NameValueTypeEnumerator(nameValuePairs))
+			foreach (var paramInfo in new NameValueTypeEnumerator(nameValuePairs, direction))
 			{
 				if (pkFilter == PkFilter.DoNotFilter || (IsKey(paramInfo.Name) == (pkFilter == PkFilter.KeysOnly)))
 				{

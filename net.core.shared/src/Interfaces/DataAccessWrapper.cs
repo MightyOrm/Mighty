@@ -162,10 +162,7 @@ namespace Mighty.Interfaces
 			return Scalar(command, connection);
 		}
 
-		// You must provide orderBy for a paged query; where is optional.
-		// In this one instance, because of the connection to the underlying logic of these queries, the user
-		// can pass "SELECT columns" instead of columns.
-		abstract public dynamic PagedFromSelect(string columns, string tablesAndJoins, string orderBy, string where = null,
+		abstract public dynamic PagedFromSelect(string columns, string tablesAndJoins, string where, string orderBy,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args);

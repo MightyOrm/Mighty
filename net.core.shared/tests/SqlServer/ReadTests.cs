@@ -299,7 +299,7 @@ namespace Mighty.Tests.SqlServer
 			Assert.AreEqual(30, pageItems.Count);
 			Assert.AreEqual(31465, page2.TotalRecords);
 			var firstRow = (IDictionary<string, object>)pageItems[0];
-			Assert.AreEqual(2, firstRow.Count);
+			Assert.AreEqual(3, firstRow.Count);
 			int previous = int.MaxValue;
 			foreach(var r in pageItems)
 			{

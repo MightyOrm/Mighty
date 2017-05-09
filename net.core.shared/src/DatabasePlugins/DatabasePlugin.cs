@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Dynamic;
 using System.Linq;
 
 namespace Mighty.DatabasePlugins
@@ -117,23 +118,33 @@ namespace Mighty.DatabasePlugins
 		/// <param name="limit"></param>
 		/// <param name="offset"></param>
 		/// <returns></returns>
-		abstract public string BuildPagingQuery(string columns, string tablesAndJoins, string orderBy, string where,
+		/// <remarks>
+		/// Has to be done as two round-trips to the DB for one main reason:
+		/// 1) The items are done using the standard yield return delayed execution, so we don't want to
+		///	   start the reader until the results are needed, but we do want the count straight away.
+		/// Less importantly
+		/// 2) It is difficult (though possible now, using Oracle's automatic dereferencing and the cursor
+		///	   support in the microORM) to get at the results of multiple selects from one DB call
+		///	   on Oracle.
+		/// </remarks>
+		abstract public dynamic BuildPagingQueryPair(string columns, string tablesAndJoins, string where, string orderBy,
 			int limit, int offset);
 
-		protected string BuildLimitOffsetPagingQuery(string columns, string tablesAndJoins, string orderBy, string where,
+		protected dynamic BuildLimitOffsetPagingQueryPair(string columns, string tablesAndJoins, string where, string orderBy,
 			int limit, int offset)
 		{
+			dynamic result = new ExpandoObject();
 			tablesAndJoins = tablesAndJoins.Unthingify("FROM");
-			string CountQuery = BuildSelect("COUNT(*) AS TotalCount", tablesAndJoins, where);
-			string PagingQuery = string.Format("SELECT {0} FROM {1}{2} ORDER BY {3} LIMIT {4}{5}",
+			result.CountQuery = BuildSelect("COUNT(*) AS TotalCount", tablesAndJoins, where);
+			result.PagingQuery = string.Format("SELECT {0} FROM {1}{2} {3} LIMIT {4}{5}",
 				columns.Unthingify("SELECT"),
 				tablesAndJoins,
 				where == null ? "" : string.Format(" {0}", where.Thingify("WHERE")),
-				orderBy.Unthingify("ORDER BY"),
+				orderBy.Compulsify("ORDER BY", "paged select"),
 				limit,
 				offset > 0 ? string.Format(" OFFSET {0}", offset) : ""
 			);
-			return CountQuery + ";" + CRLF + PagingQuery + ";";
+			return result;
 		}
 
 		/// <summary>
@@ -147,28 +158,58 @@ namespace Mighty.DatabasePlugins
 		/// <param name="limit"></param>
 		/// <param name="offset"></param>
 		/// <returns></returns>
-		protected string BuildRowNumberPagingQuery(string columns, string tablesAndJoins, string where, string orderBy, int limit, int offset)
+		/// <remarks>Unavoidably (without significant SQL parsing, which we do not do) adds column RowNumber to the results, which does not happen on LIMIT/OFFSET DBs</remarks>
+		protected dynamic BuildRowNumberPagingQueryPair(string columns, string tablesAndJoins, string where, string orderBy, int limit, int offset)
 		{
+			dynamic result = new ExpandoObject();
 			tablesAndJoins = tablesAndJoins.Unthingify("FROM");
-			string CountQuery = BuildSelect("COUNT(*) AS TotalCount", tablesAndJoins, where);
+			result.CountQuery = BuildSelect("COUNT(*) AS TotalCount", tablesAndJoins, where);
 			// we have to use t_.* in the outer select as columns may refer to table names or aliases which are only in scope in the inner select
-			string PagingQuery = string.Format("SELECT t_.*" + CRLF +
+			result.PagingQuery = string.Format("SELECT t_.*" + CRLF +
 								 "FROM" + CRLF +
 								 "(" + CRLF +
-								 "    SELECT ROW_NUMBER() OVER (ORDER BY {3}) RowNum, {0}" + CRLF +
+								 "    SELECT ROW_NUMBER() OVER ({3}) RowNumber, {0}" + CRLF +
 								 "    FROM {1}" + CRLF +
 								 "{2}" +
 								 ") t_" + CRLF +
-								 "WHERE {5}RowNum < {4}" + CRLF +
-								 "ORDER BY RowNum",
-				columns,
+								 "WHERE {5}RowNumber < {4}" + CRLF +
+								 "ORDER BY RowNumber",
+				FixStarColumns(tablesAndJoins, columns),
 				tablesAndJoins,
 				where == null ? "" : string.Format("    {0}" + CRLF, where.Thingify("WHERE")),
-				orderBy.Unthingify("ORDER BY"),
-				limit + 1,
-				offset > 0 ? string.Format("RowNum > {0} AND ", offset) : ""
+				orderBy.Compulsify("ORDER BY", "paged select"),
+				offset + limit + 1,
+				offset > 0 ? string.Format("RowNumber > {0} AND ", offset) : ""
 			);
-			return CountQuery + ";" + CRLF + PagingQuery + ";";
+			return result;
+		}
+
+		/// <summary>
+		/// Adds table name qualifer to * column spec so that basic paging query can work on Oracle (and does no harm on SQL Server).
+		/// Throws exception for * colmns spec combined with join query (which will not work even on SQL Server).
+		/// </summary>
+		/// <remarks>
+		/// Adding the qualifier to a bare table name is not required, but works, on SQL Server
+		/// Having * on a join query won't work on SQL server, even though the syntax is valid, because it complains about multiple appearance of the join column.
+		/// Therefore this call makes sense on both DBs.
+		/// </remarks>
+		protected string FixStarColumns(string tableName, string columns)
+		{
+			// This will complain when it shouldn't in corner cases (e.g. a quoted table name with a space in), but can be worked round even then.
+			if (columns == "*")
+			{
+				if (tableName.Any(Char.IsWhiteSpace))
+				{
+					throw new InvalidOperationException("To query from joined tables you must specify the columns explicitly (not *)");
+				}
+				columns = string.Format("{0}.{1}", tableName, columns);
+			}
+			return columns;
+		}
+
+		virtual public string WrapCommandBlock(string block)
+		{
+			return block;
 		}
 		#endregion
 
