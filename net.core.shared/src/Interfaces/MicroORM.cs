@@ -450,6 +450,10 @@ namespace Mighty.Interfaces
 		abstract internal object ActionOnItems(ORMAction action, DbConnection connection, IEnumerable<object> items);
 
 		abstract public List<object> IsValid(object item, ORMAction action = ORMAction.Save);
+
+		abstract public bool HasPrimaryKey(object item);
+
+		abstract public object GetPrimaryKey(object item, bool alwaysArray = false);
 		#endregion
 	}
 }

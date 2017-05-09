@@ -863,6 +863,56 @@ namespace Mighty
 			}
 			return Errors;
 		}
+
+		/// <summary>
+		/// True iff input object has a named field the PK (or PKs for compound primary keys)
+		/// </summary>
+		/// <param name="item">Item to check</param>
+		/// <returns></returns>
+		override public bool HasPrimaryKey(object item)
+		{
+			int count = 0;
+			foreach (var info in new NameValueTypeEnumerator(item))
+			{
+				if (IsKey(info.Name)) count++;
+			}
+			return count == PrimaryKeyList.Count;
+		}
+
+		/// <summary>
+		/// Return primary key for item, as simple object for simple PK, or as object[] for compound PK.
+		/// </summary>
+		/// <param name="item"></param>
+		/// <returns></returns>
+		/// <remarks>
+		/// TO DO: Add test for compound PK
+		/// </remarks>
+		override public object GetPrimaryKey(object item, bool alwaysArray = false)
+		{
+			var pks = new ExpandoObject();
+			var pkDictionary = pks.AsDictionary();
+			foreach (var info in new NameValueTypeEnumerator(item))
+			{
+				string canonicalKeyName;
+				if (IsKey(info.Name, out canonicalKeyName)) pkDictionary.Add(canonicalKeyName, info.Value);
+			}
+			if (pkDictionary.Count != PrimaryKeyList.Count)
+			{
+				throw new InvalidOperationException("PK field(s) not present in object");
+			}
+			// re-arrange to specified order
+			var retval = new List<object>();
+			foreach (var key in PrimaryKeyList)
+			{
+				retval.Add(pkDictionary[key]);
+			}
+			var array = retval.ToArray();
+			if (array.Length == 1 && !alwaysArray)
+			{
+				return array[0];
+			}
+			return array;
+		}
 		#endregion
 
 		// Only methods with a non-trivial implementation are here, the rest are in the DataAccessWrapper abstract class.
@@ -1388,10 +1438,31 @@ namespace Mighty
 		/// Is the string passed in the name of a PK field?
 		/// </summary>
 		/// <param name="fieldName">The name to check</param>
+		/// <param name="canonicalKeyName">Return the canonical key name</param>
+		/// <returns></returns>
+		internal bool IsKey(string fieldName, out string canonicalKeyName)
+		{
+			canonicalKeyName = null;
+			foreach (var key in PrimaryKeyList)
+			{
+				if (key.Equals(fieldName, StringComparison.OrdinalIgnoreCase))
+				{
+					canonicalKeyName = fieldName;
+					return true;
+				}
+			}
+			return false;
+		}
+
+		/// <summary>
+		/// Is the string passed in the name of a PK field?
+		/// </summary>
+		/// <param name="fieldName">The name to check</param>
 		/// <returns></returns>
 		internal bool IsKey(string fieldName)
 		{
-			return PrimaryKeyList.Any(key => key.Equals(fieldName, StringComparison.OrdinalIgnoreCase));
+			string canonicalKeyName;
+			return IsKey(fieldName, out canonicalKeyName);
 		}
 		#endregion
 
