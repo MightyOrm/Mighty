@@ -812,7 +812,7 @@ namespace Mighty
 				}
 				count++;
 			}
-			if (action == ORMAction.Insert) return firstInserted;
+			if (count == 1 && action == ORMAction.Insert) return firstInserted;
 			else return affected;
 		}
 
