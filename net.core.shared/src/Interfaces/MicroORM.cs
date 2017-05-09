@@ -415,24 +415,6 @@ namespace Mighty.Interfaces
 			params object[] args);
 
 		/// <summary>
-		/// Delete one or more items by primary key
-		/// </summary>
-		/// <param name="keys">One or more keys; for compound primary keys each elemennt of keys can be any reasonable collection of key values, which need to be in the originally specified PK order.</param>
-		/// <returns></returns>
-		/// <remarks>
-		/// TO DO: Careful of folding this into the other kind of delete... although that would be very clever,
-		/// it might (or mighty not) conflict with the weird Massive syntax for Update(obj, pk).
-		/// Okay, we can fix that one by only allowing this for delete; but then we still need to
-		/// allow value,value collections. Which should also be okay, as they don't look like name,value collections.
-		/// </remarks>
-		virtual public int DeleteByKey(params object[] keys)
-		{
-			return DeleteByKey(null, keys);
-		}
-
-		abstract public int DeleteByKey(DbConnection connection, params object[] keys);
-
-		/// <summary>
 		/// Delete rows from ORM table based on WHERE clause.
 		/// </summary>
 		/// <param name="where">

@@ -621,17 +621,6 @@ namespace Mighty
 			return ExecuteWithParams(sql, args: args, inParams: filteredItem, connection: connection);
 		}
 
-		override public int DeleteByKey(DbConnection connection, params object[] keys)
-		{
-			int sum = 0;
-			foreach (var key in keys)
-			{
-				var sql = Plugin.BuildDelete(CheckTableName(), WhereForKeys());
-				sum += Execute(sql, key);
-			}
-			return sum;
-		}
-
 		/// <summary>
 		/// Delete rows from ORM table based on WHERE clause.
 		/// </summary>
