@@ -46,25 +46,6 @@ namespace Mighty.Parameters
 				yield break;
 			}
 
-			// This is for adding anonymous parameters (this will cause an exception later on, in AddParam, if used on
-			// a DB which doesn't support it; even on DBs which do support it, it only makes sense on input parameters).
-			// NB This is not the same as the auto-named parameters added by AddParams(), which also use object[] but with a
-			// different meaning.
-			object[] valueArray = _o as object[];
-			if (valueArray != null)
-			{
-				if (_direction != ParameterDirection.Input)
-				{
-					throw new InvalidOperationException("object[] arguments supported for input parameters only");
-				}
-				// anonymous parameters from array
-				foreach (var value in valueArray)
-				{
-					yield return new LazyNameValueTypeInfo(string.Empty, () => value);
-				}
-				yield break;
-			}
-
 			var o = _o as ExpandoObject;
 			if (o != null)
 			{
@@ -87,6 +68,8 @@ namespace Mighty.Parameters
 
 			// possible support for Newtonsoft JObject here...
 
+			// Convert non-class objects to value array
+			object[] valueArray = null;
 			var type = _o.GetType();
 			if (!type
 #if !NETFRAMEWORK
@@ -94,8 +77,33 @@ namespace Mighty.Parameters
 #endif
 				.IsClass)
 			{
-				throw new InvalidOperationException("Found " + type + " instead of item with usable names and values");
+				valueArray = new object[] { _o };
 			}
+			else
+			{
+				valueArray = _o as object[];
+			}
+
+			// This is for adding anonymous parameters (this will cause an exception later on, in AddParam, if used on
+			// a DB which doesn't support it; even on DBs which do support it, it only makes sense on input parameters).
+			// NB This is not the same thing as the auto-named parameters added by AddParams() which also uses object[],
+			// but with a different meaning (namely the values for auto-named params @0, @1 or :0, :1 etc.).
+			// Value only processing now used to support value-only collections of PK values when performing ORMAction on an item.
+			if (valueArray != null)
+			{
+				if (_direction != ParameterDirection.Input)
+				{
+					throw new InvalidOperationException("object[] arguments supported for input parameters only");
+				}
+				// anonymous parameters from array
+				foreach (var value in valueArray)
+				{
+					// string.Empty not null is needed in AddParam
+					yield return new LazyNameValueTypeInfo(string.Empty, () => value);
+				}
+				yield break;
+			}
+
 			// names, values and types from properties of anonymous object or POCOs
 			foreach (PropertyInfo property in _o.GetType().GetProperties())
 			{

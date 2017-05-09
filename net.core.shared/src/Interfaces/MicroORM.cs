@@ -454,11 +454,14 @@ namespace Mighty.Interfaces
 
 		abstract public object GetColumnDefault(string columnName);
 
+		// TO DO: Why do these protected ones need to be in the interface?
 		abstract protected object[] KeyValuesFromKey(object key);
 
 		abstract protected string WhereForKeys();
 
 		abstract protected string CheckPrimaryKeyFields();
+
+		abstract protected string CheckGetKeyName(int i, string message);
 
 		abstract protected string CheckTableName();
 

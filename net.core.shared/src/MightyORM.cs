@@ -742,6 +742,20 @@ namespace Mighty
 		}
 
 		/// <summary>
+		/// Return ith primary key name, with meaningful exception if too many requested.
+		/// </summary>
+		/// <param name="i"></param>
+		/// <returns></returns>
+		override protected string CheckGetKeyName(int i, string message)
+		{
+			if (i >= PrimaryKeyList.Count)
+			{
+				throw new InvalidOperationException(message);
+			}
+			return PrimaryKeyList[i];
+		}
+
+		/// <summary>
 		/// Return current table name, raising an exception if there isn't one.
 		/// </summary>
 		/// <returns></returns>
@@ -1173,9 +1187,14 @@ namespace Mighty
 			var argsItem = new ExpandoObject();
 			var argsItemDict = argsItem.AsDictionary();
 			var count = 0;
-			foreach (var nvt in new NameValueTypeEnumerator(item))
+			// ParameterDirection.Input to allow value collection as PK collections
+			foreach (var nvt in new NameValueTypeEnumerator(item, ParameterDirection.Input))
 			{
 				var name = nvt.Name;
+				if (name == string.Empty)
+				{
+					name = CheckGetKeyName(count, "Too many values trying to map value-only object to primary key list");
+				}
 				var value = nvt.Value;
 				string paramName;
 				if (value == null)
@@ -1188,7 +1207,7 @@ namespace Mighty
 					paramName = Plugin.PrefixParameterName(name);
 					argsItemDict.Add(name, value);
 				}
-				if (IsKey(name))
+				if (nvt.Name == null || IsKey(name))
 				{
 					nKeys++;
 					if (value == null || value == nvt.Type.GetDefaultValue())
