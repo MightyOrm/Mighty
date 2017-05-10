@@ -1,4 +1,5 @@
 using System;
+using System.Data;
 using System.Data.Common;
 
 namespace Mighty.DatabasePlugins
@@ -47,9 +48,11 @@ namespace Mighty.DatabasePlugins
 			return BuildRowNumberPagingQueryPair(columns, tablesAndJoins, where, orderBy, limit, offset);
 		}
 
-		override public string WrapCommandBlock(string block)
+		override public void FixupPagingCommand(DbCommand command)
 		{
-			return string.Format("BEGIN\r\n{0}\r\nEND;", block);
+			command.CommandText = string.Format("BEGIN\r\n{0}\r\nEND;", command.CommandText);
+			// Add cursor, which will be automatically dereferenced by the Oracle data access layer
+			Mighty.AddNamedParams(command, new { pk___ = new Cursor() }, ParameterDirection.Output);
 		}
 		#endregion
 
@@ -89,8 +92,8 @@ namespace Mighty.DatabasePlugins
 		#region Keys and sequences
 		override public bool IsSequenceBased { get; protected set; } = true;
 		override public string BuildNextval(string sequence) { return string.Format("{0}.nextval", sequence); }
-		override public string BuildCurrval(string sequence) { return string.Format("{0}.currval", sequence); }
-		override public string FromNoTable() { return " FROM DUAL"; }
+		// With cursor so that we can use Oracle built-in automatic dereferencing and make a single round trip to the DB
+		override public string BuildCurrvalSelect(string sequence) { return string.Format("OPEN :pk___ FOR SELECT {0}.currval FROM DUAL", sequence); }
 		#endregion
 
 		#region DbCommand

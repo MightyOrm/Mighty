@@ -142,7 +142,7 @@ namespace Mighty
 			var info = binder.CallInfo;
 			if (info.ArgumentNames.Count != args.Length)
 			{
-				throw new InvalidOperationException("Use named arguments for dynamically invoked queries: this can be a field name, 'orderby', 'colums', 'where' or 'args'");
+				throw new InvalidOperationException("No non-dynamic method found; use named arguments for dynamically invoked queries: this can be a field name followed by a value, 'orderby:', 'colums:', 'where:' or 'args:'");
 			}
 
 			var columns = "*";
@@ -226,7 +226,7 @@ namespace Mighty
 	}
 	#endregion
 
-	public class MightyORM<T> : MicroORM<T>, IDynamicMetaObjectProvider, IPluginCallback where T : new()
+	public class MightyORM<T> : MicroORM<T>, IDynamicMetaObjectProvider where T : new()
 	{
 		// Only properties with a non-trivial implementation are here, the rest are in the MicroORM abstract class.
 		#region Properties
@@ -460,7 +460,7 @@ namespace Mighty
 			Factory = connectionProvider.ProviderFactoryInstance;
 			Type pluginType = connectionProvider.DatabasePluginType;
 			Plugin = (DatabasePlugin)Activator.CreateInstance(pluginType, false);
-			Plugin.Mighty = (IPluginCallback)this;
+			Plugin.Mighty = this;
 
 			if (primaryKey == null && tableClassName != null)
 			{
@@ -1310,8 +1310,9 @@ namespace Mighty
 				case ORMAction.Insert:
 					if (SequenceNameOrIdentityFn != null && Plugin.IsSequenceBased)
 					{
-						// local copy of SequenceNameOrIdentityFn is only left non-null if there is a single PK
+						// our copy of SequenceNameOrIdentityFn is only ever non-null when there is a non-compound PK
 						insertNames.Add(PrimaryKeyFields);
+						// TO DO: Should there be two places for BuildNextval? (See above.) Why?
 						insertValues.Add(Plugin.BuildNextval(SequenceNameOrIdentityFn));
 					}
 					// TO DO: Hang on, we've got a different check here from SequenceNameOrIdentityFn != null;
@@ -1376,13 +1377,12 @@ namespace Mighty
 			if (SequenceNameOrIdentityFn != null)
 			{
 				sql += ";\r\n" +
-					   "SELECT " +
-					   (Plugin.IsSequenceBased ? Plugin.BuildCurrval(SequenceNameOrIdentityFn) : SequenceNameOrIdentityFn) +
-					   Plugin.FromNoTable() + ";";
-				sql = Plugin.WrapCommandBlock(sql);
+					   (Plugin.IsSequenceBased ? Plugin.BuildCurrvalSelect(SequenceNameOrIdentityFn) : string.Format("SELECT {0}", SequenceNameOrIdentityFn)) +
+					   ";";
 			}
 			var command = CreateCommand(sql);
 			AddNamedParams(command, item, pkFilter: pkFilter);
+			Plugin.FixupPagingCommand(command);
 			return command;
 		}
 

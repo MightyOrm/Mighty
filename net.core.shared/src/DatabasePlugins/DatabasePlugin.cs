@@ -13,8 +13,8 @@ namespace Mighty.DatabasePlugins
 	{
 		protected const string CRLF = "\r\n";
 
-		// some bits of the instance which we are plugged in to
-		public IPluginCallback Mighty { get; set; }
+		// the instance which we are plugged in to (as dynamic to avoid having to dynamically type everything about the database plugin classes)
+		public dynamic Mighty { get; set; }
 
 		#region Provider support
 		// Returns the provider factory class name for the known provider(s) for this DB;
@@ -207,10 +207,7 @@ namespace Mighty.DatabasePlugins
 			return columns;
 		}
 
-		virtual public string WrapCommandBlock(string block)
-		{
-			return block;
-		}
+		virtual public void FixupPagingCommand(DbCommand command) { }
 		#endregion
 
 		#region Table info
@@ -238,8 +235,7 @@ namespace Mighty.DatabasePlugins
 		#region Keys and sequences
 		virtual public bool IsSequenceBased { get; protected set; } = false;
 		virtual public string BuildNextval(string sequence) => throw new NotImplementedException();
-		virtual public string BuildCurrval(string sequence) => throw new NotImplementedException();
-		virtual public string FromNoTable() { return ""; }
+		virtual public string BuildCurrvalSelect(string sequence) => throw new NotImplementedException();
 		virtual public string IdentityRetrievalFunction { get; protected set; }
 		#endregion
 

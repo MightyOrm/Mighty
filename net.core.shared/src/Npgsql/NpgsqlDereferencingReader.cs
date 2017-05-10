@@ -11,7 +11,7 @@ namespace Mighty.Npgsql
 	public class NpgsqlDereferencingReader : DbDataReader, IDisposable
 	{
 		private DbConnection Connection;
-		private IPluginCallback Mighty;
+		private dynamic Mighty;
 		private int FetchSize;
 
 		private DbDataReader Reader = null; // current FETCH reader
@@ -34,7 +34,7 @@ namespace Mighty.Npgsql
 		/// https://github.com/npgsql/npgsql/issues/438
 		/// http://stackoverflow.com/questions/42292341/
 		/// </remarks>
-		public NpgsqlDereferencingReader(DbDataReader reader, CommandBehavior behavior, DbConnection connection, IPluginCallback mighty)
+		public NpgsqlDereferencingReader(DbDataReader reader, CommandBehavior behavior, DbConnection connection, dynamic mighty)
 		{
 			FetchSize = mighty.NpgsqlAutoDereferenceFetchSize;
 			Connection = connection;
@@ -154,7 +154,8 @@ namespace Mighty.Npgsql
 
 		private DbCommand CreateCommand(string sql, DbConnection connection)
 		{
-			var command = Mighty.CreateCommand(sql);
+			// cast only needed because we're storing Mighty in a dynamic (to avoid a generic typing nightmare)
+			var command = (DbCommand)Mighty.CreateCommand(sql);
 			command.Connection = connection;
 			return command;
 		}

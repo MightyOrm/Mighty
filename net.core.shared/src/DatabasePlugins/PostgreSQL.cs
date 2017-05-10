@@ -68,7 +68,7 @@ namespace Mighty.DatabasePlugins
 		#region Keys and sequences
 		override public bool IsSequenceBased { get; protected set; } = true;
 		override public string BuildNextval(string sequence) { return string.Format("nextval('{0}')", sequence); }
-		override public string BuildCurrval(string sequence) { return string.Format("currval('{0}')", sequence); }
+		override public string BuildCurrvalSelect(string sequence) { return string.Format("SELECT currval('{0}')", sequence); }
 		#endregion
 
 		#region Prefix/deprefix parameters
