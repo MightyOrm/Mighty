@@ -1,4 +1,4 @@
-﻿#if NET40 || COREFX
+﻿#if NET40 //|| COREFX
 using NUnit.Common;
 using NUnitLite;
 using System;

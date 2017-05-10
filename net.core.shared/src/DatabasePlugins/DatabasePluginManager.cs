@@ -31,9 +31,9 @@ namespace Mighty.DatabasePlugins
 			_installedPluginTypes = new List<Type>();
 			var targetType = typeof(DatabasePlugin);
 #if COREFX
-			// TO DO: I think this is wrong
 			// Seems to be the best way to do this in .NET Core 1.1?
-			var assembly = Assembly.Load(new AssemblyName(targetType.AssemblyQualifiedName));
+			var assemblyParts = targetType.AssemblyQualifiedName.Split(',');
+			var assembly = Assembly.Load(new AssemblyName(assemblyParts[1]));
 #else
 			var assembly = Assembly.GetExecutingAssembly();
 #endif
