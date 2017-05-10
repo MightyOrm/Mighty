@@ -169,7 +169,7 @@ namespace Mighty.Interfaces
 			return AllWithParams(
 				where, orderBy, columns, 1,
 				inParams, outParams, ioParams, returnParams,
-				CommandBehavior.SingleRow, connection,
+				connection,
 				args).FirstOrDefault();
 		}
 
@@ -184,7 +184,6 @@ namespace Mighty.Interfaces
 		abstract public IEnumerable<T> AllWithParams(
 			string where = null, string orderBy = null, string columns = null, int limit = 0,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			CommandBehavior behavior = CommandBehavior.Default,
 			DbConnection connection = null,
 			params object[] args);
 

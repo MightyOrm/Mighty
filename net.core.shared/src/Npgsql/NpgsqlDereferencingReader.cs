@@ -41,7 +41,7 @@ namespace Mighty.Npgsql
 			Mighty = mighty;
 
 			// We're not saving the behavior: this logic has already enforced SingleResult;
-			// for SingleRow, we rely on the user to one read one row and then dispose of everything.
+			// for SingleRow, we rely on the user to only read one row and then dispose of everything.
 			bool earlyQuit = (behavior == CommandBehavior.SingleResult || behavior == CommandBehavior.SingleRow);
 
 			using (reader)
