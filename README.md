@@ -13,21 +13,22 @@ I believe (and hope!) it will do for you what Massive did for you - only with al
 * Compound primary keys
 * Simultaneous support for more then one database provider
 
-### The History of Mighty
+## The History of Mighty
+
 I really, really wanted to call the predecessor of this project Massive3 or MassiveX or something, because initially I spent a lot of time producing all of this new stuff in a way which could simply drop in to an existing Massive project and just work. (And it worked! You could compile it as a DLL and it dropped in and passed the Massive v2.0 test suite with no changes at all required - as well, of course, as passing all its own new tests.)
 
-But I was forcefully told, by several members of the community, include @RobConery, that this was simply the wrong way to go about it, and that if I want to make a fork of Massive, I had to call it something else. They were right, I was wrong. So, in the end, this *isn't* a fork of Massive. It's a re-write from scratch of the same ideas which Massive uses in its core engine (with a similar, but not identical, API), then with all my own new ADO.NET stuff added back on top.
+But I was forcefully told, by several members of the community, include @RobConery, that this was simply the wrong way to go about it, and that if I want to make a fork of Massive, I had to call it something else. They were right, I was wrong. And in the end, this *isn't* a fork of Massive. It's a re-write from scratch of the same ideas which Massive uses in its core engine (with a similar, but not identical, API), then with all my own new ADO.NET stuff added back on top.
 
 This project couldn't possibly exist without @RobConery's genius Massive in the first place, and without @FransBouma's expert refactoring and updating of the Massive codebase after that. But this codebase is NOT the Massive codebase. It is what I wanted Massive to be (and very much *did* offer to help make it be - maybe in an overbearing and annoying way). But it's not what Massive is ever going to be. So it is what it is. It's "the version of Massive I wanted", only now it's not Massive, it's Mighty.
 
-### A Little Technical Background
+## A Little Technical Background
 
-#### Why `dynamic`?
+### Why `dynamic`?
 Like Massive, Mighty isn't just a dynamic microORM, it's specifically a `dynamic` microORM.
 
 That is, it's based around C#4's `dynamic` types. If you don't know them, you can think of them as a bit like JavaScript objects (if you know those). They have named and typed members and methods, accessible with normal C# dot notation; but exactly what those members and methods are is only determined at runtime, and can change during an object's life. This is great for returning typed data which matches whatever is in your SQL tables (or your tabled-valued functions, stored produces, etc.), but with basically no mapping or set up on your part at all!
 
-#### The power of ADO.NET
+### The power of ADO.NET
 The other secret which Mighty uses, a lot, and which I only found out about from working on Massive, is that ADO.NET is actually very good at automatically setting the `DbType` of parameters from the data you put into them.
 
 Without some additional code this unfortunately cannot work in a few key cases - which means that most of the ADO.NET database code you've likely ever seen, or worked on, always sets *all* the parameter types explicitly. But hey, now you don't need to! Like Massive, Mighty does it for you; or rather, it mostly lets ADO.NET do it for you, but it deals with the special cases.
@@ -47,7 +48,7 @@ and even
 
 Not only that, you can do all of these from *very* sweet and simple API calls.
 
-#### Plus... The New Stuff!
+## The New Stuff
 
 Some databases require more than just CRUD table access.
 
@@ -57,12 +58,50 @@ This is where Mighty comes into its own, because Massive simply cannot do all of
 
 Basically, this is why I wrote Mighty:
 
-- Because I want all that cool, lightweight, `dynamic` microORM stuff which Massive invented, and already perfected
+- Because I wanted all that cool, lightweight, `dynamic` microORM stuff which Massive invented, and already perfected
 - But I also want access to all that other ADO.NET stuff - preferably also via a cool, lightweight (and `dynamic`, where applicable) interface
 
 Mighty is all of that, and does it now. Plus .NET Core.
 
 You're welcome!
+
+## Differences from Massive
+
+To get started you must change `using Massive` to `using Mighty` and `DynamicModel` to `MightyORM`. After that a lot of code which was written against Massive will just compile and work.
+
+However depending on what features you are using you may need to know about:
+
+#### DataTable support
+
+- DataTable is no longer directly supported (not even on .NET Framework) (however if you need it, the (short) Massive source code for .ToDataTable() is [here](https://github.com/FransBouma/Massive/blob/583c0932cb5da17f06216777be74e16a421f2df4/src/Massive.Shared.cs#L140-L187)) (it is open source, under the same license as this project)
+
+#### Table meta-data
+
+- .Schema is now called .TableMetaData ('schema' was potentially misleading on those DB systems where it also means something like 'namespace')
+- .DefaultValue(columnName) is now called .GetColumnDefault(columnName)
+- .Prototype is replaced by .New()
+- .CreateFrom(coll) is replaced by .NewFrom(obj) (where obj can be NameValueCollection as before, but now can also be any other sensible way of specifying a name-value set)
+
+#### Validation
+
+- .IsValid(item) now returns a List&lt;object&gt; of errors (this is intentionally a List, not an IList!). Each object is one error; the error objects are typically strings, but you get to decide this in your validation class. So `db.IsValid(item).Errors.Count == 0` checks for no errors (but also gets back the reported errors without storing them in a shared variable). But (as in Massive) you typically don't need to call .IsValid(item) directly since validation is called automatically during CRUD operations, as follows.
+- All validation is now done via hooks in the `Mighty.Validation.Validator` class, not in the MightyORM class itself. If you need validation you should create your own subclass of this, override the hook methods which you need, and pass a new instance of it to the constructor of MightyORM.
+
+#### CRUD
+
+- .SaveAsNew(items) is no longer required, use .Insert(items) instead; other uses of .Insert(item) still work as before
+- .Update(item, key) is replaced by .Update(item) where item contains the key; your instance of MightyORM already knows which field the key is in
+- .Delete(null, where, args) is replaced by .Delete(where, args); note that .Delete(pk) still works as before and .Delete(item) is newly available
+
+#### Paging
+
+- The version of .Paged(string sql, ...) for use with arbitrary SQL has been replaced by .PagedFromSelect(columns, tablesAndJoins, where, orderBy, ...), which is similar but allows correct handling of paged queries with arbitrary joins and qualified column names if you need them; note that the version of .Paged(...) for use with the default table still works as before
+- Paged result sets on SQL Server now include an additional `RowNumber` column even if explicit columns are specified (this extra column already appeared if all columns were selected, though it was called `Row` before)
+- Paged result sets on Oracle now have `RowNumber` instead of `r___` as the additional row number column name (and the additional column always appears, as it did before)
+
+
+The only one of the above which will compile against a strongly-typed instance of MightyORM even if you don't make the mentioned changes is .Update(item, key), but running it will give you a meaningful runtime exception. (You will also get runtime not compile-time errors if you call any of the old versions against MightyORM stored in a dynamic variable.)
+
 
 ## Code ... please ;)
 
@@ -95,5 +134,5 @@ This is arguably an abuse of XML since now '&lt;DynamicObject&gt;' will occur in
 For more advanced usage, the following properties can be set in the constructor:
 
  - Validator - custom validation for per-item insert/update/delete
- - Mapper - mapper from class and property names to table and column names
- - ConnectionProvider - support custom ways of mapping from connection string to 
+ - Mapper - mapper from C# class and property names to SQL table and column names
+ - ConnectionProvider - support custom ways of mapping from connection string to DbProviderFactory (you don't normally need this, default versions for .NET Framework and .NET Core are provided, and automatically instantiated if you don't specify your own)
