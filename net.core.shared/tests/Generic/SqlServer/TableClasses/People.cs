@@ -20,7 +20,7 @@ namespace Mighty.Generic.Tests.SqlServer.TableClasses
 
 
 		public People(bool includeSchema) :
-			base(TestConstants.WriteTestConnection, includeSchema ? "dbo.People" : "People", "PersonID")
+			base(TestConstants.ReadTestConnection, includeSchema ? "dbo.People" : "People", "PersonID")
 		{
 		}
 	}

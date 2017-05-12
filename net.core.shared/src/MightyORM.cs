@@ -91,7 +91,7 @@ namespace Mighty
 #endregion
 	}
 
-	public partial class MightyORM<T> : MicroORM<T> where T : new()
+	public partial class MightyORM<T> : MicroORM<T> where T : class, new()
 	{
 		#region Constructor
 		/// <summary>
@@ -135,7 +135,7 @@ namespace Mighty
 			Init(connectionString, tableName, tableClassName, primaryKeyField, valueField, sequence, columns, validator, mapper, profiler, connectionProvider);
 
 			// For generic version only, store the column names defined by the generic type
-			columnNameToPropertyInfo = new Dictionary<string, PropertyInfo>();
+			columnNameToPropertyInfo = new Dictionary<string, PropertyInfo>(Mapper.UseCaseInsensitiveMapping ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
 			foreach (var prop in typeof(T).GetProperties(propertyBindingFlags))
 			{
 				var columnName = Mapper.GetColumnNameFromPropertyName(tableClassName, prop.Name);
@@ -145,10 +145,16 @@ namespace Mighty
 				}
 				columnNameToPropertyInfo.Add(columnName, prop);
 			}
-		}
-#endregion
 
-#region Convenience factory
+			// SequenceNameOrIdentityFn is only left at non-null when there is a single PK
+			if (SequenceNameOrIdentityFn != null)
+			{
+				pkProperty = columnNameToPropertyInfo[PrimaryKeyFields];
+			}
+		}
+		#endregion
+
+		#region Convenience factory
 		// mini-factory for non-table specific access
 		// (equivalent to a constructor call)
 		// <remarks>static, so can't be defined anywhere but here</remarks>
@@ -301,6 +307,7 @@ namespace Mighty
 		}
 
 		protected Dictionary<string, PropertyInfo> columnNameToPropertyInfo;
+		protected PropertyInfo pkProperty;
 #endregion
 
 #region Thread-safe initializer for table meta-data
@@ -409,33 +416,49 @@ namespace Mighty
 		// correct select we can get the DB to send us the values.
 		override public T NewFrom(object nameValues = null, bool addNonPresentAsDefaults = true)
 		{
-			var item = new ExpandoObject();
-			var newItemDictionary = item.AsDictionary();
-			var parameters = new NameValueTypeEnumerator(nameValues);
+			object item;
+			IDictionary<string, object> newItemDictionary = null;
+			if (typeof(T) == typeof(object))
+			{
+				item = new ExpandoObject();
+				newItemDictionary = ((ExpandoObject)item).AsDictionary();
+			}
+			else
+			{
+				item = new T();
+			}
+			var nvtEnumerator = new NameValueTypeEnumerator(nameValues);
 			// drive the loop by the actual column names
 			foreach (var columnInfo in TableMetaData)
 			{
 				string columnName = columnInfo.COLUMN_NAME;
-				object userValue = null;
-				foreach (var paramInfo in parameters)
+				PropertyInfo prop = null;
+				if (typeof(T) != typeof(object))
 				{
-					if (paramInfo.Name.Equals(columnName, StringComparison.OrdinalIgnoreCase))
+					columnNameToPropertyInfo.TryGetValue(columnName, out prop);
+					if (prop == null) continue;
+				}
+				object value = null;
+				foreach (var nvtInfo in nvtEnumerator)
+				{
+					if (nvtInfo.Name.Equals(columnName, Mapper.UseCaseInsensitiveMapping ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
 					{
-						userValue = paramInfo.Value;
+						value = nvtInfo.Value;
 						break;
 					}
 				}
-				if (userValue != null)
+				if (value == null)
 				{
-					newItemDictionary.Add(columnName, userValue);
+					if (!addNonPresentAsDefaults) continue;
+					value = GetColumnDefault(columnName);
 				}
-				else if (addNonPresentAsDefaults)
+				if (value != null)
 				{
-					newItemDictionary.Add(columnName, GetColumnDefault(columnName));
+					if (prop != null) prop.SetValue(item, value.ChangeType(prop.PropertyType));
+					else newItemDictionary.Add(columnName, value);
 				}
 			}
-			// ********** TO DO **********
-			return (T)(object)item;
+			return (T)item;
 		}
 
 		// Update from fields in the item sent in. If PK has been specified, any primary key fields in the
@@ -663,9 +686,9 @@ namespace Mighty
 		/// <param name="connection">The DbConnection</param>
 		/// <param name="items">The item or items</param>
 		/// <returns></returns>
-		override internal object ActionOnItems(ORMAction action, DbConnection connection, IEnumerable<object> items)
+		override internal int ActionOnItems(ORMAction action, DbConnection connection, IEnumerable<object> items, out T insertedItem)
 		{
-			object firstInserted = null;
+			insertedItem = null;
 			int count = 0;
 			int affected = 0;
 			Prevalidate(items, action);
@@ -676,15 +699,14 @@ namespace Mighty
 					var _inserted = ActionOnItem(action, item, connection);
 					if (count == 0)
 					{
-						firstInserted = _inserted;
+						insertedItem = _inserted;
 					}
 					Validator.PerformedAction(item, action);
 					affected++;
 				}
 				count++;
 			}
-			if (count == 1 && action == ORMAction.Insert) return firstInserted;
-			else return affected;
+			return affected;
 		}
 
 
@@ -1068,7 +1090,7 @@ namespace Mighty
 											var v = rowValues[i];
 											if (propertyInfo[i] != null)
 											{
-												propertyInfo[i].SetValue(t, v == DBNull.Value ? null : v, null);
+												propertyInfo[i].SetValue(t, v == DBNull.Value ? null : v.ChangeType(propertyInfo[i].PropertyType));
 											}
 										}
 										yield return (X)(object)t;
@@ -1103,7 +1125,7 @@ namespace Mighty
 		/// sounds as if it means that if this part of the library was written in VB then doing this would be officially
 		/// supported? not quite sure, that assumes that the different implementations of anonymous types can co-exist)
 		/// </remarks>
-		private object ActionOnItem(ORMAction action, object item, DbConnection connection)
+		private T ActionOnItem(ORMAction action, object item, DbConnection connection)
 		{
 			int nKeys = 0;
 			int nDefaultKeyValues = 0;
@@ -1225,7 +1247,7 @@ namespace Mighty
 				var result = UpsertItemPK(item, pk);
 				// return value not used if we were originally a Save (so in that case user
 				// must send in a mutable object if they want to see the updated PK)
-				return result;
+				return (T)result;
 			}
 			else
 			{
@@ -1299,27 +1321,46 @@ namespace Mighty
 		/// <param name="pk">The PK value (PK may be int or long depending on the current database)</param>
 		private object UpsertItemPK(object item, object pk)
 		{
-			var itemAsExpando = item as ExpandoObject;
-			if (itemAsExpando != null)
+			if (typeof(T) == typeof(object))
 			{
-				var dict = itemAsExpando.AsDictionary();
-				dict[PrimaryKeyFields] = pk;
-				return item;
+				var itemAsExpando = item as ExpandoObject;
+				if (itemAsExpando != null)
+				{
+					var dict = itemAsExpando.AsDictionary();
+					dict[PrimaryKeyFields] = pk;
+					return item;
+				}
+				var nvc = item as NameValueCollection;
+				if (nvc != null)
+				{
+					nvc[PrimaryKeyFields] = pk.ToString();
+					return item;
+				}
+				// Try to write back field to arbitrary POCO
+				var pkProp = item.GetType().GetProperty(PrimaryKeyFields);
+				if (pkProp != null && pkProp.CanWrite)
+				{
+					pkProp.SetValue(item, pk);
+					return item;
+				}
+				// non-conflicting local scope
+				{
+					// Convert POCO to expando
+					var result = item.ToExpando();
+					var dict = result.AsDictionary();
+					dict[PrimaryKeyFields] = pk;
+					return result;
+				}
 			}
-			var nvc = item as NameValueCollection;
-			if (nvc != null)
+			else
 			{
-				nvc[PrimaryKeyFields] = pk.ToString();
-				return item;
-			}
-			// TO DO: Update field where possible in POCO
-			// (The below will work, but will always convert to expando, which is not what we want)
-			{
-				// Convert POCO to expando
-				var result = item.ToExpando();
-				var dict = result.AsDictionary();
-				dict[PrimaryKeyFields] = pk;
-				return result;
+				var itemT = item as T;
+				if (itemT == null)
+				{
+					itemT = NewFrom(item);
+				}
+				pkProperty.SetValue(itemT, pk);
+				return itemT;
 			}
 		}
 

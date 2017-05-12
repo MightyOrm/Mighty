@@ -127,7 +127,7 @@ namespace Mighty.Parameters
 			// names, values and types from properties of anonymous object or POCOs
 			foreach (PropertyInfo property in _o.GetType().GetProperties())
 			{
-				yield return new LazyNameValueTypeInfo(property.Name, () => property.GetValue(_o, null), property.PropertyType);
+				yield return new LazyNameValueTypeInfo(property.Name, () => property.GetValue(_o), property.PropertyType);
 			}
 		}
 	}

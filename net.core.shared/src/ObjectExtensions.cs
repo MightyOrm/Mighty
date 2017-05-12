@@ -25,14 +25,51 @@ namespace Mighty
 			return result;
 		}
 
-		// Not sure whether this is really useful or not... syntax is nicer and saves a little typing, even though functionality is obviously very simple.
-		// Hopefully compiler removes any apparent inefficiency.
+#if NET40
+		internal static void SetValue(this PropertyInfo prop, object obj, object value)
+		{
+			prop.SetValue(obj, value);
+		}
+
+		internal static object GetValue(this PropertyInfo prop, object obj)
+		{
+			return prop.GetValue(obj, null);
+		}
+#endif
+
+		/// <summary>
+		/// Fixup for slightly weird way that runtime refuses to convert from t to t? (which should surely be trivial?)
+		/// </summary>
+		/// <param name="value"></param>
+		/// <param name="conversion"></param>
+		/// <returns></returns>
+		/// <remarks>http://stackoverflow.com/q/18015425/</remarks>
+		internal static object ChangeType(this object value, Type t)
+		{
+			if (t
+#if !NETFRAMEWORK
+				.GetTypeInfo()
+#endif
+				.IsGenericType && t.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
+			{
+				if (value == null)
+				{
+					return null;
+				}
+				t = Nullable.GetUnderlyingType(t);
+			}
+			return Convert.ChangeType(value, t);
+		}
 
 		/// <summary>
 		/// Convert ExpandoObject to dictionary.
 		/// </summary>
 		/// <param name="o"></param>
 		/// <returns></return>
+		/// <remarks>
+		/// Not sure whether this is really useful or not... syntax is nicer and saves a little typing, even though functionality is obviously very simple.
+		/// Hopefully compiler removes any apparent inefficiency.
+		/// </remarks>
 		static public IDictionary<string, object> AsDictionary(this ExpandoObject o)
 		{
 			return (IDictionary<string, object>)o;
@@ -117,7 +154,7 @@ namespace Mighty
 		{
 			// Both these lines can be simpler in .NET 4.5
 			PropertyInfo pinfoEnumProperty = o.GetType().GetProperties().Where(property => property.Name == enumPropertyName).FirstOrDefault();
-			return pinfoEnumProperty == null ? null : pinfoEnumProperty.GetValue(o, null).ToString();
+			return pinfoEnumProperty == null ? null : pinfoEnumProperty.GetValue(o).ToString();
 		}
 	}
 }

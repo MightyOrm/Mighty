@@ -17,7 +17,7 @@ namespace Mighty
 	/// Cons: They're never visible in IntelliSense; you don't really need them; it turns out this adds overhead to
 	/// *every* call to the microORM, even when the object is not stored in a dynamic.
 	/// </remarks>
-	internal class DynamicObjectWrapper<T> : DynamicObject where T : new()
+	internal class DynamicObjectWrapper<T> : DynamicObject where T : class, new()
 	{
 		private MightyORM<T> Mighty;
 
@@ -135,7 +135,7 @@ namespace Mighty
 		}
 	}
 
-	public partial class MightyORM<T> : IDynamicMetaObjectProvider where T : new()
+	public partial class MightyORM<T> : IDynamicMetaObjectProvider where T : class, new()
 	{
 		private DynamicObjectWrapper<T> DynamicObjectWrapper;
 

@@ -9,6 +9,7 @@ namespace Mighty.Generic.Tests.MySql.TableClasses
 	{
 		public int CategoryID { get; set; }
 		public string CategoryName { get; set; }
+		public string Description { get; set; }
 	}
 
 	public class Categories : MightyORM<Category>

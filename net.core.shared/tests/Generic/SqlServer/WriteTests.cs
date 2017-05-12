@@ -47,13 +47,13 @@ namespace Mighty.Generic.Tests.SqlServer
 		{
 			dynamic categories = new Categories();
 			// insert something to update first. 
-			var inserted = categories.Insert(new { CategoryName = "Cool stuff", Description = "You know... cool stuff! Cool. n. stuff." });
+			Category inserted = categories.Insert(new { CategoryName = "Cool stuff", Description = "You know... cool stuff! Cool. n. stuff." });
 			int insertedCategoryID = inserted.CategoryID;
 			Assert.IsTrue(insertedCategoryID > 0);
 			// update it, with a better description
 			inserted.Description = "This is all jolly marvellous";
 			Assert.AreEqual(1, categories.Update(inserted), "Update should have affected 1 row");
-			var updatedRow = categories.Find(CategoryID: inserted.CategoryID);
+			Category updatedRow = categories.Find(CategoryID: inserted.CategoryID);
 			Assert.IsNotNull(updatedRow);
 			Assert.AreEqual(inserted.CategoryID, updatedRow.CategoryID);
 			Assert.AreEqual(inserted.Description, updatedRow.Description);

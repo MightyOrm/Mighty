@@ -171,13 +171,12 @@ namespace Mighty.Generic.Tests.MySql
 		public void All_WhereSpecification_ColumnsSpecification()
 		{
 			var films = new Films(ProviderName);
-			var allRows = films.All(columns: "film_id as FILMID, description, language_id", where: "WHERE rental_duration=@0", args: 5).ToList();
+			var allRows = films.All(columns: "film_id, description, language_id", where: "WHERE rental_duration=@0", args: 5).ToList();
 			Assert.AreEqual(191, allRows.Count);
-			var firstRow = (IDictionary<string, object>)allRows[0];
-			Assert.AreEqual(3, firstRow.Count);
-			Assert.IsTrue(firstRow.ContainsKey("FILMID"));
-			Assert.IsTrue(firstRow.ContainsKey("description"));
-			Assert.IsTrue(firstRow.ContainsKey("language_id"));
+			var firstRow = allRows[0];
+			Assert.Greater(firstRow.film_id, 0);
+			Assert.AreNotEqual(firstRow.description, "");
+			Assert.Greater(firstRow.language_id, 0);
 		}
 
 
@@ -185,13 +184,12 @@ namespace Mighty.Generic.Tests.MySql
 		public void All_WhereSpecification_ColumnsSpecification_LimitSpecification()
 		{
 			var films = new Films(ProviderName);
-			var allRows = films.All(limit: 2, columns: "film_id as FILMID, description, language_id", where: "WHERE rental_duration=@0", args: 5).ToList();
+			var allRows = films.All(limit: 2, columns: "film_id, description, language_id", where: "WHERE rental_duration=@0", args: 5).ToList();
 			Assert.AreEqual(2, allRows.Count);
-			var firstRow = (IDictionary<string, object>)allRows[0];
-			Assert.AreEqual(3, firstRow.Count);
-			Assert.IsTrue(firstRow.ContainsKey("FILMID"));
-			Assert.IsTrue(firstRow.ContainsKey("description"));
-			Assert.IsTrue(firstRow.ContainsKey("language_id"));
+			var firstRow = allRows[0];
+			Assert.Greater(firstRow.film_id, 0);
+			Assert.AreNotEqual(firstRow.description, "");
+			Assert.Greater(firstRow.language_id, 0);
 		}
 
 
@@ -299,8 +297,6 @@ namespace Mighty.Generic.Tests.MySql
 			var pageItems = page2.Items.ToList();
 			Assert.AreEqual(30, pageItems.Count);
 			Assert.AreEqual(1000, page2.TotalRecords);
-			var firstRow = (IDictionary<string, object>)pageItems[0];
-			Assert.AreEqual(2, firstRow.Count);
 			int previous = int.MaxValue;
 			foreach(var r in pageItems)
 			{

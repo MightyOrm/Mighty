@@ -205,10 +205,9 @@ namespace Mighty.Generic.Tests.SqlServer
 		public void Find_OneColumn()
 		{
 			dynamic soh = new SalesOrderHeaders();
-			var singleInstance = soh.Find(SalesOrderID: 43666, columns:"SalesOrderID");
+			SalesOrderHeader singleInstance = soh.Find(SalesOrderID: 43666, columns: "SalesOrderID");
 			Assert.AreEqual(43666, singleInstance.SalesOrderID);
-			var siAsDict = (IDictionary<string, object>)singleInstance;
-			Assert.AreEqual(1, siAsDict.Count);
+			Assert.AreEqual(0, singleInstance.CustomerID);
 		}
 
 
@@ -314,8 +313,6 @@ namespace Mighty.Generic.Tests.SqlServer
 			var pageItems = page2.Items.ToList();
 			Assert.AreEqual(30, pageItems.Count);
 			Assert.AreEqual(31465, page2.TotalRecords);
-			var firstRow = (IDictionary<string, object>)pageItems[0];
-			Assert.AreEqual(3, firstRow.Count);
 			int previous = int.MaxValue;
 			foreach(var r in pageItems)
 			{

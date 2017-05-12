@@ -219,7 +219,7 @@ namespace Mighty.Interfaces
 		/// <returns></returns>
 		virtual public int Save(params object[] items)
 		{
-			return (int)ActionOnItems(ORMAction.Save, null, items);
+			return ActionOnItems(ORMAction.Save, null, items);
 		}
 
 		/// <summary>
@@ -230,7 +230,7 @@ namespace Mighty.Interfaces
 		/// <returns></returns>
 		virtual public int Save(DbConnection connection, params object[] items)
 		{
-			return (int)ActionOnItems(ORMAction.Save, connection, items);
+			return ActionOnItems(ORMAction.Save, connection, items);
 		}
 
 		/// <summary>
@@ -240,7 +240,7 @@ namespace Mighty.Interfaces
 		/// <returns></returns>
 		virtual public int Save(IEnumerable<object> items)
 		{
-			return (int)ActionOnItems(ORMAction.Save, null, items);
+			return ActionOnItems(ORMAction.Save, null, items);
 		}
 
 		/// <summary>
@@ -251,15 +251,28 @@ namespace Mighty.Interfaces
 		/// <returns></returns>
 		virtual public int Save(DbConnection connection, IEnumerable<object> items)
 		{
-			return (int)ActionOnItems(ORMAction.Save, connection, items);
+			return ActionOnItems(ORMAction.Save, connection, items);
+		}
+
+		/// <summary>
+		/// Insert single item, returning the item sent in but with PK populated.
+		/// If you need all fields populated (i.e. you want to get back DB default values for non-PK fields), please create the item using New() before inserting it.
+		/// </summary>
+		/// <param name="items">The item to insert, in any reasonable format (for MightyORM&lt;T&gt; this includes, but is not limited to, in instance of type T)</param>
+		/// <returns>The inserted item</returns>
+		virtual public T Insert(object item)
+		{
+			T insertedItem;
+			ActionOnItems(ORMAction.Insert, null, new object[] { item }, out insertedItem);
+			return insertedItem;
 		}
 
 		/// <summary>
 		/// Insert one or more items using params style arguments
 		/// </summary>
 		/// <param name="items">The items</param>
-		/// <returns></returns>
-		virtual public dynamic Insert(params object[] items)
+		/// <returns>The number of rows inserted</returns>
+		virtual public int Insert(params object[] items)
 		{
 			return ActionOnItems(ORMAction.Insert, null, items);
 		}
@@ -269,8 +282,8 @@ namespace Mighty.Interfaces
 		/// </summary>
 		/// <param name="connection">The connection</param>
 		/// <param name="items">The items</param>
-		/// <returns></returns>
-		virtual public dynamic Insert(DbConnection connection, params object[] items)
+		/// <returns>The number of rows inserted</returns>
+		virtual public int Insert(DbConnection connection, params object[] items)
 		{
 			return ActionOnItems(ORMAction.Insert, connection, items);
 		}
@@ -279,8 +292,8 @@ namespace Mighty.Interfaces
 		/// Insert array or other IEnumerable of items
 		/// </summary>
 		/// <param name="items">The items</param>
-		/// <returns></returns>
-		virtual public dynamic Insert(IEnumerable<object> items)
+		/// <returns>The number of rows inserted</returns>
+		virtual public int Insert(IEnumerable<object> items)
 		{
 			return ActionOnItems(ORMAction.Insert, null, items);
 		}
@@ -290,8 +303,8 @@ namespace Mighty.Interfaces
 		/// </summary>
 		/// <param name="connection">The connection</param>
 		/// <param name="items">The items</param>
-		/// <returns></returns>
-		virtual public dynamic Insert(DbConnection connection, IEnumerable<object> items)
+		/// <returns>The number of rows inserted</returns>
+		virtual public int Insert(DbConnection connection, IEnumerable<object> items)
 		{
 			return ActionOnItems(ORMAction.Insert, connection, items);
 		}
@@ -303,7 +316,7 @@ namespace Mighty.Interfaces
 		/// <returns></returns>
 		virtual public int Update(params object[] items)
 		{
-			return (int)ActionOnItems(ORMAction.Update, null, items);
+			return ActionOnItems(ORMAction.Update, null, items);
 		}
 
 		/// <summary>
@@ -314,7 +327,7 @@ namespace Mighty.Interfaces
 		/// <returns></returns>
 		virtual public int Update(DbConnection connection, params object[] items)
 		{
-			return (int)ActionOnItems(ORMAction.Update, connection, items);
+			return ActionOnItems(ORMAction.Update, connection, items);
 		}
 
 		/// <summary>
@@ -324,7 +337,7 @@ namespace Mighty.Interfaces
 		/// <returns></returns>
 		virtual public int Update(IEnumerable<object> items)
 		{
-			return (int)ActionOnItems(ORMAction.Update, null, items);
+			return ActionOnItems(ORMAction.Update, null, items);
 		}
 
 		/// <summary>
@@ -335,7 +348,7 @@ namespace Mighty.Interfaces
 		/// <returns></returns>
 		virtual public int Update(DbConnection connection, IEnumerable<object> items)
 		{
-			return (int)ActionOnItems(ORMAction.Update, connection, items);
+			return ActionOnItems(ORMAction.Update, connection, items);
 		}
 
 		/// <summary>
@@ -345,7 +358,7 @@ namespace Mighty.Interfaces
 		/// <returns></returns>
 		virtual public int Delete(params object[] items)
 		{
-			return (int)ActionOnItems(ORMAction.Delete, null, items);
+			return ActionOnItems(ORMAction.Delete, null, items);
 		}
 
 		/// <summary>
@@ -356,7 +369,7 @@ namespace Mighty.Interfaces
 		/// <returns></returns>
 		virtual public int Delete(DbConnection connection, params object[] items)
 		{
-			return (int)ActionOnItems(ORMAction.Delete, connection, items);
+			return ActionOnItems(ORMAction.Delete, connection, items);
 		}
 
 		/// <summary>
@@ -366,7 +379,7 @@ namespace Mighty.Interfaces
 		/// <returns></returns>
 		virtual public int Delete(IEnumerable<object> items)
 		{
-			return (int)ActionOnItems(ORMAction.Delete, null, items);
+			return ActionOnItems(ORMAction.Delete, null, items);
 		}
 
 		/// <summary>
@@ -377,7 +390,7 @@ namespace Mighty.Interfaces
 		/// <returns></returns>
 		virtual public int Delete(DbConnection connection, IEnumerable<object> items)
 		{
-			return (int)ActionOnItems(ORMAction.Delete, connection, items);
+			return ActionOnItems(ORMAction.Delete, connection, items);
 		}
 
 		virtual public T New()
@@ -451,7 +464,13 @@ namespace Mighty.Interfaces
 
 		abstract protected string CheckGetTableName();
 
-		abstract internal object ActionOnItems(ORMAction action, DbConnection connection, IEnumerable<object> items);
+		virtual internal int ActionOnItems(ORMAction action, DbConnection connection, IEnumerable<object> items)
+		{
+			T insertedItem;
+			return ActionOnItems(action, connection, items, out insertedItem);
+		}
+
+		abstract internal int ActionOnItems(ORMAction action, DbConnection connection, IEnumerable<object> items, out T insertedItem);
 
 		abstract public List<object> IsValid(object item, ORMAction action = ORMAction.Save);
 
