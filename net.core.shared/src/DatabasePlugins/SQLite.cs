@@ -63,30 +63,6 @@ namespace Mighty.DatabasePlugins
 			}
 			return result;
 		}
-
-		// This code from Massive - see CREDITS file
-		override public object GetColumnDefault(dynamic columnInfo)
-		{
-			string defaultValue = columnInfo.COLUMN_DEFAULT;
-			if (string.IsNullOrEmpty(defaultValue))
-			{
-				return null;
-			}
-			dynamic result = null;
-			switch (defaultValue.ToUpper())
-			{
-				case "CURRENT_TIME":
-					result = DateTime.UtcNow.ToString("HH:mm:ss");
-					break;
-				case "CURRENT_DATE":
-					result = DateTime.UtcNow.ToString("yyyy-MM-dd");
-					break;
-				case "CURRENT_TIMESTAMP":
-					result = DateTime.UtcNow.ToString("yyyy-MM-dd HH:mm:ss");
-					break;
-			}
-			return result;
-		}
 		#endregion
 
 		#region Keys and sequences

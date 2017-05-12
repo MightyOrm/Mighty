@@ -33,33 +33,6 @@ namespace Mighty.DatabasePlugins
 		}
 		#endregion
 
-		#region Table info
-		// This code from Massive - see CREDITS file
-		override public object GetColumnDefault(dynamic columnInfo)
-		{
-			string defaultValue = columnInfo.COLUMN_DEFAULT;
-			if (string.IsNullOrEmpty(defaultValue))
-			{
-				return null;
-			}
-			dynamic result;
-			switch (defaultValue)
-			{
-				case "getdate()":
-				case "(getdate())":
-					result = DateTime.Now;
-					break;
-				case "newid()":
-					result = Guid.NewGuid().ToString();
-					break;
-				default:
-					result = defaultValue.Replace("(", "").Replace(")", "");
-					break;
-			}
-			return result;
-		}
-		#endregion
-
 		#region Keys and sequences
 		override public string IdentityRetrievalFunction { get; protected set; } = "SCOPE_IDENTITY()";
 		#endregion

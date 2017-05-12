@@ -61,31 +61,10 @@ namespace Mighty.DatabasePlugins
 		// This really does vary per DB and can't be a standard virtual method which most things share.
 		override public string BuildTableMetaDataQuery(bool addOwner)
 		{
-			return string.Format("SELECT * FROM USER_TAB_COLUMNS WHERE TABLE_NAME = {0}{1}",
+			return string.Format("SELECT * FROM {0}_TAB_COLUMNS WHERE TABLE_NAME = {1}{2}",
+				addOwner ? "ALL" : "USER",
 				PrefixParameterName("0"),
-				addOwner ? string.Format(" AND OWNER = {1}", PrefixParameterName("0")) : "");
-		}
-
-		override public object GetColumnDefault(dynamic columnInfo)
-		{
-			// This code from Massive - see CREDITS file
-			string defaultValue = columnInfo.COLUMN_DEFAULT;
-			if (string.IsNullOrEmpty(defaultValue))
-			{
-				return null;
-			}
-			dynamic result;
-			switch (defaultValue)
-			{
-				case "SYSDATE":
-				case "(SYSDATE)":
-					result = DateTime.Now;
-					break;
-				default:
-					result = defaultValue.Replace("(", "").Replace(")", "");
-					break;
-			}
-			return result;
+				addOwner ? string.Format(" AND OWNER = {0}", PrefixParameterName("1")) : "");
 		}
 		#endregion
 

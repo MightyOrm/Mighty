@@ -37,34 +37,6 @@ namespace Mighty.DatabasePlugins
 		}
 		#endregion
 
-		#region Table info
-		// This code from Massive - see CREDITS file
-		override public object GetColumnDefault(dynamic columnInfo)
-		{
-			string defaultValue = columnInfo.COLUMN_DEFAULT;
-			if (string.IsNullOrEmpty(defaultValue))
-			{
-				return null;
-			}
-			dynamic result;
-			switch (defaultValue)
-			{
-				case "current_date":
-				case "(current_date)":
-					result = DateTime.Now.Date;
-					break;
-				case "current_time":
-				case "(current_time)":
-					result = DateTime.Now.TimeOfDay;
-					break;
-				default:
-					result = defaultValue.Replace("(", "").Replace(")", "");
-					break;
-			}
-			return result;
-		}
-		#endregion
-
 		#region Keys and sequences
 		override public bool IsSequenceBased { get; protected set; } = true;
 		override public string BuildNextval(string sequence) { return string.Format("nextval('{0}')", sequence); }

@@ -228,8 +228,76 @@ namespace Mighty.DatabasePlugins
 			return results.ToList();
 		}
 
-		// TO DO: accessibility?
-		abstract public object GetColumnDefault(dynamic columnInfo);
+		// TO DO: change access modifier?
+		virtual public object GetColumnDefault(dynamic columnInfo)
+		{
+			string defaultValue = columnInfo.COLUMN_DEFAULT;
+			if (defaultValue == null)
+			{
+				return null;
+			}
+			object result = null;
+			if (defaultValue.StartsWith("(") && defaultValue.EndsWith(")"))
+			{
+				defaultValue = defaultValue.Substring(1, defaultValue.Length - 2);
+			}
+			switch (defaultValue.ToUpper())
+			{
+				case "CURRENT_DATE":
+					result = DateTime.Now.Date;
+					break;
+
+				case "CURRENT_TIME":
+					result = DateTime.Now.TimeOfDay;
+					break;
+
+				case "CURRENT_TIMESTAMP":
+					result = DateTime.Now;
+					break;
+
+				case "SYSDATE":
+					result = DateTime.Now;
+					break;
+
+				case "GETDATE()":
+					result = DateTime.Now;
+					break;
+
+				case "NEWID()":
+					result = Guid.NewGuid().ToString();
+					break;
+			}
+			if (result == null)
+			{
+				if (defaultValue.StartsWith("(") && defaultValue.EndsWith(")"))
+				{
+					defaultValue = defaultValue.Substring(1, defaultValue.Length - 2);
+				}
+				if (columnInfo.NUMERIC_SCALE == null)
+				{
+					if (columnInfo.DATA_TYPE == "bit")
+					{
+						result = (defaultValue == "1");
+					}
+					else
+					{
+						result = defaultValue;
+					}
+				}
+				else if (columnInfo.NUMERIC_SCALE == 0)
+				{
+					result = int.Parse(defaultValue);
+				}
+				else
+				{
+					result = float.Parse(defaultValue);
+				}
+			}
+#if DEBUG
+			if (result == null) throw new Exception(string.Format("Unknown defaultValue={0}", defaultValue)); ////
+#endif
+			return result;
+		}
 		#endregion
 
 		#region Keys and sequences
