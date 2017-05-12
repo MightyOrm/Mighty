@@ -2,7 +2,14 @@ using System.Collections.Generic;
 
 namespace Mighty.Validation
 {
-	// Override this class to make a validator for your table items.
+	/// <summary>
+	/// Override this class to make a validator for your table items.
+	/// </summary>
+	/// <remarks>
+	/// The objects passed to the validation callbacks are whatever was passed in to Save, Insert, Delete, etc., which can alwasys be any reasonable object
+	/// or collection to contain the data needed for the task at hand.
+	/// This is true even when used with MightyORM&lt;T&gt;.
+	/// </remarks>
 	public class Validator
 	{
 		/// <summary>
@@ -23,6 +30,10 @@ namespace Mighty.Validation
 		/// <param name="item">The item to validate. NB this can be whatever you pass in as input objects.</param>
 		/// <param name="Errors">Append your errors to this list. You may choose to append strings, or a more complex object if you wish. NB Adding one or more errors indicates that the item fails, adding nothing to the errors indicates success.</param>
 		/// <returns></returns>
+		/// <remarks>
+		/// Item is not necessarily a representation of the item for action: for delete only, it might be a representation of just the PK depending on how .Delete was called.
+		/// Despite all this, you can write fairly normal looking validators; have a look at the table classes in the generic tests in the source code
+		/// </remarks>
 		virtual public void ValidateForAction(dynamic item, ORMAction action, List<object> Errors) { }
 
 		/// <summary>

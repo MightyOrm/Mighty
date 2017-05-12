@@ -4,7 +4,7 @@ using NUnitLite;
 using System;
 using System.Reflection;
 
-namespace Mighty.Tests.NUnit.ConsoleRunner
+namespace Mighty.Generic.Tests.NUnit.ConsoleRunner
 {
 	class Program
 	{

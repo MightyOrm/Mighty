@@ -5,7 +5,6 @@ using System.Data;
 using System.Data.Common;
 using System.Dynamic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Reflection;
 using System.Text;
 #if NETFRAMEWORK
@@ -27,19 +26,21 @@ namespace Mighty
 	/// </summary>
 	public class MightyORM : MightyORM<dynamic>
 	{
+		#region Constructor
 		/// <summary>
-		/// Constructor for dynamic version.
+		/// Constructor for pure dynamic version.
 		/// </summary>
 		/// <param name="connectionString">
-		/// Connection string with support for additional, non-standard "ProviderName=" property;
-		/// on .NET Framework but not .NET Core this can optionally be the name of a connection string to read from the config file (in which case the provider name is specified
-		/// as an additional config file attribute next to the connection string)
+		/// Connection string with support for additional, non-standard "ProviderName=" property.
+		/// On .NET Framework but not .NET Core this can also, optionally, be a config file connection string name (in which case the provider name is specified
+		/// as an additional config file attribute next to the connection string).
 		/// </param>
-		/// <param name="table">Table name</param>
-		/// <param name="primaryKey">Primary key field name; or comma separated list of names for compound PK</param>
-		/// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; optionally override
-		/// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" for SQL CE); as a special case
+		/// <param name="tableName">Table name</param>
+		/// <param name="primaryKeyField">Primary key field name; or comma separated list of names for compound PK</param>
+		/// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
+		/// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
 		/// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
+		/// <param name="valueField">Specify the value field, for lookup tables</param>
 		/// <param name="columns">Default column list</param>
 		/// <param name="validator">Optional validator</param>
 		/// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
@@ -49,46 +50,34 @@ namespace Mighty
 		/// What about the SQL Profiler? Should this (really) go into here as a parameter?
 		/// </remarks>
 		public MightyORM(string connectionString = null,
-						 string table = null,
-						 string primaryKey = null,
-						 string lookupTableValueField = null,
+						 string tableName = null,
+						 string primaryKeyField = null,
+						 string valueField = null,
 						 string sequence = null,
 						 string columns = null,
 						 Validator validator = null,
-						 NamingMapper mapper = null,
+						 SqlNamingMapper mapper = null,
 						 Profiler profiler = null,
 						 ConnectionProvider connectionProvider = null)
 		{
-			if (mapper == null)
-			{
-				mapper = new NamingMapper();
-			}
+			// Subclass-based table name override for dynamic version of MightyORM
 			string tableClassName = null;
-			if (table != null)
-			{
-				TableName = table;
-			}
-			else
-			{
-				// Class-based table name override for dynamic MightyORM
 
-				var me = this.GetType();
-				// leave table name unset if we are not a true sub-class;
-				// this test enforces strict sub-class (i.e. does not pass for an instance of the class itself)
-#if NETFRAMEWORK
-				if (me.IsSubclassOf(typeof(MightyORM)))
-#else
-				if (me.GetTypeInfo().IsSubclassOf(typeof(MightyORM)))
+			var me = this.GetType();
+			// leave table name unset if we are not a true sub-class; this test enforces strict sub-class (i.e. does not pass for an instance of the class itself)
+			if (me
+#if !NETFRAMEWORK
+				.GetTypeInfo()
 #endif
-				{
-					tableClassName = me.Name;
-					TableName = mapper.GetTableName(tableClassName);
-				}
+				.IsSubclassOf(typeof(MightyORM)))
+			{
+				tableClassName = me.Name;
 			}
-			Init(connectionString, primaryKey, lookupTableValueField, sequence, columns, validator, mapper, profiler, connectionProvider, tableClassName);
+			Init(connectionString, tableName, tableClassName, primaryKeyField, valueField, sequence, columns, validator, mapper, profiler, connectionProvider);
 		}
+#endregion
 
-		#region Convenience factory
+#region Convenience factory
 		/// <summary>
 		/// Mini-factory for non-table specific access (equivalent to a constructor call)
 		/// </summary>
@@ -99,137 +88,208 @@ namespace Mighty
 		{
 			return new MightyORM(connectionStringOrName);
 		}
-		#endregion
+#endregion
 	}
 
-	#region Dynamic method provider
-	/// <summary>
-	/// Wrapper to provide dynamic methods (needed as we can't do direct multiple inheritance)
-	/// </summary>
-	/// <returns></returns>
-	internal class DynamicObjectWrapper<T> : DynamicObject where T : new()
+	public partial class MightyORM<T> : MicroORM<T> where T : new()
 	{
-		private MightyORM<T> Mighty;
-
+		#region Constructor
 		/// <summary>
-		/// Wrap MightyORM to provide Massive-compatible dynamic methods.
-		/// You can access almost all this functionality non-dynamically (and if you do, you get IntelliSense, which makes life easier).
+		/// Strongly typed MightyORM constructor
 		/// </summary>
-		/// <param name="me"></param>
-		internal DynamicObjectWrapper(MightyORM<T> me)
+		/// <param name="connectionString">
+		/// Connection string with support for additional, non-standard "ProviderName=" property.
+		/// On .NET Framework but not .NET Core this can also, optionally, be a config file connection string name (in which case the provider name is specified
+		/// as an additional config file attribute next to the connection string).
+		/// </param>
+		/// <param name="tableName">Override the table name (defaults to using T class name)</param>
+		/// <param name="primaryKeyField">Primary key field name; or comma separated list of names for compound PK</param>
+		/// <param name="valueField">Specify the value field, for lookup tables</param>
+		/// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
+		/// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
+		/// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
+		/// <param name="columns">Default column list</param>
+		/// <param name="validator">Optional validator</param>
+		/// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
+		/// <param name="profiler">Optional SQL profiler</param>
+		/// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyORM)</param>
+		/// <param name="propertyBindingFlags">Specify which properties should be managed by the ORM</param>
+		public MightyORM(string connectionString = null,
+						 string tableName = null,
+						 string primaryKeyField = null,
+						 string valueField = null,
+						 string sequence = null,
+						 string columns = null,
+						 Validator validator = null,
+						 SqlNamingMapper mapper = null,
+						 Profiler profiler = null,
+						 ConnectionProvider connectionProvider = null,
+						 BindingFlags propertyBindingFlags = BindingFlags.Instance | BindingFlags.Public)
 		{
-			Mighty = me;
-		}
+			// If this has been called as part of constructing MightyORM (non-generic), then return immediately and let that constructor do all the work
+			if (this is MightyORM) return;
 
-		/// <summary>
-		/// Provides the implementation for operations that invoke a member. This method implementation tries to create queries from the methods being invoked based on the name
-		/// of the invoked method.
-		/// </summary>
-		/// <param name="binder">Provides information about the dynamic operation. The binder.Name property provides the name of the member on which the dynamic operation is performed. 
-		/// For example, for the statement sampleObject.SampleMethod(100), where sampleObject is an instance of the class derived from the <see cref="T:System.Dynamic.DynamicObject" /> class, 
-		/// binder.Name returns "SampleMethod". The binder.IgnoreCase property specifies whether the member name is case-sensitive.</param>
-		/// <param name="args">The arguments that are passed to the object member during the invoke operation. For example, for the statement sampleObject.SampleMethod(100), where sampleObject is 
-		/// derived from the <see cref="T:System.Dynamic.DynamicObject" /> class, <paramref name="args[0]" /> is equal to 100.</param>
-		/// <param name="result">The result of the member invocation.</param>
-		/// <returns>
-		/// true if the operation is successful; otherwise, false. If this method returns false, the run-time binder of the language determines the behavior. (In most cases, a language-specific 
-		/// run-time exception is thrown.)
-		/// </returns>
-		/// <remarks>Massive code (see CREDITS file), with added columns support (which is only possible using named arguments).</remarks>
-		public override bool TryInvokeMember(InvokeMemberBinder binder, object[] args, out object result)
-		{
-			result = null;
-			var info = binder.CallInfo;
-			if (info.ArgumentNames.Count != args.Length)
+			// Table name for MightyORM<T> is taken from type T not from a constructor argument; use SqlNamingMapper to override it.
+			string tableClassName = typeof(T).Name;
+
+			Init(connectionString, tableName, tableClassName, primaryKeyField, valueField, sequence, columns, validator, mapper, profiler, connectionProvider);
+
+			// For generic version only, store the column names defined by the generic type
+			columnNameToPropertyInfo = new Dictionary<string, PropertyInfo>();
+			foreach (var prop in typeof(T).GetProperties(propertyBindingFlags))
 			{
-				throw new InvalidOperationException("No non-dynamic method found; use named arguments for dynamically invoked queries: this can be a field name followed by a value, 'orderby:', 'colums:', 'where:' or 'args:'");
+				var columnName = Mapper.GetColumnNameFromPropertyName(tableClassName, prop.Name);
+				if (Mapper.UseCaseInsensitiveMapping)
+				{
+					columnName = columnName.ToLowerInvariant();
+				}
+				columnNameToPropertyInfo.Add(columnName, prop);
+			}
+		}
+#endregion
+
+#region Convenience factory
+		// mini-factory for non-table specific access
+		// (equivalent to a constructor call)
+		// <remarks>static, so can't be defined anywhere but here</remarks>
+		static public MightyORM<T> DB(string connectionStringOrName = null)
+		{
+			return new MightyORM<T>(connectionStringOrName);
+		}
+#endregion
+
+#region Shared initialiser
+		// sequence is for sequence-based databases (Oracle, PostgreSQL); there is no default sequence, specify either null or empty string to disable and manually specify your PK values;
+		// for non-sequence-based databases, in unusual cases, you may specify this to specify an alternative key retrieval function
+		// (e.g. for example to use @@IDENTITY instead of SCOPE_IDENTITY(), in the case of SQL Server CE)
+		// primaryKeyFields is a comma separated list; if it has more than one column, you cannot specify sequence or keyRetrievalFunction
+		// (if neither sequence nor keyRetrievalFunction are set (which is always the case for compound primary keys), you MUST specify non-null, non-default values for every column in your primary key
+		// before saving an object)
+		//
+		// TO DO: disallow, or just ignore?, sequence spec when we have multiple PKs
+		//
+		public void Init(string connectionString,
+						 string tableName,
+						 string tableClassName,
+						 string primaryKeyField,
+						 string valueField,
+						 string sequence,
+						 string columns,
+						 Validator validator,
+						 SqlNamingMapper mapper,
+						 Profiler profiler,
+						 ConnectionProvider connectionProvider)
+		{
+			ValueField = valueField;
+
+			if (mapper == null)
+			{
+				mapper = new SqlNamingMapper();
 			}
 
-			var columns = "*";
-			var orderBy = Mighty.PrimaryKeyFields;
-			var wherePredicates = new List<string>();
-			var nameValueArgs = new ExpandoObject();
-			var nameValueDictionary = nameValueArgs.AsDictionary();
-			object[] userArgs = null;
-			if (info.ArgumentNames.Count > 0)
+			if (tableName != null)
 			{
-				for (int i = 0; i < args.Length; i++)
+				// an empty string can be used to force not using the sub-class name
+				TableName = tableName == "" ? null : tableName;
+			}
+			else if (tableClassName != null)
+			{
+				TableName = mapper.GetTableNameFromClassName(tableClassName);
+			}
+
+			if (TableName != null)
+			{
+				int i = TableName.LastIndexOf('.');
+				if (i >= 0)
 				{
-					var name = info.ArgumentNames[i];
-					switch (name.ToLowerInvariant())
-					{
-						case "orderby":
-							orderBy = args[i].ToString();
-							break;
-						case "columns":
-							columns = args[i].ToString();
-							break;
-						case "where":
-							// this is an arbitrary SQL WHERE specification, so we have to wrap it in brackets to avoid operator precedence issues
-							wherePredicates.Add("(" + args[i].ToString().Unthingify("WHERE") + ")");
-							break;
-						case "args":
-							// wrap anything other than an array in an array (this is what C# params basically does anyway)
-							userArgs = args[i] as object[];
-							if (userArgs == null)
-							{
-								userArgs = new object[] { args[i] };
-							}
-							break;
-						default:
-							// treat anything else as a name-value pair
-							wherePredicates.Add(string.Format("{0} = {1}", name, Mighty.Plugin.PrefixParameterName(name)));
-							nameValueDictionary.Add(name, args[i]);
-							break;
-					}
+					TableOwner = TableName.Substring(0, i);
+					BareTableName = TableName.Substring(i + 1);
+				}
+				else
+				{
+					BareTableName = TableName;
 				}
 			}
-			var whereClause = string.Empty;
-			if (wherePredicates.Count > 0)
+
+			if (connectionProvider == null)
 			{
-				whereClause = " WHERE " + string.Join(" AND ", wherePredicates);
+#if NETFRAMEWORK
+				// try using the string sent in as a connection string name from the config file; revert to pure connection string if it is not there
+				connectionProvider = new ConfigFileConnectionProvider().Init(connectionString);
+				if (connectionProvider.ConnectionString == null)
+#endif
+				{
+					connectionProvider = new PureConnectionStringProvider()
+#if NETFRAMEWORK
+						.UsedAfterConfigFile()
+#endif
+						.Init(connectionString);
+				}
+			}
+			else
+			{
+				connectionProvider.Init(connectionString);
 			}
 
-			var op = binder.Name;
-			var uOp = op.ToUpperInvariant();
-			switch (uOp)
+			ConnectionString = connectionProvider.ConnectionString;
+			Factory = connectionProvider.ProviderFactoryInstance;
+			Type pluginType = connectionProvider.DatabasePluginType;
+			Plugin = (DatabasePlugin)Activator.CreateInstance(pluginType, false);
+			Plugin.Mighty = this;
+
+			if (primaryKeyField == null && TableName != null)
 			{
-				case "COUNT":
-				case "SUM":
-				case "MAX":
-				case "MIN":
-				case "AVG":
-					result = Mighty.AggregateWithParams(string.Format("{0}({1})", uOp, columns), whereClause, inParams: nameValueArgs, args: userArgs);
-					break;
-				default:
-					var justOne = uOp.StartsWith("FIRST") || uOp.StartsWith("LAST") || uOp.StartsWith("GET") || uOp.StartsWith("FIND") || uOp.StartsWith("SINGLE");
-					// For Last only, sort by DESC on the PK (PK sort is the default)
-					if (uOp.StartsWith("LAST"))
-					{
-						// this will be incorrect if multiple PKs are present, but note that the ORDER BY may be from a dynamic method
-						// argument by this point; this could be done correctly for compund PKs, but not in general for user input (it
-						// would involve parsing SQL, which we never do)
-						orderBy = orderBy + " DESC";
-					}
-					if (justOne)
-					{
-						result = Mighty.SingleWithParams(whereClause, orderBy, columns, inParams: nameValueArgs, args: userArgs);
-					}
-					else
-					{
-						result = Mighty.AllWithParams(whereClause, orderBy, columns, inParams: nameValueArgs, args: userArgs);
-					}
-					break;
+				primaryKeyField = mapper.GetPrimaryKeyNameFromClassName(TableName);
 			}
-			return true;
+			PrimaryKeyFields = primaryKeyField;
+			if (primaryKeyField == null)
+			{
+				PrimaryKeyList = new List<string>();
+			}
+			else
+			{
+				PrimaryKeyList = primaryKeyField.Split(',').Select(k => k.Trim()).ToList();
+			}
+			DefaultColumns = columns ?? "*";
+			Validator = validator ?? new Validator();
+			Profiler = profiler ?? new Profiler();
+			Mapper = mapper;
+			// After all this, SequenceNameOrIdentityFn is only non-null if we really are expecting to use it
+			// (which entails exactly one PK)
+			if (!Plugin.IsSequenceBased)
+			{
+				if (PrimaryKeyList.Count != 1)
+				{
+					SequenceNameOrIdentityFn = null;
+				}
+				else
+				{
+					// empty string on identity-based DB specifies that PK is manually controlled
+					if (sequence == "") SequenceNameOrIdentityFn = null;
+					// other non-null value overrides default identity retrieval fn (e.g. use "@@IDENTITY" on SQL CE)
+					else if (sequence != null) SequenceNameOrIdentityFn = sequence;
+					// default fn
+					else SequenceNameOrIdentityFn = Plugin.IdentityRetrievalFunction;
+				}
+			}
+			else if (sequence != null)
+			{
+				// NB on identity-based DBs using an identity on the PK is the default mode of operation (i.e. unless
+				// empty string is specified in 'sequence'; or unless there is > 1 primary key), whereas on sequence-based
+				// DBs NOT having a sequence is the default (i.e. unless a specific sequence is passed in).
+				if (PrimaryKeyList.Count != 1)
+				{
+					throw new InvalidOperationException("Sequence may only be specified for tables with a single primary key");
+				}
+				SequenceNameOrIdentityFn = mapper.QuoteDatabaseIdentifier(sequence);
+			}
+
+			DynamicObjectWrapper = new DynamicObjectWrapper<T>(this);
 		}
-	}
-	#endregion
+#endregion
 
-	public class MightyORM<T> : MicroORM<T>, IDynamicMetaObjectProvider where T : new()
-	{
 		// Only properties with a non-trivial implementation are here, the rest are in the MicroORM abstract class.
-		#region Properties
+#region Properties
 		protected IEnumerable<dynamic> _TableMetaData;
 		override public IEnumerable<dynamic> TableMetaData
 		{
@@ -241,9 +301,9 @@ namespace Mighty
 		}
 
 		protected Dictionary<string, PropertyInfo> columnNameToPropertyInfo;
-		#endregion
+#endregion
 
-		#region Thread-safe initializer
+#region Thread-safe initializer for table meta-data
 		// Thread-safe initialization based on Microsoft DbProviderFactories reference 
 		// https://referencesource.microsoft.com/#System.Data/System/Data/Common/DbProviderFactories.cs
 
@@ -251,7 +311,18 @@ namespace Mighty
 		private void LoadTableMetaData()
 		{
 			var sql = Plugin.BuildTableMetaDataQuery(!string.IsNullOrEmpty(TableOwner));
-			_TableMetaData = Plugin.PostProcessTableMetaData(Query(sql, BareTableName, TableOwner));
+			IEnumerable<dynamic> unprocessedMetaData;
+			if (typeof(T) == typeof(object))
+			{
+				unprocessedMetaData = (IEnumerable<dynamic>)Query(sql, BareTableName, TableOwner);
+			}
+			else
+			{
+				// we need a dynamic query, so on the generic version we create a new dynamic DB object with the same connection info
+				var db = new MightyORM(connectionProvider: new PresetsConnectionProvider(ConnectionString, Factory, Plugin.GetType()));
+				unprocessedMetaData = db.Query(sql, BareTableName, TableOwner);
+			}
+			_TableMetaData = Plugin.PostProcessTableMetaData(unprocessedMetaData);
 		}
 
 		// fields for thread-safe initialization of TableMetaData
@@ -294,237 +365,10 @@ namespace Mighty
 				}
 			}
 		}
-		#endregion
-
-		#region Constructor
-		/// <summary>
-		/// Strongly typed MightyORM constructor
-		/// </summary>
-		/// <param name="connectionString">
-		/// Connection string with support for additional, non-standard "ProviderName=" property;
-		/// on .NET Framework but not .NET Core this can optionally be the name of a connection string to read from the config file (in which case the provider name is specified
-		/// as an additional config file attribute next to the connection string)
-		/// </param>
-		/// <param name="primaryKey">Primary key field name; or comma separated list of names for compound PK</param>
-		/// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; optionally override
-		/// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" for SQL CE); as a special case
-		/// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
-		/// <param name="columns">Default column list</param>
-		/// <param name="validator">Optional validator</param>
-		/// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
-		/// <param name="profiler">Optional SQL profiler</param>
-		/// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyORM)</param>
-		/// <param name="propertyBindingFlags">Specify which properties should be managed by the ORM</param>
-		public MightyORM(string connectionString = null,
-						 string primaryKey = null,
-						 string lookupTableValueField = null,
-						 string sequence = null,
-						 string columns = null,
-						 Validator validator = null,
-						 NamingMapper mapper = null,
-						 Profiler profiler = null,
-						 ConnectionProvider connectionProvider = null,
-						 BindingFlags propertyBindingFlags = BindingFlags.Instance | BindingFlags.Public)
-		{
-			if (this is MightyORM)
-			{
-				// let they dynamic type constructor do all the work
-				return;
-			}
-
-			if (mapper == null)
-			{
-				mapper = new NamingMapper();
-			}
-
-			// Table name for MightyORM<T>
-			string tableClassName = typeof(T).Name;
-			TableName = mapper.GetTableName(tableClassName);
-
-			Init(connectionString, primaryKey, lookupTableValueField, sequence, columns, validator, mapper, profiler, connectionProvider, tableClassName);
-
-			columnNameToPropertyInfo = new Dictionary<string, PropertyInfo>();
-			foreach (var info in typeof(T).GetProperties(propertyBindingFlags))
-			{
-				var columnName = mapper.GetColumnName(tableClassName, info.Name);
-				if (mapper.UseCaseInsensitiveMapping)
-				{
-					columnName = columnName.ToLowerInvariant();
-				}
-				columnNameToPropertyInfo.Add(columnName, info);
-			}
-		}
-		#endregion
-
-		#region Dynamic method support
-		private DynamicObjectWrapper<T> DynamicObjectWrapper;
-
-		/// <summary>
-		/// Support dynamic methods via a wrapper object (needed as we can't do direct multiple inheritance)
-		/// </summary>
-		/// <param name="parameter"></param>
-		/// <returns></returns>
-		/// <remarks>
-		/// Modified from http://stackoverflow.com/a/17634595/795690
-		/// </remarks>
-		public DynamicMetaObject GetMetaObject(Expression parameter)
-		{
-			var parentDMO = new DynamicMetaObject(parameter, BindingRestrictions.Empty, this);
-			return new DelegatingMetaObject(DynamicObjectWrapper, parentDMO, parameter, BindingRestrictions.Empty, this);
-		}
-
-		private class DelegatingMetaObject : DynamicMetaObject
-		{
-			private readonly IDynamicMetaObjectProvider innerProvider;
-			private readonly DynamicMetaObject parentDMO;
-
-			public DelegatingMetaObject(IDynamicMetaObjectProvider innerProvider,
-				DynamicMetaObject parentDMO,
-				Expression expr, BindingRestrictions restrictions, object value)
-				: base(expr, restrictions, value)
-			{
-				this.innerProvider = innerProvider;
-				this.parentDMO = parentDMO;
-			}
-
-			public override DynamicMetaObject BindInvokeMember(InvokeMemberBinder binder, DynamicMetaObject[] args)
-			{
-				var innerMetaObject = innerProvider.GetMetaObject(Expression.Constant(innerProvider));
-				var retval = innerMetaObject.BindInvokeMember(binder, args);
-				var newretval = binder.FallbackInvokeMember(parentDMO, args, retval);
-				return newretval;
-			}
-		}
-		#endregion
-
-		#region Shared initialiser
-		// sequence is for sequence-based databases (Oracle, PostgreSQL); there is no default sequence, specify either null or empty string to disable and manually specify your PK values;
-		// for non-sequence-based databases, in unusual cases, you may specify this to specify an alternative key retrieval function
-		// (e.g. for example to use @@IDENTITY instead of SCOPE_IDENTITY(), in the case of SQL Server CE)
-		// primaryKeyFields is a comma separated list; if it has more than one column, you cannot specify sequence or keyRetrievalFunction
-		// (if neither sequence nor keyRetrievalFunction are set (which is always the case for compound primary keys), you MUST specify non-null, non-default values for every column in your primary key
-		// before saving an object)
-		//
-		// TO DO: disallow, or just ignore?, sequence spec when we have multiple PKs
-		//
-		public void Init(string connectionString,
-						 string primaryKey,
-						 string lookupTableValueField,
-						 string sequence,
-						 string columns,
-						 Validator validator,
-						 NamingMapper mapper,
-						 Profiler profiler,
-						 ConnectionProvider connectionProvider,
-						 string tableClassName)
-		{
-			if (!string.IsNullOrEmpty(lookupTableValueField))
-			{
-				throw new NotImplementedException(nameof(lookupTableValueField));
-			}
-			if (TableName != null)
-			{
-				int i = TableName.LastIndexOf('.');
-				if (i >= 0)
-				{
-					TableOwner = TableName.Substring(0, i);
-					BareTableName = TableName.Substring(i + 1);
-				}
-				else
-				{
-					BareTableName = TableName;
-				}
-			}
-
-			if (connectionProvider == null)
-			{
-#if NETFRAMEWORK
-				// try using the string sent in as a connection string name from the config file; revert to pure connection string if it is not there
-				connectionProvider = new ConfigFileConnectionProvider().Init(connectionString);
-				if (connectionProvider.ConnectionString == null)
-#endif
-				{
-					connectionProvider = new PureConnectionStringProvider()
-#if NETFRAMEWORK
-						.UsedAfterConfigFile()
-#endif
-						.Init(connectionString);
-				}
-			}
-			else
-			{
-				connectionProvider.Init(connectionString);
-			}
-
-			ConnectionString = connectionProvider.ConnectionString;
-			Factory = connectionProvider.ProviderFactoryInstance;
-			Type pluginType = connectionProvider.DatabasePluginType;
-			Plugin = (DatabasePlugin)Activator.CreateInstance(pluginType, false);
-			Plugin.Mighty = this;
-
-			if (primaryKey == null && tableClassName != null)
-			{
-				primaryKey = mapper.GetPrimaryKeyName(tableClassName);
-			}
-			PrimaryKeyFields = primaryKey;
-			if (primaryKey == null)
-			{
-				PrimaryKeyList = new List<string>();
-			}
-			else
-			{
-				PrimaryKeyList = primaryKey.Split(',').Select(k => k.Trim()).ToList();
-			}
-			DefaultColumns = columns ?? "*";
-			Validator = validator ?? new Validator();
-			Profiler = profiler ?? new Profiler();
-			Mapper = mapper;
-			// After all this, SequenceNameOrIdentityFn is only non-null if we really are expecting to use it
-			// (which entails exactly one PK)
-			if (!Plugin.IsSequenceBased)
-			{
-				if (PrimaryKeyList.Count != 1)
-				{
-					SequenceNameOrIdentityFn = null;
-				}
-				else
-				{
-					// empty string on identity-based DB specifies that PK is manually controlled
-					if (sequence == "") SequenceNameOrIdentityFn = null;
-					// other non-null value overrides default identity retrieval fn (e.g. use "@@IDENTITY" on SQL CE)
-					else if (sequence != null) SequenceNameOrIdentityFn = sequence;
-					// default fn
-					else SequenceNameOrIdentityFn = Plugin.IdentityRetrievalFunction;
-				}
-			}
-			else if (sequence != null)
-			{
-				// NB on identity-based DBs using an identity on the PK is the default mode of operation (i.e. unless
-				// empty string is specified in 'sequence'; or unless there is > 1 primary key), whereas on sequence-based
-				// DBs NOT having a sequence is the default (i.e. unless a specific sequence is passed in).
-				if (PrimaryKeyList.Count != 1)
-				{
-					throw new InvalidOperationException("Sequence may only be specified for tables with a single primary key");
-				}
-				SequenceNameOrIdentityFn = mapper.QuoteDatabaseName(sequence);
-			}
-
-			DynamicObjectWrapper = new DynamicObjectWrapper<T>(this);
-		}
-		#endregion
-
-		#region Convenience factory
-		// mini-factory for non-table specific access
-		// (equivalent to a constructor call)
-		// <remarks>static, so can't be defined anywhere but here</remarks>
-		static public MightyORM<T> DB(string connectionStringOrName = null)
-		{
-			return new MightyORM<T>(connectionStringOrName);
-		}
-		#endregion
+#endregion
 
 		// Only methods with a non-trivial implementation are here, the rest are in the MicroORM abstract class.
-		#region MircoORM interace
+#region MircoORM interace
 		// In theory COUNT expression could vary across SQL variants, in practice it doesn't.
 		override public object Count(string columns = "*", string where = null,
 			DbConnection connection = null,
@@ -554,7 +398,7 @@ namespace Mighty
 			DbConnection connection = null,
 			params object[] args)
 		{
-			return ScalarWithParams(Plugin.BuildSelect(expression, CheckTableName(), where),
+			return ScalarWithParams(Plugin.BuildSelect(expression, CheckGetTableName(), where),
 				inParams, outParams, ioParams, returnParams,
 				connection, args);
 		}
@@ -617,7 +461,7 @@ namespace Mighty
 					toDict.Add(paramInfo.Name, paramInfo.Value);
 				}
 			}
-			var sql = Plugin.BuildUpdate(CheckTableName(), values.ToString(), where);
+			var sql = Plugin.BuildUpdate(CheckGetTableName(), values.ToString(), where);
 			return ExecuteWithParams(sql, args: args, inParams: filteredItem, connection: connection);
 		}
 
@@ -634,7 +478,7 @@ namespace Mighty
 			DbConnection connection,
 			params object[] args)
 		{
-			var sql = Plugin.BuildDelete(CheckTableName(), where);
+			var sql = Plugin.BuildDelete(CheckGetTableName(), where);
 			return Execute(sql, connection, args);
 		}
 
@@ -721,13 +565,40 @@ namespace Mighty
 		/// Return comma-separated list of primary key fields, raising an exception if there are none.
 		/// </summary>
 		/// <returns></returns>
-		override protected string CheckPrimaryKeyFields()
+		override protected string CheckGetPrimaryKeyFields()
 		{
 			if (string.IsNullOrEmpty(PrimaryKeyFields))
 			{
 				throw new InvalidOperationException("No primary key field(s) have been specified");
 			}
 			return PrimaryKeyFields;
+		}
+
+		/// <summary>
+		/// Return comma-separated list of primary key fields, raising an exception if there are none.
+		/// </summary>
+		/// <returns></returns>
+		override protected string CheckGetValueField(string message)
+		{
+			if (string.IsNullOrEmpty(ValueField))
+			{
+				throw new InvalidOperationException(message);
+			}
+			return ValueField;
+		}
+
+		/// <summary>
+		/// Return the single (non-compound) primary key name, with meaningful exception if there isn't one.
+		/// </summary>
+		/// <param name="i"></param>
+		/// <returns></returns>
+		override protected string CheckGetKeyName(string message)
+		{
+			if (PrimaryKeyList.Count != 1)
+			{
+				throw new InvalidOperationException(message);
+			}
+			return PrimaryKeyList[0];
 		}
 
 		/// <summary>
@@ -748,7 +619,7 @@ namespace Mighty
 		/// Return current table name, raising an exception if there isn't one.
 		/// </summary>
 		/// <returns></returns>
-		override protected string CheckTableName()
+		override protected string CheckGetTableName()
 		{
 			if (string.IsNullOrEmpty(TableName))
 			{
@@ -913,6 +784,18 @@ namespace Mighty
 			}
 			return array;
 		}
+
+		/// <summary>
+		/// This will return a string/string dictionary which can be bound directly to dropdowns etc http://stackoverflow.com/q/805595/
+		/// </summary>
+		override public IDictionary<string, string> KeyValues(string orderBy = "")
+		{
+			string foo = string.Format(" to call {0}, please provide one in your constructor", nameof(KeyValues));
+			string valueField = CheckGetValueField(string.Format("ValueField is required{0}", foo));
+			string primaryKeyField = CheckGetKeyName(string.Format("A single primary key must be specified{0}", foo));
+			var results = All(orderBy: orderBy, columns: string.Format("{0}, {1}", primaryKeyField, valueField)).Cast<IDictionary<string, object>>();
+			return results.ToDictionary(item => item[primaryKeyField].ToString(), item => item[valueField].ToString());
+		}
 		#endregion
 
 		// Only methods with a non-trivial implementation are here, the rest are in the DataAccessWrapper abstract class.
@@ -986,7 +869,7 @@ namespace Mighty
 		/// can pass "SELECT columns" instead of columns.
 		/// TO DO: Cancel the above!
 		/// </remarks>
-		override public dynamic PagedFromSelect(string columns, string tablesAndJoins, string where, string orderBy,
+		override public PagedResults<T> PagedFromSelect(string columns, string tablesAndJoins, string where, string orderBy,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args)
@@ -995,7 +878,7 @@ namespace Mighty
 			int offset = (currentPage - 1) * pageSize;
 			if (columns == null) columns = DefaultColumns;
 			var pagingQueryPair = Plugin.BuildPagingQueryPair(columns, tablesAndJoins, where, orderBy, limit, offset);
-			dynamic result = new ExpandoObject();
+			var result = new PagedResults<T>();
 			result.TotalRecords = Convert.ToInt32(Scalar(pagingQueryPair.CountQuery));
 			result.TotalPages = (result.TotalRecords + pageSize - 1) / pageSize;
 			result.Items = Query(pagingQueryPair.PagingQuery);
@@ -1071,7 +954,7 @@ namespace Mighty
 			{
 				columns = DefaultColumns;
 			}
-			var sql = Plugin.BuildSelect(columns, CheckTableName(), where, orderBy, limit);
+			var sql = Plugin.BuildSelect(columns, CheckGetTableName(), where, orderBy, limit);
 			return QueryNWithParams<T>(sql,
 				inParams, outParams, ioParams, returnParams,
 				behavior: limit == 1 ? CommandBehavior.SingleRow : CommandBehavior.Default, connection: connection, args: args);
@@ -1159,7 +1042,8 @@ namespace Mighty
 										{
 											columnName = columnName.ToLowerInvariant();
 										}
-										propertyInfo[i] = columnNameToPropertyInfo[columnName];
+										// leaves as null if no match
+										columnNameToPropertyInfo.TryGetValue(columnName, out propertyInfo[i]);
 									}
 								}
 								do
@@ -1182,7 +1066,10 @@ namespace Mighty
 										for (int i = 0; i < fieldCount; i++)
 										{
 											var v = rowValues[i];
-											propertyInfo[i].SetValue(t, v == DBNull.Value ? null : v, null);
+											if (propertyInfo[i] != null)
+											{
+												propertyInfo[i].SetValue(t, v == DBNull.Value ? null : v, null);
+											}
 										}
 										yield return (X)(object)t;
 									}
@@ -1194,9 +1081,9 @@ namespace Mighty
 				}
 			}
 		}
-		#endregion
+#endregion
 
-		#region ORM actions
+#region ORM actions
 		/// <summary>
 		/// Save, Insert, Update or Delete an item.
 		/// Save means: update item if PK field or fields are present and at non-default values, insert otherwise.
@@ -1466,9 +1353,9 @@ namespace Mighty
 			string canonicalKeyName;
 			return IsKey(fieldName, out canonicalKeyName);
 		}
-		#endregion
+#endregion
 
-		#region Parameters
+#region Parameters
 		/// <summary>
 		/// Add a parameter to a command
 		/// </summary>
@@ -1579,6 +1466,6 @@ namespace Mighty
 				}
 			}
 		}
-		#endregion
+#endregion
 	}
 }

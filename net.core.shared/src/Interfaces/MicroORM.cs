@@ -48,7 +48,7 @@ namespace Mighty.Interfaces
 		virtual public DbProviderFactory Factory { get; protected set; }
 		virtual internal DatabasePlugin Plugin { get; set; }
 		virtual public Validator Validator { get; protected set; }
-		virtual public NamingMapper Mapper { get; protected set; }
+		virtual public SqlNamingMapper Mapper { get; protected set; }
 		virtual public Profiler Profiler { get; protected set; }
 
 		virtual public string TableName { get; protected set; }
@@ -58,6 +58,7 @@ namespace Mighty.Interfaces
 		virtual public List<string> PrimaryKeyList { get; protected set; } // separated, lowered PK field names
 		virtual public string DefaultColumns { get; protected set; }
 		virtual public string SequenceNameOrIdentityFn { get; protected set; }
+		virtual public string ValueField { get; protected set; }
 
 		// TO DO: Does it matter that this is different?
 		// We have the same difference in methods, below. Whether it matters depends on whether it drops in
@@ -202,13 +203,13 @@ namespace Mighty.Interfaces
 		/// <see cref="columns"/> parameter is not placed first because it's an override to something we may have alread provided in the constructor
 		/// (so we don't want the user to have to non-fluently re-type it, or else type null, every time).
 		/// </remarks>
-		virtual public T Paged(string orderBy = null, string where = null,
+		virtual public PagedResults<T> Paged(string where = null, string orderBy = null,
 			string columns = null,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args)
 		{
-			return PagedFromSelect(columns, CheckTableName(), where, orderBy ?? CheckPrimaryKeyFields(), pageSize, currentPage, connection, args);
+			return PagedFromSelect(columns, CheckGetTableName(), where, orderBy ?? CheckGetPrimaryKeyFields(), pageSize, currentPage, connection, args);
 		}
 
 		/// <summary>
@@ -435,16 +436,20 @@ namespace Mighty.Interfaces
 
 		abstract public object GetColumnDefault(string columnName);
 
-		// TO DO: Why do these protected ones need to be in the interface?
+		// These protected versions need to be in the interface so that they can be called from the method implementations above
 		abstract protected object[] KeyValuesFromKey(object key);
 
 		abstract protected string WhereForKeys();
 
-		abstract protected string CheckPrimaryKeyFields();
+		abstract protected string CheckGetPrimaryKeyFields();
+
+		abstract protected string CheckGetValueField(string message);
+
+		abstract protected string CheckGetKeyName(string message);
 
 		abstract protected string CheckGetKeyName(int i, string message);
 
-		abstract protected string CheckTableName();
+		abstract protected string CheckGetTableName();
 
 		abstract internal object ActionOnItems(ORMAction action, DbConnection connection, IEnumerable<object> items);
 
@@ -453,6 +458,8 @@ namespace Mighty.Interfaces
 		abstract public bool HasPrimaryKey(object item);
 
 		abstract public object GetPrimaryKey(object item, bool alwaysArray = false);
+
+		abstract public IDictionary<string, string> KeyValues(string orderBy = "");
 		#endregion
 	}
 }

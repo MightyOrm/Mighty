@@ -15,69 +15,69 @@ namespace Mighty.Interfaces
 		#region DataAccessWrapper
 		abstract public DbConnection OpenConnection();
 
-		virtual public IEnumerable<dynamic> Query(DbCommand command,
+		virtual public IEnumerable<T> Query(DbCommand command,
 			DbConnection connection = null)
 		{
-			return QueryNWithParams<dynamic>(command: command, connection: connection);
+			return QueryNWithParams<T>(command: command, connection: connection);
 		}
 
 		// no connection, easy args (use WithParams version for connection)
-		virtual public IEnumerable<dynamic> Query(string sql,
+		virtual public IEnumerable<T> Query(string sql,
 			params object[] args)
 		{
-			return QueryNWithParams<dynamic>(sql, args: args);
+			return QueryNWithParams<T>(sql, args: args);
 		}
 
-		virtual public IEnumerable<dynamic> QueryWithParams(string sql,
+		virtual public IEnumerable<T> QueryWithParams(string sql,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args)
 		{
-			return QueryNWithParams<dynamic>(sql,
+			return QueryNWithParams<T>(sql,
 				inParams, outParams, ioParams, returnParams,
 				connection: connection, args: args);
 		}
 
-		virtual public IEnumerable<dynamic> QueryFromProcedure(string spName,
+		virtual public IEnumerable<T> QueryFromProcedure(string spName,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args)
 		{
-			return QueryNWithParams<dynamic>(spName,
+			return QueryNWithParams<T>(spName,
 				inParams, outParams, ioParams, returnParams,
 				isProcedure: true,
 				connection: connection, args: args);
 		}
 
-		virtual public IEnumerable<IEnumerable<dynamic>> QueryMultiple(DbCommand command,
+		virtual public IEnumerable<IEnumerable<T>> QueryMultiple(DbCommand command,
 			DbConnection connection = null)
 		{
-			return QueryNWithParams<IEnumerable<dynamic>>(command: command, connection: connection);
+			return QueryNWithParams<IEnumerable<T>>(command: command, connection: connection);
 		}
 
 		// no connection, easy args (use WithParams version for connection)
-		virtual public IEnumerable<IEnumerable<dynamic>> QueryMultiple(string sql,
+		virtual public IEnumerable<IEnumerable<T>> QueryMultiple(string sql,
 			params object[] args)
 		{
-			return QueryNWithParams<IEnumerable<dynamic>>(sql, args: args);
+			return QueryNWithParams<IEnumerable<T>>(sql, args: args);
 		}
 
-		virtual public IEnumerable<IEnumerable<dynamic>> QueryMultipleWithParams(string sql,
+		virtual public IEnumerable<IEnumerable<T>> QueryMultipleWithParams(string sql,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args)
 		{
-			return QueryNWithParams<IEnumerable<dynamic>>(sql,
+			return QueryNWithParams<IEnumerable<T>>(sql,
 				inParams, outParams, ioParams, returnParams,
 				connection: connection, args: args);
 		}
 
-		virtual public IEnumerable<IEnumerable<dynamic>> QueryMultipleFromProcedure(string spName,
+		virtual public IEnumerable<IEnumerable<T>> QueryMultipleFromProcedure(string spName,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args)
 		{
-			return QueryNWithParams<IEnumerable<dynamic>>(spName,
+			return QueryNWithParams<IEnumerable<T>>(spName,
 				inParams, outParams, ioParams, returnParams,
 				isProcedure: true,
 				connection: connection, args: args);
@@ -102,7 +102,17 @@ namespace Mighty.Interfaces
 			return Execute(command, connection);
 		}
 
-		// COULD add a RowCount class, like Cursor, to pick out the rowcount if required
+		/// <summary>
+		/// Execute command with parameters
+		/// </summary>
+		/// <param name="sql"></param>
+		/// <param name="inParams"></param>
+		/// <param name="outParams"></param>
+		/// <param name="ioParams"></param>
+		/// <param name="returnParams"></param>
+		/// <param name="connection"></param>
+		/// <param name="args"></param>
+		/// <returns>The results of all non-input parameters</returns>
 		virtual public dynamic ExecuteWithParams(string sql,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
@@ -115,6 +125,17 @@ namespace Mighty.Interfaces
 			return ResultsAsExpando(command);
 		}
 
+		/// <summary>
+		/// Execute stored procedure with parameters
+		/// </summary>
+		/// <param name="spName"></param>
+		/// <param name="inParams"></param>
+		/// <param name="outParams"></param>
+		/// <param name="ioParams"></param>
+		/// <param name="returnParams"></param>
+		/// <param name="connection"></param>
+		/// <param name="args"></param>
+		/// <returns>The results of all non-input parameters</returns>
 		virtual public dynamic ExecuteAsProcedure(string spName,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
@@ -162,7 +183,7 @@ namespace Mighty.Interfaces
 			return Scalar(command, connection);
 		}
 
-		abstract public dynamic PagedFromSelect(string columns, string tablesAndJoins, string where, string orderBy,
+		abstract public PagedResults<T> PagedFromSelect(string columns, string tablesAndJoins, string where, string orderBy,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args);
