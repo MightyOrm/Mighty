@@ -693,10 +693,20 @@ namespace Mighty
 			{
 				if (Validator.PerformingAction(item, action))
 				{
-					var _inserted = ActionOnItem(action, item, connection);
-					if (count == 0)
+					var _inserted = ActionOnItem(action, item, connection, count);
+					if (count == 0 && _inserted != null && action == ORMAction.Insert)
 					{
-						insertedItem = _inserted;
+						// Always return the updated original object, where possible
+						if (typeof(object) != typeof(T))
+						{
+							var resultT = _inserted as T;
+							if (resultT == null)
+							{
+								resultT = NewFrom(_inserted, false);
+							}
+							_inserted = resultT;
+						}
+						insertedItem = (T)_inserted;
 					}
 					Validator.PerformedAction(item, action);
 					affected++;
@@ -1122,7 +1132,7 @@ namespace Mighty
 		/// sounds as if it means that if this part of the library was written in VB then doing this would be officially
 		/// supported? not quite sure, that assumes that the different implementations of anonymous types can co-exist)
 		/// </remarks>
-		private T ActionOnItem(ORMAction action, object item, DbConnection connection)
+		private object ActionOnItem(ORMAction action, object item, DbConnection connection, int outerCount)
 		{
 			int nKeys = 0;
 			int nDefaultKeyValues = 0;
@@ -1198,6 +1208,7 @@ namespace Mighty
 				}
 			}
 			DbCommand command = null;
+			ORMAction originalAction = action;
 			if (action == ORMAction.Save)
 			{
 				if (nKeys > 0 && nDefaultKeyValues == 0)
@@ -1239,12 +1250,10 @@ namespace Mighty
 			command.Connection = connection;
 			if (action == ORMAction.Insert && SequenceNameOrIdentityFn != null)
 			{
-				// All DBs return a massive size for their identity by default, we are normalising to int
+				// All DBs return a huge sized number for their identity by default, we are normalising to int
 				var pk = Convert.ToInt32(Scalar(command));
-				var result = UpsertItemPK(item, pk);
-				// return value not used if we were originally a Save (so in that case user
-				// must send in a mutable object if they want to see the updated PK)
-				return (T)result;
+				var result = UpsertItemPK(item, pk, originalAction == ORMAction.Insert && outerCount == 0);
+				return result;
 			}
 			else
 			{
@@ -1316,49 +1325,40 @@ namespace Mighty
 		/// </summary>
 		/// <param name="item">The item to modify</param>
 		/// <param name="pk">The PK value (PK may be int or long depending on the current database)</param>
-		private object UpsertItemPK(object item, object pk)
+		/// <param name="createIfNeeded">Writing back the value to a mutable item is worth it, but creating a
+		/// replacement item for an immutable item other than the first, on a true insert, isn't</param>
+		/// <returns></returns>
+		private object UpsertItemPK(object item, object pk, bool createIfNeeded)
 		{
-			if (typeof(T) == typeof(object))
+			var itemAsExpando = item as ExpandoObject;
+			if (itemAsExpando != null)
 			{
-				var itemAsExpando = item as ExpandoObject;
-				if (itemAsExpando != null)
-				{
-					var dict = itemAsExpando.AsDictionary();
-					dict[PrimaryKeyFields] = pk;
-					return item;
-				}
-				var nvc = item as NameValueCollection;
-				if (nvc != null)
-				{
-					nvc[PrimaryKeyFields] = pk.ToString();
-					return item;
-				}
-				// Try to write back field to arbitrary POCO
-				var pkProp = item.GetType().GetProperty(PrimaryKeyFields);
-				if (pkProp != null && pkProp.CanWrite)
-				{
-					pkProp.SetValue(item, pk);
-					return item;
-				}
-				// non-conflicting local scope
-				{
-					// Convert POCO to expando
-					var result = item.ToExpando();
-					var dict = result.AsDictionary();
-					dict[PrimaryKeyFields] = pk;
-					return result;
-				}
+				var dict = itemAsExpando.AsDictionary();
+				dict[PrimaryKeyFields] = pk;
+				return item;
 			}
-			else
+			var nvc = item as NameValueCollection;
+			if (nvc != null)
 			{
-				var itemT = item as T;
-				if (itemT == null)
-				{
-					itemT = NewFrom(item);
-				}
-				pkProperty.SetValue(itemT, pk);
-				return itemT;
+				nvc[PrimaryKeyFields] = pk.ToString();
+				return item;
 			}
+			// Try to write back field to arbitrary POCO
+			var pkProp = item.GetType().GetProperty(PrimaryKeyFields);
+			if (pkProp != null && pkProp.CanWrite)
+			{
+				pkProp.SetValue(item, pk);
+				return item;
+			}
+			if (createIfNeeded)
+			{
+				// Convert POCO to expando
+				var result = item.ToExpando();
+				var dict = result.AsDictionary();
+				dict[PrimaryKeyFields] = pk;
+				return result;
+			}
+			return null;
 		}
 
 		/// <summary>
