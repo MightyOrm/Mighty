@@ -29,7 +29,7 @@ namespace Mighty.DatabasePlugins
 		// <see cref="DatabasePluginManager.RegisterPlugin"/> to register the plugin for use with extended connection
 		// strings, or pass it to the MightyORM constructor using your own sub-class of <see cref="ConnectionProvider"/>.
 		//
-		static public string GetProviderFactoryClassName(string providerName)
+		static public string GetProviderFactoryClassName(string loweredProviderName)
 		{
 			// NB because of the way static methods work in C#, this method can never be found and called from
 			// a sub-class.
@@ -241,7 +241,7 @@ namespace Mighty.DatabasePlugins
 			{
 				defaultValue = defaultValue.Substring(1, defaultValue.Length - 2);
 			}
-			switch (defaultValue.ToUpper())
+			switch (defaultValue.ToUpperInvariant())
 			{
 				case "CURRENT_DATE":
 					result = DateTime.Now.Date;

@@ -60,6 +60,8 @@ namespace Mighty.Interfaces
 		virtual public string SequenceNameOrIdentityFn { get; protected set; }
 		virtual public string ValueField { get; protected set; }
 
+		virtual internal bool UseExpando { get; set; }
+
 		// TO DO: Does it matter that this is different?
 		// We have the same difference in methods, below. Whether it matters depends on whether it drops in
 		// and compiles, and whether it drops in and links, to external code, changing either way....

@@ -60,6 +60,8 @@ namespace Mighty
 						 Profiler profiler = null,
 						 ConnectionProvider connectionProvider = null)
 		{
+			UseExpando = true;
+
 			// Subclass-based table name override for dynamic version of MightyORM
 			string tableClassName = null;
 
@@ -134,15 +136,16 @@ namespace Mighty
 
 			Init(connectionString, tableName, tableClassName, primaryKeyField, valueField, sequence, columns, validator, mapper, profiler, connectionProvider);
 
+			InitialiseTypeProperties(tableClassName, propertyBindingFlags);
+		}
+
+		protected void InitialiseTypeProperties(string tableClassName, BindingFlags propertyBindingFlags)
+		{
 			// For generic version only, store the column names defined by the generic type
 			columnNameToPropertyInfo = new Dictionary<string, PropertyInfo>(Mapper.UseCaseInsensitiveMapping ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
 			foreach (var prop in typeof(T).GetProperties(propertyBindingFlags))
 			{
 				var columnName = Mapper.GetColumnNameFromPropertyName(tableClassName, prop.Name);
-				if (Mapper.UseCaseInsensitiveMapping)
-				{
-					columnName = columnName.ToLowerInvariant();
-				}
 				columnNameToPropertyInfo.Add(columnName, prop);
 			}
 
@@ -320,7 +323,7 @@ namespace Mighty
 			var sql = Plugin.BuildTableMetaDataQuery(BareTableName, TableOwner);
 			IEnumerable<dynamic> unprocessedMetaData;
 			dynamic db = this;
-			if (typeof(T) != typeof(object))
+			if (!UseExpando)
 			{
 				// we need a dynamic query, so on the generic version we create a new dynamic DB object with the same connection info
 				db = new MightyORM(connectionProvider: new PresetsConnectionProvider(ConnectionString, Factory, Plugin.GetType()));
@@ -407,55 +410,67 @@ namespace Mighty
 				connection, args);
 		}
 
-		// You do not have to use this - you can create new items to pass into the microORM more or less however you want.
-		// The main convenience provided here is to automatically strip out any input which does not match your column names.
-		// TO DO: This may be slightly dodgy because it does not get the values from the DB itself - it is possible that with the
-		// correct select we can get the DB to send us the values.
+		/// <summary>
+		/// Make a new item from the passed-in name-value collection.
+		/// </summary>
+		/// <param name="nameValues"></param>
+		/// <param name="addNonPresentAsDefaults"></param>
+		/// <returns></returns>
 		override public T NewFrom(object nameValues = null, bool addNonPresentAsDefaults = true)
 		{
 			object item;
 			IDictionary<string, object> newItemDictionary = null;
-			if (typeof(T) == typeof(object))
+			var nvtEnumerator = new NameValueTypeEnumerator(nameValues);
+			if (UseExpando)
 			{
 				item = new ExpandoObject();
 				newItemDictionary = ((ExpandoObject)item).AsDictionary();
+				// drive the loop by the actual column names
+				foreach (var columnInfo in TableMetaData)
+				{
+					string columnName = columnInfo.COLUMN_NAME;
+					PropertyInfo prop = null;
+					if (!UseExpando)
+					{
+						columnNameToPropertyInfo.TryGetValue(columnName, out prop);
+						if (prop == null) continue;
+					}
+					AddColumnValueToItem(null, prop, newItemDictionary, columnName, nvtEnumerator, addNonPresentAsDefaults);
+				}
 			}
 			else
 			{
 				item = new T();
-			}
-			var nvtEnumerator = new NameValueTypeEnumerator(nameValues);
-			// drive the loop by the actual column names
-			foreach (var columnInfo in TableMetaData)
-			{
-				string columnName = columnInfo.COLUMN_NAME;
-				PropertyInfo prop = null;
-				if (typeof(T) != typeof(object))
+				// drive the loop by T properties
+				foreach (var pair in columnNameToPropertyInfo)
 				{
-					columnNameToPropertyInfo.TryGetValue(columnName, out prop);
-					if (prop == null) continue;
-				}
-				object value = null;
-				foreach (var nvtInfo in nvtEnumerator)
-				{
-					if (nvtInfo.Name.Equals(columnName, Mapper.UseCaseInsensitiveMapping ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
-					{
-						value = nvtInfo.Value;
-						break;
-					}
-				}
-				if (value == null)
-				{
-					if (!addNonPresentAsDefaults) continue;
-					value = GetColumnDefault(columnName);
-				}
-				if (value != null)
-				{
-					if (prop != null) prop.SetValue(item, value.ChangeType(prop.PropertyType));
-					else newItemDictionary.Add(columnName, value);
+					AddColumnValueToItem(item, pair.Value, null, pair.Key, nvtEnumerator, addNonPresentAsDefaults);
 				}
 			}
 			return (T)item;
+		}
+
+		internal void AddColumnValueToItem(object item, PropertyInfo prop, IDictionary<string, object> newItemDictionary, string columnName, NameValueTypeEnumerator nvtEnumerator, bool addNonPresentAsDefaults)
+		{
+			object value = null;
+			foreach (var nvtInfo in nvtEnumerator)
+			{
+				if (nvtInfo.Name.Equals(columnName, Mapper.UseCaseInsensitiveMapping ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
+				{
+					value = nvtInfo.Value;
+					break;
+				}
+			}
+			if (value == null)
+			{
+				if (!addNonPresentAsDefaults) return;
+				value = GetColumnDefault(columnName);
+			}
+			if (value != null)
+			{
+				if (prop != null) prop.SetValue(item, value.ChangeType(prop.PropertyType));
+				else newItemDictionary.Add(columnName, value);
+			}
 		}
 
 		// Update from fields in the item sent in. If PK has been specified, any primary key fields in the
@@ -683,6 +698,7 @@ namespace Mighty
 		/// <param name="connection">The DbConnection</param>
 		/// <param name="items">The item or items</param>
 		/// <returns></returns>
+		/// <remarks>Here and in <see cref="UpsertItemPK"/> we always return the modified original object, where possible</remarks>
 		override internal int ActionOnItems(ORMAction action, DbConnection connection, IEnumerable<object> items, out T insertedItem)
 		{
 			insertedItem = null;
@@ -696,8 +712,7 @@ namespace Mighty
 					var _inserted = ActionOnItem(action, item, connection, count);
 					if (count == 0 && _inserted != null && action == ORMAction.Insert)
 					{
-						// Always return the updated original object, where possible
-						if (typeof(object) != typeof(T))
+						if (!UseExpando)
 						{
 							var resultT = _inserted as T;
 							if (resultT == null)
@@ -1041,8 +1056,6 @@ namespace Mighty
 
 							if (useReader.Read())
 							{
-								bool useExpando = (typeof(T) == typeof(object));
-
 								int fieldCount = useReader.FieldCount;
 								object[] rowValues = new object[fieldCount];
 
@@ -1051,7 +1064,7 @@ namespace Mighty
 								// this is for generic<T> support
 								PropertyInfo[] propertyInfo = null;
 
-								if (useExpando) columnNames = new string[fieldCount];
+								if (UseExpando) columnNames = new string[fieldCount];
 								else propertyInfo = new PropertyInfo[fieldCount];
 
 								// for generic, we need array of properties to set; we find this
@@ -1059,7 +1072,7 @@ namespace Mighty
 								for (int i = 0; i < fieldCount; i++)
 								{
 									var columnName = useReader.GetName(i);
-									if (useExpando)
+									if (UseExpando)
 									{
 										// For dynamics, create fields using the case that comes back from the database
 										// TO DO: Test how this is working now in Oracle
@@ -1067,10 +1080,6 @@ namespace Mighty
 									}
 									else
 									{
-										if (Mapper.UseCaseInsensitiveMapping)
-										{
-											columnName = columnName.ToLowerInvariant();
-										}
 										// leaves as null if no match
 										columnNameToPropertyInfo.TryGetValue(columnName, out propertyInfo[i]);
 									}
@@ -1078,7 +1087,7 @@ namespace Mighty
 								do
 								{
 									useReader.GetValues(rowValues);
-									if (useExpando)
+									if (UseExpando)
 									{
 										ExpandoObject e = new ExpandoObject();
 										IDictionary<string, object> d = e.AsDictionary();
