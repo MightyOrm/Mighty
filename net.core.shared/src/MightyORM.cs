@@ -659,32 +659,6 @@ namespace Mighty
 			return TableName;
 		}
 
-		// In new version, null or default value for type in PK will save as new, as well as no PK field
-		// only we don't know what the pk type is... but we do after getting the schema, and we should just use = to compare without worrying too much about types
-		// is checking whether every item is valid before any saving - which is good - and not the same as checking
-		// something at inserting/updating time; still if we're going to use a transaction ANYWAY, and this does.... hmmm... no: rollback is EXPENSIVE
-		// returns the sum of the number of rows affected;
-		// *** insert WILL set the PK field, as long as the object was an expando in the first place (could upgrade that; to set PK
-		// in Expando OR in settable property of correct name)
-		// *** we can assume that it is NEVER valid for the user to specify the PK value manually - though they can of course specify the pkFieldName,
-		// and the pkSequence, for those databases which work that way; I strongly suspect we should be able to shove the sequence select into ONE round
-		// trip to the DB, as well.
-		// (Of course, this would mean that there would be no such thing as an ORM provided update, for a table without a PK. You know what? It *is* valid to
-		// set - and update based on - a compound PK. Which means it must BE valid to set a non-compound PK.)
-		// I think we want primaryKeySequence (for dbs which use that; defaults to no sequence) and primaryKeyRetrievalFunction (for dbs which use that; defaults to
-		// correct default to DB, but may be set to null). If both are null, you can still have a (potentially compound) PK.
-		// We can use INSERT seqname.nextval and then SELECT seqname.currval in Oracle.
-		// And INSERT nextval('seqname') and then currval('seqname') (or just lastval()) in PostgreSQL.
-		// (if neither primaryKeySequence nor primaryKeyRetrievalFunction are set (which is always the case for compound primary keys), you MUST specify non-null, non-default values for every column in your primary key
-		// before saving an object)
-		// *** okay, shite, how do we know if a compound key object is an insert or an update? I think we just provide Save, which is auto, but can't work for manual primary keys,
-		// and Insert and Update, which will do what they say on the tin, and which can.
-
-		// Save cannot be used with manually controlled primary keys (which includes compound primary keys), as the microORM cannot tell apart an insert from an update in this case
-		// but I think this can just be an exception, as we really don't need to worry most users about it.
-		// exception can check whether we are compound; or whether we may be sequence, but just not set; or whether we have retrieval fn intentionally overridden to empty string;
-		// and give different messages.
-
 		/// <summary>
 		/// Perform CRUD action for the item or items in the params list.
 		/// For insert only, the PK of the first item is returned.
