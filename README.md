@@ -35,7 +35,7 @@ Without some additional code this unfortunately cannot work in a few key cases -
 
 ### So, what is a microORM?
 
-Mighty is a microORM, like Massive. This means that when you create an instance of `MightyModel` with a table name (and optionally a primary key name), then Mighty already knows all about:
+Mighty is a microORM, like Massive. This means that when you create an instance of `MightyORM` with a table name (and optionally a primary key name), then Mighty already knows all about:
 
 - Querying
 - Inserting
@@ -134,5 +134,5 @@ This is arguably an abuse of XML since now '&lt;DynamicObject&gt;' will occur in
 For more advanced usage, the following properties can be set in the constructor:
 
  - Validator - custom validation for per-item insert/update/delete
- - Mapper - mapper from C# class and property names to SQL table and column names
+ - SqlMapper - mapper from C# class and property names to SQL table and column names
  - ConnectionProvider - support custom ways of mapping from connection string to DbProviderFactory (you don't normally need this, default versions for .NET Framework and .NET Core are provided, and automatically instantiated if you don't specify your own)
