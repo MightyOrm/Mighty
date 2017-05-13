@@ -317,18 +317,15 @@ namespace Mighty
 		// called within the lock
 		private void LoadTableMetaData()
 		{
-			var sql = Plugin.BuildTableMetaDataQuery(!string.IsNullOrEmpty(TableOwner));
+			var sql = Plugin.BuildTableMetaDataQuery(BareTableName, TableOwner);
 			IEnumerable<dynamic> unprocessedMetaData;
-			if (typeof(T) == typeof(object))
-			{
-				unprocessedMetaData = (IEnumerable<dynamic>)Query(sql, BareTableName, TableOwner);
-			}
-			else
+			dynamic db = this;
+			if (typeof(T) != typeof(object))
 			{
 				// we need a dynamic query, so on the generic version we create a new dynamic DB object with the same connection info
-				var db = new MightyORM(connectionProvider: new PresetsConnectionProvider(ConnectionString, Factory, Plugin.GetType()));
-				unprocessedMetaData = db.Query(sql, BareTableName, TableOwner);
+				db = new MightyORM(connectionProvider: new PresetsConnectionProvider(ConnectionString, Factory, Plugin.GetType()));
 			}
+			unprocessedMetaData = (IEnumerable<dynamic>)db.Query(sql, BareTableName, TableOwner);
 			_TableMetaData = Plugin.PostProcessTableMetaData(unprocessedMetaData);
 		}
 

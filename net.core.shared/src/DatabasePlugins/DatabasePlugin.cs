@@ -213,11 +213,11 @@ namespace Mighty.DatabasePlugins
 		#region Table info
 		// Owner is for owner/schema, will be null if none was specified by the user.
 		// This is exactly the same on MySQL, PostgreSQL and SQL Server, override on the others.
-		virtual public string BuildTableMetaDataQuery(bool addOwner)
+		virtual public string BuildTableMetaDataQuery(string tableName, string tableOwner)
 		{
 			return string.Format("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = {0}{1}",
 				PrefixParameterName("0"),
-				addOwner ? string.Format(" AND TABLE_SCHEMA = {0}", PrefixParameterName("1")) : "");
+				tableOwner != null ? string.Format(" AND TABLE_SCHEMA = {0}", PrefixParameterName("1")) : "");
 		}
 
 		// If the table info comes in the semi-standard INFORMATION_SCHEMA format (which it does, though from a
@@ -273,25 +273,20 @@ namespace Mighty.DatabasePlugins
 				{
 					defaultValue = defaultValue.Substring(1, defaultValue.Length - 2);
 				}
-				if (columnInfo.NUMERIC_SCALE == null)
+				if (!((object)columnInfo).AsDictionary().ContainsKey("NUMERIC_SCALE"))
 				{
-					if (columnInfo.DATA_TYPE == "bit")
-					{
-						result = (defaultValue == "1");
-					}
-					else
-					{
-						result = defaultValue;
-					}
+					string DATA_TYPE = columnInfo.DATA_TYPE;
+					if (DATA_TYPE.Contains(",")) result = float.Parse(defaultValue);
+					else if (DATA_TYPE.Contains("(")) result = defaultValue;
+					else result = int.Parse(defaultValue);
 				}
-				else if (columnInfo.NUMERIC_SCALE == 0)
+				else if (columnInfo.NUMERIC_SCALE == null)
 				{
-					result = int.Parse(defaultValue);
+					if (columnInfo.DATA_TYPE == "bit") result = (defaultValue == "1");
+					else result = defaultValue;
 				}
-				else
-				{
-					result = float.Parse(defaultValue);
-				}
+				else if (columnInfo.NUMERIC_SCALE == 0) result = int.Parse(defaultValue);
+				else result = float.Parse(defaultValue);
 			}
 #if DEBUG
 			if (result == null) throw new Exception(string.Format("Unknown defaultValue={0}", defaultValue)); ////

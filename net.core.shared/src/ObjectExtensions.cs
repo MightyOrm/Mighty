@@ -69,8 +69,9 @@ namespace Mighty
 		/// <remarks>
 		/// Not sure whether this is really useful or not... syntax is nicer and saves a little typing, even though functionality is obviously very simple.
 		/// Hopefully compiler removes any apparent inefficiency.
+		/// In theory this could work in future for other dynamic types, not just ExpandoObject.
 		/// </remarks>
-		static public IDictionary<string, object> AsDictionary(this ExpandoObject o)
+		static public IDictionary<string, object> AsDictionary(this object o)
 		{
 			return (IDictionary<string, object>)o;
 		}

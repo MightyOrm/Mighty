@@ -244,7 +244,7 @@ namespace Mighty.Generic.Tests.MySql
 		public void Query_AllRows()
 		{
 			var films = new Films(ProviderName);
-			var allRows = films.Query("SELECT * FROM sakila.films").ToList();
+			var allRows = films.Query("SELECT * FROM sakila.film").ToList();
 			Assert.AreEqual(1000, allRows.Count);
 		}
 
@@ -253,7 +253,7 @@ namespace Mighty.Generic.Tests.MySql
 		public void Query_Filter()
 		{
 			var films = new Films(ProviderName);
-			var filteredRows = films.Query("SELECT * FROM sakila.films WHERE rental_duration=@0", 5).ToList();
+			var filteredRows = films.Query("SELECT * FROM sakila.film WHERE rental_duration=@0", 5).ToList();
 			Assert.AreEqual(191, filteredRows.Count);
 		}
 

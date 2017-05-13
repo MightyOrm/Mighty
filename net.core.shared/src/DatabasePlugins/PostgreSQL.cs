@@ -1,6 +1,8 @@
 using System;
 using System.Data;
 using System.Data.Common;
+using System.Dynamic;
+using System.Collections.Generic;
 using System.Linq;
 
 using Mighty.Npgsql;
@@ -34,6 +36,24 @@ namespace Mighty.DatabasePlugins
 			int limit, int offset)
 		{
 			return BuildLimitOffsetPagingQueryPair(columns, tablesAndJoins, where, orderBy, limit, offset);
+		}
+		#endregion
+
+		#region Table info
+		override public IEnumerable<dynamic> PostProcessTableMetaData(IEnumerable<dynamic> rawTableMetaData)
+		{
+			List<dynamic> results = new List<object>();
+			foreach (ExpandoObject columnInfo in rawTableMetaData)
+			{
+				var newInfo = new ExpandoObject();
+				var dict = newInfo.AsDictionary();
+				foreach (var pair in columnInfo)
+				{
+					dict.Add(pair.Key.ToUpperInvariant(), pair.Value);
+				}
+				results.Add(newInfo);
+			}
+			return results;
 		}
 		#endregion
 

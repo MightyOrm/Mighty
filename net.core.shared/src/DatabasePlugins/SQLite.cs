@@ -1,5 +1,6 @@
 using System;
 using System.Data.Common;
+using System.Dynamic;
 using System.Collections.Generic;
 
 namespace Mighty.DatabasePlugins
@@ -38,30 +39,23 @@ namespace Mighty.DatabasePlugins
 		#endregion
 
 		#region Table info
-		override public string BuildTableMetaDataQuery(bool addOwner)
+		override public string BuildTableMetaDataQuery(string tableName, string tableOwner)
 		{
-			// SQLite does not have schema/owner
-			return string.Format("PRAGMA table_info({0})", PrefixParameterName("0"));
+			// does not work with params (not even the inner part)
+			return string.Format("PRAGMA {1}table_info({0})", tableName, tableOwner != null ? string.Format("{0}.", tableOwner) : "");
 		}
 
 		override public IEnumerable<dynamic> PostProcessTableMetaData(IEnumerable<dynamic> rawTableMetaData)
 		{
-			// TO DO: TEST that this and the other ones are working
-			// NB various null checks removed in this one, were these needed?
-			var result = new List<dynamic>();
-			foreach (var row in rawTableMetaData)
+			var results = new List<dynamic>();
+			foreach (dynamic row in rawTableMetaData)
 			{
-				var rowAsDictionary = row.AsDictionary();
-				result.Add(new
-				{
-					// Taken from Massive - see CREDITS file
-					COLUMN_NAME = rowAsDictionary["name"].ToString(),
-					DATA_TYPE = rowAsDictionary["type"].ToString(),
-					IS_NULLABLE = rowAsDictionary["notnull"].ToString() == "0" ? "NO" : "YES",
-					COLUMN_DEFAULT = rowAsDictionary["dflt_value"] ?? string.Empty,
-				});
+				row.COLUMN_NAME = row.name;
+				row.DATA_TYPE = row.type;
+				row.COLUMN_DEFAULT = row.dflt_value;
+				results.Add(row);
 			}
-			return result;
+			return results;
 		}
 		#endregion
 

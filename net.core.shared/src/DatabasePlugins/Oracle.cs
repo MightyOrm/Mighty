@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
+using System.Dynamic;
 
 namespace Mighty.DatabasePlugins
 {
@@ -59,12 +61,24 @@ namespace Mighty.DatabasePlugins
 		#region Table info
 		// owner is for owner/schema, will be null if none was specified
 		// This really does vary per DB and can't be a standard virtual method which most things share.
-		override public string BuildTableMetaDataQuery(bool addOwner)
+		override public string BuildTableMetaDataQuery(string tableName, string tableOwner)
 		{
 			return string.Format("SELECT * FROM {0}_TAB_COLUMNS WHERE TABLE_NAME = {1}{2}",
-				addOwner ? "ALL" : "USER",
+				tableOwner != null ? "ALL" : "USER",
 				PrefixParameterName("0"),
-				addOwner ? string.Format(" AND OWNER = {0}", PrefixParameterName("1")) : "");
+				tableOwner != null ? string.Format(" AND OWNER = {0}", PrefixParameterName("1")) : "");
+		}
+
+		override public IEnumerable<dynamic> PostProcessTableMetaData(IEnumerable<dynamic> rawTableMetaData)
+		{
+			List<dynamic> results = new List<object>();
+			foreach (dynamic columnInfo in rawTableMetaData)
+			{
+				columnInfo.NUMERIC_SCALE = columnInfo.DATA_SCALE;
+				columnInfo.COLUMN_DEFAULT = columnInfo.DATA_DEFAULT;
+				results.Add(columnInfo);
+			}
+			return results;
 		}
 		#endregion
 
