@@ -750,7 +750,7 @@ namespace Mighty
 		}
 
 		/// <summary>
-		/// True iff input object has a named field the PK (or PKs for compound primary keys)
+		/// True iff input object has a named field matching the PK name (or PKs for compound primary keys)
 		/// </summary>
 		/// <param name="item">Item to check</param>
 		/// <returns></returns>
@@ -768,10 +768,8 @@ namespace Mighty
 		/// Return primary key for item, as simple object for simple PK, or as object[] for compound PK.
 		/// </summary>
 		/// <param name="item"></param>
+		/// <param name="alwaysArray">If true return object[] of 1 item, even for simple PK</param>
 		/// <returns></returns>
-		/// <remarks>
-		/// TO DO: Add test for compound PK
-		/// </remarks>
 		override public object GetPrimaryKey(object item, bool alwaysArray = false)
 		{
 			var pks = new ExpandoObject();
@@ -1344,16 +1342,16 @@ namespace Mighty
 		/// Is the string passed in the name of a PK field?
 		/// </summary>
 		/// <param name="fieldName">The name to check</param>
-		/// <param name="canonicalKeyName">Return the canonical key name</param>
+		/// <param name="canonicalKeyName">Returns the canonical key name, i.e. as specified in <see cref="MightyORM"/> constructor</param>
 		/// <returns></returns>
 		internal bool IsKey(string fieldName, out string canonicalKeyName)
 		{
 			canonicalKeyName = null;
 			foreach (var key in PrimaryKeyList)
 			{
-				if (key.Equals(fieldName, StringComparison.OrdinalIgnoreCase))
+				if (key.Equals(fieldName, SqlMapper.UseCaseInsensitiveMapping ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
 				{
-					canonicalKeyName = fieldName;
+					canonicalKeyName = key;
 					return true;
 				}
 			}
