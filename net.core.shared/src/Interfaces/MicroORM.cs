@@ -48,15 +48,15 @@ namespace Mighty.Interfaces
 		virtual public DbProviderFactory Factory { get; protected set; }
 		virtual internal DatabasePlugin Plugin { get; set; }
 		virtual public Validator Validator { get; protected set; }
-		virtual public SqlNamingMapper Mapper { get; protected set; }
-		virtual public Profiler Profiler { get; protected set; }
+		virtual public SqlNamingMapper SqlMapper { get; protected set; }
+		virtual public SqlProfiler SqlProfiler { get; protected set; }
 
 		virtual public string TableName { get; protected set; }
 		virtual public string TableOwner { get; protected set; }
 		virtual public string BareTableName { get; protected set; }
 		virtual public string PrimaryKeyFields { get; protected set; } // un-separated PK field names
 		virtual public List<string> PrimaryKeyList { get; protected set; } // separated, lowered PK field names
-		virtual public string DefaultColumns { get; protected set; }
+		virtual public string Columns { get; protected set; }
 		virtual public string SequenceNameOrIdentityFn { get; protected set; }
 		virtual public string ValueField { get; protected set; }
 

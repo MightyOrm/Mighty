@@ -273,7 +273,7 @@ namespace Mighty.DatabasePlugins
 				{
 					defaultValue = defaultValue.Substring(1, defaultValue.Length - 2);
 				}
-				if (!((object)columnInfo).AsDictionary().ContainsKey("NUMERIC_SCALE"))
+				if (!((ExpandoObject)columnInfo).ToDictionary().ContainsKey("NUMERIC_SCALE"))
 				{
 					string DATA_TYPE = columnInfo.DATA_TYPE;
 					if (DATA_TYPE.Contains(",")) result = float.Parse(defaultValue);

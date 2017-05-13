@@ -2,7 +2,7 @@ using System.Data.Common;
 
 namespace Mighty.Profiling
 {
-	public class Profiler
+	public class SqlProfiler
 	{
 		virtual public DbCommand Wrap(DbCommand command)
 		{

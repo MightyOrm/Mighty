@@ -46,7 +46,7 @@ namespace Mighty.DatabasePlugins
 			foreach (ExpandoObject columnInfo in rawTableMetaData)
 			{
 				var newInfo = new ExpandoObject();
-				var dict = newInfo.AsDictionary();
+				var dict = newInfo.ToDictionary();
 				foreach (var pair in columnInfo)
 				{
 					dict.Add(pair.Key.ToUpperInvariant(), pair.Value);

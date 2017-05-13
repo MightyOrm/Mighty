@@ -225,7 +225,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
 			dynamic soh = new SalesOrderHeader();
 			var singleInstance = soh.Single(SalesOrderID: 43666);
 			Assert.AreEqual(43666, singleInstance.SalesOrderID);
-			Assert.AreEqual(26, ((ExpandoObject)singleInstance).AsDictionary().Count);
+			Assert.AreEqual(26, ((ExpandoObject)singleInstance).ToDictionary().Count);
 		}
 
 
@@ -237,7 +237,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
 			Assert.AreEqual(43666, singleInstance.SalesOrderID);
 			Assert.AreEqual("SO43666", singleInstance.SalesOrderNumber);
 			Assert.AreEqual(new DateTime(2011, 5, 31), singleInstance.OrderDate);
-			Assert.AreEqual(3, ((ExpandoObject)singleInstance).AsDictionary().Count);
+			Assert.AreEqual(3, ((ExpandoObject)singleInstance).ToDictionary().Count);
 		}
 
 

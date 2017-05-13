@@ -59,7 +59,7 @@ namespace Mighty
 			var orderBy = Mighty.PrimaryKeyFields;
 			var wherePredicates = new List<string>();
 			var nameValueArgs = new ExpandoObject();
-			var nameValueDictionary = nameValueArgs.AsDictionary();
+			var nameValueDictionary = nameValueArgs.ToDictionary();
 			object[] userArgs = null;
 			if (info.ArgumentNames.Count > 0)
 			{
@@ -140,7 +140,7 @@ namespace Mighty
 		private DynamicObjectWrapper<T> DynamicObjectWrapper;
 
 		/// <summary>
-		/// Support dynamic methods via a wrapper object (needed as we can't do direct multiple inheritance)
+		/// Implements IDynamicMetaObjectProvider.
 		/// </summary>
 		/// <param name="parameter"></param>
 		/// <returns></returns>
@@ -148,6 +148,7 @@ namespace Mighty
 		/// Modified from http://stackoverflow.com/a/17634595/795690
 		/// </remarks>
 		/// <remarks>
+		/// Support dynamic methods via a wrapper object (needed as we can't do direct multiple inheritance)
 		/// This code is being called all the time (ALL methods calls to <see cref="IDynamicMetaObjectProvider"/> objects go through this, even
 		/// when not stored in dynamic). This is the case for all <see cref="DynamicObject"/>s too (e.g. as in Massive) but you don't see it
 		/// when debugging in that case, as GetMetaObject() is not user code if you inherit directly from DynamicObject.

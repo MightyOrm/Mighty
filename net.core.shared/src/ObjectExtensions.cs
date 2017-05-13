@@ -17,7 +17,7 @@ namespace Mighty
 			var oAsExpando = o as ExpandoObject;
 			if (oAsExpando != null) return oAsExpando;
 			var result = new ExpandoObject();
-			var dict = result.AsDictionary();
+			var dict = result.ToDictionary();
 			foreach (var info in new NameValueTypeEnumerator(o))
 			{
 				dict.Add(info.Name, info.Value);
@@ -69,9 +69,11 @@ namespace Mighty
 		/// <remarks>
 		/// Not sure whether this is really useful or not... syntax is nicer and saves a little typing, even though functionality is obviously very simple.
 		/// Hopefully compiler removes any apparent inefficiency.
-		/// In theory this could work in future for other dynamic types, not just ExpandoObject.
+		/// In theory this could work for other dynamic types, not just ExpandoObject (with argument type of <see cref="object"/> or
+		/// <see cref="IDynamicMetaObjectProvider"/>), but MightyORM itself implements that interface, and we don't really want this
+		/// method to appear in IntelliSense in places where it doesn't make sense.
 		/// </remarks>
-		static public IDictionary<string, object> AsDictionary(this object o)
+		static public IDictionary<string, object> ToDictionary(this ExpandoObject o)
 		{
 			return (IDictionary<string, object>)o;
 		}

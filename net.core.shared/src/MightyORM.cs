@@ -57,7 +57,7 @@ namespace Mighty
 						 string columns = null,
 						 Validator validator = null,
 						 SqlNamingMapper mapper = null,
-						 Profiler profiler = null,
+						 SqlProfiler profiler = null,
 						 ConnectionProvider connectionProvider = null)
 		{
 			UseExpando = true;
@@ -124,7 +124,7 @@ namespace Mighty
 						 string columns = null,
 						 Validator validator = null,
 						 SqlNamingMapper mapper = null,
-						 Profiler profiler = null,
+						 SqlProfiler profiler = null,
 						 ConnectionProvider connectionProvider = null,
 						 BindingFlags propertyBindingFlags = BindingFlags.Instance | BindingFlags.Public)
 		{
@@ -142,10 +142,10 @@ namespace Mighty
 		protected void InitialiseTypeProperties(string tableClassName, BindingFlags propertyBindingFlags)
 		{
 			// For generic version only, store the column names defined by the generic type
-			columnNameToPropertyInfo = new Dictionary<string, PropertyInfo>(Mapper.UseCaseInsensitiveMapping ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
+			columnNameToPropertyInfo = new Dictionary<string, PropertyInfo>(SqlMapper.UseCaseInsensitiveMapping ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
 			foreach (var prop in typeof(T).GetProperties(propertyBindingFlags))
 			{
-				var columnName = Mapper.GetColumnNameFromPropertyName(tableClassName, prop.Name);
+				var columnName = SqlMapper.GetColumnNameFromPropertyName(tableClassName, prop.Name);
 				columnNameToPropertyInfo.Add(columnName, prop);
 			}
 
@@ -177,7 +177,7 @@ namespace Mighty
 		//
 		// TO DO: disallow, or just ignore?, sequence spec when we have multiple PKs
 		//
-		public void Init(string connectionString,
+		internal void Init(string connectionString,
 						 string tableName,
 						 string tableClassName,
 						 string primaryKeyField,
@@ -186,7 +186,7 @@ namespace Mighty
 						 string columns,
 						 Validator validator,
 						 SqlNamingMapper mapper,
-						 Profiler profiler,
+						 SqlProfiler profiler,
 						 ConnectionProvider connectionProvider)
 		{
 			ValueField = valueField;
@@ -212,12 +212,8 @@ namespace Mighty
 				if (i >= 0)
 				{
 					TableOwner = TableName.Substring(0, i);
-					BareTableName = TableName.Substring(i + 1);
 				}
-				else
-				{
-					BareTableName = TableName;
-				}
+				BareTableName = TableName.Substring(i + 1);
 			}
 
 			if (connectionProvider == null)
@@ -259,10 +255,10 @@ namespace Mighty
 			{
 				PrimaryKeyList = primaryKeyField.Split(',').Select(k => k.Trim()).ToList();
 			}
-			DefaultColumns = columns ?? "*";
+			Columns = columns ?? "*";
 			Validator = validator ?? new Validator();
-			Profiler = profiler ?? new Profiler();
-			Mapper = mapper;
+			SqlProfiler = profiler ?? new SqlProfiler();
+			SqlMapper = mapper;
 			// After all this, SequenceNameOrIdentityFn is only non-null if we really are expecting to use it
 			// (which entails exactly one PK)
 			if (!Plugin.IsSequenceBased)
@@ -424,7 +420,7 @@ namespace Mighty
 			if (UseExpando)
 			{
 				item = new ExpandoObject();
-				newItemDictionary = ((ExpandoObject)item).AsDictionary();
+				newItemDictionary = ((ExpandoObject)item).ToDictionary();
 				// drive the loop by the actual column names
 				foreach (var columnInfo in TableMetaData)
 				{
@@ -455,7 +451,7 @@ namespace Mighty
 			object value = null;
 			foreach (var nvtInfo in nvtEnumerator)
 			{
-				if (nvtInfo.Name.Equals(columnName, Mapper.UseCaseInsensitiveMapping ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
+				if (nvtInfo.Name.Equals(columnName, SqlMapper.UseCaseInsensitiveMapping ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
 				{
 					value = nvtInfo.Value;
 					break;
@@ -483,7 +479,7 @@ namespace Mighty
 			var values = new StringBuilder();
 			var parameters = new NameValueTypeEnumerator(partialItem);
 			var filteredItem = new ExpandoObject();
-			var toDict = filteredItem.AsDictionary();
+			var toDict = filteredItem.ToDictionary();
 			int i = 0;
 			foreach (var paramInfo in parameters)
 			{
@@ -805,7 +801,7 @@ namespace Mighty
 		override public object GetPrimaryKey(object item, bool alwaysArray = false)
 		{
 			var pks = new ExpandoObject();
-			var pkDictionary = pks.AsDictionary();
+			var pkDictionary = pks.ToDictionary();
 			foreach (var info in new NameValueTypeEnumerator(item))
 			{
 				string canonicalKeyName;
@@ -830,7 +826,7 @@ namespace Mighty
 		}
 
 		/// <summary>
-		/// This will return a string/string dictionary which can be bound directly to dropdowns etc http://stackoverflow.com/q/805595/
+		/// Returns a string/string dictionary which can be bound directly to dropdowns etc http://stackoverflow.com/q/805595/
 		/// </summary>
 		override public IDictionary<string, string> KeyValues(string orderBy = "")
 		{
@@ -920,7 +916,7 @@ namespace Mighty
 		{
 			int limit = pageSize;
 			int offset = (currentPage - 1) * pageSize;
-			if (columns == null) columns = DefaultColumns;
+			if (columns == null) columns = Columns;
 			var pagingQueryPair = Plugin.BuildPagingQueryPair(columns, tablesAndJoins, where, orderBy, limit, offset);
 			var result = new PagedResults<T>();
 			result.TotalRecords = Convert.ToInt32(Scalar(pagingQueryPair.CountQuery));
@@ -970,7 +966,7 @@ namespace Mighty
 		override public dynamic ResultsAsExpando(DbCommand cmd)
 		{
 			var e = new ExpandoObject();
-			var resultDictionary = e.AsDictionary();
+			var resultDictionary = e.ToDictionary();
 			for (int i = 0; i < cmd.Parameters.Count; i++)
 			{
 				var param = cmd.Parameters[i];
@@ -996,7 +992,7 @@ namespace Mighty
 		{
 			if (columns == null)
 			{
-				columns = DefaultColumns;
+				columns = Columns;
 			}
 			var sql = Plugin.BuildSelect(columns, CheckGetTableName(), where, orderBy, limit);
 			return QueryNWithParams<T>(sql,
@@ -1090,7 +1086,7 @@ namespace Mighty
 									if (UseExpando)
 									{
 										ExpandoObject e = new ExpandoObject();
-										IDictionary<string, object> d = e.AsDictionary();
+										IDictionary<string, object> d = e.ToDictionary();
 										for (int i = 0; i < fieldCount; i++)
 										{
 											var v = rowValues[i];
@@ -1151,7 +1147,7 @@ namespace Mighty
 			List<string> updateNameValuePairs = new List<string>();
 			List<string> whereNameValuePairs = new List<string>();
 			var argsItem = new ExpandoObject();
-			var argsItemDict = argsItem.AsDictionary();
+			var argsItemDict = argsItem.ToDictionary();
 			var count = 0;
 			foreach (var nvt in new NameValueTypeEnumerator(item, action: action))
 			{
@@ -1342,7 +1338,7 @@ namespace Mighty
 			var itemAsExpando = item as ExpandoObject;
 			if (itemAsExpando != null)
 			{
-				var dict = itemAsExpando.AsDictionary();
+				var dict = itemAsExpando.ToDictionary();
 				dict[PrimaryKeyFields] = pk;
 				return item;
 			}
@@ -1363,7 +1359,7 @@ namespace Mighty
 			{
 				// Convert POCO to expando
 				var result = item.ToExpando();
-				var dict = result.AsDictionary();
+				var dict = result.ToDictionary();
 				dict[PrimaryKeyFields] = pk;
 				return result;
 			}
