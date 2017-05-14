@@ -60,7 +60,7 @@ namespace Mighty.Generic.Tests.MySql
 		public void EmptyElement_ProtoType()
 		{
 			var films = new Films(ProviderName);
-			Film defaults = films.New();
+			var defaults = films.New();
 			Assert.IsTrue(defaults.last_update > DateTime.MinValue);
 		}
 

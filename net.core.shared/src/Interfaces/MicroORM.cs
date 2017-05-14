@@ -44,27 +44,89 @@ namespace Mighty.Interfaces
 	abstract public partial class MicroORM<T>
 	{
 		#region Properties
+		/// <summary>
+		/// Connection string
+		/// </summary>
 		virtual public string ConnectionString { get; protected set; }
+
+		/// <summary>
+		/// ADO.NET provider factory
+		/// </summary>
 		virtual public DbProviderFactory Factory { get; protected set; }
+
+		/// <summary>
+		/// Plugin
+		/// </summary>
 		virtual internal DatabasePlugin Plugin { get; set; }
+
+		/// <summary>
+		/// Validator
+		/// </summary>
 		virtual public Validator Validator { get; protected set; }
+
+		/// <summary>
+		/// C# &lt;=&gt; SQL mapper
+		/// </summary>
 		virtual public SqlNamingMapper SqlMapper { get; protected set; }
+
+		/// <summary>
+		/// Optional SQL profiler
+		/// </summary>
 		virtual public SqlProfiler SqlProfiler { get; protected set; }
 
+		/// <summary>
+		/// Table name (null if non-table-specific instance)
+		/// </summary>
 		virtual public string TableName { get; protected set; }
-		virtual public string TableOwner { get; protected set; }
-		virtual public string BareTableName { get; protected set; }
-		virtual public string PrimaryKeyFields { get; protected set; } // un-separated PK field names
-		virtual public List<string> PrimaryKeyList { get; protected set; } // separated, lowered PK field names
-		virtual public string Columns { get; protected set; }
-		virtual public string SequenceNameOrIdentityFn { get; protected set; }
-		virtual public string ValueField { get; protected set; }
 
+		/// <summary>
+		/// Table owner/schema (null if not specified)
+		/// </summary>
+		virtual public string TableOwner { get; protected set; }
+
+		/// <summary>
+		/// Bare table name (without owner/schema part)
+		/// </summary>
+		virtual public string BareTableName { get; protected set; }
+
+		/// <summary>
+		/// Primary key field or fields (no mapping applied)
+		/// </summary>
+		virtual public string PrimaryKeyFields { get; protected set; }
+
+		/// <summary>
+		/// Separated, lowered primary key fields (no mapping applied)
+		/// </summary>
+		virtual public List<string> PrimaryKeyList { get; protected set; }
+
+		/// <summary>
+		/// Columns, or "*" (mapping, if any, applied)
+		/// </summary>
+		virtual public string Columns { get; protected set; }
+
+		/// <summary>
+		/// Separate columns (mapping, if any, applied)
+		/// </summary>
+		virtual public List<string> ColumnList { get; protected set; }
+
+		/// <summary>
+		/// Sequence name or identity retrieval fn. (always null for compound PK)
+		/// </summary>
+		virtual public string SequenceNameOrIdentityFn { get; protected set; }
+
+		/// <summary>
+		/// Column from which value is retrieved by <see cref="KeyValues"/>
+		/// </summary>
+		virtual public string ValueColumn { get; protected set; }
+
+		/// <summary>
+		/// true if dynamic version; false if generic version
+		/// </summary>
 		virtual internal bool UseExpando { get; set; }
 
-		// TO DO: Does it matter that this is different?
-		// We have the same difference in methods, below. Whether it matters depends on whether it drops in
-		// and compiles, and whether it drops in and links, to external code, changing either way....
+		/// <summary>
+		/// Table meta data (filtered to be only for columns specified by T or <see cref="columns"/>, where present)
+		/// </summary>
 		abstract public IEnumerable<dynamic> TableMetaData { get; }
 		#endregion
 
@@ -458,7 +520,7 @@ namespace Mighty.Interfaces
 
 		abstract protected string CheckGetPrimaryKeyFields();
 
-		abstract protected string CheckGetValueField(string message);
+		abstract protected string CheckGetValueColumn(string message);
 
 		abstract protected string CheckGetKeyName(string message);
 

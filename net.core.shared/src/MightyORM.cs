@@ -40,7 +40,7 @@ namespace Mighty
 		/// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
 		/// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
 		/// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
-		/// <param name="valueField">Specify the value field, for lookup tables</param>
+		/// <param name="valueColumn">Specify the value field, for lookup tables</param>
 		/// <param name="columns">Default column list</param>
 		/// <param name="validator">Optional validator</param>
 		/// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
@@ -48,11 +48,12 @@ namespace Mighty
 		/// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyORM)</param>
 		/// <remarks>
 		/// What about the SQL Profiler? Should this (really) go into here as a parameter?
+		/// ALL column names in the above are pre-mapped C# names, not post-mapped SQL names, where you have a mapper which makes them different.
 		/// </remarks>
 		public MightyORM(string connectionString = null,
 						 string tableName = null,
 						 string primaryKeyField = null,
-						 string valueField = null,
+						 string valueColumn = null,
 						 string sequence = null,
 						 string columns = null,
 						 Validator validator = null,
@@ -75,7 +76,7 @@ namespace Mighty
 			{
 				tableClassName = me.Name;
 			}
-			Init(connectionString, tableName, tableClassName, primaryKeyField, valueField, sequence, columns, validator, mapper, profiler, connectionProvider);
+			Init(connectionString, tableName, tableClassName, primaryKeyField, valueColumn, sequence, columns, validator, mapper, profiler, 0, connectionProvider);
 		}
 #endregion
 
@@ -106,11 +107,11 @@ namespace Mighty
 		/// </param>
 		/// <param name="tableName">Override the table name (defaults to using T class name)</param>
 		/// <param name="primaryKeyField">Primary key field name; or comma separated list of names for compound PK</param>
-		/// <param name="valueField">Specify the value field, for lookup tables</param>
+		/// <param name="valueColumn">Specify the value field, for lookup tables</param>
 		/// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
 		/// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
 		/// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
-		/// <param name="columns">Default column list</param>
+		/// <param name="columns">Default column list (specifies C# names rather than SQL names, if you have defined a mapper)</param>
 		/// <param name="validator">Optional validator</param>
 		/// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
 		/// <param name="profiler">Optional SQL profiler</param>
@@ -119,7 +120,7 @@ namespace Mighty
 		public MightyORM(string connectionString = null,
 						 string tableName = null,
 						 string primaryKeyField = null,
-						 string valueField = null,
+						 string valueColumn = null,
 						 string sequence = null,
 						 string columns = null,
 						 Validator validator = null,
@@ -134,26 +135,7 @@ namespace Mighty
 			// Table name for MightyORM<T> is taken from type T not from a constructor argument; use SqlNamingMapper to override it.
 			string tableClassName = typeof(T).Name;
 
-			Init(connectionString, tableName, tableClassName, primaryKeyField, valueField, sequence, columns, validator, mapper, profiler, connectionProvider);
-
-			InitialiseTypeProperties(tableClassName, propertyBindingFlags);
-		}
-
-		protected void InitialiseTypeProperties(string tableClassName, BindingFlags propertyBindingFlags)
-		{
-			// For generic version only, store the column names defined by the generic type
-			columnNameToPropertyInfo = new Dictionary<string, PropertyInfo>(SqlMapper.UseCaseInsensitiveMapping ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
-			foreach (var prop in typeof(T).GetProperties(propertyBindingFlags))
-			{
-				var columnName = SqlMapper.GetColumnNameFromPropertyName(tableClassName, prop.Name);
-				columnNameToPropertyInfo.Add(columnName, prop);
-			}
-
-			// SequenceNameOrIdentityFn is only left at non-null when there is a single PK
-			if (SequenceNameOrIdentityFn != null)
-			{
-				pkProperty = columnNameToPropertyInfo[PrimaryKeyFields];
-			}
+			Init(connectionString, tableName, tableClassName, primaryKeyField, valueColumn, sequence, columns, validator, mapper, profiler, propertyBindingFlags, connectionProvider);
 		}
 		#endregion
 
@@ -181,19 +163,23 @@ namespace Mighty
 						 string tableName,
 						 string tableClassName,
 						 string primaryKeyField,
-						 string valueField,
+						 string valueColumn,
 						 string sequence,
 						 string columns,
 						 Validator validator,
 						 SqlNamingMapper mapper,
 						 SqlProfiler profiler,
+						 BindingFlags propertyBindingFlags,
 						 ConnectionProvider connectionProvider)
 		{
-			ValueField = valueField;
-
 			if (mapper == null)
 			{
-				mapper = new SqlNamingMapper();
+				SqlMapper = mapper = new SqlNamingMapper();
+			}
+
+			if (!UseExpando)
+			{
+				InitialiseTypeProperties(propertyBindingFlags);
 			}
 
 			if (tableName != null)
@@ -255,10 +241,19 @@ namespace Mighty
 			{
 				PrimaryKeyList = primaryKeyField.Split(',').Select(k => k.Trim()).ToList();
 			}
-			Columns = columns ?? "*";
+			if (columns == null || columns == "*")
+			{
+				// If generic, columns have been set to type columns already
+				if (UseExpando) Columns = "*";
+			}
+			else
+			{
+				ColumnList = columns.Split(',').Select(column => mapper.GetColumnNameFromPropertyName(typeof(T), column)).ToList();
+				Columns = columns == null || columns == "*" ? "*" : string.Join(",", ColumnList);
+			}
+			ValueColumn = string.IsNullOrEmpty(valueColumn) ? null : mapper.GetColumnNameFromPropertyName(typeof(T), valueColumn);
 			Validator = validator ?? new Validator();
 			SqlProfiler = profiler ?? new SqlProfiler();
-			SqlMapper = mapper;
 			// After all this, SequenceNameOrIdentityFn is only non-null if we really are expecting to use it
 			// (which entails exactly one PK)
 			if (!Plugin.IsSequenceBased)
@@ -291,10 +286,30 @@ namespace Mighty
 
 			DynamicObjectWrapper = new DynamicObjectWrapper<T>(this);
 		}
-#endregion
+
+		protected void InitialiseTypeProperties(BindingFlags propertyBindingFlags)
+		{
+			// For generic version only, store the column names defined by the generic type
+			columnNameToPropertyInfo = new Dictionary<string, PropertyInfo>(SqlMapper.UseCaseInsensitiveMapping ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
+			ColumnList = new List<string>();
+			foreach (var prop in typeof(T).GetProperties(propertyBindingFlags))
+			{
+				var columnName = SqlMapper.GetColumnNameFromPropertyName(typeof(T), prop.Name);
+				columnNameToPropertyInfo.Add(columnName, prop);
+				ColumnList.Add(columnName);
+			}
+			Columns = string.Join(",", ColumnList);
+
+			// SequenceNameOrIdentityFn is only left at non-null when there is a single PK
+			if (SequenceNameOrIdentityFn != null)
+			{
+				pkProperty = columnNameToPropertyInfo[PrimaryKeyFields];
+			}
+		}
+		#endregion
 
 		// Only properties with a non-trivial implementation are here, the rest are in the MicroORM abstract class.
-#region Properties
+		#region Properties
 		protected IEnumerable<dynamic> _TableMetaData;
 		override public IEnumerable<dynamic> TableMetaData
 		{
@@ -325,7 +340,23 @@ namespace Mighty
 				db = new MightyORM(connectionProvider: new PresetsConnectionProvider(ConnectionString, Factory, Plugin.GetType()));
 			}
 			unprocessedMetaData = (IEnumerable<dynamic>)db.Query(sql, BareTableName, TableOwner);
-			_TableMetaData = Plugin.PostProcessTableMetaData(unprocessedMetaData);
+			var postProcessedMetaData = Plugin.PostProcessTableMetaData(unprocessedMetaData);
+			_TableMetaData = FilterTableMetaData(postProcessedMetaData);
+		}
+
+		/// <summary>
+		/// We drive creating new objects by this list, but we only want to add columns
+		/// </summary>
+		/// <param name="tableMetaData"></param>
+		/// <returns></returns>
+		private IEnumerable<dynamic> FilterTableMetaData(IEnumerable<dynamic> tableMetaData)
+		{
+			foreach (var columnInfo in tableMetaData)
+			{
+				string cname = columnInfo.COLUMN_NAME;
+				columnInfo.IS_MIGHTY_COLUMN = ColumnList == null ? true : ColumnList.Any(columnName => columnName == cname);
+			}
+			return tableMetaData;
 		}
 
 		// fields for thread-safe initialization of TableMetaData
@@ -414,59 +445,46 @@ namespace Mighty
 		/// <returns></returns>
 		override public T NewFrom(object nameValues = null, bool addNonPresentAsDefaults = true)
 		{
+			var nvtEnumerator = new NameValueTypeEnumerator(nameValues);
+			Dictionary<string, object> columnNameToValue = new Dictionary<string, object>();
+			foreach (var nvtInfo in nvtEnumerator)
+			{
+				string columnName = SqlMapper.GetColumnNameFromPropertyName(typeof(T), nvtInfo.Name);
+				PropertyInfo columnInfo;
+				if (!columnNameToPropertyInfo.TryGetValue(columnName, out columnInfo)) continue;
+				columnNameToValue.Add(columnName, nvtInfo.Value);
+			}
 			object item;
 			IDictionary<string, object> newItemDictionary = null;
-			var nvtEnumerator = new NameValueTypeEnumerator(nameValues);
 			if (UseExpando)
 			{
 				item = new ExpandoObject();
 				newItemDictionary = ((ExpandoObject)item).ToDictionary();
-				// drive the loop by the actual column names
-				foreach (var columnInfo in TableMetaData)
-				{
-					string columnName = columnInfo.COLUMN_NAME;
-					PropertyInfo prop = null;
-					if (!UseExpando)
-					{
-						columnNameToPropertyInfo.TryGetValue(columnName, out prop);
-						if (prop == null) continue;
-					}
-					AddColumnValueToItem(null, prop, newItemDictionary, columnName, nvtEnumerator, addNonPresentAsDefaults);
-				}
 			}
 			else
 			{
 				item = new T();
-				// drive the loop by T properties
-				foreach (var pair in columnNameToPropertyInfo)
+			}
+			// drive the loop by the actual column names
+			foreach (var columnInfo in TableMetaData)
+			{
+				if (!columnInfo.IS_MIGHTY_COLUMN) continue;
+				string columnName = columnInfo.COLUMN_NAME;
+				PropertyInfo prop = null;
+				if (!UseExpando) prop = columnNameToPropertyInfo[columnName]; // meta-data already filtered to props only
+				object value;
+				if (!columnNameToValue.TryGetValue(columnName, out value))
 				{
-					AddColumnValueToItem(item, pair.Value, null, pair.Key, nvtEnumerator, addNonPresentAsDefaults);
+					if (!addNonPresentAsDefaults) continue;
+					value = Plugin.GetColumnDefault(columnInfo);
+				}
+				if (value != null)
+				{
+					if (prop != null) prop.SetValue(item, value.ChangeType(prop.PropertyType));
+					else newItemDictionary.Add(columnName, value);
 				}
 			}
 			return (T)item;
-		}
-
-		internal void AddColumnValueToItem(object item, PropertyInfo prop, IDictionary<string, object> newItemDictionary, string columnName, NameValueTypeEnumerator nvtEnumerator, bool addNonPresentAsDefaults)
-		{
-			object value = null;
-			foreach (var nvtInfo in nvtEnumerator)
-			{
-				if (nvtInfo.Name.Equals(columnName, SqlMapper.UseCaseInsensitiveMapping ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
-				{
-					value = nvtInfo.Value;
-					break;
-				}
-			}
-			if (value == null)
-			{
-				if (!addNonPresentAsDefaults) return;
-				value = GetColumnDefault(columnName);
-			}
-			if (value != null)
-			{
-				if (prop != null) prop.SetValue(item, value.ChangeType(prop.PropertyType));
-				else newItemDictionary.Add(columnName, value);
-			}
 		}
 
 		// Update from fields in the item sent in. If PK has been specified, any primary key fields in the
@@ -606,16 +624,16 @@ namespace Mighty
 		}
 
 		/// <summary>
-		/// Return comma-separated list of primary key fields, raising an exception if there are none.
+		/// Return value column, raising an exception if not specified.
 		/// </summary>
 		/// <returns></returns>
-		override protected string CheckGetValueField(string message)
+		override protected string CheckGetValueColumn(string message)
 		{
-			if (string.IsNullOrEmpty(ValueField))
+			if (string.IsNullOrEmpty(ValueColumn))
 			{
 				throw new InvalidOperationException(message);
 			}
-			return ValueField;
+			return ValueColumn;
 		}
 
 		/// <summary>
@@ -803,7 +821,7 @@ namespace Mighty
 		override public IDictionary<string, string> KeyValues(string orderBy = "")
 		{
 			string foo = string.Format(" to call {0}, please provide one in your constructor", nameof(KeyValues));
-			string valueField = CheckGetValueField(string.Format("ValueField is required{0}", foo));
+			string valueField = CheckGetValueColumn(string.Format("ValueField is required{0}", foo));
 			string primaryKeyField = CheckGetKeyName(string.Format("A single primary key must be specified{0}", foo));
 			var results = All(orderBy: orderBy, columns: string.Format("{0}, {1}", primaryKeyField, valueField)).Cast<IDictionary<string, object>>();
 			return results.ToDictionary(item => item[primaryKeyField].ToString(), item => item[valueField].ToString());
