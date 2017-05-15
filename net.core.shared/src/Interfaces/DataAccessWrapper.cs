@@ -21,11 +21,18 @@ namespace Mighty.Interfaces
 			return QueryNWithParams<T>(command: command, connection: connection);
 		}
 
-		// no connection, easy args (use WithParams version for connection)
+		// no connection, easy args
 		virtual public IEnumerable<T> Query(string sql,
 			params object[] args)
 		{
 			return QueryNWithParams<T>(sql, args: args);
+		}
+
+		virtual public IEnumerable<T> Query(string sql,
+			DbConnection connection,
+			params object[] args)
+		{
+			return QueryNWithParams<T>(sql, connection: connection, args: args);
 		}
 
 		virtual public IEnumerable<T> QueryWithParams(string sql,
@@ -55,11 +62,18 @@ namespace Mighty.Interfaces
 			return QueryNWithParams<IEnumerable<T>>(command: command, connection: connection);
 		}
 
-		// no connection, easy args (use WithParams version for connection)
+		// no connection, easy args
 		virtual public IEnumerable<IEnumerable<T>> QueryMultiple(string sql,
 			params object[] args)
 		{
 			return QueryNWithParams<IEnumerable<T>>(sql, args: args);
+		}
+
+		virtual public IEnumerable<IEnumerable<T>> QueryMultiple(string sql,
+			DbConnection connection,
+			params object[] args)
+		{
+			return QueryNWithParams<IEnumerable<T>>(sql, connection: connection, args: args);
 		}
 
 		virtual public IEnumerable<IEnumerable<T>> QueryMultipleWithParams(string sql,
@@ -152,12 +166,20 @@ namespace Mighty.Interfaces
 		abstract public object Scalar(DbCommand command,
 			DbConnection connection = null);
 
-		// no connection, easy args (use WithParams version for connection)
+		// no connection, easy args
 		virtual public object Scalar(string sql,
 			params object[] args)
 		{
 			var command = CreateCommand(sql, args);
 			return Scalar(command);
+		}
+
+		virtual public object Scalar(string sql,
+			DbConnection connection,
+			params object[] args)
+		{
+			var command = CreateCommand(sql, args);
+			return Scalar(command, connection);
 		}
 
 		virtual public object ScalarWithParams(string sql,
