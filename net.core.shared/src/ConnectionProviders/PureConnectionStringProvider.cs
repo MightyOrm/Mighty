@@ -1,4 +1,7 @@
 using System;
+#if NETFRAMEWORK
+using System.Data.Common;
+#endif
 using System.Text;
 
 namespace Mighty.ConnectionProviders
@@ -60,7 +63,11 @@ namespace Mighty.ConnectionProviders
 					);
 			}
 			DatabasePluginType = MightyProviderFactories.GetDatabasePluginAsType(providerName);
+#if NETFRAMEWORK
+			ProviderFactoryInstance = DbProviderFactories.GetFactory(providerName);
+#else
 			ProviderFactoryInstance = MightyProviderFactories.GetFactory(providerName);
+#endif
 			this.ConnectionString = ConnectionString.ToString();
 			return this;
 		}

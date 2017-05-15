@@ -21,6 +21,7 @@ namespace Mighty.ConnectionProviders
 	{
 		private const string INSTANCE_FIELD_NAME = "Instance";
 
+#if !NETFRAMEWORK
 		static internal DbProviderFactory GetFactory(string providerName)
 		{
 			string assemblyName = null;
@@ -44,6 +45,7 @@ namespace Mighty.ConnectionProviders
 			}
 			return (DbProviderFactory)f.GetValue(null);
 		}
+#endif
 
 		static private object GetProviderFactoryClassNameOrDatabasePluginType(string providerName, bool returnClassType)
 		{
