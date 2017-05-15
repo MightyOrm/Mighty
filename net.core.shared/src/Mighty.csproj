@@ -2,6 +2,28 @@
 
   <PropertyGroup>
     <TargetFrameworks>net40;net45;netcoreapp1.1</TargetFrameworks>
+	<PackageId>MightyORM</PackageId>
+    <PackageVersion>1.0.0-prealpha1</PackageVersion>
+    <Authors>Mike Beaton</Authors>
+    <Owners>MightyORM</Owners>
+    <Description>A new small, happy, dynamic MicroORM and general purpose .NET data access wrapper.
+
+Based on and highly compatible with Massive, but now with:
+
+* .NET Core
+* Stored procedure suppport
+* Parameter names and directions (when you need them, old-style Massive calls still work as before!)
+* Cursors (only on Oracle and PostgreSQL - they're not needed elsewhere)
+* Multiple result sets
+* Simultaneous access to more then one database provider
+
+Pre-Alpha version.	
+</Description>
+    <PackageIconUrl>https://avatars3.githubusercontent.com/u/26790220?v=3&amp;s=200</PackageIconUrl>
+    <Copyright>Copyright (c) 2017 Mike Beaton</Copyright>
+    <PackageProjectUrl>https://github.com/MightyORM/Mighty</PackageProjectUrl>
+    <PackageLicenseUrl>https://github.com/MightyORM/Mighty/blob/master/LICENSE</PackageLicenseUrl>
+	<PackageTags>Micro-ORM, MicroORM, ORM, SQL, data access, data access wrapper, Mighty, Massive</PackageTags>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -20,6 +42,10 @@
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net45'">
     <DefineConstants>NETFRAMEWORK;NET45</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net462'">
+    <DefineConstants>NETFRAMEWORK;NET462</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp1.0'">
@@ -58,6 +84,12 @@
   </ItemGroup>
   
   <ItemGroup Condition="'$(TargetFramework)' == 'net45'">
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Configuration" />
+    <Reference Include="System.Transactions" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net462'">
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Transactions" />
