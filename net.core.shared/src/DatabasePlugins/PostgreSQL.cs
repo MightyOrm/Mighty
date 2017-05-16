@@ -127,8 +127,8 @@ namespace Mighty.DatabasePlugins
 			// the Oracle drivers and dereference what we can. The rest of the pattern is that we only ever try to dereference on Query and Scalar, never on Execute.
 			if (Mighty.NpgsqlAutoDereferenceCursors && NpgsqlDereferencingReader.CanDereference(reader))
 			{
-				// TO DO: Pass behavior in to dereferencing reader, and use it where we can
-				// (e.g. dereference only the first cursor, or only the first row of the first cursor)
+				// Passes <see cref="CommandBehavior"/> to dereferencing reader, which uses it where it can
+				// (e.g. to dereference only the first cursor, or only the first row of the first cursor)
 				return new NpgsqlDereferencingReader(reader, behavior, Connection, Mighty);
 			}
 

@@ -228,7 +228,7 @@ namespace Mighty.DatabasePlugins
 			return results.ToList();
 		}
 
-		// TO DO: change access modifier?
+		// TO DO: change access modifier? (applies to DatabasePlugin in general)
 		virtual public object GetColumnDefault(dynamic columnInfo)
 		{
 			string defaultValue = columnInfo.COLUMN_DEFAULT;

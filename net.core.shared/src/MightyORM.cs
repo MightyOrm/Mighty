@@ -156,9 +156,6 @@ namespace Mighty
 		// primaryKeyFields is a comma separated list; if it has more than one column, you cannot specify sequence or keyRetrievalFunction
 		// (if neither sequence nor keyRetrievalFunction are set (which is always the case for compound primary keys), you MUST specify non-null, non-default values for every column in your primary key
 		// before saving an object)
-		//
-		// TO DO: disallow, or just ignore?, sequence spec when we have multiple PKs
-		//
 		internal void Init(string connectionString,
 						 string tableName,
 						 string tableClassName,
@@ -555,8 +552,6 @@ namespace Mighty
 		/// <remarks>
 		/// Although it might look more efficient, GetColumnDefault should not do buffering, as we don't
 		/// want to pass out the same actual object more than once.
-		/// TO DO: Should this actually be used for checking whether PKs are at their default values?
-		/// I would say probably not.
 		/// </remarks>
 		override public object GetColumnDefault(string columnName)
 		{
@@ -897,7 +892,7 @@ namespace Mighty
 		/// <remarks>
 		/// In this one instance, because of the connection to the underlying logic of these queries, the user
 		/// can pass "SELECT columns" instead of columns.
-		/// TO DO: Cancel the above!
+		/// TO DO: Cancel the above, it makes no sense from a UI pov!
 		/// </remarks>
 		override public PagedResults<T> PagedFromSelect(string columns, string tablesAndJoins, string where, string orderBy,
 			int pageSize = 20, int currentPage = 1,
@@ -973,7 +968,6 @@ namespace Mighty
 		/// <summary>
 		/// Return all matching items.
 		/// </summary>
-		/// <remarks>TO DO(?): May require LIMIT (although I think this was really mainly for Single support on Massive)</remarks>
 		override public IEnumerable<T> AllWithParams(
 			string where = null, string orderBy = null, string columns = null, int limit = 0,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
