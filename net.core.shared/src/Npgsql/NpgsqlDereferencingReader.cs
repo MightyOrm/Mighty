@@ -8,7 +8,7 @@ using Mighty.DatabasePlugins;
 namespace Mighty.Npgsql
 {
 	// Cursor dereferencing data reader, which may go back into Npgsql at some point
-	public class NpgsqlDereferencingReader : DbDataReader, IDisposable
+	internal class NpgsqlDereferencingReader : DbDataReader, IDisposable
 	{
 		private DbConnection Connection;
 		private dynamic Mighty;

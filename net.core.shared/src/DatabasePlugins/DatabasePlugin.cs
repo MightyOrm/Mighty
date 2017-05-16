@@ -9,7 +9,7 @@ namespace Mighty.DatabasePlugins
 {
 	// Abstract class for database plugins; we're trying to put as much shared code as possible in here, while
 	// maintaining reasonable readability.
-	abstract public class DatabasePlugin
+	abstract internal class DatabasePlugin
 	{
 		protected const string CRLF = "\r\n";
 

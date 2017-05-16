@@ -41,7 +41,7 @@ namespace Mighty
 		/// Fixup for slightly weird way that runtime refuses to convert from t to t? (which should surely be trivial?)
 		/// </summary>
 		/// <param name="value"></param>
-		/// <param name="conversion"></param>
+		/// <param name="t"></param>
 		/// <returns></returns>
 		/// <remarks>http://stackoverflow.com/q/18015425/</remarks>
 		internal static object ChangeType(this object value, Type t)
@@ -65,7 +65,7 @@ namespace Mighty
 		/// Convert ExpandoObject to dictionary.
 		/// </summary>
 		/// <param name="o"></param>
-		/// <returns></return>
+		/// <returns></returns>
 		/// <remarks>
 		/// Not sure whether this is really useful or not... syntax is nicer and saves a little typing, even though functionality is obviously very simple.
 		/// Hopefully compiler removes any apparent inefficiency.
