@@ -107,7 +107,7 @@ The only one of the above which will compile against a strongly-typed instance o
 
 TBD - For now, please do refer to the Massive documentation - all of that code still works against Mighty. And for examples of code using the new features, as in Massive (sorry, purists, I know it's wrong!), for now please have a look in the tests.
 
-### A Note Transactions
+### A note on transactions
 
 > Note: Mighty now supports transactions. But go easy, they're often not as necessary as you think. For instance, you (almost certainly) don't normally update your C# objects within C# 'transactions', do you? Yet things work fine. Database transactions tend to lock everything up, often unecessarily. It is usually far better to use good database design to prevent inconsistent data from even being possible, and then to carry on lightly, treating updates the way you already treat C# updates. (Obviously there *are* cases where correct transactional handling is very important, the canonical example being financial software; but database transactions are an expensive solution to an expensive problem - don't think that they come for free, just because they are supported for when you really need them.)
 
