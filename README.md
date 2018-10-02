@@ -15,11 +15,13 @@ I believe (and hope!) it will do for you what Massive did for you - only with al
 
 ## The History of Mighty
 
-I really, really wanted to call the predecessor of this project Massive3 or MassiveX or something, because initially I spent a lot of time producing all of this new stuff in a way which could simply drop in to an existing Massive project and just work. (And it worked! You could compile it as a DLL and it dropped in and passed the Massive v2.0 test suite with no changes at all required - as well, of course, as passing all its own new tests.)
+Originally I wanted to call the predecessor of this project Massive3 or MassiveX or something, because I spent a lot of time producing all of this new stuff in a way which could simply drop in to an existing Massive project and just work. And it worked! You could compile that code as a DLL and it dropped in and passed the Massive v2.0 test suite with no changes at all required - as well, of course, as passing all its own new tests.
 
-But I was forcefully told, by several members of the community, include @RobConery, that this was simply the wrong way to go about it, and that if I want to make a fork of Massive, I had to call it something else. They were right, I was wrong. And in the end, this *isn't* a fork of Massive. It's a re-write from scratch of the same ideas which Massive uses in its core engine (with a similar, but not identical, API), then with all my own new ADO.NET stuff added back on top.
+What I didn't do - a naive but genuine mistake - was to make sure that I had the mainter of the repository on board. I was making changes that I still think are very worthwhile, but going beyond (or perhaps better, in a different direction to) where the maintainer wanted Massive to go. That's entirely his choice, not a problem. Basic, basic open source protocal which I got wrong (I've programmed a lot, but not open sourced a lot, until now).
 
-This project couldn't possibly exist without @RobConery's genius Massive in the first place, and without @FransBouma's expert refactoring and updating of the Massive codebase after that. But this codebase is NOT the Massive codebase. It is what I wanted Massive to be (and very much *did* offer to help make it be - maybe in an overbearing and annoying way). But it's not what Massive is ever going to be. So it is what it is. It's "the version of Massive I wanted", only now it's not Massive, it's Mighty.
+At that point, one choice I had was to make a fork of Massive, but (of course!) to call it something else. However, in the end, that isn't the choice I made. This *isn't* a fork of Massive. It's a re-write from scratch of the same ideas which Massive uses in its core engine (ending up with a similar, and still highly compatible - but not identical - API), then with all of the new features above added back on top.
+
+This project couldn't possibly have existed in its present form without @RobConery's genius approach in the original version of Massive in the first place, nor without @FransBouma's expert refactoring and updating of the Massive codebase after that. But this codebase is NOT Massive. It IS what I wanted Massive to be (and very much *did* offer to help make it be - though in a politically unsophisticated way). Right now, I believe, it's not what Massive is ever going to be. It goes in directions that @FransBouma didn't want to go near - in some cases for very good reasons (see **The New Stuff** section just below). So it's not what Massive is ever going to be. It is what it is. It's "the version of Massive I wanted", only now it's not Massive, it's Mighty.
 
 ## A Little Technical Background
 
@@ -63,8 +65,6 @@ Basically, this is why I wrote Mighty:
 
 Mighty is all of that, and does it now. Plus .NET Core.
 
-You're welcome!
-
 ## Differences from Massive
 
 To get started you must change `using Massive` to `using Mighty` and `DynamicModel` to `MightyORM`. After that a lot of code which was written against Massive will just compile and work.
@@ -105,9 +105,11 @@ The only one of the above which will compile against a strongly-typed instance o
 
 ## Code ... please ;)
 
-### Transactions
+TBD - For now, please do refer to the Massive documentation - all of that code still works against Mighty. And for examples of code using the new features, as in Massive (sorry, purists, I know it's wrong!), for now please have a look in the tests.
 
-> Note: Go easy on transactions, they're often not as necessary as you think. For instance, you (almost certainly) don't normally update your C# objects within C# 'transactions', do you? Yet things work fine. Database transactions tend to lock everything up, often unecessarily. It is usually far better to use good database design to prevent inconsistent data from even being possible, and then to carry on lightly, treating updates the way you already treat C# updates. (Obviously there *are* cases where correct transactional handling is very important, the canonical example being financial software; but database transactions are an expensive solution to an expensive problem - don't think that they come for free, just because they are supported for when you really need them.)
+### A Note Transactions
+
+> Note: Mighty now supports transactions. But go easy, they're often not as necessary as you think. For instance, you (almost certainly) don't normally update your C# objects within C# 'transactions', do you? Yet things work fine. Database transactions tend to lock everything up, often unecessarily. It is usually far better to use good database design to prevent inconsistent data from even being possible, and then to carry on lightly, treating updates the way you already treat C# updates. (Obviously there *are* cases where correct transactional handling is very important, the canonical example being financial software; but database transactions are an expensive solution to an expensive problem - don't think that they come for free, just because they are supported for when you really need them.)
 
 ## What's next?
 
