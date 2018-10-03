@@ -1,6 +1,6 @@
 # Welcome to Mighty, a new, small, dynamic microORM
 
-Mighty is 100% inspired by Massive, but it's a rewrite from scratch.
+Mighty is 100% inspired by the formerly highly popular Massive microORM, but it's a rewrite from scratch.
 
 I believe (and hope!) it will do for you what Massive did for you - only with all of these new features added, should you need any of them ;) :
 
@@ -12,6 +12,33 @@ I believe (and hope!) it will do for you what Massive did for you - only with al
 * Cursors
 * Compound primary keys
 * Simultaneous support for more then one database provider
+
+Why might you use Mighty over Massive? Because you need any of the above. Why might you use it over Dapper? Because Massive inherits a lovely approach to wrapping .NET data access originally developed by [@RobConery](https://github.com/RobConery) in Massive. It's lightweight, easy to use, intuitive and quick to develop in.
+
+## Getting Started
+
+### General
+
+Mighty is no longer delivered as two or three (large) drop in code files. Unless you specifically want to modify the Mighty codebase, you no longer need to download any files out of this repository, just import the [MightyORM](https://www.nuget.org/packages?q=MightyORM) NuGet library into your project. It is currently a prerelease package, so remember to tick 'Include prerelease' in order to be able to find it in searches of NuGet.
+
+Then, if you were previously using Massive, to get started you must change `using Massive` to `using Mighty` and `DynamicModel` to `MightyORM`. After that, the vast majority of code which used to run against Massive will just start working against Mighty instead. Also, for now, if you are looking at the Massive code samples whilst I get on with finishing that part of this document(!), then the above should also be the only change you need to make, to get the vast majority of those working.
+
+### .NET Core
+
+If you are using .NET Core you must now pass in a connection string, where you would have previously passed in a connection string name (if using Massive). .NET Core doesn't have any default config file support, and as such there no standard meaning for a connection string *name* in .NET Core, unlike in .NET.
+
+When *not* on .NET Core, both syntaxes are supported: Mighty works out for itself which have passed in (by seeing if it is the name of any connection string in the config files, and if not then by trying to parse it as a connection string). Both syntaxes are perfectly useful (when not on .NET Core) and it means that old Massive code will just keep working.
+
+NB When you pass in a connection string (as opposed to a connection string name) (as you now MUST, on .NET Core) this additionally needs some new way of specifying which database provider you mean to use (that's specified separately to the connection string in the config file, when you pass in a connection string name). To do this, add the non-standard `ProviderName=...` to the connection string. E.g.
+
+```csharp
+string someConnectionString = "param1=abc;param2=dec;param3=fgh";
+string mightyConnectionString = someConnectionString + ";ProviderName=System.Data.SqlClient";
+var db = new MightyORM(mightyConnectionString);
+... etc. ...
+```
+
+Mighty looks in connection strings for this, strips it out, and passes what's left as a normal connection string to the specified provider.
 
 ## The History of Mighty
 
@@ -67,9 +94,9 @@ Mighty is all of that, and does it now. Plus .NET Core.
 
 ## Differences from Massive
 
-To get started you must change `using Massive` to `using Mighty` and `DynamicModel` to `MightyORM`. After that a lot of code which was written against Massive will just compile and work.
+### Code changes required, *if* you are using any of these more obscure parts of Massive
 
-However depending on what features you are using you may need to know about:
+Here is a list of those items which won't compile directly against former Massive code. In all cases, the same (sort of) thing *is* still supported, with some minor code changes on your part; and whilst this might look like quite a large list, these are all actually 'edge cases' - they're not the core features, at all, and you very probably aren't using them (unless you know that you are, of course!):
 
 #### DataTable support
 
@@ -102,6 +129,14 @@ However depending on what features you are using you may need to know about:
 
 The only one of the above which will compile against a strongly-typed instance of MightyORM even if you don't make the mentioned changes is .Update(item, key), but running it will give you a meaningful runtime exception. (You will also get runtime not compile-time errors if you call any of the old versions against MightyORM stored in a dynamic variable.)
 
+### Not yet supported
+
+Here's the **only** thing from Massive (to the best of my knowledge) that isn't *yet* supported or ported, in any way:
+
+#### Async
+
+- I have not yet ported the async support which [@FransBouma](https://github.com/FransBouma) very usefully added to Massive when he took it over (even though I have made a great effort to preserve and support *everything* else which Massive does). This is simply because I didn't need it and didn't think I could justify the time, at the time. (It's also because I don't think async support will be fundamentally complex to add back. Making sure that Mighty supported everything else which Massive supports *was* complex - in the sense that it's a whole inter-linked set of features, which all need to be provably (by the extended test suite) right at the get-go, to make this project a go-er, IMHO!) Async support is on the road-map.
+
 
 ## Code ... please ;)
 
@@ -115,21 +150,27 @@ TBD - For now, please do refer to the Massive documentation - all of that code s
 
 Coming soon:
 
-- Firebird database support
+- Generically type return value support (e.g. ), like Dapper, whilst still supporting exactly Massive's dynamic return value syntax as well
 - Async support
-- Possibly, *optional* generically typed return value support; for now, if you are sure you really need that, try PetaPoco
-	- My guess is you'll find you really don't *need* that; try Mighty for a bit, you'll get used to working with dynamic objects pretty quickly, and you'll start to miss them in other contexts, where you can't use them!
+- Firebird database support (it really should't be hard, if anyone says they need it...)
 
 ## Using Mighty with .NET Web API 2
 
 This just works out of the box, and it's very easy to do:
 
+`... TO DO: insert code sample ...`
 
-However, out of the box this works with JSON, but not with XML - because XML wants to specify the type of each object it is returning, and `dynamic` objects don't have any specific type. Unfortunately, if you use a browser to look at the results from your RESTFUL API (which is a pretty reasonable thing to do) then your browser won't specify either JSON or XML and Web API 2 will chose to return XML by default. The simplest solution to disable XML support, so that JSON is the only (and therefore the default) input and output type:
+However, out of the box, this only works when each call to your API requests that the API return JSON. It does not work when the caller requests XML. This is because XML is strongly typed, and Massive's `dynamic` results aren't. There is no way for .NET to *automatically* fill out an XML response from a dynamic object, but it can for a JSON response.
 
-Another more complex solution (I don't claim that the below is complete or fully correct, it's a quick hack to show the general idea) is to add 'fake' ExpandoObject support to the WebAPI 2 XML output:
+An annoying side effect of this is that if you use your browser to look at the return results from your RESTFUL API, e.g. by manually typing GET URLs (which can be a perfectly reasonable thing to do, I'd say), then this will fail (with an exception) because using your browser this way, it doesn't specify the response type, and .NET Web API 2 defaults to XML. The simplest solution to disable XML support in your Web 2 API project, assuming you don't need it, like this:
 
-This is arguably an abuse of XML since now '&lt;DynamicObject&gt;' will occur in all your API responses but will contain appropriate, but different, data in each different API you provide.
+`... TO DO: insert code sample ...`
+
+Another, more complex solution (I don't claim the below code is complete or fully correct, it's a quick hack which does show the general idea) is to add `ExpandoObject` support to the WebAPI 2 XML output processing pipe, as follows:
+
+`... TO DO: insert code sample ...`
+
+It's worth being aware that this second approach is really an abuse of XML, because now `<DynamicObject ... />` will be the object type of *all* your API responses, but will mean something different, with differently shaped contents, in each. For that reason, I'd recommend turning off XML and just using JSON if you can. 
 
 ## Configuration
 
