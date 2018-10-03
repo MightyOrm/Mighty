@@ -29,11 +29,11 @@ Then, if you were previously using Massive, to get started you must change `usin
 
 ### .NET Core
 
-If you are switching to .NET Core, then you must now pass in a connection string where you would have previously passed in a connection string *name* to Massive. This is because .NET Core doesn't have any default config file support and so there no standard meaning for a connection string *name* in .NET Core, unlike in .NET.
+If you are switching to .NET Core then you must now pass in a connection string where you would have previously passed in a connection string *name* to Massive. This is because .NET Core doesn't have any default config file support and so there is no standard meaning for a connection string *name* in .NET Core, unlike in .NET.
 
-When *not* on .NET Core, both these syntaxes are supported, Mighty works out for itself which one was passed in: it can make a quick test to see if what you have passed in is indeed a connection string name, according to .NET's config file support, and if it's not then Mighty will try to parse what you've sent in as a connection string. Both syntaxes are perfectly useful (when not on .NET Core) and having both also means that old Massive code will just keep working.
+When not on .NET Core both these syntaxes are supported. Mighty works out for itself which one was passed in. It can make a quick test to see if what you passed in was indeed a connection string name according to .NET's config support, and if it's not then Mighty will try to use what you've sent as a connection string. Both syntaxes are perfectly useful (when not on .NET Core) and having both also means that old Massive code will just keep working.
 
-NB When you pass in a connection string (as opposed to a connection string name) (as you MUST, on .NET Core) this needs some new way of specifying which database provider you want to use (the provider is specified next to the connection string, for each named connection string in .NET config files). To do so, simply add the non-standard `ProviderName=...` to your original connection string:
+NB When you pass in a connection string as opposed to a connection string name to initialise Mighty (as you now MUST, on .NET Core) then this needs some new way of specifying which database provider you want to use (a database provider is specified next to the connection string itself, for each named connection string in .NET config files). To do this, simply add the non-standard `ProviderName=...` to your original connection string:
 
 ```csharp
 string someConnectionString = "param1=abc;param2=dec;param3=fgh";
@@ -42,11 +42,11 @@ var db = new MightyORM(mightyConnectionString);
 ... etc. ...
 ```
 
-Mighty looks in connection strings for this additional parameter, strips it out, and then passes what's left as a normal connection string to the specified provider.
+Mighty will look in connection strings for this additional parameter, strip it out, and pass what's left as a normal connection string to the specified provider.
 
 ## The History of Mighty
 
-Originally I hoped I could call the predecessor of this project Massive 3, or at least Massive X or something, because I spent a lot of time producing all of this new stuff in a way which could simply drop in to an existing Massive project and just work. And it did work. You could compile that code as a DLL and it dropped in and passed the Massive v2.0 test suite with no changes at all required - as well, of course, as passing all its own new tests.
+Originally I hoped I could call the predecessor of this project Massive 3, or at least Massive X or something, because I spent a lot of time producing all of this new stuff in a way which could simply drop in to an existing Massive project and just work; and still work even if you didn't recompile your project, but just dropped in the updated binary. [@FransBouma](https://github.com/FransBouma) rightly emphasized how important this was. And it worked. You could compile that code as a DLL, and drop it in over the Massive 2 DLL in the Massive 2 test suite (for example), and it would all just run and pass (as well as passing all its own new tests, for the new features, when run against the new extended version of the test suite).
 
 What I didn't do - a naive but genuine mistake - was to make sure that I had the maintainer of the repository properly on board. I mean, I did say I was working on stuff (SP support, .NET support; and that *was* duly acknowledged), but I got carried away and developed a ton of new stuff and then stupidly dropped it like a ton of bricks. I could have tried to back-track, and offer my changes slowly. In fact, I *did* offer MySQL support for Massive: it was accepted and included. But it was also becoming increasingly clear that the changes I was making were going beyond where the maintainer wanted Massive ever to go. That's entirely his choice, not a problem.
 
