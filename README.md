@@ -25,15 +25,15 @@ It's lightweight, easy to use, intuitive and quick to develop with.
 
 Mighty is no longer delivered as two or three (large) drop in code files. Unless you specifically want to modify the Mighty codebase, you no longer need to download any files out of this repository, just import the [MightyORM](https://www.nuget.org/packages?q=MightyORM) NuGet library into your project. It is currently a prerelease package, so remember to tick 'Include prerelease' in order to be able to find it in searches of NuGet.
 
-Then, if you were previously using Massive, to get started you must change `using Massive` to `using Mighty` and `DynamicModel` to `MightyORM`. After that, the vast majority of code which used to run against Massive will just start working against Mighty instead. Also, for now, if you are looking at the Massive code samples whilst I get on with finishing that part of this document(!), then the above should also be the only change you need to make, to get the vast majority of those working.
+Then, if you were previously using Massive, to get started you must change `using Massive` to `using Mighty` and `DynamicModel` to `MightyORM`. After that, the vast majority of code which used to run against Massive will just start working against Mighty instead. Also, for now, if you are looking at the Massive code samples whilst I get on with finishing that part of this document(!), then the above will also be the only changes you need to make, to get the vast majority of that code working.
 
 ### .NET Core
 
-If you are using .NET Core you must now pass in a connection string, where you would have previously passed in a connection string name (if using Massive). .NET Core doesn't have any default config file support, and as such there no standard meaning for a connection string *name* in .NET Core, unlike in .NET.
+If you are switching to .NET Core, then you must now pass in a connection string where you would have previously passed in a connection string *name* to Massive. This is because .NET Core doesn't have any default config file support and so there no standard meaning for a connection string *name* in .NET Core, unlike in .NET.
 
-When *not* on .NET Core, both syntaxes are supported: Mighty works out for itself which have passed in (by seeing if it is the name of any connection string in the config files, and if not then by trying to parse it as a connection string). Both syntaxes are perfectly useful (when not on .NET Core) and it means that old Massive code will just keep working.
+When *not* on .NET Core, both these syntaxes are supported, Mighty works out for itself which one was passed in: it can make a quick test to see if what you have passed in is indeed a connection string name, according to .NET's config file support, and if it's not then Mighty will try to parse what you've sent in as a connection string. Both syntaxes are perfectly useful (when not on .NET Core) and having both also means that old Massive code will just keep working.
 
-NB When you pass in a connection string (as opposed to a connection string name) (as you now MUST, on .NET Core) this additionally needs some new way of specifying which database provider you mean to use (that's specified separately to the connection string in the config file, when you pass in a connection string name). To do this, add the non-standard `ProviderName=...` to the connection string. E.g.
+NB When you pass in a connection string (as opposed to a connection string name) (as you MUST, on .NET Core) this needs some new way of specifying which database provider you want to use (the provider is specified next to the connection string, for each named connection string in .NET config files). To do so, simply add the non-standard `ProviderName=...` to your original connection string:
 
 ```csharp
 string someConnectionString = "param1=abc;param2=dec;param3=fgh";
@@ -42,7 +42,7 @@ var db = new MightyORM(mightyConnectionString);
 ... etc. ...
 ```
 
-Mighty looks in connection strings for this, strips it out, and passes what's left as a normal connection string to the specified provider.
+Mighty looks in connection strings for this additional parameter, strips it out, and then passes what's left as a normal connection string to the specified provider.
 
 ## The History of Mighty
 
@@ -50,9 +50,9 @@ Originally I hoped I could call the predecessor of this project Massive 3, or at
 
 What I didn't do - a naive but genuine mistake - was to make sure that I had the maintainer of the repository properly on board. I mean, I did say I was working on stuff (SP support, .NET support; and that *was* duly acknowledged), but I got carried away and developed a ton of new stuff and then stupidly dropped it like a ton of bricks. I could have tried to back-track, and offer my changes slowly. In fact, I *did* offer MySQL support for Massive: it was accepted and included. But it was also becoming increasingly clear that the changes I was making were going beyond where the maintainer wanted Massive ever to go. That's entirely his choice, not a problem.
 
-So at that point, perhaps the obvious choice to make would be to let this project live as a fork of Massive - with some extra features (including .NET Core support) for people who need them - and perhaps with me running to catch up with any changes made on the main project. That isn't the choice I made. This *isn't* a fork of Massive. It's a re-write from scratch of the core engine (ending up with a similar, and still highly compatible - but not identical - API), then with all of the new features that I originally worked on added back on top.
+So at that point, perhaps the obvious choice to make would be to let this project live as a fork of Massive - with some extra features (including .NET Core support) for people who need them - and perhaps with me running to catch up with any changes made on the main project. That isn't the choice I made. This *isn't* a fork of Massive. It's a re-write from scratch of the core engine (ending up with a similar, and still highly compatible - but not identical in a few edge cases (see below) - API), then with all of the new features that I originally worked on added back on top.
 
-This project couldn't possibly exist in its present form without [@RobConery](https://github.com/RobConery)'s genius approach to nicely wrapping database access in the original version of Massive, in the first place, nor without [@FransBouma](https://github.com/FransBouma)'s careful refactoring and updating of the Massive codebase after that. But this codebase is NOT Massive. It IS what I wanted Massive to be (and very much *did* offer to help make it be; though in a politically unsophisticated way). Right now, I believe, it's also not what Massive is ever going to be. It goes in directions that @FransBouma didn't want to go near - in some cases for very good reasons (see **The New Stuff** section below). Instead, it is what it is. It's "the version of Massive I wanted". Only now it's not Massive, it's Mighty.
+This project wouldn't possibly exist in its present form without [@RobConery](https://github.com/RobConery)'s genius approach to beautifully wrapping .NET database access in the original version of Massive, in the first place, nor indeed without [@FransBouma](https://github.com/FransBouma)'s refactoring and updating of the Massive codebase after that. But this codebase genuinely is NOT Massive. It IS what I wanted Massive to be (and very much *did* offer to help make it be). It's also not what Massive is ever going to be. Not because I didn't want to contribute these changes, but because it turns out that they take Massive in directions that @FransBouma didn't ever want to go in - arguably for some good reasons (see a litt more in **The New Stuff** section below). So this project is what it is. It's the version of Massive I wanted to use myself. Only now it's not Massive, it's Mighty.
 
 ## A Little Technical Background
 
