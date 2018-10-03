@@ -1,8 +1,8 @@
 # Welcome to Mighty, a new, small, dynamic microORM
 
-Mighty is 100% inspired by the formerly highly popular Massive microORM, but it's a rewrite from scratch.
+Mighty is 100% inspired by the highly popular Massive microORM, but it's a rewrite from scratch.
 
-I believe (and hope!) it will do for you what Massive did for you - only with all of these new features added, should you need any of them ;) :
+The reason for re-writing it is that, whilst it will indeed do for you what Massive did for you (and in a highly compatible, near drop-in, way - see below), it additionally has all of these new features added, should you need any of them ;) :
 
 * .NET Core :-)
 * Transactions
@@ -13,7 +13,11 @@ I believe (and hope!) it will do for you what Massive did for you - only with al
 * Compound primary keys
 * Simultaneous support for more then one database provider
 
-Why might you use Mighty over Massive? Because you need any of the above. Why might you use it over Dapper? Because Massive inherits a lovely approach to wrapping .NET data access originally developed by [@RobConery](https://github.com/RobConery) in Massive. It's lightweight, easy to use, intuitive and quick to develop in.
+Why might you use Mighty over Massive? Because you need any of the above.
+
+Why might you use it over Dapper? Because Mighty inherits the lovely approach to wrapping .NET data access  developed by [@RobConery](https://github.com/RobConery) in the original Massive.
+
+It's lightweight, easy to use, intuitive and quick to develop with.
 
 ## Getting Started
 
