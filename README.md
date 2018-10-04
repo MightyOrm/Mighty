@@ -2,7 +2,7 @@
 
 Inspired by, and highly compatible with, the extremely influential and original Massive microORM. But it's *not* a fork, it's a (highly compatible) re-write. Unlike Massive, the intention is to continue to add and maintain essential, modern new features, which currently already include:
 
-* [Nuget distribution](https://www.nuget.org/packages?q=MightyORM)
+* [NuGet distribution](https://www.nuget.org/packages?q=MightyORM)
 * Full .NET Core support :-)
 * Transactions
 * Stored procedures
@@ -24,11 +24,11 @@ It's lightweight, easy to use, intuitive and quick to develop with.
 
 Mighty is no longer delivered as two or three (large) drop in code files. Unless you specifically want to modify the Mighty codebase, you no longer need to download any files out of this repository, just import the [MightyORM NuGet library](https://www.nuget.org/packages?q=MightyORM) into your project. It is currently a prerelease package, so remember to tick 'Include prerelease' in order to be able to find it in searches of NuGet.
 
-Then, if you were previously using Massive, to get started you must change `using Massive` to `using Mighty` and `DynamicModel` to `MightyORM`. After that, the vast majority of code which used to run against Massive will just start working against Mighty instead. Also, for now, if you are looking at the Massive code samples whilst I get on with finishing that part of this document(!), then the above will also be the only changes you need to make, to get the vast majority of that code working.
+Then, if you were previously using Massive, to get started you must change `using Massive` to `using Mighty` and `DynamicModel` to `MightyORM`. After that, the vast majority of code which used to run against Massive will just start working against Mighty instead. Also, for now, if you are looking at the [Massive code samples](https://github.com/FransBouma/Massive#code-please) whilst I get on with finishing that part of this document (which does need to be done urgently, I know), then the above will also be the only changes you need to make, to get the vast majority of that code working.
 
 ### .NET Core
 
-If you are switching to .NET Core then you must now pass in a connection string where you would have previously passed in a connection string *name* to Massive. This is because .NET Core doesn't have any default config file support and so there is no standard meaning for a connection string *name* in .NET Core, unlike in .NET.
+If you are switching to .NET Core then you must now pass in a connection string where you would have previously passed in a connection string *name* to Massive. This is because .NET Core doesn't have any default config file support and so there is no standard meaning for a connection string name in .NET Core, unlike in .NET.
 
 When not on .NET Core both these syntaxes are supported. Mighty works out for itself which one was passed in. It can make a quick test to see if what you passed in was indeed a connection string name according to .NET's config support, and if it's not then Mighty will try to use what you've sent as a connection string. Both syntaxes are perfectly useful (when not on .NET Core) and having both also means that old Massive code will just keep working.
 
@@ -51,7 +51,7 @@ What I didn't do - a naive but genuine mistake - was to make sure that I had the
 
 So at that point, perhaps the obvious choice to make would be to let this project live as a fork of Massive - with some extra features (including .NET Core support) for people who need them - and perhaps with me running to catch up with any changes made on the main project. That isn't the choice I made. This *isn't* a fork of Massive. It's a re-write from scratch of the core engine (ending up with a similar, and still highly compatible - but not identical in a few edge cases (see below) - API), then with all of the new features that I originally worked on added back on top.
 
-This project wouldn't possibly exist in its present form without [@RobConery](https://github.com/RobConery)'s genius approach to beautifully wrapping .NET database access in the original version of Massive, in the first place, nor indeed without [@FransBouma](https://github.com/FransBouma)'s expert refactoring and updating of the Massive codebase after that. But this codebase genuinely is NOT Massive. It IS what I wanted Massive to be (and very much *did* offer to help make it be). It's also not what Massive is ever going to be, I don't think. Not because I didn't want to contribute these changes, but because it turns out that they take Massive in directions that the maintainer of the project didn't ever want to go in - arguably for some good reasons (see a litt more in **The New Stuff** section below). So this project is what it is. It's the version of Massive I wanted to use myself. Only now it's not Massive, it's Mighty.
+This project wouldn't possibly exist in its present form without [@RobConery](https://github.com/RobConery)'s genius approach to beautifully wrapping .NET database access in the original version of Massive, in the first place, nor indeed without [@FransBouma](https://github.com/FransBouma)'s expert refactoring and updating of the Massive codebase after that. But this codebase genuinely is NOT Massive. It IS what I wanted Massive to be (and very much *did* offer to help make it be). It's also not what Massive is ever going to be, I don't think. Not because I didn't want to contribute these changes, but because it turns out that they take Massive in directions that the maintainer of the project didn't ever want to go in - arguably for some good reasons (see a little more in **The New Stuff** section below). So this project is what it is. It's the version of Massive I wanted to use myself. Only now it's not Massive, it's Mighty.
 
 ## A Little Technical Background
 
@@ -143,19 +143,27 @@ Here's the **only** thing from Massive (to the best of my knowledge) that isn't 
 
 ## Code ... please ;)
 
-TBD - For now, please do refer to the Massive documentation - all of that code still works against Mighty. And for examples of code using the new features, as in Massive (sorry, purists, I know it's wrong!), for now please have a look in the tests.
+For now, please do refer to the [Massive documentation](https://github.com/FransBouma/Massive#code-please) - all of that code still works against Mighty, if you simply replace `using Massive` with `using Mighty` and `DynamicModel` with `MightyORM`.
+
+Also for now, for examples of code using the new features, as in Massive (sorry, purists, I know it's wrong!), please have a look in the tests.
+
+> Having my own, separate, code sample documentation here *is* urgent - I know.
 
 ### A note on transactions
 
-> Note: Mighty now supports transactions. But go easy, they're often not as necessary as you think. For instance, you (almost certainly) don't normally update your C# objects within C# 'transactions', do you? Yet things work fine. Database transactions tend to lock everything up, often unecessarily. It is usually far better to use good database design to prevent inconsistent data from even being possible, and then to carry on lightly, treating updates the way you already treat C# updates. (Obviously there *are* cases where correct transactional handling is very important, the canonical example being financial software; but database transactions are an expensive solution to an expensive problem - don't think that they come for free, just because they are supported for when you really need them.)
+Mighty now supports transactions. But go easy, they're often not as necessary as you think. For instance, you (almost certainly) don't normally update your C# objects within C# 'transactions', do you? Yet things work fine. Database transactions tend to lock everything up, often unnecessarily. It is usually far better to use good database design to prevent inconsistent data from even being possible, and then to carry on lightly, treating updates the way you already treat C# updates. (Obviously there *are* cases where correct transactional handling is very important, the canonical example being financial software; but database transactions are an expensive solution to an expensive problem - don't think that they come for free, just because they are supported for when you really need them.)
 
 ## What's next?
 
 Coming soon:
 
-- Generically type return value support (e.g. ), like Dapper, whilst still supporting exactly Massive's dynamic return value syntax as well
+- Generically typed return value support, as in Dapper:
+	- E.g. `var contacts = new MicroORM<Contact>(...)`
+	- Whilst also of course still supporting exactly the existing Massive/Mighty dynamic return value syntax, i.e. `var whatever = new MicroORM(...)`
 - Async support
-- Firebird database support (it really should't be hard, if anyone says they need it...)
+	- The one bit of Massive that I know isn't ported/supported, yet - because it hasn't been at all urgent at my day job!
+- Firebird database support:
+	- I've had a look, it really shouldn't be hard (adding MySQL support to Massive took about a week...) - if anyone says they need this... or very likely eventually anyway... (months, not years).
 
 ## Using Mighty with .NET Web API 2
 
@@ -163,7 +171,7 @@ This just works out of the box, and it's very easy to do:
 
 `... TO DO: insert code sample ...`
 
-However, out of the box, this only works when each call to your API requests that the API return JSON. It does not work when the caller requests XML. This is because XML is strongly typed, and Massive's `dynamic` results aren't. There is no way for .NET to *automatically* fill out an XML response from a dynamic object, but it can for a JSON response.
+However, out of the box, this only works when each call to your API requests that the API return JSON. It does not work when the caller requests XML. This is because XML is strongly typed, and Mighty's `dynamic` results aren't. There is no way for .NET to *automatically* fill out an XML response from a dynamic object, but it can for a JSON response.
 
 An annoying side effect of this is that if you use your browser to look at the return results from your RESTFUL API, e.g. by manually typing GET URLs (which can be a perfectly reasonable thing to do, I'd say), then this will fail (with an exception) because using your browser this way, it doesn't specify the response type, and .NET Web API 2 defaults to XML. The simplest solution to disable XML support in your Web 2 API project, assuming you don't need it, like this:
 
