@@ -1,10 +1,9 @@
 # Welcome to Mighty, a new, small, dynamic microORM
 
-Mighty is 100% inspired by the highly popular Massive microORM, but it's a rewrite from scratch.
+Inspired by, and highly compatible with, the extremely influential and original Massive microORM. But it's *not* a fork, it's a (highly compatible) re-write. Unlike Massive, the intention is to continue to add and maintain essential, modern new features, which currently already include:
 
-The reason for re-writing it is that, whilst it will indeed do for you what Massive did for you (and in a highly compatible, near drop-in, way - see below), it additionally has all of these new features added, should you need any of them ;) :
-
-* .NET Core :-)
+* [Nuget distribution](https://www.nuget.org/packages?q=MightyORM)
+* Full .NET Core support :-)
 * Transactions
 * Stored procedures
 * Parameter names and directions
@@ -13,9 +12,9 @@ The reason for re-writing it is that, whilst it will indeed do for you what Mass
 * Compound primary keys
 * Simultaneous support for more then one database provider
 
-Why might you use Mighty over Massive? Because you need any of the above.
+Why use Mighty over Massive? Because you need any of the above.
 
-Why might you use it over Dapper? Because Mighty inherits the lovely approach to wrapping .NET data access  developed by [@RobConery](https://github.com/RobConery) in the original Massive.
+Why use Mighty over Dapper? Because Mighty inherits the lovely approach to wrapping .NET data access  developed by [@RobConery](https://github.com/RobConery) in the original Massive (i.e. Dapper is nice, but - I think - Massive and Mighty are nicer!).
 
 It's lightweight, easy to use, intuitive and quick to develop with.
 
@@ -23,7 +22,7 @@ It's lightweight, easy to use, intuitive and quick to develop with.
 
 ### General
 
-Mighty is no longer delivered as two or three (large) drop in code files. Unless you specifically want to modify the Mighty codebase, you no longer need to download any files out of this repository, just import the [MightyORM](https://www.nuget.org/packages?q=MightyORM) NuGet library into your project. It is currently a prerelease package, so remember to tick 'Include prerelease' in order to be able to find it in searches of NuGet.
+Mighty is no longer delivered as two or three (large) drop in code files. Unless you specifically want to modify the Mighty codebase, you no longer need to download any files out of this repository, just import the [MightyORM NuGet library](https://www.nuget.org/packages?q=MightyORM) into your project. It is currently a prerelease package, so remember to tick 'Include prerelease' in order to be able to find it in searches of NuGet.
 
 Then, if you were previously using Massive, to get started you must change `using Massive` to `using Mighty` and `DynamicModel` to `MightyORM`. After that, the vast majority of code which used to run against Massive will just start working against Mighty instead. Also, for now, if you are looking at the Massive code samples whilst I get on with finishing that part of this document(!), then the above will also be the only changes you need to make, to get the vast majority of that code working.
 
