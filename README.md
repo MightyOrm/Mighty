@@ -42,7 +42,7 @@ var db = new MightyORM(mightyConnectionString);
 ... etc. ...
 ```
 
-Mighty will look in connection strings for this additional parameter, strip it out, and pass what's left as a normal connection string to the specified provider.
+Mighty will look inside the connection string for this additional parameter, strip it out, and pass what's left as a normal connection string to the specified provider.
 
 ## The History of Mighty
 
@@ -182,4 +182,4 @@ For more advanced usage, the following properties can be set in the constructor:
 
  - Validator - custom validation for per-item insert/update/delete
  - SqlMapper - mapper from C# class and property names to SQL table and column names
- - ConnectionProvider - support custom ways of mapping from connection string to DbProviderFactory (you don't normally need this, default versions for .NET Framework and .NET Core are provided, and automatically instantiated if you don't specify your own)
+ - ConnectionProvider - supports custom ways of mapping from connection string to DbProviderFactory (you don't normally need this, default versions for .NET Framework and .NET Core are provided, and automatically instantiated if you don't specify your own)
