@@ -28,7 +28,7 @@ namespace Mighty
 #if NET40
 		internal static void SetValue(this PropertyInfo prop, object obj, object value)
 		{
-			prop.SetValue(obj, value);
+			prop.SetValue(obj, value, null);
 		}
 
 		internal static object GetValue(this PropertyInfo prop, object obj)

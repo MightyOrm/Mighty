@@ -22,7 +22,7 @@ using Mighty.Validation;
 namespace Mighty
 {
 	/// <summary>
-	/// In order to support generics, the dynamic version now a sub-class of the generic version, though of course it is still the nicest version.
+	/// In order to most simply support generics, the dynamic version of Mighty has to be a sub-class of the generic version, but of course the dynamic version is still the nicest version to use! :)
 	/// </summary>
 	public class MightyORM : MightyORM<dynamic>
 	{
@@ -86,7 +86,11 @@ namespace Mighty
 		/// </summary>
 		/// <param name="connectionStringOrName"></param>
 		/// <returns></returns>
-		/// <remarks>Static, so can't be made part of any kind of interface</remarks>
+		/// <remarks>
+		/// Static, so can't be made part of any kind of interface, even though we want this on the generic and dynamic versions.
+		/// I think this requires new because of the conflict with the MightyORM&lt;T&gt; version.
+		/// TO DO: check.
+		/// </remarks>
 		new static public MightyORM DB(string connectionStringOrName = null)
 		{
 			return new MightyORM(connectionStringOrName);
@@ -163,16 +167,18 @@ namespace Mighty
 						 string valueColumn,
 						 string sequence,
 						 string columns,
-						 Validator validator,
-						 SqlNamingMapper mapper,
-						 SqlProfiler profiler,
+						 Validator xvalidator,
+						 SqlNamingMapper xmapper,
+						 SqlProfiler xprofiler,
 						 BindingFlags propertyBindingFlags,
 						 ConnectionProvider connectionProvider)
 		{
-			if (mapper == null)
-			{
-				SqlMapper = mapper = new SqlNamingMapper();
-			}
+			// Slightly hacky, works round the fact that static items are not shared between differently typed classes of the same generic type:
+			// use passed-in item; followed by global item for this particular generic class (if specified); followed by global item for the dynamic class
+			// (which is intended to be the place you should use, if specifying one of these globally), followed by null object.
+			Validator = xvalidator ?? GlobalValidator ?? MightyORM.GlobalValidator ?? new NullValidator();
+			SqlProfiler = xprofiler ?? GlobalSqlProfiler ?? MightyORM.GlobalSqlProfiler ?? new NullProfiler();
+			SqlMapper = xmapper ?? GlobalSqlMapper ?? MightyORM.GlobalSqlMapper ?? new NullMapper();
 
 			if (!UseExpando)
 			{
@@ -186,7 +192,7 @@ namespace Mighty
 			}
 			else if (tableClassName != null)
 			{
-				TableName = mapper.GetTableNameFromClassName(tableClassName);
+				TableName = SqlMapper.GetTableNameFromClassName(tableClassName);
 			}
 
 			if (TableName != null)
@@ -221,13 +227,14 @@ namespace Mighty
 
 			ConnectionString = connectionProvider.ConnectionString;
 			Factory = connectionProvider.ProviderFactoryInstance;
+			Factory = SqlProfiler.Wrap(Factory);
 			Type pluginType = connectionProvider.DatabasePluginType;
 			Plugin = (DatabasePlugin)Activator.CreateInstance(pluginType, false);
 			Plugin.Mighty = this;
 
 			if (primaryKeyField == null && TableName != null)
 			{
-				primaryKeyField = mapper.GetPrimaryKeyNameFromClassName(TableName);
+				primaryKeyField = SqlMapper.GetPrimaryKeyFieldFromClassName(TableName);
 			}
 			PrimaryKeyFields = primaryKeyField;
 			if (primaryKeyField == null)
@@ -245,12 +252,10 @@ namespace Mighty
 			}
 			else
 			{
-				ColumnList = columns.Split(',').Select(column => mapper.GetColumnNameFromPropertyName(typeof(T), column)).ToList();
+				ColumnList = columns.Split(',').Select(column => SqlMapper.GetColumnNameFromPropertyName(typeof(T), column)).ToList();
 				Columns = columns == null || columns == "*" ? "*" : string.Join(",", ColumnList);
 			}
-			ValueColumn = string.IsNullOrEmpty(valueColumn) ? null : mapper.GetColumnNameFromPropertyName(typeof(T), valueColumn);
-			Validator = validator ?? new Validator();
-			SqlProfiler = profiler ?? new SqlProfiler();
+			ValueColumn = string.IsNullOrEmpty(valueColumn) ? null : SqlMapper.GetColumnNameFromPropertyName(typeof(T), valueColumn);
 			// After all this, SequenceNameOrIdentityFn is only non-null if we really are expecting to use it
 			// (which entails exactly one PK)
 			if (!Plugin.IsSequenceBased)
@@ -278,10 +283,12 @@ namespace Mighty
 				{
 					throw new InvalidOperationException("Sequence may only be specified for tables with a single primary key");
 				}
-				SequenceNameOrIdentityFn = mapper.QuoteDatabaseIdentifier(sequence);
+				SequenceNameOrIdentityFn = SqlMapper.QuoteDatabaseIdentifier(sequence);
 			}
 
-			DynamicObjectWrapper = new DynamicObjectWrapper<T>(this);
+			// Add dynamic method support (mainly for compatibility with Massive)
+			// TO DO: This line shouldn't be here, as it's so intimately tied to code in DynamicMethodProvider
+			DynamicObjectWrapper = new DynamicMethodProvider<T>(this);
 		}
 
 		protected void InitialiseTypeProperties(BindingFlags propertyBindingFlags)
@@ -723,7 +730,7 @@ namespace Mighty
 		/// <param name="items">The list of items. (Can be T, dynamic, or anything else with suitable name-value (and optional type) data in it.)</param>
 		virtual internal void Prevalidate(IEnumerable<object> items, ORMAction action)
 		{
-			if (Validator.AutoPrevalidation == AutoPrevalidation.Off)
+			if (Validator.PrevalidationSetting == PrevalidationSetting.Off)
 			{
 				return;
 			}
@@ -737,7 +744,7 @@ namespace Mighty
 				if (Errors.Count > oldCount)
 				{
 					valid = false;
-					if (Validator.AutoPrevalidation == AutoPrevalidation.TestToFirstFailure) break;
+					if (Validator.PrevalidationSetting == PrevalidationSetting.Lazy) break;
 				}
 			}
 			if (valid == false || Errors.Count > 0)
@@ -835,11 +842,9 @@ namespace Mighty
 		override public DbConnection OpenConnection()
 		{
 			var connection = Factory.CreateConnection();
-			if (connection != null)
-			{
-				connection.ConnectionString = ConnectionString;
-				connection.Open();
-			}
+			connection = SqlProfiler.Wrap(connection);
+			connection.ConnectionString = ConnectionString;
+			connection.Open();
 			return connection;
 		}
 
@@ -918,6 +923,7 @@ namespace Mighty
 		internal DbCommand CreateCommand(string sql)
 		{
 			var command = Factory.CreateCommand();
+			command = SqlProfiler.Wrap(command);
 			Plugin.SetProviderSpecificCommandProperties(command);
 			command.CommandText = sql;
 			return command;
@@ -995,7 +1001,7 @@ namespace Mighty
 				// (= single result set, not single row...)
 				behavior = CommandBehavior.SingleResult;
 			}
-			// using applied only to local connection
+			// using is applied only to locally generated connection
 			using (var localConn = (connection == null ? OpenConnection() : null))
 			{
 				if (command != null)
@@ -1239,7 +1245,7 @@ namespace Mighty
 			command.Connection = connection;
 			if (action == ORMAction.Insert && SequenceNameOrIdentityFn != null)
 			{
-				// All DBs return a huge sized number for their identity by default, we are normalising to int
+				// *All* DBs return a huge sized number for their identity by default, following Massive we are normalising to int
 				var pk = Convert.ToInt32(Scalar(command));
 				var result = UpsertItemPK(item, pk, originalAction == ORMAction.Insert && outerCount == 0);
 				return result;
@@ -1288,7 +1294,7 @@ namespace Mighty
 			}
 			var command = CreateCommand(sql);
 			AddNamedParams(command, item, pkFilter: pkFilter);
-			Plugin.FixupPagingCommand(command);
+			Plugin.FixupInsertCommand(command);
 			return command;
 		}
 
@@ -1351,7 +1357,7 @@ namespace Mighty
 		}
 
 		/// <summary>
-		/// Is the string passed in the name of a PK field?
+		/// Is this the name of a PK field?
 		/// </summary>
 		/// <param name="fieldName">The name to check</param>
 		/// <param name="canonicalKeyName">Returns the canonical key name, i.e. as specified in <see cref="MightyORM"/> constructor</param>
@@ -1371,7 +1377,7 @@ namespace Mighty
 		}
 
 		/// <summary>
-		/// Is the string passed in the name of a PK field?
+		/// Is this the name of a PK field?
 		/// </summary>
 		/// <param name="fieldName">The name to check</param>
 		/// <returns></returns>
@@ -1446,7 +1452,7 @@ namespace Mighty
 
 		/// <summary>
 		/// Add auto-named parameters from an array of parameter values (normally would have been passed in to microORM
-		/// using C# params syntax)
+		/// using C# parameter syntax)
 		/// </summary>
 		/// <param name="cmd"></param>
 		/// <param name="args"></param>
@@ -1463,7 +1469,7 @@ namespace Mighty
 		}
 
 		/// <summary>
-		/// Optional control whether to add only or no PKs when created parameters from object.
+		/// Optionally control whether to add only the PKs or only not the PKs, when creating parameters from object
 		/// </summary>
 		internal enum PkFilter
 		{

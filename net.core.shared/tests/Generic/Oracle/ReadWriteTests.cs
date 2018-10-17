@@ -126,6 +126,7 @@ namespace Mighty.Generic.Tests.Oracle
 			Assert.AreEqual(3, page2.TotalPages);
 		}
 
+		// These two are called above and are meant to throw exceptions, they should be in separate tests
 		private void TestStarWithJoin()
 		{
 			var depts = new Departments(ProviderName);
@@ -133,6 +134,7 @@ namespace Mighty.Generic.Tests.Oracle
 			var pageItems = page2.Items.ToList();
 		}
 
+		// These two are called above and are meant to throw exceptions, they should be in separate tests
 		private void TestPagedNoOrderBy()
 		{
 			var depts = new Departments(ProviderName);

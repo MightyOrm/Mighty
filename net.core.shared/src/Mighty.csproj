@@ -12,8 +12,9 @@ Based on and highly compatible with Massive, but now with:
 
 * .NET Core
 * Stored procedure suppport
-* Parameter names and directions (when you need them, old-style Massive calls still work as before!)
-* Cursors (only on Oracle and PostgreSQL - they're not needed elsewhere)
+* Parameter names and directions (where you need it; automatic parameter naming as in Massive still works as before)
+* Transaction support
+* Cursors (on Oracle and PostgreSQL; cursors are not designed to be passed out to client code on other DBs)
 * Multiple result sets
 * Simultaneous access to more then one database provider
 

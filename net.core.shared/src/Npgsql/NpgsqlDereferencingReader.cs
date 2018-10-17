@@ -7,7 +7,8 @@ using Mighty.DatabasePlugins;
 
 namespace Mighty.Npgsql
 {
-	// Cursor dereferencing data reader, which may go back into Npgsql at some point
+	// Cursor dereferencing data reader derived originally from removed Npgsql code (but now with more consistent behaviour), might go back into Npgsql at some point?
+	// Note that Oracle basically does the equivalent of this in the driver.
 	internal class NpgsqlDereferencingReader : DbDataReader, IDisposable
 	{
 		private DbConnection Connection;

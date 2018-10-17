@@ -2,37 +2,45 @@ using System.Collections.Generic;
 
 namespace Mighty.Validation
 {
+	public class NullValidator : Validator
+	{
+
+	}
+
 	/// <summary>
 	/// Override this class to make a validator for your table items.
 	/// </summary>
 	/// <remarks>
-	/// The objects passed to the validation callbacks are whatever was passed in to Save, Insert, Delete, etc., which can alwasys be any reasonable object
-	/// or collection to contain the data needed for the task at hand.
-	/// This is true even when used with MightyORM&lt;T&gt;.
+	/// The objects passed to the validation callbacks are whatever was passed in to Save, Insert, Delete, etc., which can always be any reasonable object
+	/// or collection to contain the data needed for the task at hand,  even when used with the generically typed version of MightyORM&lt;T&gt;.
+	/// (If you know you care only going to pass items of type T, you can just add a cast to your validation methods.)
 	/// </remarks>
-	public class Validator
+	abstract public class Validator
 	{
 		/// <summary>
-		/// If true (default) the prevalidator will stop after the first item which gives an errors.
-		/// If false, errors will be collected for all items, then the process will stop.
+		/// Determine whether and how to pre-validate lists of items before performing any action.
+		/// Default is no pre-validation. Other options are to stop after the first item which gives any error,
+		/// or to continue and collect all errors before stopping.
 		/// </summary>
 		/// <returns></returns>
-		virtual public AutoPrevalidation AutoPrevalidation { get; set; } = AutoPrevalidation.Off;
+		virtual public PrevalidationSetting PrevalidationSetting { get; set; } = PrevalidationSetting.Off;
 
 		/// <summary>
 		/// <see cref="Prevalidate" /> calls this one item at a time before any real actions are done.
 		/// If any item fails, no real actions are done for any item.
-		/// See also <see cref="LazyPrevalidation" />.
+		/// See also <see cref="PrevalidationSetting" />.
 		/// If this returns false for any item or items which are to be inserted/updated/deleted then none of them will be.
-		/// You may well just want to add strings as your error objects... but it is up to you!
+		/// You might well just want to add strings as your error objects... but it is up to you.
 		/// </summary>
-		/// <param name="action">You could choose to ignore this and do the same validation for every action... or not. Up to you!</param>
-		/// <param name="item">The item to validate. NB this can be whatever you pass in as input objects.</param>
-		/// <param name="Errors">Append your errors to this list. You may choose to append strings, or a more complex object if you wish. NB Adding one or more errors indicates that the item fails, adding nothing to the errors indicates success.</param>
+		/// <param name="action">You could choose to ignore this and do the same validation for every action... or not.</param>
+		/// <param name="item">The item to validate. NB this can be whatever you pass in as input objects, it is not restricted to items of type T
+		/// even for the generically typed MightyORM&lt;T&gt;.</param>
+		/// <param name="Errors">Append your errors to this list. You may choose to append strings, or a more complex object if you wish.
+		/// NB Adding one or more errors indicates that the item fails, adding nothing to the errors indicates success.</param>
 		/// <returns></returns>
 		/// <remarks>
 		/// Item is not necessarily a representation of the item for action: for delete only, it might be a representation of just the PK depending on how .Delete was called.
-		/// Despite all this, you can write fairly normal looking validators; have a look at the table classes in the generic tests in the source code
+		/// Despite this, you can write fairly stright-forward validators; have a look at the table classes in the generic tests in the source code.
 		/// </remarks>
 		virtual public void ValidateForAction(dynamic item, ORMAction action, List<object> Errors) { }
 

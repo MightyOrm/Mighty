@@ -28,19 +28,21 @@ namespace Mighty.Interfaces
 	//	- Have an (arguably) nicer/simpler interface to parameter directions and output values than Dapper.
 
 	// Abstract class 'interface' for the ORM and ADO.NET Data Access Wrapper methods.
-	// Uses abstract class, not interface, because the semantics of interface means it can never have anything added to it!
+	// Uses abstract class, not interface, because the semantics of interface mean it can never have anything added to it!
 	// (See ... MS document about DB classes; SO post about intefaces)
 	//
 	// Notes:
-	//	- Any params type argument is ALWAYS last (it must be...)
-	//	- DbConnection is always last (or last before any params), except in the Single-with-columns overload, where it needs to be where it is
-	//	  to play the very useful dual role of also disambiguating calls to this overload from calls to the simpler overload without columns.
-	//	- ALL database parameters (i.e. everything sent to the DB via args, inParams or ioParams) is ALWAYS passed in as a true database
-	//	  parameter under all circumstances - so can never be used for direct SQL injection. In general (i.e. assuming
-	//	  you aren't building SQL from the value yourself, anywhere) strings, etc., which are passed in will NOT need any escaping.
+	//	- Any params type argument is always last (it has to be)
+	//	- DbConnection is always last (or last before a params argument, if any), except in the Single-with-columns overload, where it needs to be where
+	//	  it is to play the very useful dual role of also disambiguating calls to this overload from calls to the simpler overload without columns.
+	//	- All database parameters (i.e. everything sent to the DB via args, inParams or ioParams) are always passed in as true database
+	//	  parameters under all circumstances - they are never interpolated into SQL - so they can never be used for _direct_ SQL injection.
+	//	  So assuming you aren't building any SQL to execute yourself within the DB, from the values passed in, then strings etc. which are
+	//	  passed in will not need any escaping to be safe.
 	//
-	// NB MicroORM is dynamic-focussed, so even when you are using MightyORM<T> instead of MightyORM (dynamic by default), the
-	// T determines the output type, but not the input type (which can still come from arbitrary objects)
+	// NB MicroORM is dynamic-focussed, so even when you are using MightyORM<T> instead of MightyORM (which is like MightyORM<dynamic>), the
+	// T determines the output type, but not the input type (which can be of type T, but can also be any of the various arbitrary objects
+	// which the microORM supports, with appropriately named fields).
 	abstract public partial class MicroORM<T>
 	{
 		#region Properties
@@ -60,14 +62,29 @@ namespace Mighty.Interfaces
 		virtual internal DatabasePlugin Plugin { get; set; }
 
 		/// <summary>
+		/// Allows setting a global validator
+		/// </summary>
+		static public Validator GlobalValidator { get; set; }
+
+		/// <summary>
 		/// Validator
 		/// </summary>
 		virtual public Validator Validator { get; protected set; }
 
 		/// <summary>
+		/// Allows setting a global sql mapper
+		/// </summary>
+		static public SqlNamingMapper GlobalSqlMapper { get; set; }
+
+		/// <summary>
 		/// C# &lt;=&gt; SQL mapper
 		/// </summary>
 		virtual public SqlNamingMapper SqlMapper { get; protected set; }
+
+		/// <summary>
+		/// Allows setting a global SQL profiler
+		/// </summary>
+		static public SqlProfiler GlobalSqlProfiler { get; set; }
 
 		/// <summary>
 		/// Optional SQL profiler
@@ -100,12 +117,12 @@ namespace Mighty.Interfaces
 		virtual public List<string> PrimaryKeyList { get; protected set; }
 
 		/// <summary>
-		/// Columns, or "*" (mapping, if any, applied)
+		/// All columns in one string, or "*" (mapping, if any, already applied)
 		/// </summary>
 		virtual public string Columns { get; protected set; }
 
 		/// <summary>
-		/// Separate columns (mapping, if any, applied)
+		/// Separated column names, in a list (mapping, if any, already applied)
 		/// </summary>
 		virtual public List<string> ColumnList { get; protected set; }
 
@@ -120,12 +137,12 @@ namespace Mighty.Interfaces
 		virtual public string ValueColumn { get; protected set; }
 
 		/// <summary>
-		/// true if dynamic version; false if generic version
+		/// true for dynamic instantiation; false if generically typed instantiation
 		/// </summary>
 		virtual internal bool UseExpando { get; set; }
 
 		/// <summary>
-		/// Table meta data (filtered to be only for columns specified by T or <see cref="columns"/>, where present)
+		/// Table meta data (filtered to be only for columns specified by the generic type T, or by <see cref="columns"/>, where present)
 		/// </summary>
 		abstract public IEnumerable<dynamic> TableMetaData { get; }
 		#endregion
@@ -134,7 +151,7 @@ namespace Mighty.Interfaces
 		/// <summary>
 		/// Perform COUNT on current table
 		/// </summary>
-		/// <param name="columns">Columns (defaults to *, but can be specified, e.g., to count non-nulls in a field)</param>
+		/// <param name="columns">Columns (defaults to *, but can be specified, e.g., to count non-nulls in a given field)</param>
 		/// <param name="where">Optional where clause</param>
 		/// <param name="connection">Optional connection</param>
 		/// <param name="args">Args</param>

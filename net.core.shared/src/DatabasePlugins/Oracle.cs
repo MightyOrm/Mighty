@@ -50,7 +50,10 @@ namespace Mighty.DatabasePlugins
 			return BuildRowNumberPagingQueryPair(columns, tablesAndJoins, where, orderBy, limit, offset);
 		}
 
-		override public void FixupPagingCommand(DbCommand command)
+		// Build an insert command which - even on Oracle - can insert and return the new PK in a single round-trip to the database.
+		// (TO DO: check whether we are actually getting the Oracle API to auto-generate a second round-trip for us? Either
+		// way, we need some special case for Oracle, and this is as good as any.)
+		override public void FixupInsertCommand(DbCommand command)
 		{
 			command.CommandText = string.Format("BEGIN\r\n{0}\r\nEND;", command.CommandText);
 			// Add cursor, which will be automatically dereferenced by the Oracle data access layer
@@ -92,7 +95,8 @@ namespace Mighty.DatabasePlugins
 		#region DbCommand
 		override public void SetProviderSpecificCommandProperties(DbCommand command)
 		{
-			// These two settings and their comments taken direct from Massive - see CREDITS file
+			// these setting values and their comments are taken directly from Massive - see CREDITS file;
+			// the approach to setting them via a dynamic is different from what used to be in Massive
 			((dynamic)command).BindByName = true;   // keep true as the default as otherwise ODP.NET won't bind the parameters by name but by location.
 			((dynamic)command).InitialLONGFetchSize = -1;   // this is the ideal value, it obtains the LONG value in one go.
 		}

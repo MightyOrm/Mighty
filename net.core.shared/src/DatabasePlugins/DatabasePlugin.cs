@@ -7,28 +7,35 @@ using System.Linq;
 
 namespace Mighty.DatabasePlugins
 {
-	// Abstract class for database plugins; we're trying to put as much shared code as possible in here, while
-	// maintaining reasonable readability.
+	/// <summary>
+	/// Abstract class for database plugins; we're trying to put as much shared code as possible in here, while
+	/// maintaining reasonable readability.
+	/// </summary>
 	abstract internal class DatabasePlugin
 	{
 		protected const string CRLF = "\r\n";
 
-		// the instance which we are plugged in to (as dynamic to avoid having to dynamically type everything about the database plugin classes)
+		/// <summary>
+		/// The instance which we are plugged in to (as dynamic to avoid having to dynamically type everything about the database plugin classes)
+		/// </summary>
 		public dynamic Mighty { get; set; }
 
 		#region Provider support
-		// Returns the provider factory class name for the known provider(s) for this DB;
-		// should simply return null if the plugin does not know that it can support the
-		// named provider.
-		//
-		// There is no C# syntax to enforce sub-classes of DatabasePlugin to provide a static method with this name,
-		// but they must do so (failure to do so results in a runtime exception).
-		//
-		// If you wan't to create a new plugin for an unknown provider for a known database, subclass the existing plugin
-		// for that database and provide your own implementation of just this method. Then either call
-		// <see cref="DatabasePluginManager.RegisterPlugin"/> to register the plugin for use with extended connection
-		// strings, or pass it to the MightyORM constructor using your own sub-class of <see cref="ConnectionProvider"/>.
-		//
+		/// <summary>
+		/// Returns the provider factory class name for the known provider(s) for this DB;
+		/// should simply return null if the plugin does not know that it can support the
+		/// named provider.
+		///
+		/// There is no C# syntax to enforce sub-classes of DatabasePlugin to provide a static method with this name,
+		/// but they must do so (failure to do so results in a runtime exception).
+		///
+		/// If you wan't to create a plugin for an unknown provider for a known database, subclass the existing plugin
+		/// for that database and provide your own implementation of just this method. Then either call
+		/// <see cref="DatabasePluginManager.RegisterPlugin"/> to register the plugin for use with extended connection
+		/// strings, or pass it to the MightyORM constructor using your own sub-class of <see cref="ConnectionProvider"/>.
+		/// </summary>
+		/// <param name="loweredProviderName"></param>
+		/// <returns></returns>
 		static public string GetProviderFactoryClassName(string loweredProviderName)
 		{
 			// NB because of the way static methods work in C#, this method can never be found and called from
@@ -85,21 +92,38 @@ namespace Mighty.DatabasePlugins
 				columns, tableName, where.Thingify("WHERE"), orderBy.Thingify("ORDER BY"), limit == 0 ? "" : limit.ToString().Thingify("LIMIT"));
 		}
 
-		// is the same for every (currently supported?) database
+		/// <summary>
+		/// Is the same for every (currently supported?) database
+		/// </summary>
+		/// <param name="tableName"></param>
+		/// <param name="where"></param>
+		/// <returns></returns>
 		virtual public string BuildDelete(string tableName, string where)
 		{
 			return string.Format("DELETE FROM {0}{1}",
 				tableName, where.Compulsify("WHERE", "DELETE"));
 		}
 
-		// is the same for every (currently supported?) database
+		/// <summary>
+		/// Is the same for every (currently supported?) database
+		/// </summary>
+		/// <param name="tableName"></param>
+		/// <param name="columns"></param>
+		/// <param name="values"></param>
+		/// <returns></returns>
 		virtual public string BuildInsert(string tableName, string columns, string values)
 		{
 			return string.Format("INSERT INTO {0} ({1}) VALUES ({2})",
 				tableName, columns, values);
 		}
 
-		// is the same for every (currently supported?) database
+		/// <summary>
+		/// Is the same for every (currently supported?) database
+		/// </summary>
+		/// <param name="tableName"></param>
+		/// <param name="values"></param>
+		/// <param name="where"></param>
+		/// <returns></returns>
 		virtual public string BuildUpdate(string tableName, string values, string where)
 		{
 			return string.Format("UPDATE {0} SET {1}{2}",
@@ -130,6 +154,16 @@ namespace Mighty.DatabasePlugins
 		abstract public dynamic BuildPagingQueryPair(string columns, string tablesAndJoins, string where, string orderBy,
 			int limit, int offset);
 
+		/// <summary>
+		/// Utility method to provide LIMIT-OFFSET paging pattern.
+		/// </summary>
+		/// <param name="columns"></param>
+		/// <param name="tablesAndJoins"></param>
+		/// <param name="where"></param>
+		/// <param name="orderBy"></param>
+		/// <param name="limit"></param>
+		/// <param name="offset"></param>
+		/// <returns></returns>
 		protected dynamic BuildLimitOffsetPagingQueryPair(string columns, string tablesAndJoins, string where, string orderBy,
 			int limit, int offset)
 		{
@@ -195,7 +229,9 @@ namespace Mighty.DatabasePlugins
 		/// </remarks>
 		protected string FixStarColumns(string tableName, string columns)
 		{
-			// This will complain when it shouldn't in corner cases (e.g. a quoted table name with a space in), but can be worked round even then.
+			// This is checking for multiple table names by checking for spaces, so it will complain when it shouldn't in some corner cases (e.g. a quoted table
+			// name with a space in), but can be worked round even then.
+			// TO DO: How?
 			if (columns == "*")
 			{
 				if (tableName.Any(Char.IsWhiteSpace))
@@ -207,12 +243,20 @@ namespace Mighty.DatabasePlugins
 			return columns;
 		}
 
-		virtual public void FixupPagingCommand(DbCommand command) { }
+		/// <summary>
+		/// Required for Oracle only
+		/// </summary>
+		/// <param name="command"></param>
+		virtual public void FixupInsertCommand(DbCommand command) { }
 		#endregion
 
 		#region Table info
-		// Owner is for owner/schema, will be null if none was specified by the user.
-		// This is exactly the same on MySQL, PostgreSQL and SQL Server, override on the others.
+		/// <summary>
+		/// This is exactly the same on MySQL, PostgreSQL and SQL Server, override on the others.
+		/// </summary>
+		/// <param name="tableName">Table name</param>
+		/// <param name="tableOwner">Table owner/schema, will be null if none was specified by the user</param>
+		/// <returns></returns>
 		virtual public string BuildTableMetaDataQuery(string tableName, string tableOwner)
 		{
 			return string.Format("SELECT * FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = {0}{1}",
@@ -220,15 +264,26 @@ namespace Mighty.DatabasePlugins
 				tableOwner != null ? string.Format(" AND TABLE_SCHEMA = {0}", PrefixParameterName("1")) : "");
 		}
 
-		// If the table info comes in the semi-standard INFORMATION_SCHEMA format (which it does, though from a
-		// differently named table, on Oracle as well as on the above three) then we don't need to override this;
-		// however, this DOES need ToList, as it is converting from delayed execution to something ready to use.
+		/// <summary>
+		/// If the table info comes in the semi-standard INFORMATION_SCHEMA format (which it does, though from a
+		/// differently named table, on Oracle as well as on the above three) then we don't need to override this;
+		/// however, this DOES need ToList, as it is converting from delayed execution to something ready to use.
+		/// </summary>
+		/// <param name="results"></param>
+		/// <returns></returns>
 		virtual public IEnumerable<dynamic> PostProcessTableMetaData(IEnumerable<dynamic> results)
 		{
 			return results.ToList();
 		}
 
-		// TO DO: change access modifier? (applies to DatabasePlugin in general)
+		/// <summary>
+		/// Get default value for a column - was done as a plugin method, but now the same for everything.
+		/// </summary>
+		/// <param name="columnInfo"></param>
+		/// <returns></returns>
+		/// <remarks>
+		/// Not DB-specific, and not trivial... should move into <see cref="MightyORM"/>.
+		/// </remarks>
 		virtual public object GetColumnDefault(dynamic columnInfo)
 		{
 			string defaultValue = columnInfo.COLUMN_DEFAULT;

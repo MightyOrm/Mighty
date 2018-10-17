@@ -8,7 +8,7 @@ using Mighty.Interfaces;
 namespace Mighty
 {
 	/// <summary>
-	/// Wrapper to provide dynamic methods (wrpper on DynamicObject needed as we can't do direct multiple inheritance).
+	/// Wrapper to provide dynamic methods (wrapper object on mighty needed as we can't do direct multiple inheritance).
 	/// </summary>
 	/// <returns></returns>
 	/// <remarks>
@@ -17,7 +17,7 @@ namespace Mighty
 	/// Cons: They're never visible in IntelliSense; you don't really need them; it turns out this adds overhead to
 	/// *every* call to the microORM, even when the object is not stored in a dynamic.
 	/// </remarks>
-	internal class DynamicObjectWrapper<T> : DynamicObject where T : class, new()
+	internal class DynamicMethodProvider<T> : DynamicObject where T : class, new()
 	{
 		private MightyORM<T> Mighty;
 
@@ -26,7 +26,7 @@ namespace Mighty
 		/// You can access almost all this functionality non-dynamically (and if you do, you get IntelliSense, which makes life easier).
 		/// </summary>
 		/// <param name="me"></param>
-		internal DynamicObjectWrapper(MightyORM<T> me)
+		internal DynamicMethodProvider(MightyORM<T> me)
 		{
 			Mighty = me;
 		}
@@ -117,7 +117,7 @@ namespace Mighty
 					if (uOp.StartsWith("LAST"))
 					{
 						// this will be incorrect if multiple PKs are present, but note that the ORDER BY may be from a dynamic method
-						// argument by this point; this could be done correctly for compund PKs, but not in general for user input (it
+						// argument by this point; this could be done correctly for compound PKs, but not in general for user input (it
 						// would involve parsing SQL, which we never do)
 						orderBy = orderBy + " DESC";
 					}
@@ -135,17 +135,19 @@ namespace Mighty
 		}
 	}
 
+	// Allow dynamic methods on instances of MightyORM, implementing them via a wrapper object.
+	// (We can't make MightyORM directly implement DynamicObject, since it inherits from MicroORM and C# doesn't allow multiple inheritance.)
 	public partial class MightyORM<T> : IDynamicMetaObjectProvider where T : class, new()
 	{
-		private DynamicObjectWrapper<T> DynamicObjectWrapper;
+		private DynamicMethodProvider<T> DynamicObjectWrapper;
 
 		/// <summary>
 		/// Implements IDynamicMetaObjectProvider.
 		/// </summary>
-		/// <param name="parameter"></param>
+		/// <param name="expression"></param>
 		/// <returns></returns>
 		/// <remarks>
-		/// Modified from http://stackoverflow.com/a/17634595/795690
+		/// Inspired by http://stackoverflow.com/a/17634595/795690
 		/// </remarks>
 		/// <remarks>
 		/// Support dynamic methods via a wrapper object (needed as we can't do direct multiple inheritance)
@@ -153,37 +155,9 @@ namespace Mighty
 		/// when not stored in dynamic). This is the case for all <see cref="DynamicObject"/>s too (e.g. as in Massive) but you don't see it
 		/// when debugging in that case, as GetMetaObject() is not user code if you inherit directly from DynamicObject.
 		/// </remarks>
-		public DynamicMetaObject GetMetaObject(Expression parameter)
+		public DynamicMetaObject GetMetaObject(Expression expression)
 		{
-			var parentDMO = new DynamicMetaObject(parameter, BindingRestrictions.Empty, this);
-			return new DelegatingMetaObject(DynamicObjectWrapper, parentDMO, parameter, BindingRestrictions.Empty, this);
-		}
-
-		private class DelegatingMetaObject : DynamicMetaObject
-		{
-			private readonly IDynamicMetaObjectProvider innerProvider;
-			private readonly DynamicMetaObject parentDMO;
-
-			public DelegatingMetaObject(IDynamicMetaObjectProvider innerProvider,
-				DynamicMetaObject parentDMO,
-				Expression expr, BindingRestrictions restrictions, object value)
-				: base(expr, restrictions, value)
-			{
-				this.innerProvider = innerProvider;
-				this.parentDMO = parentDMO;
-			}
-
-			public override DynamicMetaObject BindInvokeMember(InvokeMemberBinder binder, DynamicMetaObject[] args)
-			{
-				// get the InvokeMember info from the inner object (as provided for us by DynamicObject)
-				var innerMetaObject = innerProvider.GetMetaObject(Expression.Constant(innerProvider));
-				var retval = innerMetaObject.BindInvokeMember(binder, args);
-
-				// call any parent object (i.e. MightyORM instance) non-dynamic methods before trying wrapped object dynamic call
-				var newretval = binder.FallbackInvokeMember(parentDMO, args, retval);
-
-				return newretval;
-			}
+			return new DelegatingMetaObject(this, DynamicObjectWrapper, expression);
 		}
 	}
 }

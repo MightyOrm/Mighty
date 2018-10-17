@@ -438,6 +438,8 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 		}
 #endif
 
+// Temporarily commenting out large cursor tests
+#if true
 		readonly int LargeCursorSize = 1000000;
 
 		/// <summary>
@@ -528,6 +530,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 			}
 			Assert.AreEqual(2, rcount);
 		}
+#endif
 
 #if false
 		[Test]

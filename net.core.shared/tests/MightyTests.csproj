@@ -1,7 +1,8 @@
-<Project Sdk="Microsoft.NET.Sdk">
+﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
 	<OutputType>Exe</OutputType>
+	<!-- NB Oracle tests require setting Test/Test Settings/Default Processor Architecture to x64 if x64 version is installed -->
     <TargetFrameworks>net45</TargetFrameworks>
   </PropertyGroup>
 
@@ -45,8 +46,8 @@
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp1.1'">
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0" />
-    <PackageReference Include="NUnit" Version="3.6.1" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.8.0-alpha1" />
+    <PackageReference Include="NUnit" Version="3.8.1" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.9.0" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.3.0" />
     <PackageReference Include="Npgsql" Version="3.2.2" />
@@ -82,6 +83,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\..\SqlProfiler\SqlProfiler.csproj" />
     <ProjectReference Include="..\src\Mighty.csproj" />
   </ItemGroup>
 
