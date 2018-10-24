@@ -7,6 +7,8 @@ namespace Mighty.Generic.Tests.Oracle
 {
 	public static class TestConstants
 	{
+        // On a 64 bit machine remember to set 'Test/Test Settings/Default Processor Architecture' to 'X64'
+        // or else the Oracle drivers will appear not to be installed.
 #if COREFX
 		public static readonly string ReadWriteTestConnection = "data source=oravirtualnerd;user id=SCOTT;password=TIGER;persist security info=false;ProviderName={0}";
 #else
