@@ -1,6 +1,9 @@
-This codebase is a re-write of Massive, with many significant features added. Very little source code
-is directly shared. However some is. The Massive source code was released and is used here under the
-following license:
+///////////////////////////////////////////////////////////////////////////////////////////////////
+// Mighty is a re-write of Massive with many significant features added. Much of the source code
+// including the core engine is re-written, however some code and of course several very significant
+// features of the overall design are shared.
+//
+// The Massive source code from which Mighty was forked was released and is used under the following license:
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Licensed to you under the New BSD License
