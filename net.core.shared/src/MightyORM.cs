@@ -1150,8 +1150,9 @@ namespace Mighty
 				string paramName;
 				if (value == null)
 				{
-					// Sending NULL in the SQL, and not in a param, is *required* for obscure cases (such as SQL Server Image) where the column will not accept a varchar NULL param
-					paramName = "NULL";
+                    // Sending NULL in the SQL and not in a param is required to support obscure cases (such as the SQL Server IMAGE type)
+                    // where the column refuses to cast from the default VARCHAR NULL param which is created when a parameter is null.
+                    paramName = "NULL";
 				}
 				else
 				{
