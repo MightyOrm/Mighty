@@ -214,6 +214,9 @@ namespace Mighty.Dynamic.Tests.Oracle
 		}
 
 
+        /// <remarks>
+        /// This is based on Oracle demo code: https://blogs.oracle.com/oraclemagazine/cursor-in-cursor-out
+        /// </remarks>
 		[Test]
 		public void PassingCursorInputParameter()
 		{
@@ -221,13 +224,19 @@ namespace Mighty.Dynamic.Tests.Oracle
 			// To share cursors between commands in Oracle the commands must use the same connection
 			using(var conn = db.OpenConnection())
 			{
-				var res1 = db.ExecuteWithParams("begin open :p_rc for select* from emp where deptno = 10; end;", outParams: new { p_rc = new Cursor() }, connection: conn);
+				var res1 = db.ExecuteWithParams("begin open :p_rc for select * from emp where deptno = 10; end;", outParams: new { p_rc = new Cursor() }, connection: conn);
 				Assert.AreEqual("OracleRefCursor", res1.p_rc.GetType().Name);
-				// TO DO: This Oracle test procedure writes some data into a table; we should produce some output (e.g. a row count) instead
-				var res2 = db.ExecuteAsProcedure("cursor_in_out.process_cursor", inParams: new { p_cursor = res1.p_rc }, connection: conn);
+
+                db.Execute("delete from processing_result");
+
+                // oracle demo code takes the input cursor and writes the results to `processing_result` table
+                var res2 = db.ExecuteAsProcedure("cursor_in_out.process_cursor", inParams: new { p_cursor = res1.p_rc }, connection: conn);
 				Assert.AreEqual(0, ((IDictionary<string, object>)res2).Count);
-			}
-		}
+
+                var processedRows = db.Query("select * from processing_result").ToList();
+                Assert.AreEqual(3, processedRows.Count);
+            }
+        }
 	}
 }
 #endif
