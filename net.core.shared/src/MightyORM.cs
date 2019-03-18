@@ -1058,6 +1058,10 @@ namespace Mighty
 								for (int i = 0; i < fieldCount; i++)
 								{
 									var columnName = useReader.GetName(i);
+                                    if (string.IsNullOrEmpty(columnName))
+                                    {
+                                        throw new InvalidOperationException("Cannot autopopulate from anonymous column");
+                                    }
 									if (UseExpando)
 									{
 										// For dynamics, create fields using the case that comes back from the database

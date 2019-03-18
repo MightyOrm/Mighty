@@ -4,13 +4,12 @@ Development Installation Notes:
 SQL Server:
 -----------
 
-The test database is AdventureWorks (AdventureWorks2014 works fine, probably higher too, but not tested), downloadable from:
+- The test database is Adventure Works (Adventure Works 2014 works fine; probably higher too, but not tested)
+	o Download and the restore from `AdventureWorks2014.bak`, from:
+	  https://docs.microsoft.com/en-us/sql/samples/adventureworks-install-configure
+	o Some additional SPs have been added (run `MightyTests\Sql\SqlServerSPTests.sql` to create)
 
-https://docs.microsoft.com/en-us/sql/samples/adventureworks-install-configure
-
-Some additional SPs have been added to this (run `MightyTests\Sql\SqlServerSPTests.sql` to create).
-
-There is also a separate test database for writes, which is created using `MightyTests\Sql\WriteTestDB_Create.sql`.
+- There is also a separate test database for writes (run `MightyTests\Sql\WriteTestDB_Create.sql` to create)
 
 Oracle:
 -------
@@ -41,6 +40,8 @@ Oracle:
 	o This is the program itself, it does not need further installation
 	o Connect to localhost as SYSTEM/<password>
 
+NB The Oracle tests WILL FAIL unless Test/Test Settings/Default Processor Architecture is set to X64
+
 SQLite:
 -------
 
@@ -51,3 +52,63 @@ SQLite:
 
 - The database for all SQLite tests is the autonumber variant of the Chinook example DB for SQLite,
   i.e. `Chinook_Sqlite_AutoIncrementPKs.sqlite` from https://github.com/lerocha/chinook-database/tree/master/ChinookDatabase/DataSources
+
+PostgreSQL:
+-----------
+
+Install the database itself from: PostgreSQL-9.6.1-1-win64-bigsql.exe
+You'll want to install pgAdmin as well
+Note: BigSQL Manager lives on localhost:8050
+!Make sure the PostgreSQL is higher up your path than Oracle, beware that createdb also exists as a command for both
+Create the Northwind database by unzipping northwind_psql-master.zip and then running create_db.sh from within it - to make it run as is you'd need to add -U postgres as an option to each line and convert it to a .bat or .cmd extension
+By default the postgres user doesn't require a password, you should use psql to set one.
+Bizarrely, the postgres user works with ANY password. I assume this is only when connecting from localhost. TO DO: test.
+
+MySQL:
+------
+
+- TO DO: Need docs for installing MySQL Workbench (Community Edition)...
+
+- Install "dotConnect for MySQL" (i.e. the `Devart.Data.MySql` data provider) using `dcmysqlfree.exe`
+  (you don't need the help files or the Visual Studio integration; you do need to install the provider to the GAC)
+
+- Install the latest "dotConnect for MySQL (Express Edition)" (i.e. the free version of `Devart.Data.MySql` data provider)
+  using `dcmysqlfree.exe`
+
+- Install the server from https://dev.mysql.com/downloads/mysql/
+    o Note the comment "Note: MySQL Installer is 32 bit, but will install both 32 bit and 64 bit binaries."
+    o Download the web installer version to only pull the parts you actually need from the web during the install
+    o NB If you have previously installed MySQL you will need to uninstall everything in order to select a different
+      Setup Type (e.g. to change from 'Client Only' to 'Full' or 'Custom')
+
+- You require MySQL Server on the server and Connector/NET on the client, and you will probablty want MySQL Workbench
+
+- I chose old (weaker) style authenticaion at install, and I need to see what happens if I choose the newer
+  stronger (SHA-256) version, i.e. which drivers, if any, support it
+
+- Download and install the Sakila test database for MySQL (https://dev.mysql.com/doc/sakila/en/sakila-installation.html)
+    o shell> mysql -u root -p
+    o mysql> SOURCE C:/temp/sakila-db/sakila-schema.sql;
+    o mysql> SOURCE C:/temp/sakila-db/sakila-data.sql;
+    o mysql> CREATE USER 'Massive'@'localhost' IDENTIFIED BY 'mt123';
+    o mysql> GRANT ALL ON sakila.* TO 'Massive'@'localhost';
+    o If it doesn't appear in MySQL Workbench, try clicking the refresh icon for the Schemas view
+
+- To use with older drivers, you may need to do steps from:
+    o https://dev.mysql.com/doc/refman/8.0/en/upgrading-from-previous-series.html#upgrade-caching-sha2-password
+
+- Create database (from Massive script) and then user permissions (as just above) for MassiveWriteTests db
+
+- Run MySQP_SPTests.sql in database Sakila
+
+- NB The DevartTests and SPTests in MySql.Data.MySqlClient require higher privileges than above (at least BackupAdmin administrative
+  role, if set through MySQL Workbench), I am not sure why. Without this:
+    o Devart_ParameterCheck fails with "Can not the describe procedure Sakila.testproc_in_out. You do not have enough privileges to get object metadata." [sic]
+      (TO DO: Wording is minor bug in Devart.)
+    o SPTests for ("MySql.Data.MySqlClient") fail with "System.Data.SqlTypes.SqlNullValueException : Data is Null. This method or property cannot be called on Null values."
+      (TO DO: Looks like a bug in the MySqlClient, since the Devart client is passing the same tests with less permissions.)
+
+Firebird:
+---------
+
+TO DO :)

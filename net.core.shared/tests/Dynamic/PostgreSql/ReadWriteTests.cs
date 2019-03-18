@@ -45,6 +45,8 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 		[Test]
 		public void All_LimitSpecification()
 		{
+            // TO DO: When the DB user does not exist, this is throwing the wrong exception
+            // (even though ONE of those thrown while running is the user does not exist exception)
 			var customers = new Customer();
 			var allRows = customers.All(limit: 10).ToList();
 			Assert.AreEqual(10, allRows.Count);

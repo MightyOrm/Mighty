@@ -1,3 +1,18 @@
+-- Sequence: public.products_productid_seq
+
+DROP SEQUENCE public.products_productid_seq;
+
+CREATE SEQUENCE public.products_productid_seq
+  INCREMENT 1
+  MINVALUE 1
+  MAXVALUE 9223372036854775807
+  START 1000
+  CACHE 1;
+ALTER TABLE public.products_productid_seq
+  OWNER TO postgres;
+
+ALTER TABLE public.products ALTER COLUMN discontinued SET DEFAULT 0;
+
 -- Table: public.tab
 
 DROP TABLE public.tab;
