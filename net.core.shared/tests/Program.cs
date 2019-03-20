@@ -90,7 +90,7 @@ namespace Mighty.Generic.Tests.NUnit.ConsoleRunner
 
 		static int Main(string[] args)
 		{
-#if NET40
+#if false //NET40
 			// Test the delegating meta-object
 			//SOTest();
 			//return 0;
@@ -105,7 +105,7 @@ namespace Mighty.Generic.Tests.NUnit.ConsoleRunner
 			return 0;
 #endif
 
-#if NET40
+#if false //NET40
 			// Test the profiler ... seems to be working now that we've fixed the DelegatingMetaObject (**NB** & TODO: Mighty itself is still using the broken one).
 			// Passing all tests on .NET 4.0, with or without the profiler, which is good.
 			MightyORM.GlobalSqlProfiler = new MyProfiler();

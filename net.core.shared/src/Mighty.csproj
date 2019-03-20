@@ -27,6 +27,10 @@ Pre-Alpha version.
 	<PackageTags>Micro-ORM, MicroORM, ORM, SQL, data access, data access wrapper, Mighty, Massive</PackageTags>
   </PropertyGroup>
 
+  <PropertyGroup>
+    <DocumentationFile>Mighty.xml</DocumentationFile>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DefineConstants>TRACE;DEBUG</DefineConstants>
     <PlatformTarget>AnyCPU</PlatformTarget>
@@ -94,6 +98,10 @@ Pre-Alpha version.
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Configuration" />
     <Reference Include="System.Transactions" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="Mighty.xml" />
   </ItemGroup>
 
 </Project>
