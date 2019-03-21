@@ -67,13 +67,9 @@ Bizarrely, the postgres user works with ANY password. I assume this is only when
 MySQL:
 ------
 
-- TO DO: Need docs for installing MySQL Workbench (Community Edition)...
-
-- Install "dotConnect for MySQL" (i.e. the `Devart.Data.MySql` data provider) using `dcmysqlfree.exe`
-  (you don't need the help files or the Visual Studio integration; you do need to install the provider to the GAC)
-
 - Install the latest "dotConnect for MySQL (Express Edition)" (i.e. the free version of `Devart.Data.MySql` data provider)
-  using `dcmysqlfree.exe`
+  using `dcmysqlfree.exe` (you don't need the help files or the Visual Studio integration; you do need to install the provider
+  to the GAC)
 
 - Install the server from https://dev.mysql.com/downloads/mysql/
     o Note the comment "Note: MySQL Installer is 32 bit, but will install both 32 bit and 64 bit binaries."
@@ -107,6 +103,14 @@ MySQL:
       (TO DO: Wording is minor bug in Devart.)
     o SPTests for ("MySql.Data.MySqlClient") fail with "System.Data.SqlTypes.SqlNullValueException : Data is Null. This method or property cannot be called on Null values."
       (TO DO: Looks like a bug in the MySqlClient, since the Devart client is passing the same tests with less permissions.)
+
+- TO DO:
+    o On .NET Core only, I am seeing "MySql.Data.MySqlClient.MySqlException : Table 'mysql.proc' doesn't exist" on calls involving stored procs
+    o At the moment, this strongly appears to be a problem with 'MySql.Data.MySqlClient' driver on .NET Core:
+        - This table *doesn't * exist anymore in MySQL 8.0 and isn't supposed to
+          (see https://ocelot.ca/blog/blog/2017/08/22/no-more-mysql-proc-in-mysql-8-0/ )
+          and its not existing isn't a problem for running stored procedures in the .NET Framework code
+    o Resolution - upgrade the MySql.Data NuGet package from 7.0.6-IR31 to 8.0.15 so that it works properly with MySQL v8 databases!
 
 Firebird:
 ---------
