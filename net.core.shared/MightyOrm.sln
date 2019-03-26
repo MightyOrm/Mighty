@@ -2,7 +2,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 15
 VisualStudioVersion = 15.0.26228.9
 MinimumVisualStudioVersion = 15.0.26124.0
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mighty", "src\Mighty.csproj", "{0FAA0F08-92D1-49D2-895E-E3BA22469BEF}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MightyOrm", "src\MightyOrm.csproj", "{0FAA0F08-92D1-49D2-895E-E3BA22469BEF}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MightyTests", "tests\MightyTests.csproj", "{442A0DA0-14D9-46D5-9064-F134D435A715}"
 EndProject

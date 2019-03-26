@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>net40;net45;netcoreapp1.1</TargetFrameworks>
 	<PackageId>MightyORM</PackageId>
-    <PackageVersion>1.0.0-prealpha3</PackageVersion>
+    <PackageVersion>1.3.3</PackageVersion>
     <Authors>Mike Beaton</Authors>
     <Owners>MightyORM</Owners>
     <Description>A new small, happy, dynamic MicroORM and general purpose .NET data access wrapper.
