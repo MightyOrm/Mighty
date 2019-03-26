@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Mighty.Validation
+namespace MightyOrm.Validation
 {
 	// this is thrown by Mighty when validation fails
 	public class ValidationException : Exception

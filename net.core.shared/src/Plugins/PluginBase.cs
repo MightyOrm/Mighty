@@ -5,13 +5,13 @@ using System.Data.Common;
 using System.Dynamic;
 using System.Linq;
 
-namespace Mighty.DatabasePlugins
+namespace MightyOrm.Plugins
 {
 	/// <summary>
 	/// Abstract class for database plugins; we're trying to put as much shared code as possible in here, while
 	/// maintaining reasonable readability.
 	/// </summary>
-	abstract internal class DatabasePlugin
+	abstract internal class PluginBase
 	{
 		protected const string CRLF = "\r\n";
 
@@ -32,7 +32,7 @@ namespace Mighty.DatabasePlugins
 		/// If you wan't to create a plugin for an unknown provider for a known database, subclass the existing plugin
 		/// for that database and provide your own implementation of just this method. Then either call
 		/// <see cref="DatabasePluginManager.RegisterPlugin"/> to register the plugin for use with extended connection
-		/// strings, or pass it to the MightyORM constructor using your own sub-class of <see cref="ConnectionProvider"/>.
+		/// strings, or pass it to the MightyOrm constructor using your own sub-class of <see cref="ConnectionProvider"/>.
 		/// </summary>
 		/// <param name="loweredProviderName"></param>
 		/// <returns></returns>
@@ -41,7 +41,7 @@ namespace Mighty.DatabasePlugins
 			// NB because of the way static methods work in C#, this method can never be found and called from
 			// a sub-class.
 			throw new InvalidOperationException(string.Format("{0} should only ever be called on sub-classes of {1}",
-				nameof(GetProviderFactoryClassName), typeof(DatabasePlugin)));
+				nameof(GetProviderFactoryClassName), typeof(PluginBase)));
 		}
 		#endregion
 
@@ -282,7 +282,7 @@ namespace Mighty.DatabasePlugins
 		/// <param name="columnInfo"></param>
 		/// <returns></returns>
 		/// <remarks>
-		/// Not DB-specific, and not trivial... should move into <see cref="MightyORM"/>.
+		/// Not DB-specific, and not trivial... should move into <see cref="MightyOrm"/>.
 		/// </remarks>
 		virtual public object GetColumnDefault(dynamic columnInfo)
 		{

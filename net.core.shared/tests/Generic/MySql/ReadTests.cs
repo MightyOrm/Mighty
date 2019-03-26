@@ -6,10 +6,10 @@ using System.Dynamic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using Mighty.Generic.Tests.MySql.TableClasses;
+using MightyOrm.Generic.Tests.MySql.TableClasses;
 using NUnit.Framework;
 
-namespace Mighty.Generic.Tests.MySql
+namespace MightyOrm.Generic.Tests.MySql
 {
 	[TestFixture("MySql.Data.MySqlClient")]
 #if !COREFX

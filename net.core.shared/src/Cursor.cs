@@ -1,4 +1,4 @@
-namespace Mighty
+namespace MightyOrm
 {
 	public class Cursor
 	{

@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using Mighty.Validation;
+using MightyOrm.Validation;
 
-namespace Mighty.Dynamic.Tests.SqlServer.TableClasses
+namespace MightyOrm.Dynamic.Tests.SqlServer.TableClasses
 {
-	public class SalesOrderHeader : MightyORM
+	public class SalesOrderHeader : MightyOrm
 	{
 		public SalesOrderHeader() : this(true)
 		{
@@ -22,7 +22,7 @@ namespace Mighty.Dynamic.Tests.SqlServer.TableClasses
 
 		public class SalesOrderHeaderValidator : Validator
 		{
-			override public void ValidateForAction(dynamic item, ORMAction action, List<object> Errors)
+			override public void ValidateForAction(dynamic item, OrmAction action, List<object> Errors)
 			{
 				// bogus validation: isn't valid if sales person is null. 
 

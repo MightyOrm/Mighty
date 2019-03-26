@@ -4,10 +4,10 @@ using System.Data;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Mighty.Dynamic.Tests.Oracle.TableClasses;
+using MightyOrm.Dynamic.Tests.Oracle.TableClasses;
 using NUnit.Framework;
 
-namespace Mighty.Dynamic.Tests.Oracle
+namespace MightyOrm.Dynamic.Tests.Oracle
 {
 	/// <summary>
 	/// Specific tests for code which is specific to Oracle. This means there are fewer tests than for SQL Server, as logic that's covered there already doesn't have to be
@@ -36,7 +36,7 @@ namespace Mighty.Dynamic.Tests.Oracle
 		public void Guid_Arg()
 		{
 			// Oracle has no Guid parameter support, Massive maps Guid to string in Oracle
-			var db = new MightyORM(string.Format(TestConstants.ReadWriteTestConnection, ProviderName));
+			var db = new MightyOrm(string.Format(TestConstants.ReadWriteTestConnection, ProviderName));
 			var guid = Guid.NewGuid();
 			var inParams = new { inval = guid };
 			var outParams = new { val = new Guid() };

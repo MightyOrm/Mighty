@@ -3,14 +3,14 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Mighty.Generic.Tests.PostgreSql.TableClasses
+namespace MightyOrm.Generic.Tests.PostgreSql.TableClasses
 {
 	public class Product
 	{
 		public int productid { get; set; }
 	}
 
-	public class Products : MightyORM<Product>
+	public class Products : MightyOrm<Product>
 	{
 		public Products()
 			: this(includeSchema: true)

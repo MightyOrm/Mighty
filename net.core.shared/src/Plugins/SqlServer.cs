@@ -1,9 +1,9 @@
 using System;
 using System.Data.Common;
 
-namespace Mighty.DatabasePlugins
+namespace MightyOrm.Plugins
 {
-	internal class SQLServer : DatabasePlugin
+	internal class SqlServer : PluginBase
 	{
 		#region Provider support
 		// we must use new because there are no overrides on static methods, see e.g. http://stackoverflow.com/q/7839691

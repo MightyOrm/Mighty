@@ -5,11 +5,11 @@ using System.Dynamic;
 using System.Collections.Generic;
 using System.Linq;
 
-using Mighty.Npgsql;
+using MightyOrm.Npgsql;
 
-namespace Mighty.DatabasePlugins
+namespace MightyOrm.Plugins
 {
-	internal class PostgreSQL : DatabasePlugin
+	internal class PostgreSql : PluginBase
 	{
 		#region Provider support
 		// we must use new because there are no overrides on static methods, see e.g. http://stackoverflow.com/q/7839691
@@ -110,7 +110,7 @@ namespace Mighty.DatabasePlugins
 		/// </summary>
 		/// <param name="cmd">The command.</param>
 		/// <param name="Connection">The connection - required for deferencing.</param>
-		/// <param name="db">The parent MightyORM (or subclass) - required to get at the factory for deferencing and config vaules.</param>
+		/// <param name="db">The parent MightyOrm (or subclass) - required to get at the factory for deferencing and config vaules.</param>
 		/// <returns>The reader, dereferenced if needed.</returns>
 		/// <remarks>
 		/// https://github.com/npgsql/npgsql/issues/438

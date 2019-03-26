@@ -4,7 +4,7 @@ using System.Data.Common;
 #endif
 using System.Text;
 
-namespace Mighty.ConnectionProviders
+namespace MightyOrm.ConnectionProviders
 {
 	internal class PureConnectionStringProvider : ConnectionProvider
 	{
@@ -56,7 +56,7 @@ namespace Mighty.ConnectionProviders
 			}
 			if (providerName == null)
 			{
-				throw new InvalidOperationException("Cannot find ProviderName=... in connection string passed to MightyORM"
+				throw new InvalidOperationException("Cannot find ProviderName=... in connection string passed to MightyOrm"
 #if NETFRAMEWORK
 					+ extraMessage
 #endif

@@ -6,9 +6,9 @@ using System.Data;
 using System.Dynamic;
 using System.Reflection;
 
-using Mighty.Validation;
+using MightyOrm.Validation;
 
-namespace Mighty.Parameters
+namespace MightyOrm.Parameters
 {
 	/// <remarks>
 	/// <see cref="NameValueCollection"/> *is* supported in .NET Core 1.1, but got a bit lost:
@@ -23,11 +23,11 @@ namespace Mighty.Parameters
 	{
 		private object _o;
 		private ParameterDirection? _direction;
-		private ORMAction? _action;
+		private OrmAction? _action;
 
 		internal ParameterInfo Current { get; set; }
 
-		internal NameValueTypeEnumerator(object o, ParameterDirection? direction = null, ORMAction? action = null)
+		internal NameValueTypeEnumerator(object o, ParameterDirection? direction = null, OrmAction? action = null)
 		{
 			_o = o;
 			_direction = direction;
@@ -95,10 +95,10 @@ namespace Mighty.Parameters
 				string msg = null;
 				if (_action != null)
 				{
-					if (_action != ORMAction.Delete)
+					if (_action != OrmAction.Delete)
 					{
 						msg = "Value-only collections not supported for action " + _action;
-						if (_action == ORMAction.Update)
+						if (_action == OrmAction.Update)
 						{
 							msg += "; use Update(item), not Update(item, pk)";
 						}

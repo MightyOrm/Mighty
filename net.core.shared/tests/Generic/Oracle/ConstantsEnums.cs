@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Mighty.Generic.Tests.Oracle
+namespace MightyOrm.Generic.Tests.Oracle
 {
 	public static class TestConstants
 	{

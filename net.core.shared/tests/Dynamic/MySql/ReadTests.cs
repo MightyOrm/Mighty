@@ -6,10 +6,10 @@ using System.Dynamic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using Mighty.Dynamic.Tests.MySql.TableClasses;
+using MightyOrm.Dynamic.Tests.MySql.TableClasses;
 using NUnit.Framework;
 
-namespace Mighty.Dynamic.Tests.MySql
+namespace MightyOrm.Dynamic.Tests.MySql
 {
 	[TestFixture("MySql.Data.MySqlClient")]
 #if !COREFX
@@ -33,7 +33,7 @@ namespace Mighty.Dynamic.Tests.MySql
 		public void Guid_Arg()
 		{
 			// MySQL has native Guid parameter support, but the SELECT output is a string
-			var db = new MightyORM(string.Format(TestConstants.ReadTestConnection, ProviderName));
+			var db = new MightyOrm(string.Format(TestConstants.ReadTestConnection, ProviderName));
 			var guid = Guid.NewGuid();
 			var command = db.CreateCommand("SELECT @0 AS val", null, guid);
 			Assert.AreEqual(DbType.Guid, command.Parameters[0].DbType);

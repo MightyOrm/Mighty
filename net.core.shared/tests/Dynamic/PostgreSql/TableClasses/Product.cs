@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Mighty.Dynamic.Tests.PostgreSql.TableClasses
+namespace MightyOrm.Dynamic.Tests.PostgreSql.TableClasses
 {
-	public class Product : MightyORM
+	public class Product : MightyOrm
 	{
 		public Product()
 			: this(includeSchema: true)

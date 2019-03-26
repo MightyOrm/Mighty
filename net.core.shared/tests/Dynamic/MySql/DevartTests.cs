@@ -7,10 +7,10 @@ using System.Dynamic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using Mighty.Dynamic.Tests.MySql.TableClasses;
+using MightyOrm.Dynamic.Tests.MySql.TableClasses;
 using NUnit.Framework;
 
-namespace Mighty.Dynamic.Tests.MySql
+namespace MightyOrm.Dynamic.Tests.MySql
 {
 	[TestFixture]
 	public class DevartTests

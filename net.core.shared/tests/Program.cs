@@ -6,7 +6,7 @@ using System;
 using System.Data.Common;
 using System.Reflection;
 
-using Mighty.Profiling;
+using MightyOrm.Profiling;
 
 #if NET40
 // NB This CAN be loaded from NuGet pre-release package by name (currently SqlProfiler v0.0.1-alpha3),
@@ -27,7 +27,7 @@ namespace Mighty.Generic.Tests.NUnit.ConsoleRunner
 	/// Unless we want Mighty to depend on our specific profiling library, or the profiling library to depend on Mighty, then I
 	/// think we can't avoid something like this.
 	/// </remarks>
-	class MyProfiler : Mighty.Profiling.SqlProfiler
+	class MyProfiler : MightyOrm.Profiling.SqlProfiler
 	{
 		override public DbCommand Wrap(DbCommand command)
 		{
@@ -108,7 +108,7 @@ namespace Mighty.Generic.Tests.NUnit.ConsoleRunner
 #if false //NET40
 			// Test the profiler ... seems to be working now that we've fixed the DelegatingMetaObject (**NB** & TODO: Mighty itself is still using the broken one).
 			// Passing all tests on .NET 4.0, with or without the profiler, which is good.
-			MightyORM.GlobalSqlProfiler = new MyProfiler();
+			MightyOrm.GlobalSqlProfiler = new MyProfiler();
 			//Mighty.Generic.Tests.Oracle.TableClasses.Departments.GlobalSqlProfiler = new MyProfiler();
 #endif
 

@@ -4,10 +4,10 @@ using System.Data;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Mighty.Generic.Tests.Oracle.TableClasses;
+using MightyOrm.Generic.Tests.Oracle.TableClasses;
 using NUnit.Framework;
 
-namespace Mighty.Generic.Tests.Oracle
+namespace MightyOrm.Generic.Tests.Oracle
 {
 	/// <summary>
 	/// Suite of tests for stored procedures, functions and cursors on Oracle database.

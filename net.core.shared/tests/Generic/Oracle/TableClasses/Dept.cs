@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Mighty.Generic.Tests.Oracle.TableClasses
+namespace MightyOrm.Generic.Tests.Oracle.TableClasses
 {
 	public class DEPT
 	{
@@ -12,7 +12,7 @@ namespace Mighty.Generic.Tests.Oracle.TableClasses
 		public string LOC { get; set; }
 	}
 
-	public class Departments : MightyORM<DEPT>
+	public class Departments : MightyOrm<DEPT>
 	{
 		public Departments(string providerName) : this(providerName, true)
 		{

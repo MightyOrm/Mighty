@@ -11,20 +11,20 @@ using System.Text;
 using System.Transactions;
 #endif
 
-using Mighty.ConnectionProviders;
-using Mighty.DatabasePlugins;
-using Mighty.Interfaces;
-using Mighty.Mapping;
-using Mighty.Parameters;
-using Mighty.Profiling;
-using Mighty.Validation;
+using MightyOrm.ConnectionProviders;
+using MightyOrm.Plugins;
+using MightyOrm.Interfaces;
+using MightyOrm.Mapping;
+using MightyOrm.Parameters;
+using MightyOrm.Profiling;
+using MightyOrm.Validation;
 
-namespace Mighty
+namespace MightyOrm
 {
 	/// <summary>
 	/// In order to most simply support generics, the dynamic version of Mighty has to be a sub-class of the generic version, but of course the dynamic version is still the nicest version to use! :)
 	/// </summary>
-	public class MightyORM : MightyORM<dynamic>
+	public class MightyOrm : MightyOrm<dynamic>
 	{
 		#region Constructor
 		/// <summary>
@@ -45,12 +45,12 @@ namespace Mighty
 		/// <param name="validator">Optional validator</param>
 		/// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
 		/// <param name="profiler">Optional SQL profiler</param>
-		/// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyORM)</param>
+		/// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyOrm)</param>
 		/// <remarks>
 		/// What about the SQL Profiler? Should this (really) go into here as a parameter?
 		/// ALL column names in the above are pre-mapped C# names, not post-mapped SQL names, where you have a mapper which makes them different.
 		/// </remarks>
-		public MightyORM(string connectionString = null,
+		public MightyOrm(string connectionString = null,
 						 string tableName = null,
 						 string primaryKeyField = null,
 						 string valueColumn = null,
@@ -63,7 +63,7 @@ namespace Mighty
 		{
 			UseExpando = true;
 
-			// Subclass-based table name override for dynamic version of MightyORM
+			// Subclass-based table name override for dynamic version of MightyOrm
 			string tableClassName = null;
 
 			var me = this.GetType();
@@ -72,7 +72,7 @@ namespace Mighty
 #if !NETFRAMEWORK
 				.GetTypeInfo()
 #endif
-				.IsSubclassOf(typeof(MightyORM)))
+				.IsSubclassOf(typeof(MightyOrm)))
 			{
 				tableClassName = me.Name;
 			}
@@ -88,21 +88,21 @@ namespace Mighty
 		/// <returns></returns>
 		/// <remarks>
 		/// Static, so can't be made part of any kind of interface, even though we want this on the generic and dynamic versions.
-		/// I think this requires new because of the conflict with the MightyORM&lt;T&gt; version.
+		/// I think this requires new because of the conflict with the MightyOrm&lt;T&gt; version.
 		/// TO DO: check.
 		/// </remarks>
-		new static public MightyORM DB(string connectionStringOrName = null)
+		new static public MightyOrm DB(string connectionStringOrName = null)
 		{
-			return new MightyORM(connectionStringOrName);
+			return new MightyOrm(connectionStringOrName);
 		}
 #endregion
 	}
 
-	public partial class MightyORM<T> : MicroORM<T> where T : class, new()
+	public partial class MightyOrm<T> : MicroOrm<T> where T : class, new()
 	{
 		#region Constructor
 		/// <summary>
-		/// Strongly typed MightyORM constructor
+		/// Strongly typed MightyOrm constructor
 		/// </summary>
 		/// <param name="connectionString">
 		/// Connection string with support for additional, non-standard "ProviderName=" property.
@@ -119,9 +119,9 @@ namespace Mighty
 		/// <param name="validator">Optional validator</param>
 		/// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
 		/// <param name="profiler">Optional SQL profiler</param>
-		/// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyORM)</param>
+		/// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyOrm)</param>
 		/// <param name="propertyBindingFlags">Specify which properties should be managed by the ORM</param>
-		public MightyORM(string connectionString = null,
+		public MightyOrm(string connectionString = null,
 						 string tableName = null,
 						 string primaryKeyField = null,
 						 string valueColumn = null,
@@ -133,10 +133,10 @@ namespace Mighty
 						 ConnectionProvider connectionProvider = null,
 						 BindingFlags propertyBindingFlags = BindingFlags.Instance | BindingFlags.Public)
 		{
-			// If this has been called as part of constructing MightyORM (non-generic), then return immediately and let that constructor do all the work
-			if (this is MightyORM) return;
+			// If this has been called as part of constructing MightyOrm (non-generic), then return immediately and let that constructor do all the work
+			if (this is MightyOrm) return;
 
-			// Table name for MightyORM<T> is taken from type T not from a constructor argument; use SqlNamingMapper to override it.
+			// Table name for MightyOrm<T> is taken from type T not from a constructor argument; use SqlNamingMapper to override it.
 			string tableClassName = typeof(T).Name;
 
 			Init(connectionString, tableName, tableClassName, primaryKeyField, valueColumn, sequence, columns, validator, mapper, profiler, propertyBindingFlags, connectionProvider);
@@ -147,9 +147,9 @@ namespace Mighty
 		// mini-factory for non-table specific access
 		// (equivalent to a constructor call)
 		// <remarks>static, so can't be defined anywhere but here</remarks>
-		static public MightyORM<T> DB(string connectionStringOrName = null)
+		static public MightyOrm<T> DB(string connectionStringOrName = null)
 		{
-			return new MightyORM<T>(connectionStringOrName);
+			return new MightyOrm<T>(connectionStringOrName);
 		}
 #endregion
 
@@ -176,9 +176,9 @@ namespace Mighty
 			// Slightly hacky, works round the fact that static items are not shared between differently typed classes of the same generic type:
 			// use passed-in item; followed by global item for this particular generic class (if specified); followed by global item for the dynamic class
 			// (which is intended to be the place you should use, if specifying one of these globally), followed by null object.
-			Validator = xvalidator ?? GlobalValidator ?? MightyORM.GlobalValidator ?? new NullValidator();
-			SqlProfiler = xprofiler ?? GlobalSqlProfiler ?? MightyORM.GlobalSqlProfiler ?? new NullProfiler();
-			SqlMapper = xmapper ?? GlobalSqlMapper ?? MightyORM.GlobalSqlMapper ?? new NullMapper();
+			Validator = xvalidator ?? GlobalValidator ?? MightyOrm.GlobalValidator ?? new NullValidator();
+			SqlProfiler = xprofiler ?? GlobalSqlProfiler ?? MightyOrm.GlobalSqlProfiler ?? new NullProfiler();
+			SqlMapper = xmapper ?? GlobalSqlMapper ?? MightyOrm.GlobalSqlMapper ?? new NullMapper();
 
 			if (!UseExpando)
 			{
@@ -229,7 +229,7 @@ namespace Mighty
 			Factory = connectionProvider.ProviderFactoryInstance;
 			Factory = SqlProfiler.Wrap(Factory);
 			Type pluginType = connectionProvider.DatabasePluginType;
-			Plugin = (DatabasePlugin)Activator.CreateInstance(pluginType, false);
+			Plugin = (PluginBase)Activator.CreateInstance(pluginType, false);
 			Plugin.Mighty = this;
 
 			if (primaryKeyField == null && TableName != null)
@@ -312,7 +312,7 @@ namespace Mighty
 		}
 		#endregion
 
-		// Only properties with a non-trivial implementation are here, the rest are in the MicroORM abstract class.
+		// Only properties with a non-trivial implementation are here, the rest are in the MicroOrm abstract class.
 		#region Properties
 		protected IEnumerable<dynamic> _TableMetaData;
 		override public IEnumerable<dynamic> TableMetaData
@@ -341,7 +341,7 @@ namespace Mighty
 			if (!UseExpando)
 			{
 				// we need a dynamic query, so on the generic version we create a new dynamic DB object with the same connection info
-				db = new MightyORM(connectionProvider: new PresetsConnectionProvider(ConnectionString, Factory, Plugin.GetType()));
+				db = new MightyOrm(connectionProvider: new PresetsConnectionProvider(ConnectionString, Factory, Plugin.GetType()));
 			}
 			unprocessedMetaData = (IEnumerable<dynamic>)db.Query(sql, BareTableName, TableOwner);
 			var postProcessedMetaData = Plugin.PostProcessTableMetaData(unprocessedMetaData);
@@ -364,7 +364,7 @@ namespace Mighty
 		}
 
 		// fields for thread-safe initialization of TableMetaData
-		// (done once or less per instance of MightyORM, so not static)
+		// (done once or less per instance of MightyOrm, so not static)
 		private ConnectionState _initState; // closed (default value), connecting, open
 		private object _lockobj = new object();
 
@@ -405,7 +405,7 @@ namespace Mighty
 		}
 #endregion
 
-		// Only methods with a non-trivial implementation are here, the rest are in the MicroORM abstract class.
+		// Only methods with a non-trivial implementation are here, the rest are in the MicroOrm abstract class.
 #region MircoORM interace
 		// In theory COUNT expression could vary across SQL variants, in practice it doesn't.
 		override public object Count(string columns = "*", string where = null,
@@ -689,7 +689,7 @@ namespace Mighty
 		/// <param name="items">The item or items</param>
 		/// <returns></returns>
 		/// <remarks>Here and in <see cref="UpsertItemPK"/> we always return the modified original object, where possible</remarks>
-		override internal int ActionOnItems(ORMAction action, DbConnection connection, IEnumerable<object> items, out T insertedItem)
+		override internal int ActionOnItems(OrmAction action, DbConnection connection, IEnumerable<object> items, out T insertedItem)
 		{
 			insertedItem = null;
 			int count = 0;
@@ -700,7 +700,7 @@ namespace Mighty
 				if (Validator.PerformingAction(item, action))
 				{
 					var _inserted = ActionOnItem(action, item, connection, count);
-					if (count == 0 && _inserted != null && action == ORMAction.Insert)
+					if (count == 0 && _inserted != null && action == OrmAction.Insert)
 					{
 						if (!UseExpando)
 						{
@@ -728,7 +728,7 @@ namespace Mighty
 		/// </summary>
 		/// <param name="action">The ORM action</param>
 		/// <param name="items">The list of items. (Can be T, dynamic, or anything else with suitable name-value (and optional type) data in it.)</param>
-		virtual internal void Prevalidate(IEnumerable<object> items, ORMAction action)
+		virtual internal void Prevalidate(IEnumerable<object> items, OrmAction action)
 		{
 			if (Validator.PrevalidationSetting == PrevalidationSetting.Off)
 			{
@@ -759,7 +759,7 @@ namespace Mighty
 		/// <param name="item">The item</param>
 		/// <param name="action">Optional action type (defaults to Save)</param>
 		/// <returns></returns>
-		override public List<object> IsValid(object item, ORMAction action = ORMAction.Save)
+		override public List<object> IsValid(object item, OrmAction action = OrmAction.Save)
 		{
 			List<object> Errors = new List<object>();
 			if (Validator != null)
@@ -833,8 +833,8 @@ namespace Mighty
 		// Only methods with a non-trivial implementation are here, the rest are in the DataAccessWrapper abstract class.
 		#region DataAccessWrapper interface
 		/// <summary>
-		/// Creates a new DbConnection. You do not normally need to call this! (MightyORM normally manages its own
-		/// connections. Create a connection here and pass it on to other MightyORM commands only in non-standard
+		/// Creates a new DbConnection. You do not normally need to call this! (MightyOrm normally manages its own
+		/// connections. Create a connection here and pass it on to other MightyOrm commands only in non-standard
 		/// cases where you need to explicitly manage transactions or share connections, e.g. when using explicit
 		/// cursors).
 		/// </summary>
@@ -1131,7 +1131,7 @@ namespace Mighty
 		/// sounds as if it means that if this part of the library was written in VB then doing this would be officially
 		/// supported? not quite sure, that assumes that the different implementations of anonymous types can co-exist)
 		/// </remarks>
-		private object ActionOnItem(ORMAction action, object item, DbConnection connection, int outerCount)
+		private object ActionOnItem(OrmAction action, object item, DbConnection connection, int outerCount)
 		{
 			int nKeys = 0;
 			int nDefaultKeyValues = 0;
@@ -1208,25 +1208,25 @@ namespace Mighty
 				}
 			}
 			DbCommand command = null;
-			ORMAction originalAction = action;
-			if (action == ORMAction.Save)
+			OrmAction originalAction = action;
+			if (action == OrmAction.Save)
 			{
 				if (nKeys > 0 && nDefaultKeyValues == 0)
 				{
-					action = ORMAction.Update;
+					action = OrmAction.Update;
 				}
 				else
 				{
-					action = ORMAction.Insert;
+					action = OrmAction.Insert;
 				}
 			}
 			switch (action)
 			{
-				case ORMAction.Update:
+				case OrmAction.Update:
 					command = CreateUpdateCommand(argsItem, updateNameValuePairs, whereNameValuePairs);
 					break;
 
-				case ORMAction.Insert:
+				case OrmAction.Insert:
 					if (SequenceNameOrIdentityFn != null && Plugin.IsSequenceBased)
 					{
 						// our copy of SequenceNameOrIdentityFn is only ever non-null when there is a non-compound PK
@@ -1239,20 +1239,20 @@ namespace Mighty
 					command = CreateInsertCommand(argsItem, insertNames, insertValues, nDefaultKeyValues > 0 ? PkFilter.NoKeys : PkFilter.DoNotFilter);
 					break;
 
-				case ORMAction.Delete:
+				case OrmAction.Delete:
 					command = CreateDeleteCommand(argsItem, whereNameValuePairs);
 					break;
 
 				default:
 					// use 'Exception' for strictly internal/should not happen/our fault exceptions
-					throw new Exception("incorrect " + nameof(ORMAction) + "=" + action + " at action choice in " + nameof(ActionOnItem));
+					throw new Exception("incorrect " + nameof(OrmAction) + "=" + action + " at action choice in " + nameof(ActionOnItem));
 			}
 			command.Connection = connection;
-			if (action == ORMAction.Insert && SequenceNameOrIdentityFn != null)
+			if (action == OrmAction.Insert && SequenceNameOrIdentityFn != null)
 			{
 				// *All* DBs return a huge sized number for their identity by default, following Massive we are normalising to int
 				var pk = Convert.ToInt32(Scalar(command));
-				var result = UpsertItemPK(item, pk, originalAction == ORMAction.Insert && outerCount == 0);
+				var result = UpsertItemPK(item, pk, originalAction == OrmAction.Insert && outerCount == 0);
 				return result;
 			}
 			else
@@ -1365,7 +1365,7 @@ namespace Mighty
 		/// Is this the name of a PK field?
 		/// </summary>
 		/// <param name="fieldName">The name to check</param>
-		/// <param name="canonicalKeyName">Returns the canonical key name, i.e. as specified in <see cref="MightyORM"/> constructor</param>
+		/// <param name="canonicalKeyName">Returns the canonical key name, i.e. as specified in <see cref="MightyOrm"/> constructor</param>
 		/// <returns></returns>
 		internal bool IsKey(string fieldName, out string canonicalKeyName)
 		{

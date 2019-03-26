@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Mighty.Dynamic.Tests.MySql.TableClasses
+namespace MightyOrm.Dynamic.Tests.MySql.TableClasses
 {
-	public class SPTestsDatabase : MightyORM
+	public class SPTestsDatabase : MightyOrm
 	{
 		public SPTestsDatabase(string providerName) : base(string.Format(TestConstants.ReadTestConnection, providerName), tableName: "")
 		{

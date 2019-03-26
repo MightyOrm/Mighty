@@ -2,9 +2,9 @@ using System;
 using System.Data;
 using System.Data.Common;
 
-namespace Mighty.DatabasePlugins
+namespace MightyOrm.Plugins
 {
-	internal class MySQL : DatabasePlugin
+	internal class MySql : PluginBase
 	{
 		#region Provider support
 		// we must use new because there are no overrides on static methods, see e.g. http://stackoverflow.com/q/7839691

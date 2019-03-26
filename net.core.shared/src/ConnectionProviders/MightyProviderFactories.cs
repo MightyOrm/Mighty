@@ -2,13 +2,13 @@ using System;
 using System.Data.Common;
 using System.Reflection;
 
-using Mighty.DatabasePlugins;
+using MightyOrm.Plugins;
 
-namespace Mighty.ConnectionProviders
+namespace MightyOrm.ConnectionProviders
 {
 	// A replacement for System.Data.Common.DbProvider factories!
 	//
-	// we really need to look at some kind of mocking (both in terms of whether all public methods on MightyORM should be virtual, to help this; okay, actually,
+	// we really need to look at some kind of mocking (both in terms of whether all public methods on MightyOrm should be virtual, to help this; okay, actually,
 	// that's trivial, isn't it? if it's virtual, you can make a mock version which does what you want; HOWEVER - if we have correctly wrapped everything in
 	// abstract class interfaces then we don't need to do that, as they can implement the interfaces instead (and they don't even need to fart around with our
 	// constructor).
@@ -55,7 +55,7 @@ namespace Mighty.ConnectionProviders
 				// The DatabasePlugin subclass must implement this static GetProviderFactoryClassName method and will
 				// throw a reasonably meaningful exception here if not; unfortunately there is no syntax to enforce this
 				// at complile time.
-				var methodName = nameof(DatabasePlugin.GetProviderFactoryClassName);
+				var methodName = nameof(PluginBase.GetProviderFactoryClassName);
 				var method = type.GetMethod(methodName, BindingFlags.Static | BindingFlags.NonPublic);
 				if (method == null)
 				{

@@ -1,6 +1,6 @@
 using System;
 
-namespace Mighty.Parameters
+namespace MightyOrm.Parameters
 {
 	internal class LazyNameValueTypeInfo
 	{

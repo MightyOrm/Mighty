@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Mighty.Generic.Tests.PostgreSql.TableClasses
+namespace MightyOrm.Generic.Tests.PostgreSql.TableClasses
 {
 	public class Employee
 	{
@@ -13,7 +13,7 @@ namespace Mighty.Generic.Tests.PostgreSql.TableClasses
 		public string lastname { get; set; }
 	}
 
-	public class Employees : MightyORM<Employee>
+	public class Employees : MightyOrm<Employee>
 	{
 		public Employees()
 			: this(includeSchema: true)

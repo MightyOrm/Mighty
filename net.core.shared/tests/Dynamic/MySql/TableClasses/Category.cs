@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Mighty.Dynamic.Tests.MySql.TableClasses
+namespace MightyOrm.Dynamic.Tests.MySql.TableClasses
 {
-	public class Category : MightyORM
+	public class Category : MightyOrm
 	{
 		public Category(string providerName) : this(providerName, true)
 		{

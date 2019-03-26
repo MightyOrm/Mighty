@@ -6,10 +6,10 @@ using System.Dynamic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using Mighty.Generic.Tests.SqlServer.TableClasses;
+using MightyOrm.Generic.Tests.SqlServer.TableClasses;
 using NUnit.Framework;
 
-namespace Mighty.Generic.Tests.SqlServer
+namespace MightyOrm.Generic.Tests.SqlServer
 {
 	[TestFixture]
 	public class ReadTests

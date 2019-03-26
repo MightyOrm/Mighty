@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
-using Mighty.Dynamic.Tests.PostgreSql.TableClasses;
+using MightyOrm.Dynamic.Tests.PostgreSql.TableClasses;
 using NUnit.Framework;
 
-namespace Mighty.Dynamic.Tests.PostgreSql
+namespace MightyOrm.Dynamic.Tests.PostgreSql
 {
 	/// <summary>
 	/// Specific tests for code which is specific to Postgresql. This means there are fewer tests than for SQL Server, as logic that's covered there already doesn't have to be
@@ -21,7 +21,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 		public void Guid_Arg()
 		{
 			// PostgreSQL has true Guid type support
-			var db = new MightyORM(TestConstants.ReadWriteTestConnection);
+			var db = new MightyOrm(TestConstants.ReadWriteTestConnection);
 			var guid = Guid.NewGuid();
 			var command = db.CreateCommand("SELECT @0 AS val", null, guid);
 			Assert.AreEqual(DbType.Guid, command.Parameters[0].DbType);

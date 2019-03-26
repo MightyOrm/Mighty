@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using Mighty.Validation;
+using MightyOrm.Validation;
 
-namespace Mighty.Generic.Tests.SqlServer.TableClasses
+namespace MightyOrm.Generic.Tests.SqlServer.TableClasses
 {
 	public class SalesOrderHeader
 	{
@@ -18,7 +18,7 @@ namespace Mighty.Generic.Tests.SqlServer.TableClasses
 		public DateTime? OrderDate { get; set; }
 	}
 
-	public class SalesOrderHeaders : MightyORM<SalesOrderHeader>
+	public class SalesOrderHeaders : MightyOrm<SalesOrderHeader>
 	{
 		public SalesOrderHeaders() : this(true)
 		{
@@ -33,7 +33,7 @@ namespace Mighty.Generic.Tests.SqlServer.TableClasses
 
 		public class SalesOrderHeaderValidator : Validator
 		{
-			override public void ValidateForAction(dynamic item, ORMAction action, List<object> Errors)
+			override public void ValidateForAction(dynamic item, OrmAction action, List<object> Errors)
 			{
 				// bogus validation: isn't valid if sales person is null. 
 

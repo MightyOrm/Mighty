@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace Mighty.Dynamic.Tests.Oracle.TableClasses
+namespace MightyOrm.Dynamic.Tests.Oracle.TableClasses
 {
-	public class SPTestsDatabase : MightyORM
+	public class SPTestsDatabase : MightyOrm
 	{
 		public SPTestsDatabase(string providerName) : base(string.Format(TestConstants.ReadWriteTestConnection, providerName))
 		{

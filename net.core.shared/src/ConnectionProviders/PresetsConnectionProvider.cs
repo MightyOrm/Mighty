@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Data.Common;
 
-namespace Mighty.ConnectionProviders
+namespace MightyOrm.ConnectionProviders
 {
 	public class PresetsConnectionProvider : ConnectionProvider
 	{

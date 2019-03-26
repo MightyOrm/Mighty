@@ -2,7 +2,7 @@
 using System.Dynamic;
 using System.Linq.Expressions;
 
-namespace Mighty
+namespace MightyOrm
 {
 	public class DelegatingMetaObject : DynamicMetaObject
 	{

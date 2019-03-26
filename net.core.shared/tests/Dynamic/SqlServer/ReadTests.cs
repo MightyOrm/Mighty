@@ -6,10 +6,10 @@ using System.Dynamic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using Mighty.Dynamic.Tests.SqlServer.TableClasses;
+using MightyOrm.Dynamic.Tests.SqlServer.TableClasses;
 using NUnit.Framework;
 
-namespace Mighty.Dynamic.Tests.SqlServer
+namespace MightyOrm.Dynamic.Tests.SqlServer
 {
 	[TestFixture]
 	public class ReadTests
@@ -18,7 +18,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
 		public void Guid_Arg()
 		{
 			// SQL Server has true Guid type support
-			var db = new MightyORM(TestConstants.ReadTestConnection);
+			var db = new MightyOrm(TestConstants.ReadTestConnection);
 			var guid = Guid.NewGuid();
 			var command = db.CreateCommand("SELECT @0 AS val", null, guid);
 			Assert.AreEqual(DbType.Guid, command.Parameters[0].DbType);

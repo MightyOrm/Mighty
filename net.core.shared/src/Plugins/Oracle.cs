@@ -4,9 +4,9 @@ using System.Data;
 using System.Data.Common;
 using System.Dynamic;
 
-namespace Mighty.DatabasePlugins
+namespace MightyOrm.Plugins
 {
-	internal class Oracle : DatabasePlugin
+	internal class Oracle : PluginBase
 	{
 		#region Provider support
 		// we must use new because there are no overrides on static methods, see e.g. http://stackoverflow.com/q/7839691

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace Mighty.Generic.Tests.MySql.TableClasses
+namespace MightyOrm.Generic.Tests.MySql.TableClasses
 {
 	public class Product
 	{
@@ -11,7 +11,7 @@ namespace Mighty.Generic.Tests.MySql.TableClasses
 		public int CategoryID { get; set; }
 	}
 
-	public class Products : MightyORM<Product>
+	public class Products : MightyOrm<Product>
 	{
 		public Products(string providerName) : this(providerName, true)
 		{

@@ -2,17 +2,17 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Mighty;
-using Mighty.Generic.Tests;
+using MightyOrm;
+using MightyOrm.Generic.Tests;
 
-namespace Mighty.Generic.Tests.Sqlite.TableClasses
+namespace MightyOrm.Generic.Tests.Sqlite.TableClasses
 {
 	public class Playlist
 	{
 		public int PlaylistId { get; set; }
 	}
 
-	public class Playlists : MightyORM<Playlist>
+	public class Playlists : MightyOrm<Playlist>
 	{
 		public Playlists()
 			: this(includeSchema: false)

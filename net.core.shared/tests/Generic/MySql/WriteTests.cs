@@ -6,10 +6,10 @@ using System.Dynamic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using Mighty.Generic.Tests.MySql.TableClasses;
+using MightyOrm.Generic.Tests.MySql.TableClasses;
 using NUnit.Framework;
 
-namespace Mighty.Generic.Tests.MySql
+namespace MightyOrm.Generic.Tests.MySql
 {
 	[TestFixture("MySql.Data.MySqlClient")]
 #if !COREFX
@@ -152,7 +152,7 @@ namespace Mighty.Generic.Tests.MySql
 		[OneTimeTearDown]
 		public void CleanUp()
 		{
-			var db = new MightyORM(string.Format(TestConstants.WriteTestConnection, ProviderName));
+			var db = new MightyOrm(string.Format(TestConstants.WriteTestConnection, ProviderName));
 			db.ExecuteAsProcedure("pr_clearAll");
 		}
 	}

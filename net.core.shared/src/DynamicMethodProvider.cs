@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq.Expressions;
 
-using Mighty.Interfaces;
+using MightyOrm.Interfaces;
 
-namespace Mighty
+namespace MightyOrm
 {
 	/// <summary>
 	/// Wrapper to provide dynamic methods (wrapper object on mighty needed as we can't do direct multiple inheritance).
@@ -19,14 +19,14 @@ namespace Mighty
 	/// </remarks>
 	internal class DynamicMethodProvider<T> : DynamicObject where T : class, new()
 	{
-		private MightyORM<T> Mighty;
+		private MightyOrm<T> Mighty;
 
 		/// <summary>
-		/// Wrap MightyORM to provide Massive-compatible dynamic methods.
+		/// Wrap MightyOrm to provide Massive-compatible dynamic methods.
 		/// You can access almost all this functionality non-dynamically (and if you do, you get IntelliSense, which makes life easier).
 		/// </summary>
 		/// <param name="me"></param>
-		internal DynamicMethodProvider(MightyORM<T> me)
+		internal DynamicMethodProvider(MightyOrm<T> me)
 		{
 			Mighty = me;
 		}
@@ -135,9 +135,9 @@ namespace Mighty
 		}
 	}
 
-	// Allow dynamic methods on instances of MightyORM, implementing them via a wrapper object.
-	// (We can't make MightyORM directly implement DynamicObject, since it inherits from MicroORM and C# doesn't allow multiple inheritance.)
-	public partial class MightyORM<T> : IDynamicMetaObjectProvider where T : class, new()
+	// Allow dynamic methods on instances of MightyOrm, implementing them via a wrapper object.
+	// (We can't make MightyOrm directly implement DynamicObject, since it inherits from MicroOrm and C# doesn't allow multiple inheritance.)
+	public partial class MightyOrm<T> : IDynamicMetaObjectProvider where T : class, new()
 	{
 		private DynamicMethodProvider<T> DynamicObjectWrapper;
 

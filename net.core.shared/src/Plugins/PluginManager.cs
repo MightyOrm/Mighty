@@ -3,7 +3,7 @@ using System.Data;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace Mighty.DatabasePlugins
+namespace MightyOrm.Plugins
 {
 	public class DatabasePluginManager
 	{
@@ -29,7 +29,7 @@ namespace Mighty.DatabasePlugins
 		static private void AssembleDefaultPlugins()
 		{
 			_installedPluginTypes = new List<Type>();
-			var targetType = typeof(DatabasePlugin);
+			var targetType = typeof(PluginBase);
 #if COREFX
 			// Seems to be the best way to do this in .NET Core 1.1?
 			var assemblyParts = targetType.AssemblyQualifiedName.Split(',');

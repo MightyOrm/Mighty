@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using Mighty;
-using Mighty.Generic.Tests;
+using MightyOrm;
+using MightyOrm.Generic.Tests;
 
-namespace Mighty.Generic.Tests.Sqlite.TableClasses
+namespace MightyOrm.Generic.Tests.Sqlite.TableClasses
 {
 	public class Album
 	{
@@ -13,7 +13,7 @@ namespace Mighty.Generic.Tests.Sqlite.TableClasses
 		public string Title { get; set; }
 	}
 
-	public class Albums : MightyORM<Album>
+	public class Albums : MightyOrm<Album>
 	{
 		public Albums()
 			: this(includeSchema: false)

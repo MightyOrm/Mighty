@@ -6,10 +6,10 @@ using System.Dynamic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
-using Mighty.Dynamic.Tests.SqlServer.TableClasses;
+using MightyOrm.Dynamic.Tests.SqlServer.TableClasses;
 using NUnit.Framework;
 
-namespace Mighty.Dynamic.Tests.SqlServer
+namespace MightyOrm.Dynamic.Tests.SqlServer
 {
 	[TestFixture]
 	public class WriteTests
@@ -137,7 +137,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
 		[OneTimeTearDown]
 		public void CleanUp()
 		{
-			var db = new MightyORM(TestConstants.WriteTestConnection);
+			var db = new MightyOrm(TestConstants.WriteTestConnection);
 			db.ExecuteAsProcedure("pr_clearAll");
 		}
 	}

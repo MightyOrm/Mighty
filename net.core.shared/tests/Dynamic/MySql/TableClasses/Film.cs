@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using Mighty.Validation;
+using MightyOrm.Validation;
 
-namespace Mighty.Dynamic.Tests.MySql.TableClasses
+namespace MightyOrm.Dynamic.Tests.MySql.TableClasses
 {
-	public class Film : MightyORM
+	public class Film : MightyOrm
 	{
 		public Film(string providerName) : this(providerName, true)
 		{
@@ -22,7 +22,7 @@ namespace Mighty.Dynamic.Tests.MySql.TableClasses
 
 		public class FilmValidator : Validator
 		{
-			override public void ValidateForAction(dynamic item, ORMAction action, List<object> Errors)
+			override public void ValidateForAction(dynamic item, OrmAction action, List<object> Errors)
 			{
 				// bogus validation: isn't valid if rental_duration > 5
 

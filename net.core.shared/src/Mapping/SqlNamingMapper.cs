@@ -1,7 +1,7 @@
 using System;
 using System.Reflection;
 
-namespace Mighty.Mapping
+namespace MightyOrm.Mapping
 {
 	public class NullMapper : SqlNamingMapper
 	{

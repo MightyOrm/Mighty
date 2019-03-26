@@ -3,7 +3,7 @@ using System;
 using System.Configuration;
 using System.Data.Common;
 
-namespace Mighty.ConnectionProviders
+namespace MightyOrm.ConnectionProviders
 {
 	internal class ConfigFileConnectionProvider : ConnectionProvider
 	{
@@ -41,7 +41,7 @@ namespace Mighty.ConnectionProviders
 			else
 			{
 				// Result will be null if there is no such connection string name;
-				// MightyORM constructor will then switch to using the PureConnectionStringProvider instead
+				// MightyOrm constructor will then switch to using the PureConnectionStringProvider instead
 				connectionStringSettings = ConfigurationManager.ConnectionStrings[connectionStringName];
 			}
 			return connectionStringSettings;

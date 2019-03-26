@@ -4,9 +4,9 @@ using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 
-using Mighty.Parameters;
+using MightyOrm.Parameters;
 
-namespace Mighty
+namespace MightyOrm
 {
 	// There is no need to make these extensions public (note that access modifiers on extension methods are relative to the package they are defined in,
 	// not relative to the package which they extend); making some of them public turns them into utilty methods which are provided as part of the microORM.
@@ -70,7 +70,7 @@ namespace Mighty
 		/// Not sure whether this is really useful or not... syntax is nicer and saves a little typing, even though functionality is obviously very simple.
 		/// Hopefully compiler removes any apparent inefficiency.
 		/// In theory this could work for other dynamic types, not just ExpandoObject (with argument type of <see cref="object"/> or
-		/// <see cref="IDynamicMetaObjectProvider"/>), but MightyORM itself implements that interface, and we don't really want this
+		/// <see cref="IDynamicMetaObjectProvider"/>), but MightyOrm itself implements that interface, and we don't really want this
 		/// method to appear in IntelliSense in places where it doesn't make sense.
 		/// </remarks>
 		static public IDictionary<string, object> ToDictionary(this ExpandoObject o)

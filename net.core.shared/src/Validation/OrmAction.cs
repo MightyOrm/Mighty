@@ -1,6 +1,6 @@
-namespace Mighty.Validation
+namespace MightyOrm.Validation
 {
-	public enum ORMAction
+	public enum OrmAction
 	{
 		Save,
 		Insert,
