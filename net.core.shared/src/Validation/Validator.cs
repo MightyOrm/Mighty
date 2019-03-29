@@ -23,12 +23,12 @@ namespace MightyOrm.Validation
 		/// or to continue and collect all errors before stopping.
 		/// </summary>
 		/// <returns></returns>
-		virtual public PrevalidationSetting PrevalidationSetting { get; set; } = PrevalidationSetting.Off;
+		virtual public Prevalidation Prevalidation { get; set; } = Prevalidation.Off;
 
 		/// <summary>
 		/// <see cref="Prevalidate" /> calls this one item at a time before any real actions are done.
 		/// If any item fails, no real actions are done for any item.
-		/// See also <see cref="PrevalidationSetting" />.
+		/// See also <see cref="Prevalidation" />.
 		/// If this returns false for any item or items which are to be inserted/updated/deleted then none of them will be.
 		/// You might well just want to add strings as your error objects... but it is up to you.
 		/// </summary>

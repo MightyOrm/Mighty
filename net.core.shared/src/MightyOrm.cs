@@ -13,7 +13,7 @@ using System.Transactions;
 
 using MightyOrm.ConnectionProviders;
 using MightyOrm.Plugins;
-using MightyOrm.Interfaces;
+using MightyOrm.Mocking;
 using MightyOrm.Mapping;
 using MightyOrm.Parameters;
 using MightyOrm.Profiling;
@@ -96,32 +96,33 @@ namespace MightyOrm
 			return new MightyOrm(connectionStringOrName);
 		}
 #endregion
+
 	}
 
-	public partial class MightyOrm<T> : MicroOrm<T> where T : class, new()
+	public partial class MightyOrm<T> : MightyOrmMockable<T> where T : class, new()
 	{
-		#region Constructor
-		/// <summary>
-		/// Strongly typed MightyOrm constructor
-		/// </summary>
-		/// <param name="connectionString">
-		/// Connection string with support for additional, non-standard "ProviderName=" property.
-		/// On .NET Framework but not .NET Core this can also, optionally, be a config file connection string name (in which case the provider name is specified
-		/// as an additional config file attribute next to the connection string).
-		/// </param>
-		/// <param name="tableName">Override the table name (defaults to using T class name)</param>
-		/// <param name="primaryKeyField">Primary key field name; or comma separated list of names for compound PK</param>
-		/// <param name="valueColumn">Specify the value field, for lookup tables</param>
-		/// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
-		/// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
-		/// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
-		/// <param name="columns">Default column list (specifies C# names rather than SQL names, if you have defined a mapper)</param>
-		/// <param name="validator">Optional validator</param>
-		/// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
-		/// <param name="profiler">Optional SQL profiler</param>
-		/// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyOrm)</param>
-		/// <param name="propertyBindingFlags">Specify which properties should be managed by the ORM</param>
-		public MightyOrm(string connectionString = null,
+        #region Constructor
+        /// <summary>
+        /// Strongly typed MightyOrm constructor
+        /// </summary>
+        /// <param name="connectionString">
+        /// Connection string with support for additional, non-standard "ProviderName=" property.
+        /// On .NET Framework but not .NET Core this can also, optionally, be a config file connection string name (in which case the provider name is specified
+        /// as an additional config file attribute next to the connection string).
+        /// </param>
+        /// <param name="tableName">Override the table name (defaults to using T class name)</param>
+        /// <param name="primaryKeyField">Primary key field name; or comma separated list of names for compound PK</param>
+        /// <param name="valueColumn">Specify the value field, for lookup tables</param>
+        /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
+        /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
+        /// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
+        /// <param name="columns">Default column list (specifies C# names rather than SQL names, if you have defined a mapper)</param>
+        /// <param name="validator">Optional validator</param>
+        /// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
+        /// <param name="profiler">Optional SQL profiler</param>
+        /// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyOrm)</param>
+        /// <param name="propertyBindingFlags">Specify which properties should be managed by the ORM</param>
+        public MightyOrm(string connectionString = null,
 						 string tableName = null,
 						 string primaryKeyField = null,
 						 string valueColumn = null,
@@ -326,9 +327,9 @@ namespace MightyOrm
 
 		protected Dictionary<string, PropertyInfo> columnNameToPropertyInfo;
 		protected PropertyInfo pkProperty;
-#endregion
+        #endregion
 
-#region Thread-safe initializer for table meta-data
+        #region Thread-safe initializer for table meta-data
 		// Thread-safe initialization based on Microsoft DbProviderFactories reference 
 		// https://referencesource.microsoft.com/#System.Data/System/Data/Common/DbProviderFactories.cs
 
@@ -403,10 +404,10 @@ namespace MightyOrm
 				}
 			}
 		}
-#endregion
+        #endregion
 
 		// Only methods with a non-trivial implementation are here, the rest are in the MicroOrm abstract class.
-#region MircoORM interace
+        #region MircoORM interface
 		// In theory COUNT expression could vary across SQL variants, in practice it doesn't.
 		override public object Count(string columns = "*", string where = null,
 			DbConnection connection = null,
@@ -491,10 +492,16 @@ namespace MightyOrm
 			return (T)item;
 		}
 
-		// Update from fields in the item sent in. If PK has been specified, any primary key fields in the
-		// item are ignored (this is an update, not an insert!). However the item is not filtered to remove fields
-		// not in the table. If you need that, call <see cref="NewFrom"/>(<see cref="partialItem"/>, false) first.
-		override public int UpdateUsing(object partialItem, string where,
+        /// <summary>
+        /// Update from fields in the item sent in. If PK has been specified, any primary key fields in the
+        /// item are ignored (this is an update, not an insert!). However the item is not filtered to remove fields
+        /// not in the table. If you need that, call <see cref="NewFrom"/>(<see cref="partialItem"/>, false) first.
+        /// </summary>
+        /// <param name="partialItem"></param>
+        /// <param name="where"></param>
+        /// <param name="connection"></param>
+        /// <param name="args"></param>
+        override public int UpdateUsing(object partialItem, string where,
 			DbConnection connection,
 			params object[] args)
 		{
@@ -574,7 +581,7 @@ namespace MightyOrm
 		/// </summary>
 		/// <param name="key">The key value or values</param>
 		/// <returns></returns>
-		override protected object[] KeyValuesFromKey(object key)
+		protected object[] KeyValuesFromKey(object key)
 		{
 			if (key == null) throw new ArgumentNullException(nameof(key));
 			var okey = key as object[];
@@ -592,7 +599,7 @@ namespace MightyOrm
 		/// Return a WHERE clause with auto-named parameters for the primary keys
 		/// </summary>
 		/// <returns></returns>
-		override protected string WhereForKeys()
+		protected string WhereForKeys()
 		{
 			if (_whereForKeys == null)
 			{
@@ -616,7 +623,7 @@ namespace MightyOrm
 		/// Return comma-separated list of primary key fields, raising an exception if there are none.
 		/// </summary>
 		/// <returns></returns>
-		override protected string CheckGetPrimaryKeyFields()
+		protected string CheckGetPrimaryKeyFields()
 		{
 			if (string.IsNullOrEmpty(PrimaryKeyFields))
 			{
@@ -629,7 +636,7 @@ namespace MightyOrm
 		/// Return value column, raising an exception if not specified.
 		/// </summary>
 		/// <returns></returns>
-		override protected string CheckGetValueColumn(string message)
+		string CheckGetValueColumn(string message)
 		{
 			if (string.IsNullOrEmpty(ValueColumn))
 			{
@@ -643,7 +650,7 @@ namespace MightyOrm
 		/// </summary>
 		/// <param name="i"></param>
 		/// <returns></returns>
-		override protected string CheckGetKeyName(string message)
+		protected string CheckGetKeyName(string message)
 		{
 			if (PrimaryKeyList.Count != 1)
 			{
@@ -657,7 +664,7 @@ namespace MightyOrm
 		/// </summary>
 		/// <param name="i"></param>
 		/// <returns></returns>
-		override protected string CheckGetKeyName(int i, string message)
+		protected string CheckGetKeyName(int i, string message)
 		{
 			if (i >= PrimaryKeyList.Count)
 			{
@@ -670,7 +677,7 @@ namespace MightyOrm
 		/// Return current table name, raising an exception if there isn't one.
 		/// </summary>
 		/// <returns></returns>
-		override protected string CheckGetTableName()
+		protected string CheckGetTableName()
 		{
 			if (string.IsNullOrEmpty(TableName))
 			{
@@ -689,7 +696,7 @@ namespace MightyOrm
 		/// <param name="items">The item or items</param>
 		/// <returns></returns>
 		/// <remarks>Here and in <see cref="UpsertItemPK"/> we always return the modified original object, where possible</remarks>
-		override internal int ActionOnItems(OrmAction action, DbConnection connection, IEnumerable<object> items, out T insertedItem)
+		internal int ActionOnItems(OrmAction action, DbConnection connection, IEnumerable<object> items, out T insertedItem)
 		{
 			insertedItem = null;
 			int count = 0;
@@ -730,7 +737,7 @@ namespace MightyOrm
 		/// <param name="items">The list of items. (Can be T, dynamic, or anything else with suitable name-value (and optional type) data in it.)</param>
 		virtual internal void Prevalidate(IEnumerable<object> items, OrmAction action)
 		{
-			if (Validator.PrevalidationSetting == PrevalidationSetting.Off)
+			if (Validator.Prevalidation == Prevalidation.Off)
 			{
 				return;
 			}
@@ -744,7 +751,7 @@ namespace MightyOrm
 				if (Errors.Count > oldCount)
 				{
 					valid = false;
-					if (Validator.PrevalidationSetting == PrevalidationSetting.Lazy) break;
+					if (Validator.Prevalidation == Prevalidation.Lazy) break;
 				}
 			}
 			if (valid == false || Errors.Count > 0)

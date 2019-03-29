@@ -1,6 +1,6 @@
 ﻿namespace MightyOrm.Validation
 {
-    public enum PrevalidationSetting
+    public enum Prevalidation
     {
       Off,
       Lazy,

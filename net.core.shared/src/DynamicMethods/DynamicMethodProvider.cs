@@ -3,21 +3,45 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq.Expressions;
 
-using MightyOrm.Interfaces;
-
 namespace MightyOrm
 {
-	/// <summary>
-	/// Wrapper to provide dynamic methods (wrapper object on mighty needed as we can't do direct multiple inheritance).
-	/// </summary>
-	/// <returns></returns>
-	/// <remarks>
-	/// This is included mainly for easy compatibility with Massive.
-	/// Pros: The methods this provides are quite cool...
-	/// Cons: They're never visible in IntelliSense; you don't really need them; it turns out this adds overhead to
-	/// *every* call to the microORM, even when the object is not stored in a dynamic.
-	/// </remarks>
-	internal class DynamicMethodProvider<T> : DynamicObject where T : class, new()
+    // Allow dynamic methods on instances of MightyOrm, implementing them via a wrapper object.
+    // (We can't make MightyOrm directly implement DynamicObject, since it inherits from MicroOrm and C# doesn't allow multiple inheritance.)
+    public partial class MightyOrm<T> : IDynamicMetaObjectProvider where T : class, new()
+    {
+        private DynamicMethodProvider<T> DynamicObjectWrapper;
+
+        /// <summary>
+        /// Implements IDynamicMetaObjectProvider.
+        /// </summary>
+        /// <param name="expression"></param>
+        /// <returns></returns>
+        /// <remarks>
+        /// Inspired by http://stackoverflow.com/a/17634595/795690
+        /// </remarks>
+        /// <remarks>
+        /// Support dynamic methods via a wrapper object (needed as we can't do direct multiple inheritance)
+        /// This code is being called all the time (ALL methods calls to <see cref="IDynamicMetaObjectProvider"/> objects go through this, even
+        /// when not stored in dynamic). This is the case for all <see cref="DynamicObject"/>s too (e.g. as in Massive) but you don't see it
+        /// when debugging in that case, as GetMetaObject() is not user code if you inherit directly from DynamicObject.
+        /// </remarks>
+        public DynamicMetaObject GetMetaObject(Expression expression)
+        {
+            return new DelegatingMetaObject(this, DynamicObjectWrapper, expression);
+        }
+    }
+
+    /// <summary>
+    /// Wrapper to provide dynamic methods (wrapper object on mighty needed as we can't do direct multiple inheritance).
+    /// </summary>
+    /// <returns></returns>
+    /// <remarks>
+    /// This is included mainly for easy compatibility with Massive.
+    /// Pros: The methods this provides are quite cool...
+    /// Cons: They're never visible in IntelliSense; you don't really need them; it turns out this adds overhead to
+    /// *every* call to the microORM, even when the object is not stored in a dynamic.
+    /// </remarks>
+    internal class DynamicMethodProvider<T> : DynamicObject where T : class, new()
 	{
 		private MightyOrm<T> Mighty;
 
@@ -132,32 +156,6 @@ namespace MightyOrm
 					break;
 			}
 			return true;
-		}
-	}
-
-	// Allow dynamic methods on instances of MightyOrm, implementing them via a wrapper object.
-	// (We can't make MightyOrm directly implement DynamicObject, since it inherits from MicroOrm and C# doesn't allow multiple inheritance.)
-	public partial class MightyOrm<T> : IDynamicMetaObjectProvider where T : class, new()
-	{
-		private DynamicMethodProvider<T> DynamicObjectWrapper;
-
-		/// <summary>
-		/// Implements IDynamicMetaObjectProvider.
-		/// </summary>
-		/// <param name="expression"></param>
-		/// <returns></returns>
-		/// <remarks>
-		/// Inspired by http://stackoverflow.com/a/17634595/795690
-		/// </remarks>
-		/// <remarks>
-		/// Support dynamic methods via a wrapper object (needed as we can't do direct multiple inheritance)
-		/// This code is being called all the time (ALL methods calls to <see cref="IDynamicMetaObjectProvider"/> objects go through this, even
-		/// when not stored in dynamic). This is the case for all <see cref="DynamicObject"/>s too (e.g. as in Massive) but you don't see it
-		/// when debugging in that case, as GetMetaObject() is not user code if you inherit directly from DynamicObject.
-		/// </remarks>
-		public DynamicMetaObject GetMetaObject(Expression expression)
-		{
-			return new DelegatingMetaObject(this, DynamicObjectWrapper, expression);
 		}
 	}
 }
