@@ -3,15 +3,15 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 
-using MightyOrm.Plugins;
-using MightyOrm.Mapping;
-using MightyOrm.Profiling;
-using MightyOrm.Validation;
+using Mighty.Plugins;
+using Mighty.Mapping;
+using Mighty.Profiling;
+using Mighty.Validation;
 
 /// <summary>
 /// TO DO: Not sure about putting this in a separate namespace, but maybe best to hide the mockable version?
 /// </summary>
-namespace MightyOrm.Mocking
+namespace Mighty.Mocking
 {
 	// NEW new:
 	//	- Clean support for Single with columns

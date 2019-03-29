@@ -4,9 +4,9 @@ using System.Data;
 using System.Linq;
 using System.Text;
 using NUnit.Framework;
-using MightyOrm.Generic.Tests.Sqlite.TableClasses;
+using Mighty.Generic.Tests.Sqlite.TableClasses;
 
-namespace MightyOrm.Generic.Tests.Sqlite
+namespace Mighty.Generic.Tests.Sqlite
 {
 	/// <summary>
 	/// Specific tests for code which is specific to Sqlite. This means there are fewer tests than for SQL Server, as logic that's covered there already doesn't have to be

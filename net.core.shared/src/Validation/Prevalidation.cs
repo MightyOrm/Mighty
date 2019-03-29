@@ -1,4 +1,4 @@
-﻿namespace MightyOrm.Validation
+﻿namespace Mighty.Validation
 {
     public enum Prevalidation
     {

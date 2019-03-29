@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using MightyOrm;
-using MightyOrm.Generic.Tests;
+using Mighty;
+using Mighty.Generic.Tests;
 
-namespace MightyOrm.Generic.Tests.Sqlite.TableClasses
+namespace Mighty.Generic.Tests.Sqlite.TableClasses
 {
 	public class Album
 	{

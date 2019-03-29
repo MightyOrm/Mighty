@@ -2,9 +2,9 @@ using System;
 using System.Data.Common;
 using System.Reflection;
 
-using MightyOrm.Plugins;
+using Mighty.Plugins;
 
-namespace MightyOrm.ConnectionProviders
+namespace Mighty.ConnectionProviders
 {
 	// A replacement for System.Data.Common.DbProvider factories!
 	//

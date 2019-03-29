@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using MightyOrm.Validation;
+using Mighty.Validation;
 
-namespace MightyOrm.Generic.Tests.SqlServer.TableClasses
+namespace Mighty.Generic.Tests.SqlServer.TableClasses
 {
 	public class SalesOrderHeader
 	{

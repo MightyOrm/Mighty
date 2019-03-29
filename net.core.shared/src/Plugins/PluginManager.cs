@@ -3,7 +3,7 @@ using System.Data;
 using System.Collections.Generic;
 using System.Reflection;
 
-namespace MightyOrm.Plugins
+namespace Mighty.Plugins
 {
 	public class DatabasePluginManager
 	{

@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MightyOrm.Dynamic.Tests.MySql
+namespace Mighty.Dynamic.Tests.MySql
 {
 	public static class TestConstants
 	{

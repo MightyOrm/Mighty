@@ -4,10 +4,10 @@ using System.Dynamic;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using MightyOrm.Dynamic.Tests.SqlServer.TableClasses;
+using Mighty.Dynamic.Tests.SqlServer.TableClasses;
 using NUnit.Framework;
 
-namespace MightyOrm.Dynamic.Tests.SqlServer
+namespace Mighty.Dynamic.Tests.SqlServer
 {
 	/// <summary>
 	/// Suite of tests for stored procedures and functions on SQL Server database.

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace MightyOrm.Generic.Tests.PostgreSql.TableClasses
+namespace Mighty.Generic.Tests.PostgreSql.TableClasses
 {
 	public class Customer
 	{

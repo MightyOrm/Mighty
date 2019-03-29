@@ -44,7 +44,7 @@ namespace MightyTests.SOTests
 
 			// Test the (broken, since derived from SO answer) Mighty version
 			// (This does what I expect, calls to the parent object follow the object, but calls to the child object get wrongly cached to the call the first child object encountered)
-			return new MightyOrm.DelegatingMetaObject(this, component, parameter);
+			return new Mighty.DelegatingMetaObject(this, component, parameter);
 		}
 
 		private class DelegatingMetaObject : DynamicMetaObject

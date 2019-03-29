@@ -4,7 +4,7 @@ using System.Data.Common;
 #endif
 using System.Text;
 
-namespace MightyOrm.ConnectionProviders
+namespace Mighty.ConnectionProviders
 {
 	internal class PureConnectionStringProvider : ConnectionProvider
 	{

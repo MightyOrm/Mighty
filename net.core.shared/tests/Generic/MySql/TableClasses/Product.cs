@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace MightyOrm.Generic.Tests.MySql.TableClasses
+namespace Mighty.Generic.Tests.MySql.TableClasses
 {
 	public class Product
 	{

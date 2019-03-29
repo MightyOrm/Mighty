@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace MightyOrm.Generic.Tests.PostgreSql
+namespace Mighty.Generic.Tests.PostgreSql
 {
 	public static class TestConstants
 	{

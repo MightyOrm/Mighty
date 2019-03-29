@@ -1,7 +1,7 @@
 using System;
 using System.Data.Common;
 
-namespace MightyOrm.Plugins
+namespace Mighty.Plugins
 {
 	internal class SqlServer : PluginBase
 	{

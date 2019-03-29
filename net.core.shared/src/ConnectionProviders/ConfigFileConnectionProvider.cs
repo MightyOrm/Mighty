@@ -3,7 +3,7 @@ using System;
 using System.Configuration;
 using System.Data.Common;
 
-namespace MightyOrm.ConnectionProviders
+namespace Mighty.ConnectionProviders
 {
 	internal class ConfigFileConnectionProvider : ConnectionProvider
 	{

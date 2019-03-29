@@ -5,7 +5,7 @@ using System.Data.Common;
 using System.Dynamic;
 using System.Linq;
 
-namespace MightyOrm.Plugins
+namespace Mighty.Plugins
 {
 	/// <summary>
 	/// Abstract class for database plugins; we're trying to put as much shared code as possible in here, while

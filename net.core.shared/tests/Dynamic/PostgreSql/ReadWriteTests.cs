@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
-using MightyOrm.Dynamic.Tests.PostgreSql.TableClasses;
+using Mighty.Dynamic.Tests.PostgreSql.TableClasses;
 using NUnit.Framework;
 
-namespace MightyOrm.Dynamic.Tests.PostgreSql
+namespace Mighty.Dynamic.Tests.PostgreSql
 {
 	/// <summary>
 	/// Specific tests for code which is specific to Postgresql. This means there are fewer tests than for SQL Server, as logic that's covered there already doesn't have to be

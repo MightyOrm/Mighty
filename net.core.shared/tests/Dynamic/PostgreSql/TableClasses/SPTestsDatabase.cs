@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MightyOrm.Dynamic.Tests.PostgreSql.TableClasses
+namespace Mighty.Dynamic.Tests.PostgreSql.TableClasses
 {
 	public class SPTestsDatabase : MightyOrm
 	{

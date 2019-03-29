@@ -3,16 +3,16 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 
-using MightyOrm.Mocking;
-using MightyOrm.Mapping;
-using MightyOrm.Plugins;
-using MightyOrm.Profiling;
-using MightyOrm.Validation;
+using Mighty.Mocking;
+using Mighty.Mapping;
+using Mighty.Plugins;
+using Mighty.Profiling;
+using Mighty.Validation;
 
 /// <summary>
 /// MightyOrm_Redirects.cs holds methods in Mighty than can be very simply defined in terms of other methods.
 /// </summary>
-namespace MightyOrm
+namespace Mighty
 {
     public partial class MightyOrm<T> : MightyOrmMockable<T> where T : class, new()
     {

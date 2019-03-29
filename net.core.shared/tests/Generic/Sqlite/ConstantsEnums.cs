@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace MightyOrm.Generic.Tests.Sqlite
+namespace Mighty.Generic.Tests.Sqlite
 {
 	public static class TestConstants
 	{

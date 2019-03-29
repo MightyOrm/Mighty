@@ -4,9 +4,9 @@ using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 
-using MightyOrm.Parameters;
+using Mighty.Parameters;
 
-namespace MightyOrm
+namespace Mighty
 {
 	// There is no need to make these extensions public (note that access modifiers on extension methods are relative to the package they are defined in,
 	// not relative to the package which they extend); making some of them public turns them into utilty methods which are provided as part of the microORM.

@@ -3,9 +3,9 @@ using System.Data;
 using System.Data.Common;
 using System.Collections.Generic;
 
-using MightyOrm.Plugins;
+using Mighty.Plugins;
 
-namespace MightyOrm.Npgsql
+namespace Mighty.Npgsql
 {
 	// Cursor dereferencing data reader derived originally from removed Npgsql code (but now with more consistent behaviour), might go back into Npgsql at some point?
 	// Note that Oracle basically does the equivalent of this in the driver.

@@ -6,9 +6,9 @@ using System.Data;
 using System.Dynamic;
 using System.Reflection;
 
-using MightyOrm.Validation;
+using Mighty.Validation;
 
-namespace MightyOrm.Parameters
+namespace Mighty.Parameters
 {
 	/// <remarks>
 	/// <see cref="NameValueCollection"/> *is* supported in .NET Core 1.1, but got a bit lost:

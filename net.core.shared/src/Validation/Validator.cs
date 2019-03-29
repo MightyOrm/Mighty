@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace MightyOrm.Validation
+namespace Mighty.Validation
 {
 	public class NullValidator : Validator
 	{

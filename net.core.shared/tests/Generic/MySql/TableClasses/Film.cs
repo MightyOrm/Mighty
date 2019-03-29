@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using MightyOrm.Validation;
+using Mighty.Validation;
 
-namespace MightyOrm.Generic.Tests.MySql.TableClasses
+namespace Mighty.Generic.Tests.MySql.TableClasses
 {
 	public class Film
 	{

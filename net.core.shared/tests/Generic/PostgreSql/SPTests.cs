@@ -7,10 +7,10 @@ using System.Text;
 #if !COREFX
 using System.Transactions;
 #endif
-using MightyOrm.Generic.Tests.PostgreSql.TableClasses;
+using Mighty.Generic.Tests.PostgreSql.TableClasses;
 using NUnit.Framework;
 
-namespace MightyOrm.Generic.Tests.PostgreSql
+namespace Mighty.Generic.Tests.PostgreSql
 {
 	/// <summary>
 	/// Suite of tests for stored procedures, functions and cursors on PostgreSQL database.

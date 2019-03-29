@@ -3,11 +3,11 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 
-using MightyOrm.Mocking;
-using MightyOrm.Mapping;
-using MightyOrm.Plugins;
-using MightyOrm.Profiling;
-using MightyOrm.Validation;
+using Mighty.Mocking;
+using Mighty.Mapping;
+using Mighty.Plugins;
+using Mighty.Profiling;
+using Mighty.Validation;
 
 /// <summary>
 /// `MightyOrm_Propeties.cs` holds various properties which used to be in the various interface files.
@@ -15,7 +15,7 @@ using MightyOrm.Validation;
 /// <remarks>
 /// TO DO: And now could probably go into the main `MightyOrm.cs` file.
 /// </remarks>
-namespace MightyOrm
+namespace Mighty
 {
     public partial class MightyOrm<T> : MightyOrmMockable<T> where T : class, new()
     {

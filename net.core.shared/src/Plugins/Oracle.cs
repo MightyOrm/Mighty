@@ -4,7 +4,7 @@ using System.Data;
 using System.Data.Common;
 using System.Dynamic;
 
-namespace MightyOrm.Plugins
+namespace Mighty.Plugins
 {
 	internal class Oracle : PluginBase
 	{

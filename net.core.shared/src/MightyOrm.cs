@@ -11,15 +11,15 @@ using System.Text;
 using System.Transactions;
 #endif
 
-using MightyOrm.ConnectionProviders;
-using MightyOrm.Plugins;
-using MightyOrm.Mocking;
-using MightyOrm.Mapping;
-using MightyOrm.Parameters;
-using MightyOrm.Profiling;
-using MightyOrm.Validation;
+using Mighty.ConnectionProviders;
+using Mighty.Plugins;
+using Mighty.Mocking;
+using Mighty.Mapping;
+using Mighty.Parameters;
+using Mighty.Profiling;
+using Mighty.Validation;
 
-namespace MightyOrm
+namespace Mighty
 {
 	/// <summary>
 	/// In order to most simply support generics, the dynamic version of Mighty has to be a sub-class of the generic version, but of course the dynamic version is still the nicest version to use! :)

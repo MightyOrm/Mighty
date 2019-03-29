@@ -2,7 +2,7 @@ using System;
 using System.Data;
 using System.Data.Common;
 
-namespace MightyOrm.Plugins
+namespace Mighty.Plugins
 {
 	internal class MySql : PluginBase
 	{

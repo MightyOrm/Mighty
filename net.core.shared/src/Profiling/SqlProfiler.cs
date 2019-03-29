@@ -1,6 +1,6 @@
 using System.Data.Common;
 
-namespace MightyOrm.Profiling
+namespace Mighty.Profiling
 {
 	public class NullProfiler : SqlProfiler
 	{

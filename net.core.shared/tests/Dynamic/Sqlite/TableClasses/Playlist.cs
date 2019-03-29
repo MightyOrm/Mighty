@@ -2,10 +2,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using MightyOrm;
-using MightyOrm.Dynamic.Tests;
+using Mighty;
+using Mighty.Dynamic.Tests;
 
-namespace MightyOrm.Dynamic.Tests.Sqlite.TableClasses
+namespace Mighty.Dynamic.Tests.Sqlite.TableClasses
 {
 	public class Playlist : MightyOrm
 	{

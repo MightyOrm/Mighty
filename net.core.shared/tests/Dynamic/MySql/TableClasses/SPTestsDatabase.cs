@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace MightyOrm.Dynamic.Tests.MySql.TableClasses
+namespace Mighty.Dynamic.Tests.MySql.TableClasses
 {
 	public class SPTestsDatabase : MightyOrm
 	{

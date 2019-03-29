@@ -2,7 +2,7 @@
 
 Inspired by, and highly compatible with, the extremely influential and original Massive microORM. But it's *not* a fork, it's a (highly compatible) re-write. Unlike Massive, the intention is to continue to add and maintain essential, modern new features, which currently already include:
 
-* [NuGet distribution](https://www.nuget.org/packages?q=MightyORM)
+* [NuGet distribution](https://www.nuget.org/packages?q=Mighty)
 * Full .NET Core support :-)
 * Transactions
 * Stored procedures
@@ -22,9 +22,9 @@ It's lightweight, easy to use, intuitive and quick to develop with.
 
 ### General
 
-Mighty is no longer delivered as two or three (large) drop in code files. Unless you specifically want to modify the Mighty codebase, you no longer need to download any files out of this repository, just import the [MightyORM NuGet library](https://www.nuget.org/packages?q=MightyORM) into your project. It is currently a prerelease package, so remember to tick 'Include prerelease' in order to be able to find it in searches of NuGet.
+Mighty is no longer delivered as two or three (large) drop in code files. Unless you specifically want to modify the Mighty codebase, you no longer need to download any files out of this repository, just import the [Mighty NuGet library](https://www.nuget.org/packages?q=Mighty) into your project. It is currently a prerelease package, so remember to tick 'Include prerelease' in order to be able to find it in searches of NuGet.
 
-Then, if you were previously using Massive, to get started you must change `using Massive` to `using Mighty` and `DynamicModel` to `MightyORM`. After that, the vast majority of code which used to run against Massive will just start working against Mighty instead. Also, for now, if you are looking at the [Massive code samples](https://github.com/FransBouma/Massive#code-please) whilst I get on with finishing that part of this document (which does need to be done urgently, I know), then the above will also be the only changes you need to make, to get the vast majority of that code working.
+Then, if you were previously using Massive, to get started you must change `using Massive` to `using Mighty` and `DynamicModel` to `MightyOrm`. After that, the vast majority of code which used to run against Massive will just start working against Mighty instead. Also, for now, if you are looking at the [Massive code samples](https://github.com/FransBouma/Massive#code-please) whilst I get on with finishing that part of this document (which does need to be done urgently, I know), then the above will also be the only changes you need to make, to get the vast majority of that code working.
 
 ### .NET Core
 
@@ -37,7 +37,7 @@ NB When you pass in a connection string as opposed to a connection string name t
 ```csharp
 string someConnectionString = "param1=abc;param2=dec;param3=fgh";
 string mightyConnectionString = someConnectionString + ";ProviderName=System.Data.SqlClient";
-var db = new MightyORM(mightyConnectionString);
+var db = new MightyOrm(mightyConnectionString);
 ... etc. ...
 ```
 
@@ -67,7 +67,7 @@ Without some additional code this unfortunately cannot work in a few key cases -
 
 ### So, what is a microORM?
 
-Mighty is a microORM, like Massive. This means that when you create an instance of `MightyORM` with a table name (and optionally a primary key name), then Mighty already knows all about:
+Mighty is a microORM, like Massive. This means that when you create an instance of `MightyOrm` with a table name (and optionally a primary key name), then Mighty already knows all about:
 
 - Querying
 - Inserting
@@ -115,12 +115,12 @@ Here is a list of those items which won't compile directly against former Massiv
 #### Validation
 
 - .IsValid(item) now returns a List&lt;object&gt; of errors (this is intentionally a List, not an IList!). Each object is one error; the error objects are typically strings, but you get to decide this in your validation class. So `db.IsValid(item).Errors.Count == 0` checks for no errors (but also gets back the reported errors without storing them in a shared variable). But (as in Massive) you typically don't need to call .IsValid(item) directly since validation is called automatically during CRUD operations, as follows.
-- All validation is now done via hooks in the `Mighty.Validation.Validator` class, not in the MightyORM class itself. If you need validation you should create your own subclass of this, override the hook methods which you need, and pass a new instance of it to the constructor of MightyORM.
+- All validation is now done via hooks in the `Mighty.Validation.Validator` class, not in the `MightyOrm` class itself. If you need validation you should create your own subclass of this, override the hook methods which you need, and pass a new instance of it to the constructor of `MightyOrm`.
 
 #### CRUD
 
 - .SaveAsNew(items) is no longer required, use .Insert(items) instead; other uses of .Insert(item) still work as before
-- .Update(item, key) is replaced by .Update(item) where item contains the key; your instance of MightyORM already knows which field the key is in
+- .Update(item, key) is replaced by .Update(item) where item contains the key; your instance of `MightyOrm` already knows which field the key is in
 - .Delete(null, where, args) is replaced by .Delete(where, args); note that .Delete(pk) still works as before and .Delete(item) is newly available
 
 #### Paging
@@ -130,7 +130,7 @@ Here is a list of those items which won't compile directly against former Massiv
 - Paged result sets on Oracle now have `RowNumber` instead of `r___` as the additional row number column name (and the additional column always appears, as it did before)
 
 
-The only one of the above which will compile against a strongly-typed instance of MightyORM even if you don't make the mentioned changes is .Update(item, key), but running it will give you a meaningful runtime exception. (You will also get runtime not compile-time errors if you call any of the old versions against MightyORM stored in a dynamic variable.)
+The only one of the above which will compile against a strongly-typed instance of `MightyOrm` even if you don't make the mentioned changes is .Update(item, key), but running it will give you a meaningful runtime exception. (You will also get runtime not compile-time errors if you call any of the old versions against MightyOrm stored in a dynamic variable.)
 
 ### Not yet supported
 
@@ -143,7 +143,7 @@ Here's the **only** thing from Massive (to the best of my knowledge) that isn't 
 
 ## Code ... please ;)
 
-For now, please do refer to the [Massive documentation](https://github.com/FransBouma/Massive#code-please) - all of that code still works against Mighty, if you simply replace `using Massive` with `using Mighty` and `DynamicModel` with `MightyORM`.
+For now, please do refer to the [Massive documentation](https://github.com/FransBouma/Massive#code-please) - all of that code still works against Mighty, if you simply replace `using Massive` with `using Mighty` and `DynamicModel` with `MightyOrm`.
 
 Also for now, for examples of code using the new features, as in Massive (sorry, purists, I know it's wrong!), please have a look in the tests.
 

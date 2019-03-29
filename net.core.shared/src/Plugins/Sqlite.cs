@@ -3,7 +3,7 @@ using System.Data.Common;
 using System.Dynamic;
 using System.Collections.Generic;
 
-namespace MightyOrm.Plugins
+namespace Mighty.Plugins
 {
 	internal class Sqlite : PluginBase
 	{

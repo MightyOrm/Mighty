@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq.Expressions;
 
-namespace MightyOrm
+namespace Mighty
 {
     // Allow dynamic methods on instances of MightyOrm, implementing them via a wrapper object.
     // (We can't make MightyOrm directly implement DynamicObject, since it inherits from MicroOrm and C# doesn't allow multiple inheritance.)
