@@ -150,11 +150,21 @@ namespace MightyOrm.Mocking
         abstract public IEnumerable<T> Query(DbCommand command,
             DbConnection connection = null);
 
+        abstract public T Single(DbCommand command,
+            DbConnection connection = null);
+
         // no connection, easy args
         abstract public IEnumerable<T> Query(string sql,
             params object[] args);
 
+        abstract public T SingleFromQuery(string sql,
+            params object[] args);
+
         abstract public IEnumerable<T> Query(string sql,
+            DbConnection connection,
+            params object[] args);
+
+        abstract public T SingleFromQuery(string sql,
             DbConnection connection,
             params object[] args);
 
@@ -163,7 +173,17 @@ namespace MightyOrm.Mocking
             DbConnection connection = null,
             params object[] args);
 
+        abstract public T SingleFromQueryWithParams(string sql,
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            DbConnection connection = null,
+            params object[] args);
+
         abstract public IEnumerable<T> QueryFromProcedure(string spName,
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            DbConnection connection = null,
+            params object[] args);
+
+        abstract public T SingleFromProcedure(string spName,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
             params object[] args);

@@ -107,7 +107,7 @@ namespace MightyOrm.Dynamic.Tests.Oracle
 		public void SingleRowFromTableValuedFunction()
 		{
 			var db = new SPTestsDatabase(ProviderName);
-			var record = db.QueryWithParams("SELECT * FROM table(GET_EMP(:p_EMPNO))", new { p_EMPNO = 7782 }).FirstOrDefault();
+			var record = db.SingleFromQueryWithParams("SELECT * FROM table(GET_EMP(:p_EMPNO))", new { p_EMPNO = 7782 });
 			Assert.AreEqual(7782, record.EMPNO);
 			Assert.AreEqual("CLARK", record.ENAME);
 		}

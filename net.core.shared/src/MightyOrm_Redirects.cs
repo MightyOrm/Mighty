@@ -23,6 +23,12 @@ namespace MightyOrm
             return QueryNWithParams<T>(command: command, connection: connection);
         }
 
+        override public T Single(DbCommand command,
+            DbConnection connection = null)
+        {
+            return QueryNWithParams<T>(command: command, connection: connection).FirstOrDefault();
+        }
+
         // no connection, easy args
         override public IEnumerable<T> Query(string sql,
             params object[] args)
@@ -30,11 +36,24 @@ namespace MightyOrm
             return QueryNWithParams<T>(sql, args: args);
         }
 
+        override public T SingleFromQuery(string sql,
+            params object[] args)
+        {
+            return QueryNWithParams<T>(sql, args: args).FirstOrDefault();
+        }
+
         override public IEnumerable<T> Query(string sql,
             DbConnection connection,
             params object[] args)
         {
             return QueryNWithParams<T>(sql, connection: connection, args: args);
+        }
+
+        override public T SingleFromQuery(string sql,
+            DbConnection connection,
+            params object[] args)
+        {
+            return QueryNWithParams<T>(sql, connection: connection, args: args).FirstOrDefault();
         }
 
         override public IEnumerable<T> QueryWithParams(string sql,
@@ -47,6 +66,16 @@ namespace MightyOrm
                 connection: connection, args: args);
         }
 
+        override public T SingleFromQueryWithParams(string sql,
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            DbConnection connection = null,
+            params object[] args)
+        {
+            return QueryNWithParams<T>(sql,
+                inParams, outParams, ioParams, returnParams,
+                connection: connection, args: args).FirstOrDefault();
+        }
+
         override public IEnumerable<T> QueryFromProcedure(string spName,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
@@ -56,6 +85,17 @@ namespace MightyOrm
                 inParams, outParams, ioParams, returnParams,
                 isProcedure: true,
                 connection: connection, args: args);
+        }
+
+        override public T SingleFromProcedure(string spName,
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            DbConnection connection = null,
+            params object[] args)
+        {
+            return QueryNWithParams<T>(spName,
+                inParams, outParams, ioParams, returnParams,
+                isProcedure: true,
+                connection: connection, args: args).FirstOrDefault();
         }
 
         override public IEnumerable<IEnumerable<T>> QueryMultiple(DbCommand command,

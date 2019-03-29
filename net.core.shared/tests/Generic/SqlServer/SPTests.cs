@@ -37,7 +37,7 @@ namespace MightyOrm.Generic.Tests.SqlServer
 		{
 			var db = new People();
 			// Accessing table value functions on SQL Server (different syntax from Postgres, for example)
-			var person = db.QueryWithParams("SELECT * FROM dbo.ufnGetContactInformation(@PersonID)", new { @PersonID = 35 }).FirstOrDefault();
+			var person = db.SingleFromQueryWithParams("SELECT * FROM dbo.ufnGetContactInformation(@PersonID)", new { @PersonID = 35 });
 			Assert.AreEqual(typeof(string), person.FirstName.GetType());
 		}
 	}

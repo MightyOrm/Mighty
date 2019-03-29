@@ -29,7 +29,7 @@ namespace MightyOrm.Dynamic.Tests.Sqlite
 #else
 			Assert.AreEqual(DbType.Guid, command.Parameters[0].DbType);
 #endif
-			var item = db.Query(command).FirstOrDefault();
+			var item = db.Single(command);
 			// The output from the provider is a bunch of bytes either way, so we stick with the provider
 			// default here (especially since it is the same in both cases).
 			Assert.AreEqual(typeof(byte[]), item.val.GetType());

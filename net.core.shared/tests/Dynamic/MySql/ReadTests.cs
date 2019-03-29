@@ -37,7 +37,7 @@ namespace MightyOrm.Dynamic.Tests.MySql
 			var guid = Guid.NewGuid();
 			var command = db.CreateCommand("SELECT @0 AS val", null, guid);
 			Assert.AreEqual(DbType.Guid, command.Parameters[0].DbType);
-			var item = db.Query(command).FirstOrDefault();
+			var item = db.Single(command);
 			Assert.AreEqual(typeof(string), item.val.GetType());
 			Assert.AreEqual(guid, new Guid(item.val));
 		}

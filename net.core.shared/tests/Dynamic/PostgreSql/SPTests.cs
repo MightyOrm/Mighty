@@ -160,7 +160,7 @@ namespace MightyOrm.Dynamic.Tests.PostgreSql
 		{
 			var db = new SPTestsDatabase();
 			// Again this is Postgres specific: output params are really part of data row and can be read that way
-			var record = db.QueryFromProcedure("test_vars", new { w = 2 }).FirstOrDefault();
+			var record = db.SingleFromProcedure("test_vars", new { w = 2 });
 			Assert.AreEqual(3, record.v);
 			Assert.AreEqual(4, record.w);
 			Assert.AreEqual(5, record.x);
@@ -310,7 +310,7 @@ namespace MightyOrm.Dynamic.Tests.PostgreSql
 		{
 			var db = new SPTestsDatabase();
 			// Following the Oracle pattern this WILL dereference; so we need some more interesting result sets in there now.
-			var firstItemCursorMix = db.QueryFromProcedure("cursor_mix", outParams: new { anyname = new Cursor(), othername = 0 }).FirstOrDefault();
+			var firstItemCursorMix = db.SingleFromProcedure("cursor_mix", outParams: new { anyname = new Cursor(), othername = 0 });
 			Assert.AreEqual(11, firstItemCursorMix.a);
 			Assert.AreEqual(22, firstItemCursorMix.b);
 		}
@@ -539,7 +539,7 @@ namespace MightyOrm.Dynamic.Tests.PostgreSql
 			var db = new SPTestsDatabase();
 
 			//// Huge cursor tests....
-			var config = db.Query("SELECT current_setting('work_mem') work_mem, current_setting('log_temp_files') log_temp_files").FirstOrDefault();
+			var config = db.SingleFromQuery("SELECT current_setting('work_mem') work_mem, current_setting('log_temp_files') log_temp_files");
 
 			//// huge data from SELECT *
 			//var resultLargeSelectTest = db.QueryWithParams("SELECT * FROM large");
@@ -558,7 +558,7 @@ namespace MightyOrm.Dynamic.Tests.PostgreSql
 			//}
 
 			var results = db.QueryMultipleFromProcedure("lump2", returnParams: new { abc = new Cursor() });
-			db.AutoDereferenceFetchSize = 4000000;
+			db.NpgsqlAutoDereferenceFetchSize = 4000000;
 			CheckMultiResultSetStructure(results, 10000000, 10000000, true, true);
 
 			// one item from cursor
