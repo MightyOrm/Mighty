@@ -153,7 +153,7 @@ namespace MightyOrm.Generic.Tests.MySql
 		public void CleanUp()
 		{
 			var db = new MightyOrm(string.Format(TestConstants.WriteTestConnection, ProviderName));
-			db.ExecuteAsProcedure("pr_clearAll");
+			db.ExecuteProcedure("pr_clearAll");
 		}
 	}
 }

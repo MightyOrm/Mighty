@@ -33,7 +33,7 @@ namespace MightyOrm.Dynamic.Tests.MySql
 		public void Procedure_Call()
 		{
 			var db = new SPTestsDatabase(ProviderName);
-			var result = db.ExecuteAsProcedure("rewards_report_for_date", inParams: new { min_monthly_purchases = 3, min_dollar_amount_purchased = 20, report_date = new DateTime(2005, 5, 1) }, outParams: new { count_rewardees = 0 });
+			var result = db.ExecuteProcedure("rewards_report_for_date", inParams: new { min_monthly_purchases = 3, min_dollar_amount_purchased = 20, report_date = new DateTime(2005, 5, 1) }, outParams: new { count_rewardees = 0 });
 			Assert.AreEqual(27, result.count_rewardees);
 		}
 
@@ -46,7 +46,7 @@ namespace MightyOrm.Dynamic.Tests.MySql
 		public void Function_Call_Bool()
 		{
 			var db = new SPTestsDatabase(ProviderName);
-			var result = db.ExecuteAsProcedure("inventory_in_stock",
+			var result = db.ExecuteProcedure("inventory_in_stock",
 											   inParams: new { p_inventory_id = 5 },
 											   returnParams: new { retval = false });
 			Assert.AreEqual(true, result.retval);
@@ -60,7 +60,7 @@ namespace MightyOrm.Dynamic.Tests.MySql
 		public void Function_Call_Byte()
 		{
 			var db = new SPTestsDatabase(ProviderName);
-			var result = db.ExecuteAsProcedure("inventory_in_stock",
+			var result = db.ExecuteProcedure("inventory_in_stock",
 											   inParams: new { p_inventory_id = 5 },
 											   returnParams: new { retval = (byte)1 });
 			if(ProviderName == "Devart.Data.MySql")
@@ -83,7 +83,7 @@ namespace MightyOrm.Dynamic.Tests.MySql
 		public void Function_Call_SByte()
 		{
 			var db = new SPTestsDatabase(ProviderName);
-			var result = db.ExecuteAsProcedure("inventory_in_stock",
+			var result = db.ExecuteProcedure("inventory_in_stock",
 											   inParams: new { p_inventory_id = 5 },
 											   returnParams: new { retval = (sbyte)1 });
 			Assert.AreEqual(typeof(sbyte), result.retval.GetType());
@@ -157,7 +157,7 @@ namespace MightyOrm.Dynamic.Tests.MySql
 		{
 			var db = new SPTestsDatabase(ProviderName);
 			// new skool
-			var result = db.ExecuteAsProcedure("testproc_in_out", inParams: new { param1 = 10 }, outParams: new { param2 = 0 });
+			var result = db.ExecuteProcedure("testproc_in_out", inParams: new { param1 = 10 }, outParams: new { param2 = 0 });
 			Assert.AreEqual(20, result.param2);
 		}
 
@@ -166,7 +166,7 @@ namespace MightyOrm.Dynamic.Tests.MySql
 		public void InOut_Param_SP()
 		{
 			var db = new SPTestsDatabase(ProviderName);
-			var result = db.ExecuteAsProcedure("testproc_inout", ioParams: new { param1 = 10 });
+			var result = db.ExecuteProcedure("testproc_inout", ioParams: new { param1 = 10 });
 			Assert.AreEqual(20, result.param1);
 		}
 		#endregion

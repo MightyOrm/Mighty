@@ -189,7 +189,7 @@ namespace MightyOrm
         /// <param name="connection"></param>
         /// <param name="args"></param>
         /// <returns>The results of all non-input parameters</returns>
-        override public dynamic ExecuteAsProcedure(string spName,
+        override public dynamic ExecuteProcedure(string spName,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
             params object[] args)

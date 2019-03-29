@@ -138,7 +138,7 @@ namespace MightyOrm.Dynamic.Tests.SqlServer
 		public void CleanUp()
 		{
 			var db = new MightyOrm(TestConstants.WriteTestConnection);
-			db.ExecuteAsProcedure("pr_clearAll");
+			db.ExecuteProcedure("pr_clearAll");
 		}
 	}
 }

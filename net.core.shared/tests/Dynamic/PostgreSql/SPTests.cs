@@ -29,7 +29,7 @@ namespace MightyOrm.Dynamic.Tests.PostgreSql
 			// NB This is PostgreSql specific; Npgsql completely ignores the output parameter type and sets it (sensibly) from the return type.
 			dynamic z = new ExpandoObject();
 			z.z = null;
-			dynamic procResult = db.ExecuteAsProcedure("find_min", inParams: new { x = 5, y = 3 }, outParams: z);
+			dynamic procResult = db.ExecuteProcedure("find_min", inParams: new { x = 5, y = 3 }, outParams: z);
 			Assert.AreEqual(typeof(int), procResult.z.GetType());
 			Assert.AreEqual(3, procResult.z);
 		}
@@ -40,7 +40,7 @@ namespace MightyOrm.Dynamic.Tests.PostgreSql
 			var db = new SPTestsDatabase();
 			// NB Massive is converting all Postgres return params to output params because Npgsql treats all function
 			// output and return as output (which is because PostgreSQL itself treats them as the same, really).
-			dynamic fnResult = db.ExecuteAsProcedure("find_max", inParams: new { x = 6, y = 7 }, returnParams: new { returnValue = true });
+			dynamic fnResult = db.ExecuteProcedure("find_max", inParams: new { x = 6, y = 7 }, returnParams: new { returnValue = true });
 			Assert.AreEqual(7, fnResult.returnValue);
 		}
 
@@ -51,7 +51,7 @@ namespace MightyOrm.Dynamic.Tests.PostgreSql
 			// Only PostgreSQL supports anonymous parameters (AFAIK) - we treat object[] in the context of params differently from
 			// how it is treated when it appears in args in the standard Massive API, to provide support for this. (Note, object[]
 			// makes no sense in the context of named parameters otherwise, and will throw an exception on the other DBs.)
-			dynamic fnResultAnon = db.ExecuteAsProcedure("find_max", inParams: new object[] { 12, 7 }, returnParams: new { returnValue = 0 });
+			dynamic fnResultAnon = db.ExecuteProcedure("find_max", inParams: new object[] { 12, 7 }, returnParams: new { returnValue = 0 });
 			Assert.AreEqual(12, fnResultAnon.returnValue);
 		}
 
@@ -61,7 +61,7 @@ namespace MightyOrm.Dynamic.Tests.PostgreSql
 			var db = new SPTestsDatabase();
 			// NB This function can't be called except with anonymous parameters.
 			// (I believe you can't even do it with a SQL block, because Postgres anonymous SQL blocks do not accept parameters? May be wrong...)
-			dynamic addResult = db.ExecuteAsProcedure("add_em", inParams: new object[] { 4, 2 }, returnParams: new { RETURN = 0 });
+			dynamic addResult = db.ExecuteProcedure("add_em", inParams: new object[] { 4, 2 }, returnParams: new { RETURN = 0 });
 			Assert.AreEqual(6, addResult.RETURN);
 		}
 
@@ -69,7 +69,7 @@ namespace MightyOrm.Dynamic.Tests.PostgreSql
 		public void InputOutputParam()
 		{
 			var db = new SPTestsDatabase();
-			dynamic squareResult = db.ExecuteAsProcedure("square_num", ioParams: new { x = 4 });
+			dynamic squareResult = db.ExecuteProcedure("square_num", ioParams: new { x = 4 });
 			Assert.AreEqual(16, squareResult.x);
 		}
 
@@ -79,7 +79,7 @@ namespace MightyOrm.Dynamic.Tests.PostgreSql
 			var db = new SPTestsDatabase();
 			dynamic xParam = new ExpandoObject();
 			xParam.x = null;
-			dynamic squareResult = db.ExecuteAsProcedure("square_num", ioParams: xParam);
+			dynamic squareResult = db.ExecuteProcedure("square_num", ioParams: xParam);
 			Assert.AreEqual(null, squareResult.x);
 		}
 
@@ -88,7 +88,7 @@ namespace MightyOrm.Dynamic.Tests.PostgreSql
 		{
 			var db = new SPTestsDatabase();
 			// This method will work on any provider
-			dynamic dateResult = db.ExecuteAsProcedure("get_date", returnParams: new { d = (DateTime?)null });
+			dynamic dateResult = db.ExecuteProcedure("get_date", returnParams: new { d = (DateTime?)null });
 			Assert.AreEqual(typeof(DateTime), dateResult.d.GetType());
 		}
 
@@ -99,7 +99,7 @@ namespace MightyOrm.Dynamic.Tests.PostgreSql
 			// NB This is PostgreSql specific; Npgsql completely ignores the output parameter type and sets it (sensibly) from the return type.
 			dynamic dParam = new ExpandoObject();
 			dParam.d = null;
-			dynamic dateResult = db.ExecuteAsProcedure("get_date", returnParams: dParam);
+			dynamic dateResult = db.ExecuteProcedure("get_date", returnParams: dParam);
 			Assert.AreEqual(typeof(DateTime), dateResult.d.GetType());
 		}
 
@@ -111,7 +111,7 @@ namespace MightyOrm.Dynamic.Tests.PostgreSql
 			// (Look at per-DB method: `private static bool IgnoresOutputTypes(this DbParameter p);`)
 			dynamic dParam = new ExpandoObject();
 			dParam.d = false;
-			dynamic dateResult = db.ExecuteAsProcedure("get_date", returnParams: dParam);
+			dynamic dateResult = db.ExecuteProcedure("get_date", returnParams: dParam);
 			Assert.AreEqual(typeof(DateTime), dateResult.d.GetType());
 		}
 
@@ -126,7 +126,7 @@ namespace MightyOrm.Dynamic.Tests.PostgreSql
 			dynamic wArgs = new ExpandoObject();
 			wArgs.w = null;
 			// w := w + 2; v := w - 1; x := w + 1
-			dynamic testResult = db.ExecuteAsProcedure("test_vars", ioParams: wArgs, outParams: new { v = 0, x = 0 });
+			dynamic testResult = db.ExecuteProcedure("test_vars", ioParams: wArgs, outParams: new { v = 0, x = 0 });
 			Assert.AreEqual(1, testResult.v);
 			Assert.AreEqual(2, testResult.w);
 			Assert.AreEqual(3, testResult.x);
@@ -138,7 +138,7 @@ namespace MightyOrm.Dynamic.Tests.PostgreSql
 			// This is the cross-DB compatible way to do it.
 			var db = new SPTestsDatabase();
 			// w := w + 2; v := w - 1; x := w + 1
-			dynamic testResult = db.ExecuteAsProcedure("test_vars", ioParams: new { w = (int?)null }, outParams: new { v = 0, x = 0 });
+			dynamic testResult = db.ExecuteProcedure("test_vars", ioParams: new { w = (int?)null }, outParams: new { v = 0, x = 0 });
 			Assert.AreEqual(1, testResult.v);
 			Assert.AreEqual(2, testResult.w);
 			Assert.AreEqual(3, testResult.x);
@@ -149,7 +149,7 @@ namespace MightyOrm.Dynamic.Tests.PostgreSql
 		{
 			var db = new SPTestsDatabase();
 			// w := w + 2; v := w - 1; x := w + 1
-			dynamic testResult = db.ExecuteAsProcedure("test_vars", ioParams: new { w = 2 }, outParams: new { v = 0, x = 0 });
+			dynamic testResult = db.ExecuteProcedure("test_vars", ioParams: new { w = 2 }, outParams: new { v = 0, x = 0 });
 			Assert.AreEqual(3, testResult.v);
 			Assert.AreEqual(4, testResult.w);
 			Assert.AreEqual(5, testResult.x);
@@ -320,7 +320,7 @@ namespace MightyOrm.Dynamic.Tests.PostgreSql
 		{
 			var db = new SPTestsDatabase();
 			// Following the Oracle pattern this will not dereference: we get a variable value and a cursor ref.
-			var itemCursorMix = db.ExecuteAsProcedure("cursor_mix", outParams: new { anyname = new Cursor(), othername = 0 });
+			var itemCursorMix = db.ExecuteProcedure("cursor_mix", outParams: new { anyname = new Cursor(), othername = 0 });
 			Assert.AreEqual(42, itemCursorMix.othername);
 			Assert.AreEqual(typeof(string), itemCursorMix.anyname.GetType()); // NB PostgreSql ref cursors return as string
 		}
@@ -334,7 +334,7 @@ namespace MightyOrm.Dynamic.Tests.PostgreSql
 				// cursors in PostgreSQL must share a transaction (not just a connection, as in Oracle)
 				using(var trans = conn.BeginTransaction())
 				{
-					var cursors = db.ExecuteAsProcedure("cursorNByOne", outParams: new { c1 = new Cursor(), c2 = new Cursor() }, connection: conn);
+					var cursors = db.ExecuteProcedure("cursorNByOne", outParams: new { c1 = new Cursor(), c2 = new Cursor() }, connection: conn);
 					var cursor1 = db.QueryFromProcedure("fetch_next_ints_from_cursor", new { mycursor = new Cursor(cursors.c1) }, connection: conn);
 					int count1 = 0;
 					foreach(var item in cursor1)
@@ -368,7 +368,7 @@ namespace MightyOrm.Dynamic.Tests.PostgreSql
 			// to use TransactionScope with Npgsql, the connection string must include "Enlist=true;"
 			using(var scope = new TransactionScope())
 			{
-				var cursors = db.ExecuteAsProcedure("cursorNByOne", outParams: new { c1 = new Cursor(), c2 = new Cursor() });
+				var cursors = db.ExecuteProcedure("cursorNByOne", outParams: new { c1 = new Cursor(), c2 = new Cursor() });
 				var cursor1 = db.QueryFromProcedure("fetch_next_ints_from_cursor", new { mycursor = new Cursor(cursors.c1) });
 				int count1 = 0;
 				foreach(var item in cursor1)
@@ -457,7 +457,7 @@ namespace MightyOrm.Dynamic.Tests.PostgreSql
 				// cursors in PostgreSQL must share a transaction (not just a connection, as in Oracle)
 				using(var trans = conn.BeginTransaction())
 				{
-					var result = db.ExecuteAsProcedure("lump", returnParams: new { cname = new Cursor() }, connection: conn);
+					var result = db.ExecuteProcedure("lump", returnParams: new { cname = new Cursor() }, connection: conn);
 					while(true)
 					{
 						var fetchTest = db.QueryWithParams($@"FETCH {FetchSize} FROM ""{result.cname}""", connection: conn);

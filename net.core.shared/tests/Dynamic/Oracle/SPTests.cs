@@ -71,7 +71,7 @@ namespace MightyOrm.Dynamic.Tests.Oracle
 		public void InputAndOutputParams()
 		{
 			var db = new SPTestsDatabase(ProviderName);
-			dynamic procResult = db.ExecuteAsProcedure("findMin", inParams: new { x = 1, y = 3 }, outParams: new { z = 0 });
+			dynamic procResult = db.ExecuteProcedure("findMin", inParams: new { x = 1, y = 3 }, outParams: new { z = 0 });
 			Assert.AreEqual(1, procResult.z);
 		}
 
@@ -80,7 +80,7 @@ namespace MightyOrm.Dynamic.Tests.Oracle
 		public void InputAndReturnParams()
 		{
 			var db = new SPTestsDatabase(ProviderName);
-			dynamic fnResult = db.ExecuteAsProcedure("findMax", inParams: new { x = 1, y = 3 }, returnParams: new { returnValue = 0 });
+			dynamic fnResult = db.ExecuteProcedure("findMax", inParams: new { x = 1, y = 3 }, returnParams: new { returnValue = 0 });
 			Assert.AreEqual(3, fnResult.returnValue);
 		}
 
@@ -89,7 +89,7 @@ namespace MightyOrm.Dynamic.Tests.Oracle
 		public void InputOutputParam()
 		{
 			var db = new SPTestsDatabase(ProviderName);
-			dynamic squareResult = db.ExecuteAsProcedure("squareNum", ioParams: new { x = 4 });
+			dynamic squareResult = db.ExecuteProcedure("squareNum", ioParams: new { x = 4 });
 			Assert.AreEqual(16, squareResult.x);
 		}
 
@@ -98,7 +98,7 @@ namespace MightyOrm.Dynamic.Tests.Oracle
 		public void InitialNullInputOutputParam()
 		{
 			var db = new SPTestsDatabase(ProviderName);
-			dynamic squareResult = db.ExecuteAsProcedure("squareNum", ioParams: new { x = (int?)null });
+			dynamic squareResult = db.ExecuteProcedure("squareNum", ioParams: new { x = (int?)null });
 			Assert.AreEqual(null, squareResult.x);
 		}
 
@@ -173,7 +173,7 @@ namespace MightyOrm.Dynamic.Tests.Oracle
 		public void NonQueryWithTwoOutputCursors()
 		{
 			var db = new SPTestsDatabase(ProviderName);
-			var twoSetDirect = db.ExecuteAsProcedure("tworesults", outParams: new { prc1 = new Cursor(), prc2 = new Cursor() });
+			var twoSetDirect = db.ExecuteProcedure("tworesults", outParams: new { prc1 = new Cursor(), prc2 = new Cursor() });
 			Assert.AreEqual("OracleRefCursor", twoSetDirect.prc1.GetType().Name);
 			Assert.AreEqual("OracleRefCursor", twoSetDirect.prc2.GetType().Name);
 		}
@@ -206,7 +206,7 @@ namespace MightyOrm.Dynamic.Tests.Oracle
 		public void NonQueryFromMixedCursorOutput()
 		{
 			var db = new SPTestsDatabase(ProviderName);
-			var mixedDirect = db.ExecuteAsProcedure("mixedresults", outParams: new { prc1 = new Cursor(), prc2 = new Cursor(), num1 = 0, num2 = 0 });
+			var mixedDirect = db.ExecuteProcedure("mixedresults", outParams: new { prc1 = new Cursor(), prc2 = new Cursor(), num1 = 0, num2 = 0 });
 			Assert.AreEqual("OracleRefCursor", mixedDirect.prc1.GetType().Name);
 			Assert.AreEqual("OracleRefCursor", mixedDirect.prc2.GetType().Name);
 			Assert.AreEqual(1, mixedDirect.num1);
@@ -230,7 +230,7 @@ namespace MightyOrm.Dynamic.Tests.Oracle
                 db.Execute("delete from processing_result");
 
                 // oracle demo code takes the input cursor and writes the results to `processing_result` table
-                var res2 = db.ExecuteAsProcedure("cursor_in_out.process_cursor", inParams: new { p_cursor = res1.p_rc }, connection: conn);
+                var res2 = db.ExecuteProcedure("cursor_in_out.process_cursor", inParams: new { p_cursor = res1.p_rc }, connection: conn);
 				Assert.AreEqual(0, ((IDictionary<string, object>)res2).Count);
 
                 var processedRows = db.Query("select * from processing_result").ToList();

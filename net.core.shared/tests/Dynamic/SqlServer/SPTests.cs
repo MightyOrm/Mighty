@@ -72,7 +72,7 @@ namespace MightyOrm.Dynamic.Tests.SqlServer
 			var db = new SPTestsDatabase();
 			dynamic d = new ExpandoObject();
 			d.d = true; // NB the type is ignored (by the underlying driver)
-			var dResult = db.ExecuteAsProcedure("ufnGetAccountingEndDate", returnParams: d);
+			var dResult = db.ExecuteProcedure("ufnGetAccountingEndDate", returnParams: d);
 			Assert.AreEqual(typeof(DateTime), dResult.d.GetType());
 		}
 
@@ -103,7 +103,7 @@ namespace MightyOrm.Dynamic.Tests.SqlServer
 		{
 			var db = new SPTestsDatabase();
 			// w := w + 2; v := w - 1; x := w + 1
-			dynamic testResult = db.ExecuteAsProcedure("TestVars", ioParams: new { w = (int?)null }, outParams: new { v = 0, x = 0 });
+			dynamic testResult = db.ExecuteProcedure("TestVars", ioParams: new { w = (int?)null }, outParams: new { v = 0, x = 0 });
 			Assert.AreEqual(1, testResult.v);
 			Assert.AreEqual(2, testResult.w);
 			Assert.AreEqual(3, testResult.x);
@@ -114,7 +114,7 @@ namespace MightyOrm.Dynamic.Tests.SqlServer
 		{
 			var db = new SPTestsDatabase();
 			// w := w + 2; v := w - 1; x := w + 1
-			dynamic testResult = db.ExecuteAsProcedure("TestVars", ioParams: new { w = 2 }, outParams: new { v = 0, x = 0 });
+			dynamic testResult = db.ExecuteProcedure("TestVars", ioParams: new { w = 2 }, outParams: new { v = 0, x = 0 });
 			Assert.AreEqual(3, testResult.v);
 			Assert.AreEqual(4, testResult.w);
 			Assert.AreEqual(5, testResult.x);
