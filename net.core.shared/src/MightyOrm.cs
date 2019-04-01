@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Async;
 using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Data;
@@ -7,6 +8,7 @@ using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 using System.Text;
+using System.Threading;
 #if NETFRAMEWORK
 using System.Transactions;
 #endif
@@ -18,6 +20,7 @@ using Mighty.Mapping;
 using Mighty.Parameters;
 using Mighty.Profiling;
 using Mighty.Validation;
+using System.Threading.Tasks;
 
 namespace Mighty
 {
@@ -101,28 +104,28 @@ namespace Mighty
 
 	public partial class MightyOrm<T> : MightyOrmMockable<T> where T : class, new()
 	{
-        #region Constructor
-        /// <summary>
-        /// Strongly typed MightyOrm constructor
-        /// </summary>
-        /// <param name="connectionString">
-        /// Connection string with support for additional, non-standard "ProviderName=" property.
-        /// On .NET Framework but not .NET Core this can also, optionally, be a config file connection string name (in which case the provider name is specified
-        /// as an additional config file attribute next to the connection string).
-        /// </param>
-        /// <param name="tableName">Override the table name (defaults to using T class name)</param>
-        /// <param name="primaryKeyField">Primary key field name; or comma separated list of names for compound PK</param>
-        /// <param name="valueColumn">Specify the value field, for lookup tables</param>
-        /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
-        /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
-        /// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
-        /// <param name="columns">Default column list (specifies C# names rather than SQL names, if you have defined a mapper)</param>
-        /// <param name="validator">Optional validator</param>
-        /// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
-        /// <param name="profiler">Optional SQL profiler</param>
-        /// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyOrm)</param>
-        /// <param name="propertyBindingFlags">Specify which properties should be managed by the ORM</param>
-        public MightyOrm(string connectionString = null,
+		#region Constructor
+		/// <summary>
+		/// Strongly typed MightyOrm constructor
+		/// </summary>
+		/// <param name="connectionString">
+		/// Connection string with support for additional, non-standard "ProviderName=" property.
+		/// On .NET Framework but not .NET Core this can also, optionally, be a config file connection string name (in which case the provider name is specified
+		/// as an additional config file attribute next to the connection string).
+		/// </param>
+		/// <param name="tableName">Override the table name (defaults to using T class name)</param>
+		/// <param name="primaryKeyField">Primary key field name; or comma separated list of names for compound PK</param>
+		/// <param name="valueColumn">Specify the value field, for lookup tables</param>
+		/// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
+		/// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
+		/// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
+		/// <param name="columns">Default column list (specifies C# names rather than SQL names, if you have defined a mapper)</param>
+		/// <param name="validator">Optional validator</param>
+		/// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
+		/// <param name="profiler">Optional SQL profiler</param>
+		/// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyOrm)</param>
+		/// <param name="propertyBindingFlags">Specify which properties should be managed by the ORM</param>
+		public MightyOrm(string connectionString = null,
 						 string tableName = null,
 						 string primaryKeyField = null,
 						 string valueColumn = null,
@@ -287,9 +290,11 @@ namespace Mighty
 				SequenceNameOrIdentityFn = SqlMapper.QuoteDatabaseIdentifier(sequence);
 			}
 
+#if DYNAMIC_METHODS
 			// Add dynamic method support (mainly for compatibility with Massive)
 			// TO DO: This line shouldn't be here, as it's so intimately tied to code in DynamicMethodProvider
 			DynamicObjectWrapper = new DynamicMethodProvider<T>(this);
+#endif
 		}
 
 		protected void InitialiseTypeProperties(BindingFlags propertyBindingFlags)
@@ -311,10 +316,10 @@ namespace Mighty
 				pkProperty = columnNameToPropertyInfo[PrimaryKeyFields];
 			}
 		}
-		#endregion
+#endregion
 
 		// Only properties with a non-trivial implementation are here, the rest are in the MicroOrm abstract class.
-		#region Properties
+#region Properties
 		protected IEnumerable<dynamic> _TableMetaData;
 		override public IEnumerable<dynamic> TableMetaData
 		{
@@ -327,25 +332,26 @@ namespace Mighty
 
 		protected Dictionary<string, PropertyInfo> columnNameToPropertyInfo;
 		protected PropertyInfo pkProperty;
-        #endregion
+#endregion
 
-        #region Thread-safe initializer for table meta-data
+#region Thread-safe initializer for table meta-data
 		// Thread-safe initialization based on Microsoft DbProviderFactories reference 
 		// https://referencesource.microsoft.com/#System.Data/System/Data/Common/DbProviderFactories.cs
 
 		// called within the lock
-		private void LoadTableMetaData()
+		// TO DO: What is being called inside here is really async!
+		private async Task LoadTableMetaData()
 		{
 			var sql = Plugin.BuildTableMetaDataQuery(BareTableName, TableOwner);
-			IEnumerable<dynamic> unprocessedMetaData;
+			IAsyncEnumerable<dynamic> unprocessedMetaData;
 			dynamic db = this;
 			if (!UseExpando)
 			{
 				// we need a dynamic query, so on the generic version we create a new dynamic DB object with the same connection info
 				db = new MightyOrm(connectionProvider: new PresetsConnectionProvider(ConnectionString, Factory, Plugin.GetType()));
 			}
-			unprocessedMetaData = (IEnumerable<dynamic>)db.Query(sql, BareTableName, TableOwner);
-			var postProcessedMetaData = Plugin.PostProcessTableMetaData(unprocessedMetaData);
+			unprocessedMetaData = await db.QueryAsync(sql, BareTableName, TableOwner);
+			var postProcessedMetaData = await Plugin.PostProcessTableMetaDataAsync(unprocessedMetaData);
 			_TableMetaData = FilterTableMetaData(postProcessedMetaData);
 		}
 
@@ -384,7 +390,10 @@ namespace Mighty
 							_initState = ConnectionState.Connecting;
 							try
 							{
-								LoadTableMetaData();
+								// TO DO: This is technically NOT OK - it is sync over async.
+								// We definitely want sync over async (at least I think we do, here...), but we do need
+								// to be sure (how?) that it's being done safely.
+								LoadTableMetaData().Wait();
 							}
 							finally
 							{
@@ -404,17 +413,17 @@ namespace Mighty
 				}
 			}
 		}
-        #endregion
+#endregion
 
 		// Only methods with a non-trivial implementation are here, the rest are in the MicroOrm abstract class.
-        #region MircoORM interface
+#region MircoORM interface
 		// In theory COUNT expression could vary across SQL variants, in practice it doesn't.
-		override public object Count(string columns = "*", string where = null,
+		override public async Task<object> CountAsync(string columns = "*", string where = null,
 			DbConnection connection = null,
 			params object[] args)
 		{
 			var expression = string.Format("COUNT({0})", columns);
-			return AggregateWithParams(expression, where, connection, args: args);
+			return await AggregateWithParamsAsync(expression, where, connection, args: args).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -432,14 +441,17 @@ namespace Mighty
 		/// <remarks>
 		/// This only lets you pass in the aggregate expressions of your SQL variant, but SUM, AVG, MIN, MAX are supported on all.
 		/// </remarks>
-		override public object AggregateWithParams(string expression, string where = null,
+		/// <remarks>
+		/// This is very close to a 'redirect' method, but couldn't have been in the abstract interface before because of the plugin access.
+		/// </remarks>
+		override public async Task<object> AggregateWithParamsAsync(string expression, string where = null,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args)
 		{
-			return ScalarWithParams(Plugin.BuildSelect(expression, CheckGetTableName(), where),
+			return await ScalarWithParamsAsync(Plugin.BuildSelect(expression, CheckGetTableName(), where),
 				inParams, outParams, ioParams, returnParams,
-				connection, args);
+				connection, args).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -492,16 +504,16 @@ namespace Mighty
 			return (T)item;
 		}
 
-        /// <summary>
-        /// Update from fields in the item sent in. If PK has been specified, any primary key fields in the
-        /// item are ignored (this is an update, not an insert!). However the item is not filtered to remove fields
-        /// not in the table. If you need that, call <see cref="NewFrom"/>(<see cref="partialItem"/>, false) first.
-        /// </summary>
-        /// <param name="partialItem"></param>
-        /// <param name="where"></param>
-        /// <param name="connection"></param>
-        /// <param name="args"></param>
-        override public int UpdateUsing(object partialItem, string where,
+		/// <summary>
+		/// Update from fields in the item sent in. If PK has been specified, any primary key fields in the
+		/// item are ignored (this is an update, not an insert!). However the item is not filtered to remove fields
+		/// not in the table. If you need that, call <see cref="NewFrom"/>(<see cref="partialItem"/>, false) first.
+		/// </summary>
+		/// <param name="partialItem"></param>
+		/// <param name="where"></param>
+		/// <param name="connection"></param>
+		/// <param name="args"></param>
+		override public async Task<int> UpdateUsingAsync(object partialItem, string where,
 			DbConnection connection,
 			params object[] args)
 		{
@@ -522,7 +534,7 @@ namespace Mighty
 				}
 			}
 			var sql = Plugin.BuildUpdate(CheckGetTableName(), values.ToString(), where);
-			return ExecuteWithParams(sql, args: args, inParams: filteredItem, connection: connection);
+			return await ExecuteWithParamsAsync(sql, args: args, inParams: filteredItem, connection: connection).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -534,12 +546,12 @@ namespace Mighty
 		/// <param name="connection">The DbConnection to use</param>
 		/// <param name="args">Optional auto-named parameters for the WHERE clause</param>
 		/// <returns></returns>
-		override public int Delete(string where,
+		override public async Task<int> DeleteAsync(string where,
 			DbConnection connection,
 			params object[] args)
 		{
 			var sql = Plugin.BuildDelete(CheckGetTableName(), where);
-			return Execute(sql, connection, args);
+			return await ExecuteAsync(sql, connection, args).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -696,9 +708,9 @@ namespace Mighty
 		/// <param name="items">The item or items</param>
 		/// <returns></returns>
 		/// <remarks>Here and in <see cref="UpsertItemPK"/> we always return the modified original object, where possible</remarks>
-		internal int ActionOnItems(OrmAction action, DbConnection connection, IEnumerable<object> items, out T insertedItem)
+		internal async Task<Tuple<int, T>> ActionOnItemsWithOutputAsync(OrmAction action, DbConnection connection, IEnumerable<object> items)
 		{
-			insertedItem = null;
+			T insertedItem = null;
 			int count = 0;
 			int affected = 0;
 			Prevalidate(items, action);
@@ -706,7 +718,7 @@ namespace Mighty
 			{
 				if (Validator.PerformingAction(item, action))
 				{
-					var _inserted = ActionOnItem(action, item, connection, count);
+					var _inserted = await ActionOnItemAsync(action, item, connection, count).ConfigureAwait(false);
 					if (count == 0 && _inserted != null && action == OrmAction.Insert)
 					{
 						if (!UseExpando)
@@ -725,7 +737,7 @@ namespace Mighty
 				}
 				count++;
 			}
-			return affected;
+			return new Tuple<int, T>(affected, insertedItem);
 		}
 
 
@@ -824,17 +836,20 @@ namespace Mighty
 			return array;
 		}
 
+		// TO DO: We should still be supporting this
+#if KEY_VALUES
 		/// <summary>
 		/// Returns a string/string dictionary which can be bound directly to dropdowns etc http://stackoverflow.com/q/805595/
 		/// </summary>
-		override public IDictionary<string, string> KeyValues(string orderBy = "")
+		override public async Task<IDictionary<string, string>> KeyValuesAsync(string orderBy = "")
 		{
 			string foo = string.Format(" to call {0}, please provide one in your constructor", nameof(KeyValues));
 			string valueField = CheckGetValueColumn(string.Format("ValueField is required{0}", foo));
 			string primaryKeyField = CheckGetKeyName(string.Format("A single primary key must be specified{0}", foo));
-			var results = All(orderBy: orderBy, columns: string.Format("{0}, {1}", primaryKeyField, valueField)).Cast<IDictionary<string, object>>();
+			var results = (await AllAsync(orderBy: orderBy, columns: string.Format("{0}, {1}", primaryKeyField, valueField)).ConfigureAwait(false)).Cast<IDictionary<string, object>>();
 			return results.ToDictionary(item => item[primaryKeyField].ToString(), item => item[valueField].ToString());
 		}
+#endif
 		#endregion
 
 		// Only methods with a non-trivial implementation are here, the rest are in the DataAccessWrapper abstract class.
@@ -846,12 +861,12 @@ namespace Mighty
 		/// cursors).
 		/// </summary>
 		/// <returns></returns>
-		override public DbConnection OpenConnection()
+		override public async Task<DbConnection> OpenConnectionAsync()
 		{
 			var connection = Factory.CreateConnection();
 			connection = SqlProfiler.Wrap(connection);
 			connection.ConnectionString = ConnectionString;
-			connection.Open();
+			await connection.OpenAsync().ConfigureAwait(false);
 			return connection;
 		}
 
@@ -861,11 +876,11 @@ namespace Mighty
 		/// <param name="command">The command</param>
 		/// <param name="connection">Optional DbConnection to use</param>
 		/// <returns></returns>
-		override public int Execute(DbCommand command,
+		override public async Task<int> ExecuteAsync(DbCommand command,
 			DbConnection connection = null)
 		{
 			// using applied only to local connection
-			using (var localConn = ((connection == null) ? OpenConnection() : null))
+			using (var localConn = ((connection == null) ? await OpenConnectionAsync().ConfigureAwait(false) : null))
 			{
 				command.Connection = connection ?? localConn;
 				return command.ExecuteNonQuery();
@@ -878,14 +893,14 @@ namespace Mighty
 		/// <param name="command">The command</param>
 		/// <param name="connection">Optional DbConnection to use</param>
 		/// <returns></returns>
-		override public object Scalar(DbCommand command,
+		override public async Task<object> ScalarAsync(DbCommand command,
 			DbConnection connection = null)
 		{
 			// using applied only to local connection
-			using (var localConn = ((connection == null) ? OpenConnection() : null))
+			using (var localConn = ((connection == null) ? await OpenConnectionAsync().ConfigureAwait(false) : null))
 			{
 				command.Connection = connection ?? localConn;
-				return command.ExecuteScalar();
+				return await command.ExecuteScalarAsync().ConfigureAwait(false);
 			}
 		}
 
@@ -906,7 +921,7 @@ namespace Mighty
 		/// can pass "SELECT columns" instead of columns.
 		/// TO DO: Cancel the above, it makes no sense from a UI pov!
 		/// </remarks>
-		override public PagedResults<T> PagedFromSelect(string columns, string tablesAndJoins, string where, string orderBy,
+		override public async Task<PagedResults<T>> PagedFromSelectAsync(string columns, string tablesAndJoins, string where, string orderBy,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args)
@@ -916,9 +931,10 @@ namespace Mighty
 			if (columns == null) columns = Columns;
 			var pagingQueryPair = Plugin.BuildPagingQueryPair(columns, tablesAndJoins, where, orderBy, limit, offset);
 			var result = new PagedResults<T>();
-			result.TotalRecords = Convert.ToInt32(Scalar(pagingQueryPair.CountQuery));
+			result.TotalRecords = Convert.ToInt32(await ScalarAsync(pagingQueryPair.CountQuery).ConfigureAwait(false));
 			result.TotalPages = (result.TotalRecords + pageSize - 1) / pageSize;
-			result.Items = Query(pagingQueryPair.PagingQuery);
+			var items = await QueryAsync(pagingQueryPair.PagingQuery).ConfigureAwait(false);
+			result.Items = await items.ToListAsync().ConfigureAwait(false);
 			return result;
 		}
 
@@ -981,7 +997,7 @@ namespace Mighty
 		/// <summary>
 		/// Return all matching items.
 		/// </summary>
-		override public IEnumerable<T> AllWithParams(
+		override public async Task<IAsyncEnumerable<T>> AllWithParamsAsync(
 			string where = null, string orderBy = null, string columns = null, int limit = 0,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
@@ -992,7 +1008,7 @@ namespace Mighty
 				columns = Columns;
 			}
 			var sql = Plugin.BuildSelect(columns, CheckGetTableName(), where, orderBy, limit);
-			return QueryNWithParams<T>(sql,
+			return await QueryNWithParamsAsync<T>(sql,
 				inParams, outParams, ioParams, returnParams,
 				behavior: limit == 1 ? CommandBehavior.SingleRow : CommandBehavior.Default, connection: connection, args: args);
 		}
@@ -1001,120 +1017,123 @@ namespace Mighty
 		/// Yield return values for Query or QueryMultiple.
 		/// Use with &lt;T&gt; for single or &lt;IEnumerable&lt;T&gt;&gt; for multiple.
 		/// </summary>
-		override protected IEnumerable<X> QueryNWithParams<X>(DbCommand command, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, DbDataReader outerReader = null)
+		override protected async Task<IAsyncEnumerable<X>> QueryNWithParamsAsync<X>(DbCommand command, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, DbDataReader outerReader = null)
 		{
-			if (behavior == CommandBehavior.Default && typeof(X) == typeof(T))
-			{
-				// (= single result set, not single row...)
-				behavior = CommandBehavior.SingleResult;
-			}
-			// using is applied only to locally generated connection
-			using (var localConn = (connection == null ? OpenConnection() : null))
-			{
-				if (command != null)
+			return new AsyncEnumerable<X>(async yield => {
+				if (behavior == CommandBehavior.Default && typeof(X) == typeof(T))
 				{
-					command.Connection = connection ?? localConn;
+					// (= single result set, not single row...)
+					behavior = CommandBehavior.SingleResult;
 				}
-				// manage wrapping transaction if required, and if we have not been passed an incoming connection
-				// in which case assume user can/should manage it themselves
-				using (var trans = (connection == null
-#if NETFRAMEWORK
-					// TransactionScope support
-					&& Transaction.Current == null
-#endif
-					&& Plugin.RequiresWrappingTransaction(command) ? localConn.BeginTransaction() : null))
+				// using is applied only to locally generated connection
+				using (var localConn = (connection == null ? await OpenConnectionAsync().ConfigureAwait(false) : null))
 				{
-					using (var reader = (outerReader == null ? Plugin.ExecuteDereferencingReader(command, behavior, connection ?? localConn) : null))
+					if (command != null)
 					{
-						if (typeof(X) == typeof(IEnumerable<T>))
-						{
-							// query multiple pattern
-							do
-							{
-								// cast is required because compiler doesn't see that we've just checked that X is IEnumerable<T>
-								// first three params carefully chosen so as to avoid lots of checks about outerReader in the code above in this method
-								yield return (X)QueryNWithParams<T>(null, (CommandBehavior)(-1), connection ?? localConn, reader);
-							}
-							while (reader.NextResult());
-						}
-						else
-						{
-							// Reasonably fast inner loop to yield-return objects of the required type from the DbDataReader.
-							//
-							// Used to be a separate function YieldReturnRows(), called here or within the loop above; but you can't do a yield return
-							// for an outer function in an inner function (nor inside a delegate), so we're using recursion to avoid duplicating this
-							// entire inner loop.
-							//
-							DbDataReader useReader = outerReader ?? reader;
-
-							if (useReader.HasRows)
-							{
-								int fieldCount = useReader.FieldCount;
-								object[] rowValues = new object[fieldCount];
-
-								// this is for dynamic support
-								string[] columnNames = null;
-								// this is for generic<T> support
-								PropertyInfo[] propertyInfo = null;
-
-								if (UseExpando) columnNames = new string[fieldCount];
-								else propertyInfo = new PropertyInfo[fieldCount];
-
-								// for generic, we need array of properties to set; we find this
-								// from fieldNames array, using a look up from lowered name -> property
-								for (int i = 0; i < fieldCount; i++)
-								{
-									var columnName = useReader.GetName(i);
-                                    if (string.IsNullOrEmpty(columnName))
-                                    {
-                                        throw new InvalidOperationException("Cannot autopopulate from anonymous column");
-                                    }
-									if (UseExpando)
-									{
-										// For dynamics, create fields using the case that comes back from the database
-										// TO DO: Test how this is working now in Oracle
-										columnNames[i] = columnName;
-									}
-									else
-									{
-										// leaves as null if no match
-										columnNameToPropertyInfo.TryGetValue(columnName, out propertyInfo[i]);
-									}
-								}
-                                while (useReader.Read())
-                                {
-									useReader.GetValues(rowValues);
-									if (UseExpando)
-									{
-										ExpandoObject e = new ExpandoObject();
-										IDictionary<string, object> d = e.ToDictionary();
-										for (int i = 0; i < fieldCount; i++)
-										{
-											var v = rowValues[i];
-											d.Add(columnNames[i], v == DBNull.Value ? null : v);
-										}
-										yield return (X)(object)e;
-									}
-									else
-									{
-										T t = new T();
-										for (int i = 0; i < fieldCount; i++)
-										{
-											var v = rowValues[i];
-											if (propertyInfo[i] != null)
-											{
-												propertyInfo[i].SetValue(t, v == DBNull.Value ? null : v.ChangeType(propertyInfo[i].PropertyType));
-											}
-										}
-										yield return (X)(object)t;
-									}
-								}
-							}
-						}
+						command.Connection = connection ?? localConn;
 					}
-					if (trans != null) trans.Commit();
+					// manage wrapping transaction if required, and if we have not been passed an incoming connection
+					// in which case assume user can/should manage it themselves
+					using (var trans = (connection == null
+#if NETFRAMEWORK
+						// TransactionScope support
+						&& Transaction.Current == null
+#endif
+						&& Plugin.RequiresWrappingTransaction(command) ? localConn.BeginTransaction() : null))
+					{
+						using (var reader = (outerReader == null ? await Plugin.ExecuteDereferencingReaderAsync(command, behavior, connection ?? localConn).ConfigureAwait(false) : null))
+						{
+							if (typeof(X) == typeof(IEnumerable<T>))
+							{
+								// query multiple pattern
+								do
+								{
+									// cast is required because compiler doesn't see that we've just checked that X is IEnumerable<T>
+									// first three params carefully chosen so as to avoid lots of checks about outerReader in the code above in this method
+									var next = (X)(await QueryNWithParamsAsync<T>(null, (CommandBehavior)(-1), connection ?? localConn, reader).ConfigureAwait(false));
+									await yield.ReturnAsync(next).ConfigureAwait(false);
+								}
+								while (await reader.NextResultAsync().ConfigureAwait(false));
+							}
+							else
+							{
+								// Reasonably fast inner loop to yield-return objects of the required type from the DbDataReader.
+								//
+								// Used to be a separate function YieldReturnRows(), called here or within the loop above; but you can't do a yield return
+								// for an outer function in an inner function (nor inside a delegate), so we're using recursion to avoid duplicating this
+								// entire inner loop.
+								//
+								DbDataReader useReader = outerReader ?? reader;
+
+								if (useReader.HasRows)
+								{
+									int fieldCount = useReader.FieldCount;
+									object[] rowValues = new object[fieldCount];
+
+									// this is for dynamic support
+									string[] columnNames = null;
+									// this is for generic<T> support
+									PropertyInfo[] propertyInfo = null;
+
+									if (UseExpando) columnNames = new string[fieldCount];
+									else propertyInfo = new PropertyInfo[fieldCount];
+
+									// for generic, we need array of properties to set; we find this
+									// from fieldNames array, using a look up from lowered name -> property
+									for (int i = 0; i < fieldCount; i++)
+									{
+										var columnName = useReader.GetName(i);
+										if (string.IsNullOrEmpty(columnName))
+										{
+											throw new InvalidOperationException("Cannot autopopulate from anonymous column");
+										}
+										if (UseExpando)
+										{
+											// For dynamics, create fields using the case that comes back from the database
+											// TO DO: Test how this is working now in Oracle
+											columnNames[i] = columnName;
+										}
+										else
+										{
+											// leaves as null if no match
+											columnNameToPropertyInfo.TryGetValue(columnName, out propertyInfo[i]);
+										}
+									}
+									while (await useReader.ReadAsync().ConfigureAwait(false))
+									{
+										useReader.GetValues(rowValues);
+										if (UseExpando)
+										{
+											ExpandoObject e = new ExpandoObject();
+											IDictionary<string, object> d = e.ToDictionary();
+											for (int i = 0; i < fieldCount; i++)
+											{
+												var v = rowValues[i];
+												d.Add(columnNames[i], v == DBNull.Value ? null : v);
+											}
+											await yield.ReturnAsync((X)(object)e).ConfigureAwait(false);
+										}
+										else
+										{
+											T t = new T();
+											for (int i = 0; i < fieldCount; i++)
+											{
+												var v = rowValues[i];
+												if (propertyInfo[i] != null)
+												{
+													propertyInfo[i].SetValue(t, v == DBNull.Value ? null : v.ChangeType(propertyInfo[i].PropertyType));
+												}
+											}
+											await yield.ReturnAsync((X)(object)t).ConfigureAwait(false);
+										}
+									}
+								}
+							}
+						}
+						if (trans != null) trans.Commit();
+					}
 				}
-			}
+			});
 		}
 #endregion
 
@@ -1138,7 +1157,7 @@ namespace Mighty
 		/// sounds as if it means that if this part of the library was written in VB then doing this would be officially
 		/// supported? not quite sure, that assumes that the different implementations of anonymous types can co-exist)
 		/// </remarks>
-		private object ActionOnItem(OrmAction action, object item, DbConnection connection, int outerCount)
+		private async Task<object> ActionOnItemAsync(OrmAction action, object item, DbConnection connection, int outerCount)
 		{
 			int nKeys = 0;
 			int nDefaultKeyValues = 0;
@@ -1161,9 +1180,9 @@ namespace Mighty
 				string paramName;
 				if (value == null)
 				{
-                    // Sending NULL in the SQL and not in a param is required to support obscure cases (such as the SQL Server IMAGE type)
-                    // where the column refuses to cast from the default VARCHAR NULL param which is created when a parameter is null.
-                    paramName = "NULL";
+					// Sending NULL in the SQL and not in a param is required to support obscure cases (such as the SQL Server IMAGE type)
+					// where the column refuses to cast from the default VARCHAR NULL param which is created when a parameter is null.
+					paramName = "NULL";
 				}
 				else
 				{
@@ -1252,19 +1271,19 @@ namespace Mighty
 
 				default:
 					// use 'Exception' for strictly internal/should not happen/our fault exceptions
-					throw new Exception("incorrect " + nameof(OrmAction) + "=" + action + " at action choice in " + nameof(ActionOnItem));
+					throw new Exception("incorrect " + nameof(OrmAction) + "=" + action + " at action choice in " + nameof(ActionOnItemAsync));
 			}
 			command.Connection = connection;
 			if (action == OrmAction.Insert && SequenceNameOrIdentityFn != null)
 			{
 				// *All* DBs return a huge sized number for their identity by default, following Massive we are normalising to int
-				var pk = Convert.ToInt32(Scalar(command));
+				var pk = Convert.ToInt32(await ScalarAsync(command).ConfigureAwait(false));
 				var result = UpsertItemPK(item, pk, originalAction == OrmAction.Insert && outerCount == 0);
 				return result;
 			}
 			else
 			{
-				int n = Execute(command);
+				int n = await ExecuteAsync(command).ConfigureAwait(false);
 				// should this be checked? is it reasonable for this to be zero sometimes?
 				if (n != 1)
 				{

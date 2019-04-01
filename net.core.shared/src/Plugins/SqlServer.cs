@@ -26,7 +26,7 @@ namespace Mighty.Plugins
 			return BuildTopSelect(columns, tableName, where, orderBy, limit);
 		}
 
-		override public dynamic BuildPagingQueryPair(string columns, string tablesAndJoins, string where, string orderBy,
+		override public PagingQueryPair BuildPagingQueryPair(string columns, string tablesAndJoins, string where, string orderBy,
 			int limit, int offset)
 		{
 			return BuildRowNumberPagingQueryPair(columns, tablesAndJoins, where, orderBy, limit, offset);

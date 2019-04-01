@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Data;
 using System.Dynamic;
+using System.Collections.Async;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Mighty.Generic.Tests.SqlServer.TableClasses;
 using NUnit.Framework;
+using System.Threading.Tasks;
 
 namespace Mighty.Generic.Tests.SqlServer
 {
@@ -19,25 +21,24 @@ namespace Mighty.Generic.Tests.SqlServer
 	public class SPTests
 	{
 		[Test]
-		public void QueryFromStoredProcedure()
+		public async Task QueryFromStoredProcedure()
 		{
 			var db = new People();
-			var people = db.QueryFromProcedure("uspGetEmployeeManagers", new { BusinessEntityID = 35 });
+			var people = await db.QueryFromProcedureAsync("uspGetEmployeeManagers", new { BusinessEntityID = 35 });
 			int count = 0;
-			foreach(var person in people)
-			{
+			await people.ForEachAsync(person => {
 				Console.WriteLine(person.FirstName + " " + person.LastName);
 				count++;
-			}
+			});
 			Assert.AreEqual(3, count);
 		}
 
 		[Test]
-		public void SingleRowFromTableValuedFunction()
+		public async Task SingleRowFromTableValuedFunction()
 		{
 			var db = new People();
 			// Accessing table value functions on SQL Server (different syntax from Postgres, for example)
-			var person = db.SingleFromQueryWithParams("SELECT * FROM dbo.ufnGetContactInformation(@PersonID)", new { @PersonID = 35 });
+			var person = await db.SingleFromQueryWithParamsAsync("SELECT * FROM dbo.ufnGetContactInformation(@PersonID)", new { @PersonID = 35 });
 			Assert.AreEqual(typeof(string), person.FirstName.GetType());
 		}
 	}

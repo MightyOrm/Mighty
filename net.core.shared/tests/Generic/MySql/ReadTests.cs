@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Async;
 using System.Collections.Generic;
 using System.Data;
 using System.Dynamic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 using Mighty.Generic.Tests.MySql.TableClasses;
 using NUnit.Framework;
 
@@ -77,47 +79,46 @@ namespace Mighty.Generic.Tests.MySql
 
 
 		[Test]
-		public void All_NoParameters()
+		public async Task All_NoParameters()
 		{
 			var films = new Films(ProviderName);
-			var allRows = films.All().ToList();
+			var allRows = await (await films.AllAsync()).ToListAsync();
 			Assert.AreEqual(1000, allRows.Count);
 		}
 
 
 		[Test]
-		public void All_NoParameters_Streaming()
+		public async Task All_NoParameters_Streaming()
 		{
 			var films = new Films(ProviderName);
-			var allRows = films.All();
+			var allRows = await films.AllAsync();
 			var count = 0;
-			foreach(var r in allRows)
-			{
+			await allRows.ForEachAsync(r => {
 				count++;
 				Assert.Greater(r.film_id, 0);
 				Assert.Greater(r.last_update, DateTime.MinValue);
 				Assert.Greater(r.language_id, 0);
 				Assert.Greater(r.rental_duration, 0);
 				Assert.AreNotEqual(r.description, "");
-			}
+			});
 			Assert.AreEqual(1000, count);
 		}
 
 
 		[Test]
-		public void All_LimitSpecification()
+		public async Task All_LimitSpecification()
 		{
 			var films = new Films(ProviderName);
-			var allRows = films.All(limit: 10).ToList();
+			var allRows = await (await films.AllAsync(limit: 10)).ToListAsync();
 			Assert.AreEqual(10, allRows.Count);
 		}
 
 
 		[Test]
-		public void All_ColumnSpecification()
+		public async Task All_ColumnSpecification()
 		{
 			var films = new Films(ProviderName);
-			var allRows = films.All(columns: "film_id, description, language_id").ToList();
+			var allRows = await (await films.AllAsync(columns: "film_id, description, language_id")).ToListAsync();
 			Assert.AreEqual(1000, allRows.Count);
 			var firstRow = allRows[0];
 			Assert.Greater(firstRow.film_id, 0);
@@ -127,10 +128,10 @@ namespace Mighty.Generic.Tests.MySql
 
 
 		[Test]
-		public void All_OrderBySpecification()
+		public async Task All_OrderBySpecification()
 		{
 			var films = new Films(ProviderName);
-			var allRows = films.All(orderBy: "rental_duration DESC").ToList();
+			var allRows = await (await films.AllAsync(orderBy: "rental_duration DESC")).ToListAsync();
 			Assert.AreEqual(1000, allRows.Count);
 			int previous = int.MaxValue;
 			foreach(var r in allRows)
@@ -143,19 +144,19 @@ namespace Mighty.Generic.Tests.MySql
 
 
 		[Test]
-		public void All_WhereSpecification()
+		public async Task All_WhereSpecification()
 		{
 			var films = new Films(ProviderName);
-			var allRows = films.All(where: "WHERE rental_duration=@0", args: 5).ToList();
+			var allRows = await (await films.AllAsync(where: "WHERE rental_duration=@0", args: 5)).ToListAsync();
 			Assert.AreEqual(191, allRows.Count);
 		}
 
 
 		[Test]
-		public void All_WhereSpecification_OrderBySpecification()
+		public async Task All_WhereSpecification_OrderBySpecification()
 		{
 			var films = new Films(ProviderName);
-			var allRows = films.All(orderBy: "film_id DESC", where: "WHERE rental_duration=@0", args: 5).ToList();
+			var allRows = await (await films.AllAsync(orderBy: "film_id DESC", where: "WHERE rental_duration=@0", args: 5)).ToListAsync();
 			Assert.AreEqual(191, allRows.Count);
 			int previous = int.MaxValue;
 			foreach(var r in allRows)
@@ -168,10 +169,10 @@ namespace Mighty.Generic.Tests.MySql
 
 
 		[Test]
-		public void All_WhereSpecification_ColumnsSpecification()
+		public async Task All_WhereSpecification_ColumnsSpecification()
 		{
 			var films = new Films(ProviderName);
-			var allRows = films.All(columns: "film_id, description, language_id", where: "WHERE rental_duration=@0", args: 5).ToList();
+			var allRows = await (await films.AllAsync(columns: "film_id, description, language_id", where: "WHERE rental_duration=@0", args: 5)).ToListAsync();
 			Assert.AreEqual(191, allRows.Count);
 			var firstRow = allRows[0];
 			Assert.Greater(firstRow.film_id, 0);
@@ -181,10 +182,10 @@ namespace Mighty.Generic.Tests.MySql
 
 
 		[Test]
-		public void All_WhereSpecification_ColumnsSpecification_LimitSpecification()
+		public async Task All_WhereSpecification_ColumnsSpecification_LimitSpecification()
 		{
 			var films = new Films(ProviderName);
-			var allRows = films.All(limit: 2, columns: "film_id, description, language_id", where: "WHERE rental_duration=@0", args: 5).ToList();
+			var allRows = await (await films.AllAsync(limit: 2, columns: "film_id, description, language_id", where: "WHERE rental_duration=@0", args: 5)).ToListAsync();
 			Assert.AreEqual(2, allRows.Count);
 			var firstRow = allRows[0];
 			Assert.Greater(firstRow.film_id, 0);
@@ -241,29 +242,29 @@ namespace Mighty.Generic.Tests.MySql
 
 
 		[Test]
-		public void Query_AllRows()
+		public async Task Query_AllRows()
 		{
 			var films = new Films(ProviderName);
-			var allRows = films.Query("SELECT * FROM sakila.film").ToList();
+			var allRows = await (await films.QueryAsync("SELECT * FROM sakila.film")).ToListAsync();
 			Assert.AreEqual(1000, allRows.Count);
 		}
 
 
 		[Test]
-		public void Query_Filter()
+		public async Task Query_Filter()
 		{
 			var films = new Films(ProviderName);
-			var filteredRows = films.Query("SELECT * FROM sakila.film WHERE rental_duration=@0", 5).ToList();
+			var filteredRows = await (await films.QueryAsync("SELECT * FROM sakila.film WHERE rental_duration=@0", 5)).ToListAsync();
 			Assert.AreEqual(191, filteredRows.Count);
 		}
 
 
 		[Test]
-		public void Paged_NoSpecification()
+		public async Task Paged_NoSpecification()
 		{
 			var films = new Films(ProviderName);
 			// no order by, so in theory this is useless. It will order on PK though
-			var page2 = films.Paged(currentPage: 2, pageSize: 30);
+			var page2 = await films.PagedAsync(currentPage: 2, pageSize: 30);
 			var pageItems = page2.Items.ToList();
 			Assert.AreEqual(30, pageItems.Count);
 			Assert.AreEqual(1000, page2.TotalRecords);
@@ -271,10 +272,10 @@ namespace Mighty.Generic.Tests.MySql
 
 
 		[Test]
-		public void Paged_OrderBySpecification()
+		public async Task Paged_OrderBySpecification()
 		{
 			var films = new Films(ProviderName);
-			var page2 = films.Paged(orderBy: "rental_duration DESC", currentPage: 2, pageSize: 30);
+			var page2 = await films.PagedAsync(orderBy: "rental_duration DESC", currentPage: 2, pageSize: 30);
 			var pageItems = page2.Items.ToList();
 			Assert.AreEqual(30, pageItems.Count);
 			Assert.AreEqual(1000, page2.TotalRecords);
@@ -290,10 +291,10 @@ namespace Mighty.Generic.Tests.MySql
 
 
 		[Test]
-		public void Paged_OrderBySpecification_ColumnsSpecification()
+		public async Task Paged_OrderBySpecification_ColumnsSpecification()
 		{
 			var films = new Films(ProviderName);
-			var page2 = films.Paged(columns: "rental_duration, film_id", orderBy: "rental_duration DESC", currentPage: 2, pageSize: 30);
+			var page2 = await films.PagedAsync(columns: "rental_duration, film_id", orderBy: "rental_duration DESC", currentPage: 2, pageSize: 30);
 			var pageItems = page2.Items.ToList();
 			Assert.AreEqual(30, pageItems.Count);
 			Assert.AreEqual(1000, page2.TotalRecords);
@@ -308,19 +309,19 @@ namespace Mighty.Generic.Tests.MySql
 
 
 		[Test]
-		public void Count_NoSpecification()
+		public async Task Count_NoSpecification()
 		{
 			var films = new Films(ProviderName);
-			var total = films.Count();
+			var total = await films.CountAsync();
 			Assert.AreEqual(1000, total);
 		}
 
 
 		[Test]
-		public void Count_WhereSpecification()
+		public async Task Count_WhereSpecification()
 		{
 			var films = new Films(ProviderName);
-			var total = films.Count(where: "WHERE rental_duration=@0", args: 5);
+			var total = await films.CountAsync(where: "WHERE rental_duration=@0", args: 5);
 			Assert.AreEqual(191, total);
 		}
 

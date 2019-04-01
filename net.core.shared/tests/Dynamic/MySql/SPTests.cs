@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Async;
 using System.Collections.Generic;
 using System.Data;
 using System.Dynamic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 using Mighty.Dynamic.Tests.MySql.TableClasses;
 using NUnit.Framework;
 
@@ -30,10 +32,10 @@ namespace Mighty.Dynamic.Tests.MySql
 
 
 		[Test]
-		public void Procedure_Call()
+		public async Task Procedure_Call()
 		{
 			var db = new SPTestsDatabase(ProviderName);
-			var result = db.ExecuteProcedure("rewards_report_for_date", inParams: new { min_monthly_purchases = 3, min_dollar_amount_purchased = 20, report_date = new DateTime(2005, 5, 1) }, outParams: new { count_rewardees = 0 });
+			var result = await db.ExecuteProcedureAsync("rewards_report_for_date", inParams: new { min_monthly_purchases = 3, min_dollar_amount_purchased = 20, report_date = new DateTime(2005, 5, 1) }, outParams: new { count_rewardees = 0 });
 			Assert.AreEqual(27, result.count_rewardees);
 		}
 
@@ -43,10 +45,10 @@ namespace Mighty.Dynamic.Tests.MySql
 		/// providers return a bool when we expect them to.
 		/// </remarks>
 		[Test]
-		public void Function_Call_Bool()
+		public async Task Function_Call_Bool()
 		{
 			var db = new SPTestsDatabase(ProviderName);
-			var result = db.ExecuteProcedure("inventory_in_stock",
+			var result = await db.ExecuteProcedureAsync("inventory_in_stock",
 											   inParams: new { p_inventory_id = 5 },
 											   returnParams: new { retval = false });
 			Assert.AreEqual(true, result.retval);
@@ -57,10 +59,10 @@ namespace Mighty.Dynamic.Tests.MySql
 		/// Devart doesn't have an unsigned byte type, so has to put 0-255 into a short
 		/// </remarks>
 		[Test]
-		public void Function_Call_Byte()
+		public async Task Function_Call_Byte()
 		{
 			var db = new SPTestsDatabase(ProviderName);
-			var result = db.ExecuteProcedure("inventory_in_stock",
+			var result = await db.ExecuteProcedureAsync("inventory_in_stock",
 											   inParams: new { p_inventory_id = 5 },
 											   returnParams: new { retval = (byte)1 });
 			if(ProviderName == "Devart.Data.MySql")
@@ -80,10 +82,10 @@ namespace Mighty.Dynamic.Tests.MySql
 		/// providers return a signed byte when we expect them to.
 		/// </remarks>
 		[Test]
-		public void Function_Call_SByte()
+		public async Task Function_Call_SByte()
 		{
 			var db = new SPTestsDatabase(ProviderName);
-			var result = db.ExecuteProcedure("inventory_in_stock",
+			var result = await db.ExecuteProcedureAsync("inventory_in_stock",
 											   inParams: new { p_inventory_id = 5 },
 											   returnParams: new { retval = (sbyte)1 });
 			Assert.AreEqual(typeof(sbyte), result.retval.GetType());
@@ -98,7 +100,7 @@ namespace Mighty.Dynamic.Tests.MySql
 		/// Becasue of the ADO.NET driver, results may not be available until all of the values have been read back (REF).
 		/// </summary>
 		[Test]
-		public void Procedure_Call_Query_Plus_Results()
+		public async Task Procedure_Call_Query_Plus_Results()
 		{
 			var db = new SPTestsDatabase(ProviderName);
 
@@ -115,16 +117,15 @@ namespace Mighty.Dynamic.Tests.MySql
 													 },
 													 isProcedure: true);
 
-			var resultset = db.Query(command);
+			var resultset = await db.QueryAsync(command);
 
 			// read the result set
 			int count = 0;
-			foreach(var item in resultset)
-			{
+			await resultset.ForEachAsync(item => {
 				count++;
 				Assert.AreEqual(typeof(string), item.last_name.GetType());
 				Assert.AreEqual(typeof(DateTime), item.create_date.GetType());
-			}
+			});
 
 			var results = db.ResultsAsExpando(command);
 
@@ -136,7 +137,7 @@ namespace Mighty.Dynamic.Tests.MySql
 		// Massive style calls to some examples from https://www.devart.com/dotconnect/mysql/docs/Parameters.html#inoutparams
 		#region Devart Examples
 		[Test]
-		public void In_Out_Params_SQL()
+		public async Task In_Out_Params_SQL()
 		{
 			var _providerName = ProviderName;
 			if(ProviderName == "MySql.Data.MySqlClient")
@@ -147,26 +148,26 @@ namespace Mighty.Dynamic.Tests.MySql
 			var db = new SPTestsDatabase(_providerName);
 			// old skool SQL
 			// this approach only works on the Oracle/MySQL driver if "AllowUserVariables=true" is included in the connection string
-			var result = db.Scalar("CALL testproc_in_out(10, @param2); SELECT @param2");
+			var result = await db.ScalarAsync("CALL testproc_in_out(10, @param2); SELECT @param2");
 			Assert.AreEqual((long)20, result);
 		}
 
 
 		[Test]
-		public void In_Out_Params_SP()
+		public async Task In_Out_Params_SP()
 		{
 			var db = new SPTestsDatabase(ProviderName);
 			// new skool
-			var result = db.ExecuteProcedure("testproc_in_out", inParams: new { param1 = 10 }, outParams: new { param2 = 0 });
+			var result = await db.ExecuteProcedureAsync("testproc_in_out", inParams: new { param1 = 10 }, outParams: new { param2 = 0 });
 			Assert.AreEqual(20, result.param2);
 		}
 
 
 		[Test]
-		public void InOut_Param_SP()
+		public async Task InOut_Param_SP()
 		{
 			var db = new SPTestsDatabase(ProviderName);
-			var result = db.ExecuteProcedure("testproc_inout", ioParams: new { param1 = 10 });
+			var result = await db.ExecuteProcedureAsync("testproc_inout", ioParams: new { param1 = 10 });
 			Assert.AreEqual(20, result.param1);
 		}
 		#endregion

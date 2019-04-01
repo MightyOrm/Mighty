@@ -1,11 +1,13 @@
 ﻿#if !COREFX
 using System;
 using System.Data;
+using System.Collections.Async;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Mighty.Generic.Tests.Oracle.TableClasses;
 using NUnit.Framework;
+using System.Threading.Tasks;
 
 namespace Mighty.Generic.Tests.Oracle
 {
@@ -33,10 +35,10 @@ namespace Mighty.Generic.Tests.Oracle
 
 
 		[Test]
-		public void All_NoParameters()
+		public async Task All_NoParameters()
 		{
 			var depts = new Departments(ProviderName);
-			var allRows = depts.All().ToList();
+			var allRows = await (await depts.AllAsync()).ToListAsync();
 			Assert.AreEqual(60, allRows.Count);
 			foreach(var d in allRows)
 			{
@@ -46,19 +48,19 @@ namespace Mighty.Generic.Tests.Oracle
 
 
 		[Test]
-		public void All_LimitSpecification()
+		public async Task All_LimitSpecification()
 		{
 			var depts = new Departments(ProviderName);
-			var allRows = depts.All(limit: 10).ToList();
+			var allRows = await (await depts.AllAsync(limit: 10)).ToListAsync();
 			Assert.AreEqual(10, allRows.Count);
 		}
 
 
 		[Test]
-		public void All_WhereSpecification_OrderBySpecification()
+		public async Task All_WhereSpecification_OrderBySpecification()
 		{
 			var depts = new Departments(ProviderName);
-			var allRows = depts.All(orderBy: "DEPTNO DESC", where: "WHERE LOC=:0", args: "Nowhere").ToList();
+			var allRows = await (await depts.AllAsync(orderBy: "DEPTNO DESC", where: "WHERE LOC=:0", args: "Nowhere")).ToListAsync();
 			Assert.AreEqual(9, allRows.Count);
 			int previous = int.MaxValue;
 			foreach(var r in allRows)
@@ -71,10 +73,10 @@ namespace Mighty.Generic.Tests.Oracle
 
 
 		[Test]
-		public void All_WhereSpecification_OrderBySpecification_LimitSpecification()
+		public async Task All_WhereSpecification_OrderBySpecification_LimitSpecification()
 		{
 			var depts = new Departments(ProviderName);
-			var allRows = depts.All(limit: 6, orderBy: "DEPTNO DESC", where: "WHERE LOC=:0", args: "Nowhere").ToList();
+			var allRows = await (await depts.AllAsync(limit: 6, orderBy: "DEPTNO DESC", where: "WHERE LOC=:0", args: "Nowhere")).ToListAsync();
 			Assert.AreEqual(6, allRows.Count);
 			int previous = int.MaxValue;
 			foreach(var r in allRows)
@@ -87,11 +89,11 @@ namespace Mighty.Generic.Tests.Oracle
 
 
 		[Test]
-		public void Paged_NoSpecification()
+		public async Task Paged_NoSpecification()
 		{
 			var depts = new Departments(ProviderName);
 			// no order by, so in theory this is useless. It will order on PK though
-			var page2 = depts.Paged(currentPage: 2, pageSize: 10);
+			var page2 = await depts.PagedAsync(currentPage: 2, pageSize: 10);
 			var pageItems = page2.Items.ToList();
 			Assert.AreEqual(10, pageItems.Count);
 			Assert.AreEqual(60, page2.TotalRecords);
@@ -99,10 +101,10 @@ namespace Mighty.Generic.Tests.Oracle
 
 
 		[Test]
-		public void Paged_OrderBySpecification()
+		public async Task Paged_OrderBySpecification()
 		{
 			var depts = new Departments(ProviderName);
-			var page2 = depts.Paged(orderBy: "DEPTNO DESC", currentPage: 2, pageSize: 10);
+			var page2 = await depts.PagedAsync(orderBy: "DEPTNO DESC", currentPage: 2, pageSize: 10);
 			var pageItems = page2.Items.ToList();
 			Assert.AreEqual(10, pageItems.Count);
 			Assert.AreEqual(60, page2.TotalRecords);
@@ -110,7 +112,7 @@ namespace Mighty.Generic.Tests.Oracle
 
 
 		[Test]
-		public void Paged_SqlSpecification()
+		public async Task Paged_SqlSpecification()
 		{
 			// TO DO: Separate tests, with lambdas
 			// Exception on "*" columns
@@ -119,7 +121,7 @@ namespace Mighty.Generic.Tests.Oracle
 			InvalidOperationException ex2 = Assert.Throws<InvalidOperationException>(new TestDelegate(TestPagedNoOrderBy));
 
 			var depts = new Departments(ProviderName);
-			var page2 = depts.PagedFromSelect("EMPNO, ENAME, DNAME", "SCOTT.EMP e INNER JOIN SCOTT.DEPT d ON e.DEPTNO = d.DEPTNO", null, "EMPNO", pageSize: 5, currentPage: 2);
+			var page2 = await depts.PagedFromSelectAsync("EMPNO, ENAME, DNAME", "SCOTT.EMP e INNER JOIN SCOTT.DEPT d ON e.DEPTNO = d.DEPTNO", null, "EMPNO", pageSize: 5, currentPage: 2);
 			var pageItems = page2.Items.ToList();
 			Assert.AreEqual(5, pageItems.Count);
 			Assert.AreEqual(14, page2.TotalRecords);
@@ -127,45 +129,45 @@ namespace Mighty.Generic.Tests.Oracle
 		}
 
 		// These two are called above and are meant to throw exceptions, they should be in separate tests
-		private void TestStarWithJoin()
+		private async void TestStarWithJoin()
 		{
 			var depts = new Departments(ProviderName);
-			var page2 = depts.PagedFromSelect("*", "SCOTT.EMP e INNER JOIN SCOTT.DEPT d ON e.DEPTNO = d.DEPTNO", null, "EMPNO", pageSize: 2, currentPage: 2);
+			var page2 = await depts.PagedFromSelectAsync("*", "SCOTT.EMP e INNER JOIN SCOTT.DEPT d ON e.DEPTNO = d.DEPTNO", null, "EMPNO", pageSize: 2, currentPage: 2);
 			var pageItems = page2.Items.ToList();
 		}
 
 		// These two are called above and are meant to throw exceptions, they should be in separate tests
-		private void TestPagedNoOrderBy()
+		private async void TestPagedNoOrderBy()
 		{
 			var depts = new Departments(ProviderName);
-			var page2 = depts.PagedFromSelect("EMPNO, ENAME, DNAME", "SCOTT.EMP e INNER JOIN SCOTT.DEPT d ON e.DEPTNO = d.DEPTNO", null, null, pageSize: 2, currentPage: 2);
+			var page2 = await depts.PagedFromSelectAsync("EMPNO, ENAME, DNAME", "SCOTT.EMP e INNER JOIN SCOTT.DEPT d ON e.DEPTNO = d.DEPTNO", null, null, pageSize: 2, currentPage: 2);
 			var pageItems = page2.Items.ToList();
 		}
 
 		[Test]
-		public void Insert_SingleRow()
+		public async Task Insert_SingleRow()
 		{
 			var depts = new Departments(ProviderName);
-			var inserted = depts.Insert(new { DNAME = "Massive Dep", LOC = "Beach" });
+			var inserted = await depts.InsertAsync(new { DNAME = "Massive Dep", LOC = "Beach" });
 			Assert.IsTrue(inserted.DEPTNO > 0);
-			Assert.AreEqual(1, depts.Delete(inserted.DEPTNO));
+			Assert.AreEqual(1, await depts.DeleteAsync(inserted.DEPTNO));
 		}
 
 
 		[Test]
-		public void Save_SingleRow()
+		public async Task Save_SingleRow()
 		{
 			var depts = new Departments(ProviderName);
 			dynamic toSave = new { DNAME = "Massive Dep", LOC = "Beach" }.ToExpando();
-			var result = depts.Save(toSave);
+			var result = await depts.SaveAsync(toSave);
 			Assert.AreEqual(1, result);
 			Assert.IsTrue(toSave.DEPTNO > 0);
-			Assert.AreEqual(1, depts.Delete(toSave.DEPTNO));
+			Assert.AreEqual(1, await depts.DeleteAsync(toSave.DEPTNO));
 		}
 
 
 		[Test]
-		public void Save_MultipleRows()
+		public async Task Save_MultipleRows()
 		{
 			var depts = new Departments(ProviderName);
 			object[] toSave = new object[]
@@ -173,7 +175,7 @@ namespace Mighty.Generic.Tests.Oracle
 									   new {DNAME = "Massive Dep", LOC = "Beach"}.ToExpando(),
 									   new {DNAME = "Massive Dep", LOC = "DownTown"}.ToExpando()
 								   };
-			var result = depts.Save(toSave);
+			var result = await depts.SaveAsync(toSave);
 			Assert.AreEqual(2, result);
 			foreach(dynamic o in toSave)
 			{
@@ -181,23 +183,23 @@ namespace Mighty.Generic.Tests.Oracle
 			}
 
 			// read them back, update them, save them again, 
-			var savedDeps = depts.All(where: "WHERE DEPTNO=:0 OR DEPTNO=:1", args: new object[] { ((dynamic)toSave[0]).DEPTNO, ((dynamic)toSave[1]).DEPTNO }).ToList();
+			var savedDeps = await (await depts.AllAsync(where: "WHERE DEPTNO=:0 OR DEPTNO=:1", args: new object[] { ((dynamic)toSave[0]).DEPTNO, ((dynamic)toSave[1]).DEPTNO })).ToListAsync();
 			Assert.AreEqual(2, savedDeps.Count);
 			savedDeps[0].LOC += "C";
 			savedDeps[1].LOC += "C";
-			result = depts.Save(toSave);
+			result = await depts.SaveAsync(toSave);
 			Assert.AreEqual(2, result);
-			Assert.AreEqual(1, depts.Delete(savedDeps[0].DEPTNO));
-			Assert.AreEqual(1, depts.Delete(savedDeps[1].DEPTNO));
+			Assert.AreEqual(1, await depts.DeleteAsync(savedDeps[0].DEPTNO));
+			Assert.AreEqual(1, await depts.DeleteAsync(savedDeps[1].DEPTNO));
 		}
 
 
 		[OneTimeTearDown]
-		public void CleanUp()
+		public async Task CleanUp()
 		{
 			// delete all rows with department name 'Massive Dep'. 
 			var depts = new Departments(ProviderName);
-			depts.Delete("DNAME=:0", "Massive Dep");
+			await depts.DeleteAsync("DNAME=:0", "Massive Dep");
 		}
 	}
 }

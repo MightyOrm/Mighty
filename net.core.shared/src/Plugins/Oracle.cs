@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Async;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Dynamic;
+using System.Threading.Tasks;
 
 namespace Mighty.Plugins
 {
@@ -44,7 +46,7 @@ namespace Mighty.Plugins
 			}
 		}
 
-		override public dynamic BuildPagingQueryPair(string columns, string tablesAndJoins, string where, string orderBy,
+		override public PagingQueryPair BuildPagingQueryPair(string columns, string tablesAndJoins, string where, string orderBy,
 			int limit, int offset)
 		{
 			return BuildRowNumberPagingQueryPair(columns, tablesAndJoins, where, orderBy, limit, offset);
@@ -72,15 +74,14 @@ namespace Mighty.Plugins
 				tableOwner != null ? string.Format(" AND OWNER = {0}", PrefixParameterName("1")) : "");
 		}
 
-		override public IEnumerable<dynamic> PostProcessTableMetaData(IEnumerable<dynamic> rawTableMetaData)
+		override public async Task<IEnumerable<dynamic>> PostProcessTableMetaDataAsync(IAsyncEnumerable<dynamic> rawTableMetaData)
 		{
 			List<dynamic> results = new List<object>();
-			foreach (dynamic columnInfo in rawTableMetaData)
-			{
+			await rawTableMetaData.ForEachAsync(columnInfo => {
 				columnInfo.NUMERIC_SCALE = columnInfo.DATA_SCALE;
 				columnInfo.COLUMN_DEFAULT = columnInfo.DATA_DEFAULT;
 				results.Add(columnInfo);
-			}
+			});
 			return results;
 		}
 		#endregion

@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Async;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Mighty.Generic.Tests.PostgreSql.TableClasses;
 using NUnit.Framework;
 
@@ -18,10 +20,10 @@ namespace Mighty.Generic.Tests.PostgreSql
 	public class ReadWriteTests
     {
 		[Test]
-		public void All_NoParameters()
+		public async Task All_NoParameters()
 		{
 			var customers = new Customers();
-			var allRows = customers.All().ToList();
+			var allRows = await (await customers.AllAsync()).ToListAsync();
 			Assert.AreEqual(91, allRows.Count);
 			foreach(var c in allRows)
 			{
@@ -30,19 +32,19 @@ namespace Mighty.Generic.Tests.PostgreSql
 		}
 
 		[Test]
-		public void All_LimitSpecification()
+		public async Task All_LimitSpecification()
 		{
 			var customers = new Customers();
-			var allRows = customers.All(limit: 10).ToList();
+			var allRows = await (await customers.AllAsync(limit: 10)).ToListAsync();
 			Assert.AreEqual(10, allRows.Count);
 		}
 
 
 		[Test]
-		public void All_WhereSpecification_OrderBySpecification()
+		public async Task All_WhereSpecification_OrderBySpecification()
 		{
 			var customers = new Customers();
-			var allRows = customers.All(orderBy: "companyname DESC", where: "WHERE country=:0", args: "USA").ToList();
+			var allRows = await (await customers.AllAsync(orderBy: "companyname DESC", where: "WHERE country=:0", args: "USA")).ToListAsync();
 			Assert.AreEqual(13, allRows.Count);
 			string previous = string.Empty;
 			foreach(var r in allRows)
@@ -55,10 +57,10 @@ namespace Mighty.Generic.Tests.PostgreSql
 
 
 		[Test]
-		public void All_WhereSpecification_OrderBySpecification_LimitSpecification()
+		public async Task All_WhereSpecification_OrderBySpecification_LimitSpecification()
 		{
 			var customers = new Customers();
-			var allRows = customers.All(limit: 6, orderBy: "companyname DESC", where: "WHERE country=:0", args: "USA").ToList();
+			var allRows = await (await customers.AllAsync(limit: 6, orderBy: "companyname DESC", where: "WHERE country=:0", args: "USA")).ToListAsync();
 			Assert.AreEqual(6, allRows.Count);
 			string previous = string.Empty;
 			foreach(var r in allRows)
@@ -71,11 +73,11 @@ namespace Mighty.Generic.Tests.PostgreSql
 
 
 		[Test]
-		public void Paged_NoSpecification()
+		public async Task Paged_NoSpecification()
 		{
 			var customers = new Customers();
 			// no order by, so in theory this is useless. It will order on PK though
-			var page2 = customers.Paged(currentPage: 2, pageSize: 10);
+			var page2 = await customers.PagedAsync(currentPage: 2, pageSize: 10);
 			var pageItems = page2.Items.ToList();
 			Assert.AreEqual(10, pageItems.Count);
 			Assert.AreEqual(91, page2.TotalRecords);
@@ -83,10 +85,10 @@ namespace Mighty.Generic.Tests.PostgreSql
 
 
 		[Test]
-		public void Paged_OrderBySpecification()
+		public async Task Paged_OrderBySpecification()
 		{
 			var customers = new Customers();
-			var page2 = customers.Paged(orderBy: "companyname DESC", currentPage: 2, pageSize: 10);
+			var page2 = await customers.PagedAsync(orderBy: "companyname DESC", currentPage: 2, pageSize: 10);
 			var pageItems = page2.Items.ToList();
 			Assert.AreEqual(10, pageItems.Count);
 			Assert.AreEqual(91, page2.TotalRecords);
@@ -94,20 +96,20 @@ namespace Mighty.Generic.Tests.PostgreSql
 
 
 		[Test]
-		public void Insert_SingleRow()
+		public async Task Insert_SingleRow()
 		{
 			var products = new Products();
-			var inserted = products.Insert(new { productname = "Massive Product" });
+			var inserted = await products.InsertAsync(new { productname = "Massive Product" });
 			Assert.IsTrue(inserted.productid > 0);
 		}
 
 
 		[OneTimeTearDown]
-		public void CleanUp()
+		public async Task CleanUp()
 		{
 			// delete all rows with ProductName 'Massive Product'. 
 			var products = new Products();
-			products.Delete("productname=:0", "Massive Product");
+			await products.DeleteAsync("productname=:0", "Massive Product");
 		}
 	}
 }

@@ -2,8 +2,10 @@ using System;
 using System.Data;
 using System.Data.Common;
 using System.Dynamic;
+using System.Collections.Async;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 using Mighty.Npgsql;
 
@@ -32,7 +34,7 @@ namespace Mighty.Plugins
 			return BuildLimitSelect(columns, tableName, where, orderBy, limit);
 		}
 
-		override public dynamic BuildPagingQueryPair(string columns, string tablesAndJoins, string where, string orderBy,
+		override public PagingQueryPair BuildPagingQueryPair(string columns, string tablesAndJoins, string where, string orderBy,
 			int limit, int offset)
 		{
 			return BuildLimitOffsetPagingQueryPair(columns, tablesAndJoins, where, orderBy, limit, offset);
@@ -40,11 +42,10 @@ namespace Mighty.Plugins
 		#endregion
 
 		#region Table info
-		override public IEnumerable<dynamic> PostProcessTableMetaData(IEnumerable<dynamic> rawTableMetaData)
+		override public async Task<IEnumerable<dynamic>> PostProcessTableMetaDataAsync(IAsyncEnumerable<dynamic> rawTableMetaData)
 		{
 			List<dynamic> results = new List<object>();
-			foreach (ExpandoObject columnInfo in rawTableMetaData)
-			{
+			await rawTableMetaData.ForEachAsync(columnInfo => {
 				var newInfo = new ExpandoObject();
 				var dict = newInfo.ToDictionary();
 				foreach (var pair in columnInfo)
@@ -52,7 +53,7 @@ namespace Mighty.Plugins
 					dict.Add(pair.Key.ToUpperInvariant(), pair.Value);
 				}
 				results.Add(newInfo);
-			}
+			});
 			return results;
 		}
 		#endregion
@@ -116,12 +117,12 @@ namespace Mighty.Plugins
 		/// https://github.com/npgsql/npgsql/issues/438
 		/// http://stackoverflow.com/questions/42292341/
 		/// </remarks>
-		override public DbDataReader ExecuteDereferencingReader(DbCommand cmd, CommandBehavior behavior, DbConnection Connection)
+		override public async Task<DbDataReader> ExecuteDereferencingReaderAsync(DbCommand cmd, CommandBehavior behavior, DbConnection Connection)
 		{
 			// We can never restrict the parent read to do LESS than the hint provided - because we might
 			// not be dereferencing it, but just using it; but we can always restrict to the hint provided,
 			// because the first cursor (if any) MUST always be in the first row of the first result.
-			var reader = cmd.ExecuteReader(behavior); // var reader = Execute(behavior);
+			var reader = await cmd.ExecuteReaderAsync(behavior).ConfigureAwait(false); // var reader = Execute(behavior);
 
 			// Remarks: Do not consider dereferencing if no returned columns are cursors, but if just some are cursors then follow the pre-existing convention set by
 			// the Oracle drivers and dereference what we can. The rest of the pattern is that we only ever try to dereference on Query and Scalar, never on Execute.

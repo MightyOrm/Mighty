@@ -1,11 +1,13 @@
 ﻿using System;
 using System.Collections;
+using System.Collections.Async;
 using System.Collections.Generic;
 using System.Data;
 using System.Dynamic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 using Mighty.Generic.Tests.SqlServer.TableClasses;
 using NUnit.Framework;
 
@@ -13,7 +15,7 @@ namespace Mighty.Generic.Tests.SqlServer
 {
 	[TestFixture]
 	public class ReadTests
-    {
+	{
 		[Test]
 		public void MaxOnFilteredSet()
 		{
@@ -53,23 +55,22 @@ namespace Mighty.Generic.Tests.SqlServer
 
 
 		[Test]
-		public void All_NoParameters()
+		public async Task All_NoParameters()
 		{
 			var soh = new SalesOrderHeaders();
-			var allRows = soh.All().ToList();
+			var allRows = await (await soh.AllAsync()).ToListAsync();
 			Assert.AreEqual(31465, allRows.Count);
 		}
 
 
 		[Test]
-		public void All_NoParameters_Streaming()
+		public async Task All_NoParameters_Streaming()
 		{
 			var soh = new SalesOrderHeaders();
-			var allRows = soh.All();
+			var allRows = await soh.AllAsync();
 			var count = 0;
 			int nonZeroSalesPersonID = 0;
-			foreach (var r in allRows)
-			{
+			await allRows.ForEachAsync(r => {
 				count++;
 				Assert.Greater(r.SalesOrderID, 0);
 				if (r.SalesPersonID > 0)
@@ -83,26 +84,26 @@ namespace Mighty.Generic.Tests.SqlServer
 				}
 				Assert.Greater(r.CustomerID, 0);
 				Assert.Greater(r.Status, 0);
-			}
+			});
 			Assert.AreEqual(31465, count);
 			Assert.AreEqual(3806, nonZeroSalesPersonID);
 		}
 
 
 		[Test]
-		public void All_LimitSpecification()
+		public async Task All_LimitSpecification()
 		{
 			var soh = new SalesOrderHeaders();
-			var allRows = soh.All(limit: 10).ToList();
+			var allRows = await (await soh.AllAsync(limit: 10)).ToListAsync();
 			Assert.AreEqual(10, allRows.Count);
 		}
 		
 
 		[Test]
-		public void All_ColumnSpecification()
+		public async Task All_ColumnSpecification()
 		{
 			var soh = new SalesOrderHeaders();
-			var allRows = soh.All(columns: "SalesOrderID, Status, SalesPersonID").ToList();
+			var allRows = await (await soh.AllAsync(columns: "SalesOrderID, Status, SalesPersonID")).ToListAsync();
 			Assert.AreEqual(31465, allRows.Count);
 			var firstRow = allRows[0];
 			Assert.Greater(firstRow.SalesOrderID, 0);
@@ -112,10 +113,10 @@ namespace Mighty.Generic.Tests.SqlServer
 
 
 		[Test]
-		public void All_OrderBySpecification()
+		public async Task All_OrderBySpecification()
 		{
 			var soh = new SalesOrderHeaders();
-			var allRows = soh.All(orderBy: "CustomerID DESC").ToList();
+			var allRows = await (await soh.AllAsync(orderBy: "CustomerID DESC")).ToListAsync();
 			Assert.AreEqual(31465, allRows.Count);
 			int previous = int.MaxValue;
 			foreach(var r in allRows)
@@ -128,19 +129,19 @@ namespace Mighty.Generic.Tests.SqlServer
 
 
 		[Test]
-		public void All_WhereSpecification()
+		public async Task All_WhereSpecification()
 		{
 			var soh = new SalesOrderHeaders();
-			var allRows = soh.All(where: "WHERE CustomerId=@0", args: 30052).ToList();
+			var allRows = await (await soh.AllAsync(where: "WHERE CustomerId=@0", args: 30052)).ToListAsync();
 			Assert.AreEqual(4, allRows.Count);
 		}
 
 
 		[Test]
-		public void All_WhereSpecification_OrderBySpecification()
+		public async Task All_WhereSpecification_OrderBySpecification()
 		{
 			var soh = new SalesOrderHeaders();
-			var allRows = soh.All(orderBy: "SalesOrderID DESC", where: "WHERE CustomerId=@0", args: 30052).ToList();
+			var allRows = await (await soh.AllAsync(orderBy: "SalesOrderID DESC", where: "WHERE CustomerId=@0", args: 30052)).ToListAsync();
 			Assert.AreEqual(4, allRows.Count);
 			int previous = int.MaxValue;
 			foreach(var r in allRows)
@@ -153,13 +154,12 @@ namespace Mighty.Generic.Tests.SqlServer
 		
 
 		[Test]
-		public void All_WhereSpecification_ColumnsSpecification()
+		public async Task All_WhereSpecification_ColumnsSpecification()
 		{
 			var soh = new SalesOrderHeaders();
-			var allRows = soh.All(columns: "SalesOrderID, Status, SalesPersonID", where: "WHERE CustomerId=@0", args: 30052);
+			var allRows = await soh.AllAsync(columns: "SalesOrderID, Status, SalesPersonID", where: "WHERE CustomerId=@0", args: 30052);
 			int count = 0;
-			foreach (var item in allRows)
-			{
+			await allRows.ForEachAsync(item => {
 				Assert.Greater(item.SalesOrderID, 0);
 				Assert.Greater(item.Status, 0);
 				Assert.Greater(item.SalesPersonID, 0);
@@ -167,16 +167,16 @@ namespace Mighty.Generic.Tests.SqlServer
 				Assert.AreEqual(item.CustomerID, 0);
 				Assert.Null(item.PurchaseOrderNumber);
 				count++;
-			}
+			});
 			Assert.AreEqual(4, count);
 		}
 
 
 		[Test]
-		public void All_WhereSpecification_ColumnsSpecification_LimitSpecification()
+		public async Task All_WhereSpecification_ColumnsSpecification_LimitSpecification()
 		{
 			var soh = new SalesOrderHeaders();
-			var allRows = soh.All(limit: 2, columns: "SalesOrderID, Status, SalesPersonID", where: "WHERE CustomerId=@0", args: 30052).ToList();
+			var allRows = await (await soh.AllAsync(limit: 2, columns: "SalesOrderID, Status, SalesPersonID", where: "WHERE CustomerId=@0", args: 30052)).ToListAsync();
 			int count = 0;
 			foreach (var item in allRows)
 			{
@@ -257,29 +257,29 @@ namespace Mighty.Generic.Tests.SqlServer
 
 
 		[Test]
-		public void Query_AllRows()
+		public async Task Query_AllRows()
 		{
 			var soh = new SalesOrderHeaders();
-			var allRows = soh.Query("SELECT * FROM Sales.SalesOrderHeader").ToList();
+			var allRows = await (await soh.QueryAsync("SELECT * FROM Sales.SalesOrderHeader")).ToListAsync();
 			Assert.AreEqual(31465, allRows.Count);
 		}
 
 
 		[Test]
-		public void Query_Filter()
+		public async Task Query_Filter()
 		{
 			var soh = new SalesOrderHeaders();
-			var filteredRows = soh.Query("SELECT * FROM Sales.SalesOrderHeader WHERE CustomerID=@0", 30052).ToList();
+			var filteredRows = await (await soh.QueryAsync("SELECT * FROM Sales.SalesOrderHeader WHERE CustomerID=@0", 30052)).ToListAsync();
 			Assert.AreEqual(4, filteredRows.Count);
 		}
 
 
 		[Test]
-		public void Paged_NoSpecification()
+		public async Task Paged_NoSpecification()
 		{
 			var soh = new SalesOrderHeaders();
 			// no order by, so in theory this is useless. It will order on PK though
-			var page2 = soh.Paged(currentPage:2, pageSize: 30);
+			var page2 = await soh.PagedAsync(currentPage:2, pageSize: 30);
 			var pageItems = page2.Items.ToList();
 			Assert.AreEqual(30, pageItems.Count);
 			Assert.AreEqual(31465, page2.TotalRecords);
@@ -287,10 +287,10 @@ namespace Mighty.Generic.Tests.SqlServer
 
 
 		[Test]
-		public void Paged_OrderBySpecification()
+		public async Task Paged_OrderBySpecification()
 		{
 			var soh = new SalesOrderHeaders();
-			var page2 = soh.Paged(orderBy: "CustomerID DESC", currentPage: 2, pageSize: 30);
+			var page2 = await soh.PagedAsync(orderBy: "CustomerID DESC", currentPage: 2, pageSize: 30);
 			var pageItems = page2.Items.ToList();
 			Assert.AreEqual(30, pageItems.Count);
 			Assert.AreEqual(31465, page2.TotalRecords);
@@ -306,10 +306,10 @@ namespace Mighty.Generic.Tests.SqlServer
 
 
 		[Test]
-		public void Paged_OrderBySpecification_ColumnsSpecification()
+		public async Task Paged_OrderBySpecification_ColumnsSpecification()
 		{
 			var soh = new SalesOrderHeaders();
-			var page2 = soh.Paged(columns: "CustomerID, SalesOrderID", orderBy: "CustomerID DESC", currentPage: 2, pageSize: 30);
+			var page2 = await soh.PagedAsync(columns: "CustomerID, SalesOrderID", orderBy: "CustomerID DESC", currentPage: 2, pageSize: 30);
 			var pageItems = page2.Items.ToList();
 			Assert.AreEqual(30, pageItems.Count);
 			Assert.AreEqual(31465, page2.TotalRecords);
@@ -324,19 +324,19 @@ namespace Mighty.Generic.Tests.SqlServer
 
 
 		[Test]
-		public void Count_NoSpecification()
+		public async Task Count_NoSpecification()
 		{
 			var soh = new SalesOrderHeaders();
-			var total = soh.Count();
+			var total = await soh.CountAsync();
 			Assert.AreEqual(31465, total);
 		}
 
 
 		[Test]
-		public void Count_WhereSpecification_FromArgs()
+		public async Task Count_WhereSpecification_FromArgs()
 		{
 			var soh = new SalesOrderHeaders();
-			var total = soh.Count(where: "WHERE CustomerId=@0", args:11212);
+			var total = await soh.CountAsync(where: "WHERE CustomerId=@0", args:11212);
 			Assert.AreEqual(17, total);
 		}
 

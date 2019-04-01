@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Async;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
 using NUnit.Framework;
 using Mighty.Generic.Tests.Sqlite.TableClasses;
+using System.Threading.Tasks;
 
 namespace Mighty.Generic.Tests.Sqlite
 {
@@ -16,12 +18,12 @@ namespace Mighty.Generic.Tests.Sqlite
 	/// Writes are done on Playlist, reads on other tables.</remarks>
 	[TestFixture]
 	public class ReadWriteTests
-    {
+	{
 		[Test]
-		public void All_NoParameters()
+		public async Task All_NoParameters()
 		{
 			var albums = new Albums();
-			var allRows = albums.All().ToList();
+			var allRows = await (await albums.AllAsync()).ToListAsync();
 			Assert.AreEqual(347, allRows.Count);
 			foreach(var a in allRows)
 			{
@@ -30,19 +32,19 @@ namespace Mighty.Generic.Tests.Sqlite
 		}
 
 		[Test]
-		public void All_LimitSpecification()
+		public async Task All_LimitSpecification()
 		{
 			var albums = new Albums();
-			var allRows = albums.All(limit: 10).ToList();
+			var allRows = await (await albums.AllAsync(limit: 10)).ToListAsync();
 			Assert.AreEqual(10, allRows.Count);
 		}
 
 
 		[Test]
-		public void All_WhereSpecification_OrderBySpecification()
+		public async Task All_WhereSpecification_OrderBySpecification()
 		{
 			var albums = new Albums();
-			var allRows = albums.All(orderBy: "Title DESC", where: "WHERE ArtistId=@0", args: 90).ToList();
+			var allRows = await (await albums.AllAsync(orderBy: "Title DESC", where: "WHERE ArtistId=@0", args: 90)).ToListAsync();
 			Assert.AreEqual(21, allRows.Count);
 			string previous = string.Empty;
 			foreach(var r in allRows)
@@ -55,10 +57,10 @@ namespace Mighty.Generic.Tests.Sqlite
 
 
 		[Test]
-		public void All_WhereSpecification_OrderBySpecification_LimitSpecification()
+		public async Task All_WhereSpecification_OrderBySpecification_LimitSpecification()
 		{
 			var albums = new Albums();
-			var allRows = albums.All(limit: 6, orderBy: "Title DESC", where: "ArtistId=@0", args: 90).ToList();
+			var allRows = await (await albums.AllAsync(limit: 6, orderBy: "Title DESC", where: "ArtistId=@0", args: 90)).ToListAsync();
 			Assert.AreEqual(6, allRows.Count);
 			string previous = string.Empty;
 			foreach(var r in allRows)
@@ -71,11 +73,11 @@ namespace Mighty.Generic.Tests.Sqlite
 
 
 		[Test]
-		public void Paged_NoSpecification()
+		public async Task Paged_NoSpecification()
 		{
 			var albums = new Albums();
 			// no order by, so in theory this is useless. It will order on PK though
-			var page2 = albums.Paged(currentPage: 3, pageSize: 13);
+			var page2 = await albums.PagedAsync(currentPage: 3, pageSize: 13);
 			var pageItems = page2.Items.ToList();
 			Assert.AreEqual(13, pageItems.Count);
 			Assert.AreEqual(27, pageItems[0].AlbumId);
@@ -84,10 +86,10 @@ namespace Mighty.Generic.Tests.Sqlite
 
 
 		[Test]
-		public void Paged_OrderBySpecification()
+		public async Task Paged_OrderBySpecification()
 		{
 			var albums = new Albums();
-			var page2 = albums.Paged(orderBy: "Title DESC", currentPage: 3, pageSize: 13);
+			var page2 = await albums.PagedAsync(orderBy: "Title DESC", currentPage: 3, pageSize: 13);
 			var pageItems = page2.Items.ToList();
 			Assert.AreEqual(13, pageItems.Count);
 			Assert.AreEqual(174, pageItems[0].AlbumId);
@@ -96,20 +98,20 @@ namespace Mighty.Generic.Tests.Sqlite
 
 
 		[Test]
-		public void Insert_SingleRow()
+		public async Task Insert_SingleRow()
 		{
 			var playlists = new Playlists();
-			var inserted = playlists.Insert(new { Name = "MassivePlaylist" });
+			var inserted = await playlists.InsertAsync(new { Name = "MassivePlaylist" });
 			Assert.IsTrue(inserted.PlaylistId > 0);
 		}
 
 
 		[OneTimeTearDown]
-		public void CleanUp()
+		public async Task CleanUp()
 		{
 			// delete all rows with ProductName 'Massive Product'. 
 			var playlists = new Playlists();
-			playlists.Delete("Name=@0", "MassivePlaylist");
+			await playlists.DeleteAsync("Name=@0", "MassivePlaylist");
 		}
 	}
 }

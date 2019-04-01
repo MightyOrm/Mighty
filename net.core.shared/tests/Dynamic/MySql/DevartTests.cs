@@ -7,6 +7,7 @@ using System.Dynamic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading.Tasks;
 using Mighty.Dynamic.Tests.MySql.TableClasses;
 using NUnit.Framework;
 
@@ -25,15 +26,15 @@ namespace Mighty.Dynamic.Tests.MySql
 		/// although it pretty much stops looking much like Massive when used like this.
 		/// </remarks>
 		[Test]
-		public void Devart_ParameterCheck()
+		public async Task Devart_ParameterCheck()
 		{
 			var db = new SPTestsDatabase(ProviderName);
-			var connection = db.OpenConnection();
+			var connection = await db.OpenConnectionAsync();
 			var command = db.CreateCommandWithParams("testproc_in_out", isProcedure: true, connection: connection);
 			((dynamic)command).ParameterCheck = true; // dynamic trick to set the underlying property
 			command.Prepare(); // makes a round-trip to the database
 			command.Parameters["param1"].Value = 10;
-			db.Execute(command);
+			await db.ExecuteAsync(command);
 			var result = db.ResultsAsExpando(command);
 			Assert.AreEqual(20, result.param2);
 		}

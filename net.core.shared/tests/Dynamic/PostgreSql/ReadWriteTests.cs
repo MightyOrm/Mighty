@@ -1,8 +1,10 @@
 ﻿using System;
+using System.Collections.Async;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using Mighty.Dynamic.Tests.PostgreSql.TableClasses;
 using NUnit.Framework;
 
@@ -18,23 +20,23 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 	public class ReadWriteTests
     {
 		[Test]
-		public void Guid_Arg()
+		public async Task Guid_Arg()
 		{
 			// PostgreSQL has true Guid type support
 			var db = new MightyOrm(TestConstants.ReadWriteTestConnection);
 			var guid = Guid.NewGuid();
 			var command = db.CreateCommand("SELECT @0 AS val", null, guid);
 			Assert.AreEqual(DbType.Guid, command.Parameters[0].DbType);
-			var item = db.Single(command);
+			var item = await db.SingleAsync(command);
 			Assert.AreEqual(guid, item.val);
 		}
 
 
 		[Test]
-		public void All_NoParameters()
+		public async Task All_NoParameters()
 		{
 			var customers = new Customer();
-			var allRows = customers.All().ToList();
+			var allRows = await (await customers.AllAsync()).ToListAsync();
 			Assert.AreEqual(91, allRows.Count);
 			foreach(var c in allRows)
 			{
@@ -43,21 +45,21 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 		}
 
 		[Test]
-		public void All_LimitSpecification()
+		public async Task All_LimitSpecification()
 		{
             // TO DO: When the DB user does not exist, this is throwing the wrong exception
             // (even though ONE of those thrown while running is the user does not exist exception)
 			var customers = new Customer();
-			var allRows = customers.All(limit: 10).ToList();
+			var allRows = await (await customers.AllAsync(limit: 10)).ToListAsync();
 			Assert.AreEqual(10, allRows.Count);
 		}
 
 
 		[Test]
-		public void All_WhereSpecification_OrderBySpecification()
+		public async Task All_WhereSpecification_OrderBySpecification()
 		{
 			var customers = new Customer();
-			var allRows = customers.All(orderBy: "companyname DESC", where: "WHERE country=:0", args: "USA").ToList();
+			var allRows = await (await customers.AllAsync(orderBy: "companyname DESC", where: "WHERE country=:0", args: "USA")).ToListAsync();
 			Assert.AreEqual(13, allRows.Count);
 			string previous = string.Empty;
 			foreach(var r in allRows)
@@ -70,10 +72,10 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 
 
 		[Test]
-		public void All_WhereSpecification_OrderBySpecification_LimitSpecification()
+		public async Task All_WhereSpecification_OrderBySpecification_LimitSpecification()
 		{
 			var customers = new Customer();
-			var allRows = customers.All(limit: 6, orderBy: "companyname DESC", where: "WHERE country=:0", args: "USA").ToList();
+			var allRows = await (await customers.AllAsync(limit: 6, orderBy: "companyname DESC", where: "WHERE country=:0", args: "USA")).ToListAsync();
 			Assert.AreEqual(6, allRows.Count);
 			string previous = string.Empty;
 			foreach(var r in allRows)
@@ -86,11 +88,11 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 
 
 		[Test]
-		public void Paged_NoSpecification()
+		public async Task Paged_NoSpecification()
 		{
 			var customers = new Customer();
 			// no order by, so in theory this is useless. It will order on PK though
-			var page2 = customers.Paged(currentPage: 2, pageSize: 10);
+			var page2 = await customers.PagedAsync(currentPage: 2, pageSize: 10);
 			var pageItems = ((IEnumerable<dynamic>)page2.Items).ToList();
 			Assert.AreEqual(10, pageItems.Count);
 			Assert.AreEqual(91, page2.TotalRecords);
@@ -98,10 +100,10 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 
 
 		[Test]
-		public void Paged_OrderBySpecification()
+		public async Task Paged_OrderBySpecification()
 		{
 			var customers = new Customer();
-			var page2 = customers.Paged(orderBy: "companyname DESC", currentPage: 2, pageSize: 10);
+			var page2 = await customers.PagedAsync(orderBy: "companyname DESC", currentPage: 2, pageSize: 10);
 			var pageItems = ((IEnumerable<dynamic>)page2.Items).ToList();
 			Assert.AreEqual(10, pageItems.Count);
 			Assert.AreEqual(91, page2.TotalRecords);
@@ -109,20 +111,20 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 
 
 		[Test]
-		public void Insert_SingleRow()
+		public async Task Insert_SingleRow()
 		{
 			var products = new Product();
-			var inserted = products.Insert(new { productname = "Massive Product" });
+			var inserted = await products.InsertAsync(new { productname = "Massive Product" });
 			Assert.IsTrue(inserted.productid > 0);
 		}
 
 
 		[OneTimeTearDown]
-		public void CleanUp()
+		public async Task CleanUp()
 		{
 			// delete all rows with ProductName 'Massive Product'. 
 			var products = new Product();
-			products.Delete("productname=:0", "Massive Product");
+			await products.DeleteAsync("productname=:0", "Massive Product");
 		}
 	}
 }

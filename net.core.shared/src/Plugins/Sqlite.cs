@@ -1,7 +1,9 @@
 using System;
 using System.Data.Common;
 using System.Dynamic;
+using System.Collections.Async;
 using System.Collections.Generic;
+using System.Threading.Tasks;
 
 namespace Mighty.Plugins
 {
@@ -31,7 +33,7 @@ namespace Mighty.Plugins
 			return BuildLimitSelect(columns, tableName, where, orderBy, limit);
 		}
 
-		override public dynamic BuildPagingQueryPair(string columns, string tablesAndJoins, string where, string orderBy,
+		override public PagingQueryPair BuildPagingQueryPair(string columns, string tablesAndJoins, string where, string orderBy,
 			int limit, int offset)
 		{
 			return BuildLimitOffsetPagingQueryPair(columns, tablesAndJoins, where, orderBy, limit, offset);
@@ -45,16 +47,15 @@ namespace Mighty.Plugins
 			return string.Format("PRAGMA {1}table_info({0})", tableName, tableOwner != null ? string.Format("{0}.", tableOwner) : "");
 		}
 
-		override public IEnumerable<dynamic> PostProcessTableMetaData(IEnumerable<dynamic> rawTableMetaData)
+		override public async Task<IEnumerable<dynamic>> PostProcessTableMetaDataAsync(IAsyncEnumerable<dynamic> rawTableMetaData)
 		{
 			var results = new List<dynamic>();
-			foreach (dynamic row in rawTableMetaData)
-			{
+			await rawTableMetaData.ForEachAsync(row => {
 				row.COLUMN_NAME = row.name;
 				row.DATA_TYPE = row.type;
 				row.COLUMN_DEFAULT = row.dflt_value;
 				results.Add(row);
-			}
+			});
 			return results;
 		}
 		#endregion

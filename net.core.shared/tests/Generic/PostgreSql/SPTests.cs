@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Data;
 using System.Dynamic;
+using System.Collections.Async;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -9,6 +10,7 @@ using System.Transactions;
 #endif
 using Mighty.Generic.Tests.PostgreSql.TableClasses;
 using NUnit.Framework;
+using System.Threading.Tasks;
 
 namespace Mighty.Generic.Tests.PostgreSql
 {
@@ -23,25 +25,24 @@ namespace Mighty.Generic.Tests.PostgreSql
 	public class SPTests
 	{
 		[Test]
-		public void DereferenceCursorOutputParameter()
+		public async Task DereferenceCursorOutputParameter()
 		{
 			var db = new Employees();
 			// Unlike the Oracle data access layer, Npgsql v3 does not dereference cursor parameters.
 			// We have added back the support for this which was previously in Npgsql v2.
-			var employees = db.QueryFromProcedure("cursor_employees", outParams: new { refcursor = new Cursor() });
+			var employees = await db.QueryFromProcedureAsync("cursor_employees", outParams: new { refcursor = new Cursor() });
 			int count = 0;
-			foreach(var employee in employees)
-			{
+			await employees.ForEachAsync(employee => {
 				Console.WriteLine(employee.firstname + " " + employee.lastname);
 				count++;
-			}
+			});
 			Assert.AreEqual(9, count);
 		}
 
 
 #if !COREFX
 		[Test]
-		public void DereferenceFromQuery_ManualWrapping()
+		public async Task DereferenceFromQuery_ManualWrapping()
 		{
 			var db = new Employees();
 			// without a cursor param, nothing will trigger the wrapping transaction support in Massive
@@ -50,12 +51,11 @@ namespace Mighty.Generic.Tests.PostgreSql
 			int count = 0;
 			using(var scope = new TransactionScope())
 			{
-				var employees = db.Query("SELECT * FROM cursor_employees()");
-				foreach(var employee in employees)
-				{
+				var employees = await db.QueryAsync("SELECT * FROM cursor_employees()");
+				await employees.ForEachAsync(employee => {
 					Console.WriteLine(employee.firstname + " " + employee.lastname);
 					count++;
-				}
+				});
 				scope.Complete();
 			}
 			Assert.AreEqual(9, count);
@@ -63,17 +63,16 @@ namespace Mighty.Generic.Tests.PostgreSql
 #endif
 
 		[Test]
-		public void DereferenceFromQuery_AutoWrapping()
+		public async Task DereferenceFromQuery_AutoWrapping()
 		{
 			var db = new Employees();
 			// use dummy cursor to trigger wrapping transaction support in Massive
-			var employees = db.QueryWithParams("SELECT * FROM cursor_employees()", outParams: new { abc = new Cursor() });
+			var employees = await db.QueryWithParamsAsync("SELECT * FROM cursor_employees()", outParams: new { abc = new Cursor() });
 			int count = 0;
-			foreach(var employee in employees)
-			{
+			await employees.ForEachAsync(employee => {
 				Console.WriteLine(employee.firstname + " " + employee.lastname);
 				count++;
-			}
+			});
 			Assert.AreEqual(9, count);
 		}
 	}

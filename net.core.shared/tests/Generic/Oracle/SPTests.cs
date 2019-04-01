@@ -1,11 +1,13 @@
 ﻿#if !COREFX
 using System;
 using System.Data;
+using System.Collections.Async;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using Mighty.Generic.Tests.Oracle.TableClasses;
 using NUnit.Framework;
+using System.Threading.Tasks;
 
 namespace Mighty.Generic.Tests.Oracle
 {
@@ -39,53 +41,51 @@ namespace Mighty.Generic.Tests.Oracle
 
 
 		[Test]
-		public void NormalWhereCall()
+		public async Task NormalWhereCall()
 		{
 			// Check that things are up and running normally before trying the new stuff
 			var db = new Departments(ProviderName);
-			var rows = db.All(where: "LOC = :0", args: "Nowhere");
-			Assert.AreEqual(9, rows.ToList().Count);
+			var rows = await db.AllAsync(where: "LOC = :0", args: "Nowhere");
+			Assert.AreEqual(9, (await rows.ToListAsync()).Count);
 		}
 
 
 		[Test]
-		public void SingleRowFromTableValuedFunction()
+		public async Task SingleRowFromTableValuedFunction()
 		{
 			var db = new Employees(ProviderName);
-			var record = db.SingleFromQueryWithParams("SELECT * FROM table(GET_EMP(:p_EMPNO))", new { p_EMPNO = 7782 });
+			var record = await db.SingleFromQueryWithParamsAsync("SELECT * FROM table(GET_EMP(:p_EMPNO))", new { p_EMPNO = 7782 });
 			Assert.AreEqual(7782, record.EMPNO);
 			Assert.AreEqual("CLARK", record.ENAME);
 		}
 
 
 		[Test]
-		public void DereferenceCursorValuedFunction()
+		public async Task DereferenceCursorValuedFunction()
 		{
 			var db = new Employees(ProviderName);
 			// Oracle function one cursor return value
-			var employees = db.QueryFromProcedure("get_dept_emps", inParams: new { p_DeptNo = 10 }, returnParams: new { v_rc = new Cursor() });
+			var employees = await db.QueryFromProcedureAsync("get_dept_emps", inParams: new { p_DeptNo = 10 }, returnParams: new { v_rc = new Cursor() });
 			int count = 0;
-			foreach(var employee in employees)
-			{
+			await employees.ForEachAsync(employee => {
 				Console.WriteLine(employee.EMPNO + " " + employee.ENAME);
 				count++;
-			}
+			});
 			Assert.AreEqual(3, count);
 		}
 
 
 		[Test]
-		public void DereferenceCursorOutputParameter()
+		public async Task DereferenceCursorOutputParameter()
 		{
 			var db = new Employees(ProviderName);
 			// Oracle procedure one cursor output variables
-			var moreEmployees = db.QueryFromProcedure("myproc", outParams: new { prc = new Cursor() });
+			var moreEmployees = await db.QueryFromProcedureAsync("myproc", outParams: new { prc = new Cursor() });
 			int count = 0;
-			foreach(var employee in moreEmployees)
-			{
+			await moreEmployees.ForEachAsync(employee => {
 				Console.WriteLine(employee.EMPNO + " " + employee.ENAME);
 				count++;
-			}
+			});
 			Assert.AreEqual(14, count);
 		}
 	}

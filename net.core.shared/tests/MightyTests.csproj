@@ -42,6 +42,7 @@
     <PackageReference Include="MySql.Data" Version="8.0.15" />
     <PackageReference Include="Microsoft.Data.SQLite" Version="1.1.0" />
     <PackageReference Include="System.Collections.Specialized" Version="4.3.0" />
+    <PackageReference Include="AsyncEnumerator" Version="3.0.0-beta1" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp1.1'">
@@ -54,6 +55,7 @@
     <PackageReference Include="MySql.Data" Version="8.0.15" />
     <PackageReference Include="Microsoft.Data.SQLite" Version="1.1.0" />
     <PackageReference Include="System.Collections.Specialized" Version="4.3.0" />
+    <PackageReference Include="AsyncEnumerator" Version="3.0.0-beta1" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net40'">
@@ -62,6 +64,7 @@
     <PackageReference Include="NUnit" Version="3.6.1" />
     <PackageReference Include="NUnitLite" Version="3.6.1" />
     <PackageReference Include="System.Data.SQLite" version="1.0.105" />
+    <PackageReference Include="AsyncEnumerator" Version="3.0.0-beta1" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net45'">
@@ -71,6 +74,7 @@
     <PackageReference Include="NUnit" Version="3.6.1" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.8.0-alpha1" />
     <PackageReference Include="System.Data.SQLite" version="1.0.105" />
+    <PackageReference Include="AsyncEnumerator" Version="3.0.0-beta1" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
@@ -80,10 +84,10 @@
     <PackageReference Include="NUnit" Version="3.6.1" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.8.0-alpha1" />
     <PackageReference Include="System.Data.SQLite" version="1.0.105" />
+    <PackageReference Include="AsyncEnumerator" Version="3.0.0-beta1" />
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\SqlProfiler\SqlProfiler.csproj" />
     <ProjectReference Include="..\src\Mighty.csproj" />
   </ItemGroup>
 
