@@ -6,7 +6,7 @@ using System;
 using System.Data.Common;
 using System.Reflection;
 
-using MightyOrm.Profiling;
+using Mighty.Profiling;
 
 #if NET40
 // NB This CAN be loaded from NuGet pre-release package by name (currently SqlProfiler v0.0.1-alpha3),
@@ -27,7 +27,7 @@ namespace Mighty.Generic.Tests.NUnit.ConsoleRunner
 	/// Unless we want Mighty to depend on our specific profiling library, or the profiling library to depend on Mighty, then I
 	/// think we can't avoid something like this.
 	/// </remarks>
-	class MyProfiler : MightyOrm.Profiling.SqlProfiler
+	class MyProfiler : Mighty.Profiling.SqlProfiler
 	{
 		override public DbCommand Wrap(DbCommand command)
 		{

@@ -84,7 +84,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\SqlProfiler\SqlProfiler.csproj" />
-    <ProjectReference Include="..\src\MightyOrm.csproj" />
+    <ProjectReference Include="..\src\Mighty.csproj" />
   </ItemGroup>
 
   <ItemGroup>
