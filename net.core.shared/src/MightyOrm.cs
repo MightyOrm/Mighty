@@ -1047,7 +1047,7 @@ namespace Mighty
 							//
 							DbDataReader useReader = outerReader ?? reader;
 
-							if (useReader.Read())
+							if (useReader.HasRows)
 							{
 								int fieldCount = useReader.FieldCount;
 								object[] rowValues = new object[fieldCount];
@@ -1081,8 +1081,8 @@ namespace Mighty
 										columnNameToPropertyInfo.TryGetValue(columnName, out propertyInfo[i]);
 									}
 								}
-								do
-								{
+                                while (useReader.Read())
+                                {
 									useReader.GetValues(rowValues);
 									if (UseExpando)
 									{
@@ -1108,7 +1108,7 @@ namespace Mighty
 										}
 										yield return (X)(object)t;
 									}
-								} while (useReader.Read());
+								}
 							}
 						}
 					}
