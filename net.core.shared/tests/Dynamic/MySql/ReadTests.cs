@@ -32,6 +32,16 @@ namespace Mighty.Dynamic.Tests.MySql
 
 
 		[Test]
+		public async Task Use_GlobalConnectionString()
+		{
+			MightyOrm.GlobalConnectionString = string.Format(TestConstants.ReadTestConnection, ProviderName);
+			dynamic film = new MightyOrm(tableName: "sakila.film");
+			var singleInstance = await film.FindAsync(film_id: 43);
+			Assert.AreEqual(43, singleInstance.film_id);
+		}
+
+
+		[Test]
 		public async Task Guid_Arg()
 		{
 			// MySQL has native Guid parameter support, but the SELECT output is a string

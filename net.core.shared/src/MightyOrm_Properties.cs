@@ -47,30 +47,35 @@ namespace Mighty
         /// </summary>
         internal PluginBase Plugin { get; set; }
 
-        /// <summary>
-        /// Allows setting a global validator
-        /// </summary>
-        static public Validator GlobalValidator { get; set; }
+		/// <summary>
+		/// Allows setting a global connection string (used by default if nothing else set; set on untype <see cref="MightyOrm"/> to set it everywhere).
+		/// </summary>
+		static public string GlobalConnectionString { get; set; }
+
+		/// <summary>
+		/// Allows setting a global validator (used by default if nothing else set; set on untype <see cref="MightyOrm"/> to set it everywhere).
+		/// </summary>
+		static public Validator GlobalValidator { get; set; }
 
         /// <summary>
         /// Validator
         /// </summary>
         override public Validator Validator { get; protected set; }
 
-        /// <summary>
-        /// Allows setting a global sql mapper
-        /// </summary>
-        static public SqlNamingMapper GlobalSqlMapper { get; set; }
+		/// <summary>
+		/// Allows setting a global sql mapper (used by default if nothing else set; set on untype <see cref="MightyOrm"/> to set it everywhere).
+		/// </summary>
+		static public SqlNamingMapper GlobalSqlMapper { get; set; }
 
         /// <summary>
         /// C# &lt;=&gt; SQL mapper
         /// </summary>
         override public SqlNamingMapper SqlMapper { get; protected set; }
 
-        /// <summary>
-        /// Allows setting a global SQL profiler
-        /// </summary>
-        static public SqlProfiler GlobalSqlProfiler { get; set; }
+		/// <summary>
+		/// Allows setting a global SQL profiler (used by default if nothing else set; set on untype <see cref="MightyOrm"/> to set it everywhere).
+		/// </summary>
+		static public SqlProfiler GlobalSqlProfiler { get; set; }
 
         /// <summary>
         /// Optional SQL profiler

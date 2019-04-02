@@ -180,6 +180,8 @@ namespace Mighty
 			// Slightly hacky, works round the fact that static items are not shared between differently typed classes of the same generic type:
 			// use passed-in item; followed by global item for this particular generic class (if specified); followed by global item for the dynamic class
 			// (which is intended to be the place you should use, if specifying one of these globally), followed by null object.
+			// (A null connectionString still makes sense in .NET Framework, where ConfigFileConnectionProvider will then use the first user connectionString from app.Config)
+			connectionString = connectionString ?? GlobalConnectionString ?? MightyOrm.GlobalConnectionString ?? null;
 			Validator = xvalidator ?? GlobalValidator ?? MightyOrm.GlobalValidator ?? new NullValidator();
 			SqlProfiler = xprofiler ?? GlobalSqlProfiler ?? MightyOrm.GlobalSqlProfiler ?? new NullProfiler();
 			SqlMapper = xmapper ?? GlobalSqlMapper ?? MightyOrm.GlobalSqlMapper ?? new NullMapper();
