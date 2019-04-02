@@ -8,6 +8,7 @@ using System.Text;
 using Mighty.Generic.Tests.Oracle.TableClasses;
 using NUnit.Framework;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Mighty.Generic.Tests.Oracle
 {
@@ -40,9 +41,32 @@ namespace Mighty.Generic.Tests.Oracle
 			var depts = new Departments(ProviderName);
 			var allRows = await (await depts.AllAsync()).ToListAsync();
 			Assert.AreEqual(60, allRows.Count);
-			foreach(var d in allRows)
+			foreach (var d in allRows)
 			{
 				Console.WriteLine("{0} {1} {2}", d.DEPTNO, d.DNAME, d.LOC);
+			}
+		}
+
+
+		[Test]
+		public async Task All_NoParameters_RespondsToCancellation()
+		{
+			using (CancellationTokenSource cts = new CancellationTokenSource())
+			{
+				var depts = new Departments(ProviderName);
+				var allRows = await depts.AllAsync(cts.Token);
+				int count = 0;
+				Assert.ThrowsAsync<TaskCanceledException>(async () => {
+					await allRows.ForEachAsync(d => {
+						Console.WriteLine("{0} {1} {2}", d.DEPTNO, d.DNAME, d.LOC);
+						count++;
+						if (count == 14)
+						{
+							cts.Cancel();
+						}
+					});
+				});
+				Assert.AreEqual(14, count);
 			}
 		}
 

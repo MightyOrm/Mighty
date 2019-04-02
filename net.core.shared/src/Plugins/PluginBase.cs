@@ -5,6 +5,7 @@ using System.Data;
 using System.Data.Common;
 using System.Dynamic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Mighty.Plugins
@@ -413,9 +414,9 @@ namespace Mighty.Plugins
 		#endregion
 
 		#region Npgsql cursor dereferencing
-		virtual public async Task<DbDataReader> ExecuteDereferencingReaderAsync(DbCommand cmd, CommandBehavior behavior, DbConnection conn)
+		virtual public async Task<DbDataReader> ExecuteDereferencingReaderAsync(DbCommand cmd, CommandBehavior behavior, DbConnection conn, CancellationToken cancellationToken)
 		{
-			return await cmd.ExecuteReaderAsync(behavior).ConfigureAwait(false);
+			return await cmd.ExecuteReaderAsync(behavior, cancellationToken).ConfigureAwait(false);
 		}
 
 		virtual public bool RequiresWrappingTransaction(DbCommand cmd)

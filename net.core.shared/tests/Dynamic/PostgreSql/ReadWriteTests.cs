@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Data;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Mighty.Dynamic.Tests.PostgreSql.TableClasses;
 using NUnit.Framework;
@@ -43,6 +44,39 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 				Console.WriteLine("{0} {1}", c.customerid, c.companyname);
 			}
 		}
+
+
+		/// <summary>
+		/// This is documenting a bug in Npgsql; if it changes, we can remove the extra code we've added to
+		/// <see cref="Mighty.Npgsql.NpgsqlDereferencingReader"/> to make it respond to cancellations even though the Npgsql objects don't.
+		/// </summary>
+		/// <remarks>
+		/// Note the similar tests for all other supported drivers, which pass.
+		/// </remarks>
+		[Test]
+		public async Task All_NoParameters_NpgsqlDoesNotRespondToCancellation()
+		{
+			using (CancellationTokenSource cts = new CancellationTokenSource())
+			{
+				var customers = new Customer();
+				var allRows = await customers.AllAsync(cts.Token);
+				int count = 0;
+				// does not throw TaskCanceledException
+				Assert.DoesNotThrowAsync(async () => {
+					await allRows.ForEachAsync(c => {
+						Console.WriteLine("{0} {1}", c.customerid, c.companyname);
+						count++;
+						if (count == 11)
+						{
+							cts.Cancel();
+						}
+					});
+				});
+				// is not 11
+				Assert.AreEqual(91, count);
+			}
+		}
+
 
 		[Test]
 		public async Task All_LimitSpecification()

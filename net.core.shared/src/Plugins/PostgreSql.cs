@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 using Mighty.Npgsql;
+using System.Threading;
 
 namespace Mighty.Plugins
 {
@@ -117,12 +118,12 @@ namespace Mighty.Plugins
 		/// https://github.com/npgsql/npgsql/issues/438
 		/// http://stackoverflow.com/questions/42292341/
 		/// </remarks>
-		override public async Task<DbDataReader> ExecuteDereferencingReaderAsync(DbCommand cmd, CommandBehavior behavior, DbConnection Connection)
+		override public async Task<DbDataReader> ExecuteDereferencingReaderAsync(DbCommand cmd, CommandBehavior behavior, DbConnection Connection, CancellationToken cancellationToken)
 		{
 			// We can never restrict the parent read to do LESS than the hint provided - because we might
 			// not be dereferencing it, but just using it; but we can always restrict to the hint provided,
 			// because the first cursor (if any) MUST always be in the first row of the first result.
-			var reader = await cmd.ExecuteReaderAsync(behavior).ConfigureAwait(false); // var reader = Execute(behavior);
+			var reader = await cmd.ExecuteReaderAsync(behavior, cancellationToken).ConfigureAwait(false); // var reader = Execute(behavior);
 
 			// Remarks: Do not consider dereferencing if no returned columns are cursors, but if just some are cursors then follow the pre-existing convention set by
 			// the Oracle drivers and dereference what we can. The rest of the pattern is that we only ever try to dereference on Query and Scalar, never on Execute.
@@ -131,7 +132,7 @@ namespace Mighty.Plugins
 				// Passes <see cref="CommandBehavior"/> to dereferencing reader, which uses it where it can
 				// (e.g. to dereference only the first cursor, or only the first row of the first cursor)
 				var newReader = new NpgsqlDereferencingReader(reader, behavior, Connection, Mighty);
-				await newReader.InitAsync();
+				await newReader.InitAsync(cancellationToken);
 				return newReader;
 			}
 

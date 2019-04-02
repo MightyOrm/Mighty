@@ -7,6 +7,7 @@ using System.Dynamic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Mighty.Generic.Tests.MySql.TableClasses;
 using NUnit.Framework;
@@ -247,6 +248,30 @@ namespace Mighty.Generic.Tests.MySql
 			var films = new Films(ProviderName);
 			var allRows = await (await films.QueryAsync("SELECT * FROM sakila.film")).ToListAsync();
 			Assert.AreEqual(1000, allRows.Count);
+		}
+
+
+		[Test]
+		public async Task Query_AllRows_RespondsToCancellation()
+		{
+			using (CancellationTokenSource cts = new CancellationTokenSource())
+			{
+				var films = new Films(ProviderName);
+				var allRows = await films.QueryAsync("SELECT * FROM sakila.film", cts.Token);
+				int count = 0;
+				Assert.ThrowsAsync<TaskCanceledException>(async () =>
+				{
+					await allRows.ForEachAsync(async row => {
+						await Console.Out.WriteLineAsync($"{row.film_id}");
+						count++;
+						if (count == 10)
+						{
+							cts.Cancel();
+						}
+					});
+				});
+				Assert.AreEqual(10, count);
+			}
 		}
 
 

@@ -292,11 +292,9 @@ namespace Mighty
 				SequenceNameOrIdentityFn = SqlMapper.QuoteDatabaseIdentifier(sequence);
 			}
 
-#if DYNAMIC_METHODS
 			// Add dynamic method support (mainly for compatibility with Massive)
 			// TO DO: This line shouldn't be here, as it's so intimately tied to code in DynamicMethodProvider
 			DynamicObjectWrapper = new DynamicMethodProvider<T>(this);
-#endif
 		}
 
 		protected void InitialiseTypeProperties(BindingFlags propertyBindingFlags)
@@ -1004,10 +1002,10 @@ namespace Mighty
 			if (columns == null) columns = Columns;
 			var pagingQueryPair = Plugin.BuildPagingQueryPair(columns, tablesAndJoins, where, orderBy, limit, offset);
 			var result = new PagedResults<T>();
-			result.TotalRecords = Convert.ToInt32(await ScalarAsync(pagingQueryPair.CountQuery).ConfigureAwait(false));
+			result.TotalRecords = Convert.ToInt32(await ScalarAsync(pagingQueryPair.CountQuery, cancellationToken).ConfigureAwait(false));
 			result.TotalPages = (result.TotalRecords + pageSize - 1) / pageSize;
-			var items = await QueryAsync(pagingQueryPair.PagingQuery).ConfigureAwait(false);
-			result.Items = await items.ToListAsync().ConfigureAwait(false);
+			var items = await QueryAsync(pagingQueryPair.PagingQuery, cancellationToken).ConfigureAwait(false);
+			result.Items = await items.ToListAsync(cancellationToken).ConfigureAwait(false);
 			return result;
 		}
 
@@ -1121,7 +1119,7 @@ namespace Mighty
 					behavior = CommandBehavior.SingleResult;
 				}
 				// using is applied only to locally generated connection
-				using (var localConn = (connection == null ? await OpenConnectionAsync().ConfigureAwait(false) : null))
+				using (var localConn = (connection == null ? await OpenConnectionAsync(cancellationToken).ConfigureAwait(false) : null))
 				{
 					if (command != null)
 					{
@@ -1136,7 +1134,7 @@ namespace Mighty
 #endif
 						&& Plugin.RequiresWrappingTransaction(command) ? localConn.BeginTransaction() : null))
 					{
-						using (var reader = (outerReader == null ? await Plugin.ExecuteDereferencingReaderAsync(command, behavior, connection ?? localConn).ConfigureAwait(false) : null))
+						using (var reader = (outerReader == null ? await Plugin.ExecuteDereferencingReaderAsync(command, behavior, connection ?? localConn, cancellationToken).ConfigureAwait(false) : null))
 						{
 							if (typeof(X) == typeof(IAsyncEnumerable<T>))
 							{
@@ -1145,10 +1143,12 @@ namespace Mighty
 								{
 									// cast is required because compiler doesn't see that we've just checked that X is IEnumerable<T>
 									// first three params carefully chosen so as to avoid lots of checks about outerReader in the code above in this method
-									var next = (X)(await QueryNWithParamsAsync<T>(null, (CommandBehavior)(-1), connection ?? localConn, reader).ConfigureAwait(false));
+									var next = (X)(await QueryNWithParamsAsync<T>(null, cancellationToken, (CommandBehavior)(-1), connection ?? localConn, reader).ConfigureAwait(false));
+									// yield.ReturnAsync does not take a cancellation token (it would have nothing to do
+									// with it except pass it back to the caller who provided it in the first place, if it did)
 									await yield.ReturnAsync(next).ConfigureAwait(false);
 								}
-								while (await reader.NextResultAsync().ConfigureAwait(false));
+								while (await reader.NextResultAsync(cancellationToken).ConfigureAwait(false));
 							}
 							else
 							{
@@ -1194,7 +1194,7 @@ namespace Mighty
 											columnNameToPropertyInfo.TryGetValue(columnName, out propertyInfo[i]);
 										}
 									}
-									while (await useReader.ReadAsync().ConfigureAwait(false))
+									while (await useReader.ReadAsync(cancellationToken).ConfigureAwait(false))
 									{
 										useReader.GetValues(rowValues);
 										if (UseExpando)

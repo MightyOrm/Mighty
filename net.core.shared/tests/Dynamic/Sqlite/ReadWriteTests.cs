@@ -7,6 +7,7 @@ using System.Text;
 using NUnit.Framework;
 using Mighty.Dynamic.Tests.Sqlite.TableClasses;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Mighty.Dynamic.Tests.Sqlite
 {
@@ -50,6 +51,30 @@ namespace Mighty.Dynamic.Tests.Sqlite
 				Console.WriteLine("{0} {1}", a.AlbumId, a.Title);
 			}
 		}
+
+
+		[Test]
+		public async Task All_NoParameters_RespondsToCancellation()
+		{
+			using (CancellationTokenSource cts = new CancellationTokenSource())
+			{
+				var albums = new Album();
+				var allRows = await albums.AllAsync(cts.Token);
+				int count = 0;
+				Assert.ThrowsAsync<TaskCanceledException>(async () => {
+					await allRows.ForEachAsync(a => {
+						Console.WriteLine("{0} {1}", a.AlbumId, a.Title);
+						count++;
+						if (count == 12)
+						{
+							cts.Cancel();
+						}
+					});
+				});
+				Assert.AreEqual(12, count);
+			}
+		}
+
 
 		[Test]
 		public async Task All_LimitSpecification()

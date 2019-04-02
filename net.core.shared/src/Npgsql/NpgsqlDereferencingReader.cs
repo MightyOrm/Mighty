@@ -5,6 +5,7 @@ using System.Collections.Generic;
 
 using Mighty.Plugins;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Mighty.Npgsql
 {
@@ -16,7 +17,7 @@ namespace Mighty.Npgsql
 		private dynamic Mighty;
 		private int FetchSize;
 
-		private DbDataReader Reader = null; // current FETCH reader
+		private DbDataReader fetchReader = null; // current FETCH reader
 		private List<string> Cursors = new List<string>();
 		private int Index = 0;
 		private string Cursor = null;
@@ -25,7 +26,6 @@ namespace Mighty.Npgsql
 		private DbDataReader originalReader;
 		private CommandBehavior Behavior;
 
-
 		/// <summary>
 		/// Create a safe, sensible dereferencing reader; we have already checked that there are at least some cursors to dereference at this point.
 		/// </summary>
@@ -33,6 +33,7 @@ namespace Mighty.Npgsql
 		/// <param name="behavior">The required <see cref="CommandBehavior"/></param>
 		/// <param name="connection">The connection to use.</param>
 		/// <param name="mighty">The owning Mighty instance.</param>
+		/// <param name="cancellationToken">Async <see cref="CancellationToken"/>.</param>
 		/// <remarks>
 		/// FETCH ALL is genuinely useful in some situations (e.g. if using (abusing?) cursors to return small or medium sized multiple result
 		/// sets then we can and do save one round trip to the database overall: n cursors round trips, rather than n cursors plus one), but since
@@ -53,7 +54,7 @@ namespace Mighty.Npgsql
 		/// Initialise the reader
 		/// </summary>
 		/// <returns></returns>
-		public async Task InitAsync()
+		public async Task InitAsync(CancellationToken cancellationToken)
 		{
 			// Behavior is only saved to be used here in this Init method; we don't need to check or enforce it again
 			// elsewhere since the logic below is already enforcing it.
@@ -66,7 +67,7 @@ namespace Mighty.Npgsql
 			{
 				// Supports 1x1 1xN Nx1 and NXM patterns of cursor data.
 				// If just some values are cursors we follow the pre-existing pattern set by the Oracle drivers, and dereference what we can.
-				while (await originalReader.ReadAsync())
+				while (await originalReader.ReadAsync(cancellationToken))
 				{
 					for (int i = 0; i < originalReader.FieldCount; i++)
 					{
@@ -83,7 +84,7 @@ namespace Mighty.Npgsql
 			}
 
 			// initialize
-			NextResult();
+			await NextResultAsync(cancellationToken);
 		}
 
 		/// <summary>
@@ -132,9 +133,9 @@ namespace Mighty.Npgsql
 		private string CloseCursor(bool ExecuteNow = true)
 		{
 			// close and dispose current fetch reader for this cursor
-			if (Reader != null && !Reader.IsClosed)
+			if (fetchReader != null && !fetchReader.IsClosed)
 			{
-				Reader.Dispose();
+				fetchReader.Dispose();
 			}
 			// close cursor itself
 			if (FetchSize > 0 && !string.IsNullOrEmpty(Cursor))
@@ -153,21 +154,29 @@ namespace Mighty.Npgsql
 		}
 
 		/// <summary>
-		/// Fetch next N rows from current cursor
+		/// Fetch next N rows from current cursor.
 		/// </summary>
-		/// <param name="closePreviousSQL">SQL to prepend, to close the previous cursor in a single round trip (optional)</param>
-		private void FetchNextNFromCursor(string closePreviousSQL = "")
+		/// <param name="cancellationToken">Async <see cref="CancellationToken"/>.</param>
+		/// <param name="closePreviousSQL">SQL to prepend, to close the previous cursor in a single round trip (optional).</param>
+		private async Task FetchNextNFromCursorAsync(CancellationToken cancellationToken, string closePreviousSQL = "")
 		{
 			// close and dispose previous fetch reader for this cursor
-			if (Reader != null && !Reader.IsClosed)
+			if (fetchReader != null && !fetchReader.IsClosed)
 			{
-				Reader.Dispose();
+				fetchReader.Dispose();
 			}
 			// fetch next n from cursor;
 			// optionally close previous cursor;
 			// iff we're fetching all, we can close this cursor in this command
 			var fetchCmd = CreateCommand(closePreviousSQL + FetchSQL() + (FetchSize <= 0 ? CloseSQL() : ""), Connection); // new NpgsqlCommand(..., Connection);
-			Reader = fetchCmd.ExecuteReader(CommandBehavior.SingleResult);
+
+			// NpgsqlCommand.ExecuteReaderAsync is ignoring its CancellationToken
+			if (cancellationToken.IsCancellationRequested)
+			{
+				throw new TaskCanceledException();
+			}
+
+			fetchReader = await fetchCmd.ExecuteReaderAsync(CommandBehavior.SingleResult, cancellationToken);
 			Count = 0;
 		}
 
@@ -180,13 +189,13 @@ namespace Mighty.Npgsql
 		}
 
 		#region DbDataReader abstract interface
-		public override object this[string name] { get { return Reader[name]; } }
-		public override object this[int i] { get { return Reader[i]; } }
-		public override int Depth { get { return Reader.Depth; } }
-		public override int FieldCount { get { return Reader.FieldCount; } }
-		public override bool HasRows { get { return Reader.HasRows; } }
-		public override bool IsClosed { get { return Reader.IsClosed; } }
-		public override int RecordsAffected { get { return Reader.RecordsAffected; } }
+		public override object this[string name] { get { return fetchReader[name]; } }
+		public override object this[int i] { get { return fetchReader[i]; } }
+		public override int Depth { get { return fetchReader.Depth; } }
+		public override int FieldCount { get { return fetchReader.FieldCount; } }
+		public override bool HasRows { get { return fetchReader.HasRows; } }
+		public override bool IsClosed { get { return fetchReader.IsClosed; } }
+		public override int RecordsAffected { get { return fetchReader.RecordsAffected; } }
 
 #if NETFRAMEWORK
 		public override void Close()
@@ -195,37 +204,36 @@ namespace Mighty.Npgsql
 		}
 #endif
 
-		public override bool GetBoolean(int i) { return Reader.GetBoolean(i); }
-		public override byte GetByte(int i) { return Reader.GetByte(i); }
-		public override long GetBytes(int i, long fieldOffset, byte[] buffer, int bufferoffset, int length) { return Reader.GetBytes(i, fieldOffset, buffer, bufferoffset, length); }
-		public override char GetChar(int i) { return Reader.GetChar(i); }
-		public override long GetChars(int i, long fieldoffset, char[] buffer, int bufferoffset, int length) { return Reader.GetChars(i, fieldoffset, buffer, bufferoffset, length); }
+		public override bool GetBoolean(int i) { return fetchReader.GetBoolean(i); }
+		public override byte GetByte(int i) { return fetchReader.GetByte(i); }
+		public override long GetBytes(int i, long fieldOffset, byte[] buffer, int bufferoffset, int length) { return fetchReader.GetBytes(i, fieldOffset, buffer, bufferoffset, length); }
+		public override char GetChar(int i) { return fetchReader.GetChar(i); }
+		public override long GetChars(int i, long fieldoffset, char[] buffer, int bufferoffset, int length) { return fetchReader.GetChars(i, fieldoffset, buffer, bufferoffset, length); }
 		//public IDataReader GetData(int i) { return Reader.GetData(i); }
-		public override string GetDataTypeName(int i) { return Reader.GetDataTypeName(i); }
-		public override DateTime GetDateTime(int i) { return Reader.GetDateTime(i); }
-		public override decimal GetDecimal(int i) { return Reader.GetDecimal(i); }
-		public override double GetDouble(int i) { return Reader.GetDouble(i); }
+		public override string GetDataTypeName(int i) { return fetchReader.GetDataTypeName(i); }
+		public override DateTime GetDateTime(int i) { return fetchReader.GetDateTime(i); }
+		public override decimal GetDecimal(int i) { return fetchReader.GetDecimal(i); }
+		public override double GetDouble(int i) { return fetchReader.GetDouble(i); }
 
 		public override System.Collections.IEnumerator GetEnumerator() { throw new NotSupportedException(); }
 
-		public override Type GetFieldType(int i) { return Reader.GetFieldType(i); }
-		public override float GetFloat(int i) { return Reader.GetFloat(i); }
-		public override Guid GetGuid(int i) { return Reader.GetGuid(i); }
-		public override short GetInt16(int i) { return Reader.GetInt16(i); }
-		public override int GetInt32(int i) { return Reader.GetInt32(i); }
-		public override long GetInt64(int i) { return Reader.GetInt64(i); }
-		public override string GetName(int i) { return Reader.GetName(i); }
+		public override Type GetFieldType(int i) { return fetchReader.GetFieldType(i); }
+		public override float GetFloat(int i) { return fetchReader.GetFloat(i); }
+		public override Guid GetGuid(int i) { return fetchReader.GetGuid(i); }
+		public override short GetInt16(int i) { return fetchReader.GetInt16(i); }
+		public override int GetInt32(int i) { return fetchReader.GetInt32(i); }
+		public override long GetInt64(int i) { return fetchReader.GetInt64(i); }
+		public override string GetName(int i) { return fetchReader.GetName(i); }
 #if NETFRAMEWORK
-		public override DataTable GetSchemaTable() { return Reader.GetSchemaTable(); }
+		public override DataTable GetSchemaTable() { return fetchReader.GetSchemaTable(); }
 #endif
-		public override int GetOrdinal(string name) { return Reader.GetOrdinal(name); }
-		public override string GetString(int i) { return Reader.GetString(i); }
-		public override object GetValue(int i) { return Reader.GetValue(i); }
-		public override int GetValues(object[] values) { return Reader.GetValues(values); }
-		public override bool IsDBNull(int i) { return Reader.IsDBNull(i); }
+		public override int GetOrdinal(string name) { return fetchReader.GetOrdinal(name); }
+		public override string GetString(int i) { return fetchReader.GetString(i); }
+		public override object GetValue(int i) { return fetchReader.GetValue(i); }
+		public override int GetValues(object[] values) { return fetchReader.GetValues(values); }
+		public override bool IsDBNull(int i) { return fetchReader.IsDBNull(i); }
 
-		// NB We *can't* override NextResultAsync or ReadAsync, which is probably a good sign.
-		public override bool NextResult()
+		public override async Task<bool> NextResultAsync(CancellationToken cancellationToken)
 		{
 			var closeSql = CloseCursor(Index >= Cursors.Count);
 			if (Index >= Cursors.Count)
@@ -233,15 +241,26 @@ namespace Mighty.Npgsql
 				return false;
 			}
 			Cursor = Cursors[Index++];
-			FetchNextNFromCursor(closeSql);
+			await FetchNextNFromCursorAsync(cancellationToken, closeSql);
 			return true;
 		}
 
-		public override bool Read()
+		public override bool NextResult()
 		{
-			if (Reader != null)
+			throw new NotImplementedException($"{nameof(NpgsqlDereferencingReader)}.NextResult synchronous version");
+		}
+
+		public override async Task<bool> ReadAsync(CancellationToken cancellationToken)
+		{
+			if (fetchReader != null)
 			{
-				bool cursorHasNextRow = Reader.Read();
+				// NpgsqlDataReader.ReadAsync is ignoring its CancellationToken
+				// TO DO: Test that this is true by showing that the cancellation test fails on Npgsql
+				if (cancellationToken.IsCancellationRequested)
+				{
+					throw new TaskCanceledException();
+				}
+				bool cursorHasNextRow = await fetchReader.ReadAsync(cancellationToken);
 				if (cursorHasNextRow)
 				{
 					Count++;
@@ -254,9 +273,14 @@ namespace Mighty.Npgsql
 				}
 			}
 			// if rows expired at requested count, there may or may not be more rows
-			FetchNextNFromCursor();
+			await FetchNextNFromCursorAsync(cancellationToken);
 			// recursive self-call
-			return Read();
+			return await ReadAsync(cancellationToken);
+		}
+
+		public override bool Read()
+		{
+			throw new NotImplementedException($"{nameof(NpgsqlDereferencingReader)}.Read synchronous version");
 		}
 		#endregion
 

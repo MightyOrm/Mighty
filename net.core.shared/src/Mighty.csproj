@@ -46,7 +46,7 @@ Pre-Alpha version.
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net45'">
-    <DefineConstants>NETFRAMEWORK;NET45;DYNAMIC_METHODS</DefineConstants>
+    <DefineConstants>NETFRAMEWORK;NET45</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net462'">

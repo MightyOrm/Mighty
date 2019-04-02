@@ -11,6 +11,7 @@ using System.Transactions;
 using Mighty.Dynamic.Tests.PostgreSql.TableClasses;
 using NUnit.Framework;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace Mighty.Dynamic.Tests.PostgreSql
 {
@@ -198,6 +199,32 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 		}
 
 
+		[Test]
+		public async Task Dereferencing_RespondsToCancellation()
+		{
+			using (CancellationTokenSource cts = new CancellationTokenSource())
+			{
+				var db = new SPTestsDatabase();
+				// Unlike the Oracle data access layer, Npgsql v3 does not dereference cursor parameters.
+				// We have added back the support for this which was previously in Npgsql v2.
+				var employees = await db.QueryFromProcedureAsync("cursor_employees", cts.Token, outParams: new { refcursor = new Cursor() });
+				int count = 0;
+				Assert.ThrowsAsync<TaskCanceledException>(async () =>
+				{
+					await employees.ForEachAsync(employee => {
+						Console.WriteLine(employee.firstname + " " + employee.lastname);
+						count++;
+						if (count == 5)
+						{
+							cts.Cancel();
+						}
+					});
+				});
+				Assert.AreEqual(5, count);
+			}
+		}
+
+
 #if SYNC_ONLY && !COREFX
 		[Test]
 		public async Task DereferenceFromQuery_ManualWrapping()
@@ -225,7 +252,8 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 		{
 			var db = new SPTestsDatabase();
 			// use dummy cursor to trigger wrapping transaction support in Massive
-			// TO DO: document this
+			// TO DO: document this (the idea is that this requires a wrapping transaction, but Mighty will do this for us if we do this;
+			// still to remind exactly why and document)
 			var employees = await db.QueryWithParamsAsync("SELECT * FROM cursor_employees()", outParams: new { abc = new Cursor() });
 			int count = 0;
 			await employees.ForEachAsync(employee => {
