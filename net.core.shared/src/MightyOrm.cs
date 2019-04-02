@@ -415,17 +415,25 @@ namespace Mighty
 				}
 			}
 		}
-#endregion
+		#endregion
 
 		// Only methods with a non-trivial implementation are here, the rest are in the MicroOrm abstract class.
-#region MircoORM interface
+		#region MircoORM interface
 		// In theory COUNT expression could vary across SQL variants, in practice it doesn't.
 		override public async Task<object> CountAsync(string columns = "*", string where = null,
 			DbConnection connection = null,
 			params object[] args)
 		{
+			return await CountAsync(CancellationToken.None, columns, where,
+				connection,
+				args: args);
+		}
+		override public async Task<object> CountAsync(CancellationToken cancellationToken, string columns = "*", string where = null,
+			DbConnection connection = null,
+			params object[] args)
+		{
 			var expression = string.Format("COUNT({0})", columns);
-			return await AggregateWithParamsAsync(expression, where, connection, args: args).ConfigureAwait(false);
+			return await AggregateWithParamsAsync(expression, cancellationToken, where, connection, args: args).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -451,7 +459,18 @@ namespace Mighty
 			DbConnection connection = null,
 			params object[] args)
 		{
+			return await AggregateWithParamsAsync(expression, CancellationToken.None, where,
+				inParams, outParams, ioParams, returnParams,
+				connection,
+				args: args);
+		}
+		override public async Task<object> AggregateWithParamsAsync(string expression, CancellationToken cancellationToken, string where = null,
+			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+			DbConnection connection = null,
+			params object[] args)
+		{
 			return await ScalarWithParamsAsync(Plugin.BuildSelect(expression, CheckGetTableName(), where),
+				cancellationToken,
 				inParams, outParams, ioParams, returnParams,
 				connection, args).ConfigureAwait(false);
 		}
@@ -519,6 +538,16 @@ namespace Mighty
 			DbConnection connection,
 			params object[] args)
 		{
+			return await UpdateUsingAsync(partialItem, where,
+				connection,
+				CancellationToken.None,
+				args: args);
+		}
+		override public async Task<int> UpdateUsingAsync(object partialItem, string where,
+			DbConnection connection,
+			CancellationToken cancellationToken,
+			params object[] args)
+		{
 			var values = new StringBuilder();
 			var parameters = new NameValueTypeEnumerator(partialItem);
 			var filteredItem = new ExpandoObject();
@@ -536,7 +565,7 @@ namespace Mighty
 				}
 			}
 			var sql = Plugin.BuildUpdate(CheckGetTableName(), values.ToString(), where);
-			return await ExecuteWithParamsAsync(sql, args: args, inParams: filteredItem, connection: connection).ConfigureAwait(false);
+			return await ExecuteWithParamsAsync(sql, cancellationToken, args: args, inParams: filteredItem, connection: connection).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -552,8 +581,18 @@ namespace Mighty
 			DbConnection connection,
 			params object[] args)
 		{
+			return await DeleteAsync(where,
+				connection,
+				CancellationToken.None,
+				args: args);
+		}
+		override public async Task<int> DeleteAsync(string where,
+			DbConnection connection,
+			CancellationToken cancellationToken,
+			params object[] args)
+		{
 			var sql = Plugin.BuildDelete(CheckGetTableName(), where);
-			return await ExecuteAsync(sql, connection, args).ConfigureAwait(false);
+			return await ExecuteAsync(sql, connection, cancellationToken, args).ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -712,6 +751,10 @@ namespace Mighty
 		/// <remarks>Here and in <see cref="UpsertItemPK"/> we always return the modified original object, where possible</remarks>
 		internal async Task<Tuple<int, T>> ActionOnItemsWithOutputAsync(OrmAction action, DbConnection connection, IEnumerable<object> items)
 		{
+			return await ActionOnItemsWithOutputAsync(action, connection, items, CancellationToken.None);
+		}
+		internal async Task<Tuple<int, T>> ActionOnItemsWithOutputAsync(OrmAction action, DbConnection connection, IEnumerable<object> items, CancellationToken cancellationToken)
+		{
 			T insertedItem = null;
 			int count = 0;
 			int affected = 0;
@@ -720,7 +763,7 @@ namespace Mighty
 			{
 				if (Validator.PerformingAction(item, action))
 				{
-					var _inserted = await ActionOnItemAsync(action, item, connection, count).ConfigureAwait(false);
+					var _inserted = await ActionOnItemAsync(action, item, connection, count, cancellationToken).ConfigureAwait(false);
 					if (count == 0 && _inserted != null && action == OrmAction.Insert)
 					{
 						if (!UseExpando)
@@ -865,10 +908,14 @@ namespace Mighty
 		/// <returns></returns>
 		override public async Task<DbConnection> OpenConnectionAsync()
 		{
+			return await OpenConnectionAsync(CancellationToken.None);
+		}
+		override public async Task<DbConnection> OpenConnectionAsync(CancellationToken cancellationToken)
+		{
 			var connection = Factory.CreateConnection();
 			connection = SqlProfiler.Wrap(connection);
 			connection.ConnectionString = ConnectionString;
-			await connection.OpenAsync().ConfigureAwait(false);
+			await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
 			return connection;
 		}
 
@@ -881,11 +928,17 @@ namespace Mighty
 		override public async Task<int> ExecuteAsync(DbCommand command,
 			DbConnection connection = null)
 		{
+			return await ExecuteAsync(command, CancellationToken.None, connection);
+		}
+		override public async Task<int> ExecuteAsync(DbCommand command,
+			CancellationToken cancellationToken,
+			DbConnection connection = null)
+		{
 			// using applied only to local connection
-			using (var localConn = ((connection == null) ? await OpenConnectionAsync().ConfigureAwait(false) : null))
+			using (var localConn = ((connection == null) ? await OpenConnectionAsync(cancellationToken).ConfigureAwait(false) : null))
 			{
 				command.Connection = connection ?? localConn;
-				return command.ExecuteNonQuery();
+				return await command.ExecuteNonQueryAsync(cancellationToken);
 			}
 		}
 
@@ -898,11 +951,17 @@ namespace Mighty
 		override public async Task<object> ScalarAsync(DbCommand command,
 			DbConnection connection = null)
 		{
+			return await ScalarAsync(command, CancellationToken.None, connection);
+		}
+		override public async Task<object> ScalarAsync(DbCommand command,
+			CancellationToken cancellationToken,
+			DbConnection connection = null)
+		{
 			// using applied only to local connection
-			using (var localConn = ((connection == null) ? await OpenConnectionAsync().ConfigureAwait(false) : null))
+			using (var localConn = ((connection == null) ? await OpenConnectionAsync(cancellationToken).ConfigureAwait(false) : null))
 			{
 				command.Connection = connection ?? localConn;
-				return await command.ExecuteScalarAsync().ConfigureAwait(false);
+				return await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
 			}
 		}
 
@@ -924,6 +983,18 @@ namespace Mighty
 		/// TO DO: Cancel the above, it makes no sense from a UI pov!
 		/// </remarks>
 		override public async Task<PagedResults<T>> PagedFromSelectAsync(string columns, string tablesAndJoins, string where, string orderBy,
+			int pageSize = 20, int currentPage = 1,
+			DbConnection connection = null,
+			params object[] args)
+		{
+			return await PagedFromSelectAsync(columns, tablesAndJoins, where, orderBy,
+				CancellationToken.None,
+				pageSize, currentPage,
+				connection,
+				args: args);
+		}
+		override public async Task<PagedResults<T>> PagedFromSelectAsync(string columns, string tablesAndJoins, string where, string orderBy,
+			CancellationToken cancellationToken,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args)
@@ -1005,12 +1076,26 @@ namespace Mighty
 			DbConnection connection = null,
 			params object[] args)
 		{
+			return await AllWithParamsAsync(
+				CancellationToken.None,
+				where, orderBy, columns, limit,
+				inParams, outParams, ioParams, returnParams,
+				connection,
+				args: args);
+		}
+		override public async Task<IAsyncEnumerable<T>> AllWithParamsAsync(
+			CancellationToken cancellationToken,
+			string where = null, string orderBy = null, string columns = null, int limit = 0,
+			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+			DbConnection connection = null,
+			params object[] args)
+		{
 			if (columns == null)
 			{
 				columns = Columns;
 			}
 			var sql = Plugin.BuildSelect(columns, CheckGetTableName(), where, orderBy, limit);
-			return await QueryNWithParamsAsync<T>(sql,
+			return await QueryNWithParamsAsync<T>(cancellationToken, sql,
 				inParams, outParams, ioParams, returnParams,
 				behavior: limit == 1 ? CommandBehavior.SingleRow : CommandBehavior.Default, connection: connection, args: args);
 		}
@@ -1020,6 +1105,14 @@ namespace Mighty
 		/// Use with &lt;T&gt; for single or &lt;IEnumerable&lt;T&gt;&gt; for multiple.
 		/// </summary>
 		override protected async Task<IAsyncEnumerable<X>> QueryNWithParamsAsync<X>(DbCommand command, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, DbDataReader outerReader = null)
+		{
+			return await QueryNWithParamsAsync<X>(command, CancellationToken.None, behavior, connection, outerReader);
+		}
+		/// <summary>
+		/// Yield return values for Query or QueryMultiple.
+		/// Use with &lt;T&gt; for single or &lt;IEnumerable&lt;T&gt;&gt; for multiple.
+		/// </summary>
+		override protected async Task<IAsyncEnumerable<X>> QueryNWithParamsAsync<X>(DbCommand command, CancellationToken cancellationToken, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, DbDataReader outerReader = null)
 		{
 			return new AsyncEnumerable<X>(async yield => {
 				if (behavior == CommandBehavior.Default && typeof(X) == typeof(T))
@@ -1137,9 +1230,9 @@ namespace Mighty
 				}
 			});
 		}
-#endregion
+		#endregion
 
-#region ORM actions
+		#region ORM actions
 		/// <summary>
 		/// Save, Insert, Update or Delete an item.
 		/// Save means: update item if PK field or fields are present and at non-default values, insert otherwise.
@@ -1151,6 +1244,7 @@ namespace Mighty
 		/// <param name="action">Save, Insert, Update or Delete</param>
 		/// <param name="item">item</param>
 		/// <param name="connection">connection to use</param>
+		/// <param name="outerCount">when zero we are on the first item in the loop</param>
 		/// <returns>The PK of the inserted item, iff a new auto-generated PK value is available.</returns>
 		/// <remarks>
 		/// It *is* technically possibly (by writing to private backing fields) to change the field value in anonymously
@@ -1160,6 +1254,10 @@ namespace Mighty
 		/// supported? not quite sure, that assumes that the different implementations of anonymous types can co-exist)
 		/// </remarks>
 		private async Task<object> ActionOnItemAsync(OrmAction action, object item, DbConnection connection, int outerCount)
+		{
+			return await ActionOnItemAsync(action, item, connection, outerCount, CancellationToken.None);
+		}
+		private async Task<object> ActionOnItemAsync(OrmAction action, object item, DbConnection connection, int outerCount, CancellationToken cancellationToken)
 		{
 			int nKeys = 0;
 			int nDefaultKeyValues = 0;
@@ -1279,13 +1377,13 @@ namespace Mighty
 			if (action == OrmAction.Insert && SequenceNameOrIdentityFn != null)
 			{
 				// *All* DBs return a huge sized number for their identity by default, following Massive we are normalising to int
-				var pk = Convert.ToInt32(await ScalarAsync(command).ConfigureAwait(false));
+				var pk = Convert.ToInt32(await ScalarAsync(command, cancellationToken).ConfigureAwait(false));
 				var result = UpsertItemPK(item, pk, originalAction == OrmAction.Insert && outerCount == 0);
 				return result;
 			}
 			else
 			{
-				int n = await ExecuteAsync(command).ConfigureAwait(false);
+				int n = await ExecuteAsync(command, cancellationToken).ConfigureAwait(false);
 				// should this be checked? is it reasonable for this to be zero sometimes?
 				if (n != 1)
 				{

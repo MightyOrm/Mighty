@@ -9,6 +9,7 @@ using Mighty.Plugins;
 using Mighty.Mapping;
 using Mighty.Profiling;
 using Mighty.Validation;
+using System.Threading;
 
 /// <summary>
 /// TO DO: Not sure about putting this in a separate namespace, but maybe best to hide the mockable version?
@@ -143,34 +144,63 @@ namespace Mighty.Mocking
 		abstract public IEnumerable<dynamic> TableMetaData { get; }
 		#endregion
 
+		// Okay, first attempt: always add optional `CancellationToken` after all compulsory params and just before any optional or `params` params
+
 		// 'Interface' for the general purpose data access wrapper methods (i.e. the ones which can be used
 		// even if no table has been specified).
 		// All versions which simply redirect to other versions are defined here, not in the main class.
 		#region Non-table specific methods
 		abstract public Task<DbConnection> OpenConnectionAsync();
+		abstract public Task<DbConnection> OpenConnectionAsync(CancellationToken cancellationToken);
+
 
 		abstract public Task<IAsyncEnumerable<T>> QueryAsync(DbCommand command,
 			DbConnection connection = null);
+		abstract public Task<IAsyncEnumerable<T>> QueryAsync(DbCommand command,
+			CancellationToken cancellationToken,
+			DbConnection connection = null);
 
 		abstract public Task<T> SingleAsync(DbCommand command,
+			DbConnection connection = null);
+		abstract public Task<T> SingleAsync(DbCommand command,
+			CancellationToken cancellationToken,
 			DbConnection connection = null);
 
 		// no connection, easy args
 		abstract public Task<IAsyncEnumerable<T>> QueryAsync(string sql,
 			params object[] args);
+		abstract public Task<IAsyncEnumerable<T>> QueryAsync(string sql,
+			CancellationToken cancellationToken,
+			params object[] args);
 
 		abstract public Task<T> SingleFromQueryAsync(string sql,
+			params object[] args);
+		abstract public Task<T> SingleFromQueryAsync(string sql,
+			CancellationToken cancellationToken,
 			params object[] args);
 
 		abstract public Task<IAsyncEnumerable<T>> QueryAsync(string sql,
 			DbConnection connection,
 			params object[] args);
+		abstract public Task<IAsyncEnumerable<T>> QueryAsync(string sql,
+			DbConnection connection,
+			CancellationToken cancellationToken,
+			params object[] args);
 
 		abstract public Task<T> SingleFromQueryAsync(string sql,
 			DbConnection connection,
 			params object[] args);
+		abstract public Task<T> SingleFromQueryAsync(string sql,
+			DbConnection connection,
+			CancellationToken cancellationToken,
+			params object[] args);
 
 		abstract public Task<IAsyncEnumerable<T>> QueryWithParamsAsync(string sql,
+			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+			DbConnection connection = null,
+			params object[] args);
+		abstract public Task<IAsyncEnumerable<T>> QueryWithParamsAsync(string sql,
+			CancellationToken cancellationToken,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args);
@@ -179,8 +209,18 @@ namespace Mighty.Mocking
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args);
+		abstract public Task<T> SingleFromQueryWithParamsAsync(string sql,
+			CancellationToken cancellationToken,
+			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+			DbConnection connection = null,
+			params object[] args);
 
 		abstract public Task<IAsyncEnumerable<T>> QueryFromProcedureAsync(string spName,
+			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+			DbConnection connection = null,
+			params object[] args);
+		abstract public Task<IAsyncEnumerable<T>> QueryFromProcedureAsync(string spName,
+			CancellationToken cancellationToken,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args);
@@ -189,19 +229,39 @@ namespace Mighty.Mocking
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args);
+		abstract public Task<T> SingleFromProcedureAsync(string spName,
+			CancellationToken cancellationToken,
+			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+			DbConnection connection = null,
+			params object[] args);
 
 		abstract public Task<IAsyncEnumerable<IAsyncEnumerable<T>>> QueryMultipleAsync(DbCommand command,
+			DbConnection connection = null);
+		abstract public Task<IAsyncEnumerable<IAsyncEnumerable<T>>> QueryMultipleAsync(DbCommand command,
+			CancellationToken cancellationToken,
 			DbConnection connection = null);
 
 		// no connection, easy args
 		abstract public Task<IAsyncEnumerable<IAsyncEnumerable<T>>> QueryMultipleAsync(string sql,
 			params object[] args);
+		abstract public Task<IAsyncEnumerable<IAsyncEnumerable<T>>> QueryMultipleAsync(string sql,
+			CancellationToken cancellationToken,
+			params object[] args);
 
 		abstract public Task<IAsyncEnumerable<IAsyncEnumerable<T>>> QueryMultipleAsync(string sql,
 			DbConnection connection,
 			params object[] args);
+		abstract public Task<IAsyncEnumerable<IAsyncEnumerable<T>>> QueryMultipleAsync(string sql,
+			DbConnection connection,
+			CancellationToken cancellationToken,
+			params object[] args);
 
 		abstract public Task<IAsyncEnumerable<IAsyncEnumerable<T>>> QueryMultipleWithParamsAsync(string sql,
+			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+			DbConnection connection = null,
+			params object[] args);
+		abstract public Task<IAsyncEnumerable<IAsyncEnumerable<T>>> QueryMultipleWithParamsAsync(string sql,
+			CancellationToken cancellationToken,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args);
@@ -210,16 +270,31 @@ namespace Mighty.Mocking
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args);
+		abstract public Task<IAsyncEnumerable<IAsyncEnumerable<T>>> QueryMultipleFromProcedureAsync(string spName,
+			CancellationToken cancellationToken,
+			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+			DbConnection connection = null,
+			params object[] args);
 
 		abstract public Task<int> ExecuteAsync(DbCommand command,
+			DbConnection connection = null);
+		abstract public Task<int> ExecuteAsync(DbCommand command,
+			CancellationToken cancellationToken,
 			DbConnection connection = null);
 
 		// no connection, easy args
 		abstract public Task<int> ExecuteAsync(string sql,
 			params object[] args);
+		abstract public Task<int> ExecuteAsync(string sql,
+			CancellationToken cancellationToken,
+			params object[] args);
 
 		abstract public Task<int> ExecuteAsync(string sql,
 			DbConnection connection,
+			params object[] args);
+		abstract public Task<int> ExecuteAsync(string sql,
+			DbConnection connection,
+			CancellationToken cancellationToken,
 			params object[] args);
 
 		/// <summary>
@@ -234,6 +309,11 @@ namespace Mighty.Mocking
 		/// <param name="args"></param>
 		/// <returns>The results of all non-input parameters</returns>
 		abstract public Task<dynamic> ExecuteWithParamsAsync(string sql,
+			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+			DbConnection connection = null,
+			params object[] args);
+		abstract public Task<dynamic> ExecuteWithParamsAsync(string sql,
+			CancellationToken cancellationToken,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args);
@@ -253,19 +333,39 @@ namespace Mighty.Mocking
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args);
+		abstract public Task<dynamic> ExecuteProcedureAsync(string spName,
+			CancellationToken cancellationToken,
+			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+			DbConnection connection = null,
+			params object[] args);
 
 		abstract public Task<object> ScalarAsync(DbCommand command,
+			DbConnection connection = null);
+		abstract public Task<object> ScalarAsync(DbCommand command,
+			CancellationToken cancellationToken,
 			DbConnection connection = null);
 
 		// no connection, easy args
 		abstract public Task<object> ScalarAsync(string sql,
 			params object[] args);
+		abstract public Task<object> ScalarAsync(string sql,
+			CancellationToken cancellationToken,
+			params object[] args);
 
 		abstract public Task<object> ScalarAsync(string sql,
 			DbConnection connection,
 			params object[] args);
+		abstract public Task<object> ScalarAsync(string sql,
+			DbConnection connection,
+			CancellationToken cancellationToken,
+			params object[] args);
 
 		abstract public Task<object> ScalarWithParamsAsync(string sql,
+			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+			DbConnection connection = null,
+			params object[] args);
+		abstract public Task<object> ScalarWithParamsAsync(string sql,
+			CancellationToken cancellationToken,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args);
@@ -274,8 +374,18 @@ namespace Mighty.Mocking
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args);
+		abstract public Task<object> ScalarFromProcedureAsync(string spName,
+			CancellationToken cancellationToken,
+			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+			DbConnection connection = null,
+			params object[] args);
 
 		abstract public Task<PagedResults<T>> PagedFromSelectAsync(string columns, string tablesAndJoins, string where, string orderBy,
+			int pageSize = 20, int currentPage = 1,
+			DbConnection connection = null,
+			params object[] args);
+		abstract public Task<PagedResults<T>> PagedFromSelectAsync(string columns, string tablesAndJoins, string where, string orderBy,
+			CancellationToken cancellationToken,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args);
@@ -298,8 +408,10 @@ namespace Mighty.Mocking
 		abstract public dynamic ResultsAsExpando(DbCommand cmd);
 
 		abstract protected Task<IAsyncEnumerable<X>> QueryNWithParamsAsync<X>(string sql = null, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, params object[] args);
+		abstract protected Task<IAsyncEnumerable<X>> QueryNWithParamsAsync<X>(CancellationToken cancellationToken, string sql = null, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, params object[] args);
 
 		abstract protected Task<IAsyncEnumerable<X>> QueryNWithParamsAsync<X>(DbCommand command, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, DbDataReader outerReader = null);
+		abstract protected Task<IAsyncEnumerable<X>> QueryNWithParamsAsync<X>(DbCommand command, CancellationToken cancellationToken, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, DbDataReader outerReader = null);
 		#endregion
 
 		#region Table specific methods
@@ -314,6 +426,9 @@ namespace Mighty.Mocking
 		abstract public Task<object> CountAsync(string columns = "*", string where = null,
 			DbConnection connection = null,
 			params object[] args);
+		abstract public Task<object> CountAsync(CancellationToken cancellationToken, string columns = "*", string where = null,
+			DbConnection connection = null,
+			params object[] args);
 
 		/// <summary>
 		/// Perform scalar operation on the current table (use for SUM, MAX, MIN, AVG, etc.)
@@ -324,6 +439,9 @@ namespace Mighty.Mocking
 		/// <param name="args">Parameters</param>
 		/// <returns></returns>
 		abstract public Task<object> AggregateAsync(string expression, string where = null,
+			DbConnection connection = null,
+			params object[] args);
+		abstract public Task<object> AggregateAsync(string expression, CancellationToken cancellationToken, string where = null,
 			DbConnection connection = null,
 			params object[] args);
 
@@ -343,6 +461,10 @@ namespace Mighty.Mocking
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args);
+		abstract public Task<object> AggregateWithParamsAsync(string expression, CancellationToken cancellationToken, string where = null,
+			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+			DbConnection connection = null,
+			params object[] args);
 
 		/// <summary>
 		/// Get a single object from the current table by primary key value
@@ -352,6 +474,8 @@ namespace Mighty.Mocking
 		/// <param name="connection">Optional connection</param>
 		/// <returns></returns>
 		abstract public Task<T> SingleAsync(object key, string columns = null,
+			DbConnection connection = null);
+		abstract public Task<T> SingleAsync(object key, CancellationToken cancellationToken, string columns = null,
 			DbConnection connection = null);
 
 		/// <summary>
@@ -364,6 +488,9 @@ namespace Mighty.Mocking
 		/// 'Easy-calling' version, optional args straight after where.
 		/// </remarks>
 		abstract public Task<T> SingleAsync(string where,
+			params object[] args);
+		abstract public Task<T> SingleAsync(string where,
+			CancellationToken cancellationToken,
 			params object[] args);
 
 		/// <summary>
@@ -384,9 +511,19 @@ namespace Mighty.Mocking
 			string orderBy = null,
 			string columns = null,
 			params object[] args);
+		abstract public Task<T> SingleAsync(string where,
+			CancellationToken cancellationToken,
+			DbConnection connection = null,
+			string orderBy = null,
+			string columns = null,
+			params object[] args);
 
 		// WithParams version just in case; allows transactions for a start
 		abstract public Task<T> SingleWithParamsAsync(string where, string orderBy = null, string columns = null,
+			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+			DbConnection connection = null,
+			params object[] args);
+		abstract public Task<T> SingleWithParamsAsync(string where, CancellationToken cancellationToken, string orderBy = null, string columns = null,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args);
@@ -395,8 +532,18 @@ namespace Mighty.Mocking
 		abstract public Task<IAsyncEnumerable<T>> AllAsync(
 			string where = null, string orderBy = null, string columns = null, int limit = 0,
 			params object[] args);
+		abstract public Task<IAsyncEnumerable<T>> AllAsync(
+			CancellationToken cancellationToken,
+			string where = null, string orderBy = null, string columns = null, int limit = 0,
+			params object[] args);
 
 		abstract public Task<IAsyncEnumerable<T>> AllWithParamsAsync(
+			string where = null, string orderBy = null, string columns = null, int limit = 0,
+			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+			DbConnection connection = null,
+			params object[] args);
+		abstract public Task<IAsyncEnumerable<T>> AllWithParamsAsync(
+			CancellationToken cancellationToken,
 			string where = null, string orderBy = null, string columns = null, int limit = 0,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
@@ -422,6 +569,11 @@ namespace Mighty.Mocking
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args);
+		abstract public Task<PagedResults<T>> PagedAsync(CancellationToken cancellationToken, string where = null, string orderBy = null,
+			string columns = null,
+			int pageSize = 20, int currentPage = 1,
+			DbConnection connection = null,
+			params object[] args);
 
 		/// <summary>
 		/// Save one or more items using params style arguments
@@ -429,6 +581,7 @@ namespace Mighty.Mocking
 		/// <param name="items">The items</param>
 		/// <returns></returns>
 		abstract public Task<int> SaveAsync(params object[] items);
+		abstract public Task<int> SaveAsync(CancellationToken cancellationToken, params object[] items);
 
 		/// <summary>
 		/// Save one or more items using pre-specified <see cref="DbConnection"/>
@@ -437,6 +590,7 @@ namespace Mighty.Mocking
 		/// <param name="items">The items</param>
 		/// <returns></returns>
 		abstract public Task<int> SaveAsync(DbConnection connection, params object[] items);
+		abstract public Task<int> SaveAsync(DbConnection connection, CancellationToken cancellationToken, params object[] items);
 
 		/// <summary>
 		/// Save array or other <see cref="IEnumerable"/> of items
@@ -444,6 +598,7 @@ namespace Mighty.Mocking
 		/// <param name="items">The items</param>
 		/// <returns></returns>
 		abstract public Task<int> SaveAsync(IEnumerable<object> items);
+		abstract public Task<int> SaveAsync(IEnumerable<object> items, CancellationToken cancellationToken);
 
 		/// <summary>
 		/// Save array or other <see cref="IEnumerable"/> of items using pre-specified <see cref="DbConnection"/>
@@ -452,6 +607,7 @@ namespace Mighty.Mocking
 		/// <param name="items">The items</param>
 		/// <returns></returns>
 		abstract public Task<int> SaveAsync(DbConnection connection, IEnumerable<object> items);
+		abstract public Task<int> SaveAsync(DbConnection connection, IEnumerable<object> items, CancellationToken cancellationToken);
 
 		/// <summary>
 		/// Insert single item, returning the item sent in but with PK populated.
@@ -460,6 +616,7 @@ namespace Mighty.Mocking
 		/// <param name="items">The item to insert, in any reasonable format (for MightyOrm&lt;T&gt; this includes, but is not limited to, in instance of type T)</param>
 		/// <returns>The inserted item</returns>
 		abstract public Task<T> InsertAsync(object item);
+		abstract public Task<T> InsertAsync(object item, CancellationToken cancellationToken);
 
 		/// <summary>
 		/// Insert one or more items using params style arguments
@@ -467,6 +624,7 @@ namespace Mighty.Mocking
 		/// <param name="items">The items</param>
 		/// <returns>The number of rows inserted</returns>
 		abstract public Task<int> InsertAsync(params object[] items);
+		abstract public Task<int> InsertAsync(CancellationToken cancellationToken, params object[] items);
 
 		/// <summary>
 		/// Insert one or more items using pre-specified <see cref="DbConnection"/>
@@ -475,6 +633,7 @@ namespace Mighty.Mocking
 		/// <param name="items">The items</param>
 		/// <returns>The number of rows inserted</returns>
 		abstract public Task<int> InsertAsync(DbConnection connection, params object[] items);
+		abstract public Task<int> InsertAsync(DbConnection connection, CancellationToken cancellationToken, params object[] items);
 
 		/// <summary>
 		/// Insert array or other <see cref="IEnumerable"/> of items
@@ -482,6 +641,7 @@ namespace Mighty.Mocking
 		/// <param name="items">The items</param>
 		/// <returns>The number of rows inserted</returns>
 		abstract public Task<int> InsertAsync(IEnumerable<object> items);
+		abstract public Task<int> InsertAsync(IEnumerable<object> items, CancellationToken cancellationToken);
 
 		/// <summary>
 		/// Insert array or other <see cref="IEnumerable"/> of items using pre-specified <see cref="DbConnection"/>
@@ -490,6 +650,7 @@ namespace Mighty.Mocking
 		/// <param name="items">The items</param>
 		/// <returns>The number of rows inserted</returns>
 		abstract public Task<int> InsertAsync(DbConnection connection, IEnumerable<object> items);
+		abstract public Task<int> InsertAsync(DbConnection connection, IEnumerable<object> items, CancellationToken cancellationToken);
 
 		/// <summary>
 		/// Update one or more items using params style arguments
@@ -497,6 +658,7 @@ namespace Mighty.Mocking
 		/// <param name="items">The items</param>
 		/// <returns></returns>
 		abstract public Task<int> UpdateAsync(params object[] items);
+		abstract public Task<int> UpdateAsync(CancellationToken cancellationToken, params object[] items);
 
 		/// <summary>
 		/// Update one or more items using pre-specified <see cref="DbConnection"/>
@@ -505,6 +667,7 @@ namespace Mighty.Mocking
 		/// <param name="items">The items</param>
 		/// <returns></returns>
 		abstract public Task<int> UpdateAsync(DbConnection connection, params object[] items);
+		abstract public Task<int> UpdateAsync(DbConnection connection, CancellationToken cancellationToken, params object[] items);
 
 		/// <summary>
 		/// Update array or other <see cref="IEnumerable"/> of items
@@ -512,6 +675,7 @@ namespace Mighty.Mocking
 		/// <param name="items">The items</param>
 		/// <returns></returns>
 		abstract public Task<int> UpdateAsync(IEnumerable<object> items);
+		abstract public Task<int> UpdateAsync(IEnumerable<object> items, CancellationToken cancellationToken);
 
 		/// <summary>
 		/// Update array or other <see cref="IEnumerable"/> of items using pre-specified <see cref="DbConnection"/>
@@ -520,6 +684,7 @@ namespace Mighty.Mocking
 		/// <param name="items">The items</param>
 		/// <returns></returns>
 		abstract public Task<int> UpdateAsync(DbConnection connection, IEnumerable<object> items);
+		abstract public Task<int> UpdateAsync(DbConnection connection, IEnumerable<object> items, CancellationToken cancellationToken);
 
 		/// <summary>
 		/// Delete one or more items using params style arguments
@@ -527,6 +692,7 @@ namespace Mighty.Mocking
 		/// <param name="items">The items</param>
 		/// <returns></returns>
 		abstract public Task<int> DeleteAsync(params object[] items);
+		abstract public Task<int> DeleteAsync(CancellationToken cancellationToken, params object[] items);
 
 		/// <summary>
 		/// Delete one or more items using pre-specified <see cref="DbConnection"/>
@@ -535,6 +701,7 @@ namespace Mighty.Mocking
 		/// <param name="items">The items</param>
 		/// <returns></returns>
 		abstract public Task<int> DeleteAsync(DbConnection connection, params object[] items);
+		abstract public Task<int> DeleteAsync(DbConnection connection, CancellationToken cancellationToken, params object[] items);
 
 		/// <summary>
 		/// Delete array or other <see cref="IEnumerable"/> of items
@@ -542,6 +709,7 @@ namespace Mighty.Mocking
 		/// <param name="items">The items</param>
 		/// <returns></returns>
 		abstract public Task<int> DeleteAsync(IEnumerable<object> items);
+		abstract public Task<int> DeleteAsync(IEnumerable<object> items, CancellationToken cancellationToken);
 
 		/// <summary>
 		/// Delete array or other <see cref="IEnumerable"/> of items using pre-specified <see cref="DbConnection"/>
@@ -550,6 +718,7 @@ namespace Mighty.Mocking
 		/// <param name="items">The items</param>
 		/// <returns></returns>
 		abstract public Task<int> DeleteAsync(DbConnection connection, IEnumerable<object> items);
+		abstract public Task<int> DeleteAsync(DbConnection connection, IEnumerable<object> items, CancellationToken cancellationToken);
 
 		abstract public T New();
 
@@ -562,6 +731,7 @@ namespace Mighty.Mocking
 		/// <param name="partialItem"></param>
 		/// <param name="key"></param>
 		abstract public Task<int> UpdateUsingAsync(object partialItem, object key);
+		abstract public Task<int> UpdateUsingAsync(object partialItem, object key, CancellationToken cancellationToken);
 
 		/// <summary>
 		/// Apply all fields which are present in item to the row matching key.
@@ -572,6 +742,8 @@ namespace Mighty.Mocking
 		/// <param name="connection"></param>
 		abstract public Task<int> UpdateUsingAsync(object partialItem, object key,
 			DbConnection connection);
+		abstract public Task<int> UpdateUsingAsync(object partialItem, object key,
+			DbConnection connection, CancellationToken cancellationToken);
 
 		/// <summary>
 		/// Apply all fields which are present in item to all rows matching where clause
@@ -584,6 +756,9 @@ namespace Mighty.Mocking
 		/// <param name="args"></param>
 		/// <returns></returns>
 		abstract public Task<int> UpdateUsingAsync(object partialItem, string where,
+			params object[] args);
+		abstract public Task<int> UpdateUsingAsync(object partialItem, string where,
+			CancellationToken cancellationToken,
 			params object[] args);
 
 		/// <summary>
@@ -598,6 +773,10 @@ namespace Mighty.Mocking
 		abstract public Task<int> UpdateUsingAsync(object partialItem, string where,
 			DbConnection connection,
 			params object[] args);
+		abstract public Task<int> UpdateUsingAsync(object partialItem, string where,
+			DbConnection connection,
+			CancellationToken cancellationToken,
+			params object[] args);
 
 		/// <summary>
 		/// Delete rows from ORM table based on WHERE clause.
@@ -609,9 +788,16 @@ namespace Mighty.Mocking
 		/// <returns></returns>
 		abstract public Task<int> DeleteAsync(string where,
 			params object[] args);
+		abstract public Task<int> DeleteAsync(string where,
+			CancellationToken cancellationToken,
+			params object[] args);
 
 		abstract public Task<int> DeleteAsync(string where,
 			DbConnection connection,
+			params object[] args);
+		abstract public Task<int> DeleteAsync(string where,
+			DbConnection connection,
+			CancellationToken cancellationToken,
 			params object[] args);
 
 		abstract public dynamic GetColumnInfo(string column, bool ExceptionOnAbsent = true);
@@ -624,10 +810,11 @@ namespace Mighty.Mocking
 
 		abstract public object GetPrimaryKey(object item, bool alwaysArray = false);
 
-// TO DO: We should still be supporting this
+		// TO DO: We should still be supporting this
 #if KEY_VALUES
 		abstract public async Task<IDictionary<string, string>> KeyValuesAsync(string orderBy = "");
+		abstract public async Task<IDictionary<string, string>> KeyValuesAsync(CancellationToken cancellationToken, string orderBy = "");
 #endif
-#endregion
+		#endregion
 	}
 }
