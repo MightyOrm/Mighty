@@ -133,9 +133,9 @@ namespace Mighty.Dynamic.Tests.Oracle
 		{
 			// TO DO: Separate tests, with lambdas
 			// Exception on "*" columns
-			InvalidOperationException ex1 = Assert.Throws<InvalidOperationException>(new TestDelegate(TestStarWithJoin));
+			InvalidOperationException ex1 = Assert.ThrowsAsync<InvalidOperationException>(new AsyncTestDelegate(TestStarWithJoin));
 			// Exception on empty order by
-			InvalidOperationException ex2 = Assert.Throws<InvalidOperationException>(new TestDelegate(TestPagedNoOrderBy));
+			InvalidOperationException ex2 = Assert.ThrowsAsync<InvalidOperationException>(new AsyncTestDelegate(TestPagedNoOrderBy));
 
 			var depts = new Department(ProviderName);
 			var page2 = await depts.PagedFromSelectAsync("EMPNO, ENAME, DNAME", "SCOTT.EMP e INNER JOIN SCOTT.DEPT d ON e.DEPTNO = d.DEPTNO", null, "EMPNO", pageSize: 5, currentPage: 2);
@@ -146,7 +146,7 @@ namespace Mighty.Dynamic.Tests.Oracle
 		}
 
 		// These two are called above and are meant to throw exceptions, they should be in separate tests
-		private async void TestStarWithJoin()
+		private async Task TestStarWithJoin()
 		{
 			var depts = new Department(ProviderName);
 			var page2 = await depts.PagedFromSelectAsync("*", "SCOTT.EMP e INNER JOIN SCOTT.DEPT d ON e.DEPTNO = d.DEPTNO", null, "EMPNO", pageSize: 2, currentPage: 2);
@@ -154,7 +154,7 @@ namespace Mighty.Dynamic.Tests.Oracle
 		}
 
 		// These two are called above and are meant to throw exceptions, they should be in separate tests
-		private async void TestPagedNoOrderBy()
+		private async Task TestPagedNoOrderBy()
 		{
 			var depts = new Department(ProviderName);
 			var page2 = await depts.PagedFromSelectAsync("EMPNO, ENAME, DNAME", "SCOTT.EMP e INNER JOIN SCOTT.DEPT d ON e.DEPTNO = d.DEPTNO", null, null, pageSize: 2, currentPage: 2);

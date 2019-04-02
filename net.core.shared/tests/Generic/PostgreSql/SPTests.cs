@@ -40,7 +40,7 @@ namespace Mighty.Generic.Tests.PostgreSql
 		}
 
 
-#if !COREFX
+#if SYNC_ONLY && !COREFX
 		[Test]
 		public async Task DereferenceFromQuery_ManualWrapping()
 		{
@@ -49,7 +49,7 @@ namespace Mighty.Generic.Tests.PostgreSql
 			// so in this case we need to add the wrapping transaction manually (with TransactionScope or
 			// BeginTransaction, see other examples in this file)
 			int count = 0;
-			using(var scope = new TransactionScope())
+			using (var scope = new TransactionScope())
 			{
 				var employees = await db.QueryAsync("SELECT * FROM cursor_employees()");
 				await employees.ForEachAsync(employee => {

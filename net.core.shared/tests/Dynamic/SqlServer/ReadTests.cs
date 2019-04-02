@@ -30,19 +30,19 @@ namespace Mighty.Dynamic.Tests.SqlServer
 
 
 		[Test]
-		public void MaxOnFilteredSet()
+		public async Task MaxOnFilteredSet()
 		{
 			var soh = new SalesOrderHeader();
-			var result = ((dynamic)soh).Max(columns: "SalesOrderID", where: "SalesOrderID < @0", args: 100000);
+			var result = await ((dynamic)soh).MaxAsync(columns: "SalesOrderID", where: "SalesOrderID < @0", args: 100000);
 			Assert.AreEqual(75123, result);
 		}
 
 
 		[Test]
-		public void MaxOnFilteredSet2()
+		public async Task MaxOnFilteredSet2()
 		{
 			var soh = new SalesOrderHeader();
-			var result = ((dynamic)soh).Max(columns: "SalesOrderID", TerritoryID: 10);
+			var result = await ((dynamic)soh).MaxAsync(columns: "SalesOrderID", TerritoryID: 10);
 			Assert.AreEqual(75117, result);
 		}
 
@@ -183,19 +183,19 @@ namespace Mighty.Dynamic.Tests.SqlServer
 
 
 		[Test]
-		public void Find_AllColumns()
+		public async Task Find_AllColumns()
 		{
 			dynamic soh = new SalesOrderHeader();
-			var singleInstance = soh.Find(SalesOrderID: 43666);
+			var singleInstance = await soh.FindAsync(SalesOrderID: 43666);
 			Assert.AreEqual(43666, singleInstance.SalesOrderID);
 		}
 
 
 		[Test]
-		public void Find_OneColumn()
+		public async Task Find_OneColumn()
 		{
 			dynamic soh = new SalesOrderHeader();
-			var singleInstance = soh.Find(SalesOrderID: 43666, columns:"SalesOrderID");
+			var singleInstance = await soh.FindAsync(SalesOrderID: 43666, columns:"SalesOrderID");
 			Assert.AreEqual(43666, singleInstance.SalesOrderID);
 			var siAsDict = (IDictionary<string, object>)singleInstance;
 			Assert.AreEqual(1, siAsDict.Count);
@@ -203,38 +203,38 @@ namespace Mighty.Dynamic.Tests.SqlServer
 
 
 		[Test]
-		public void Get_AllColumns()
+		public async Task Get_AllColumns()
 		{
 			dynamic soh = new SalesOrderHeader();
-			var singleInstance = soh.Get(SalesOrderID: 43666);
+			var singleInstance = await soh.GetAsync(SalesOrderID: 43666);
 			Assert.AreEqual(43666, singleInstance.SalesOrderID);
 		}
 
 
 		[Test]
-		public void First_AllColumns()
+		public async Task First_AllColumns()
 		{
 			dynamic soh = new SalesOrderHeader();
-			var singleInstance = soh.First(SalesOrderID: 43666);
+			var singleInstance = await soh.FirstAsync(SalesOrderID: 43666);
 			Assert.AreEqual(43666, singleInstance.SalesOrderID);
 		}
 
 
 		[Test]
-		public void Single_AllColumns()
+		public async Task Single_AllColumns()
 		{
 			dynamic soh = new SalesOrderHeader();
-			var singleInstance = soh.Single(SalesOrderID: 43666);
+			var singleInstance = await soh.SingleAsync(SalesOrderID: 43666);
 			Assert.AreEqual(43666, singleInstance.SalesOrderID);
 			Assert.AreEqual(26, ((ExpandoObject)singleInstance).ToDictionary().Count);
 		}
 
 
 		[Test]
-		public void Single_ThreeColumns()
+		public async Task Single_ThreeColumns()
 		{
 			dynamic soh = new SalesOrderHeader();
-			var singleInstance = soh.Single(SalesOrderID: 43666, columns: "SalesOrderID, SalesOrderNumber, OrderDate");
+			var singleInstance = await soh.SingleAsync(SalesOrderID: 43666, columns: "SalesOrderID, SalesOrderNumber, OrderDate");
 			Assert.AreEqual(43666, singleInstance.SalesOrderID);
 			Assert.AreEqual("SO43666", singleInstance.SalesOrderNumber);
 			Assert.AreEqual(new DateTime(2011, 5, 31), singleInstance.OrderDate);
@@ -330,19 +330,19 @@ namespace Mighty.Dynamic.Tests.SqlServer
 
 
 		[Test]
-		public void Count_WhereSpecification_FromArgsPlusNameValue()
+		public async Task Count_WhereSpecification_FromArgsPlusNameValue()
 		{
 			dynamic soh = new SalesOrderHeader();
-			var total = soh.Count(where: "WHERE CustomerId=@0", args: 11212, ModifiedDate: new DateTime(2013, 10, 10));
+			var total = await soh.CountAsync(where: "WHERE CustomerId=@0", args: 11212, ModifiedDate: new DateTime(2013, 10, 10));
 			Assert.AreEqual(2, total);
 		}
 
 
 		[Test]
-		public void Count_WhereSpecification_FromNameValuePairs()
+		public async Task Count_WhereSpecification_FromNameValuePairs()
 		{
 			dynamic soh = new SalesOrderHeader();
-			var total = soh.Count(CustomerID: 11212, ModifiedDate: new DateTime(2013, 10, 10));
+			var total = await soh.CountAsync(CustomerID: 11212, ModifiedDate: new DateTime(2013, 10, 10));
 			Assert.AreEqual(2, total);
 		}
 
@@ -351,10 +351,10 @@ namespace Mighty.Dynamic.Tests.SqlServer
 		/// With correct brackets round the WHERE condition in the SQL this returns 17, otherwise it returns 31465!
 		/// </remarks>
 		[Test]
-		public void Count_TestWhereWrapping()
+		public async Task Count_TestWhereWrapping()
 		{
 			dynamic soh = new SalesOrderHeader();
-			var total = soh.Count(where: "1=1 OR 0=0", CustomerID: 11212);
+			var total = await soh.CountAsync(where: "1=1 OR 0=0", CustomerID: 11212);
 			Assert.AreEqual(17, total);
 		}
 
@@ -369,24 +369,24 @@ namespace Mighty.Dynamic.Tests.SqlServer
 
 
 		[Test]
-		public void IsValid_SalesPersonIDCheck()
+		public async Task IsValid_SalesPersonIDCheck()
 		{
 			dynamic soh = new SalesOrderHeader();
-			var toValidate = soh.Find(SalesOrderID: 45816);
+			var toValidate = await soh.FindAsync(SalesOrderID: 45816);
 			// is invalid
 			Assert.AreEqual(1, soh.IsValid(toValidate).Count);
 
-			toValidate = soh.Find(SalesOrderID: 45069);
+			toValidate = await soh.FindAsync(SalesOrderID: 45069);
 			// is valid
 			Assert.AreEqual(0, soh.IsValid(toValidate).Count);
 		}
 
 
 		[Test]
-		public void PrimaryKey_Read_Check()
+		public async Task PrimaryKey_Read_Check()
 		{
 			dynamic soh = new SalesOrderHeader();
-			var toValidate = soh.Find(SalesOrderID: 45816);
+			var toValidate = await soh.FindAsync(SalesOrderID: 45816);
 
 			Assert.IsTrue(soh.HasPrimaryKey(toValidate));
 

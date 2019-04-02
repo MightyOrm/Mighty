@@ -73,7 +73,7 @@ namespace Mighty.Dynamic.Tests.Oracle
 		public async Task InputAndOutputParams()
 		{
 			var db = new SPTestsDatabase(ProviderName);
-			dynamic procResult = db.ExecuteProcedureAsync("findMin", inParams: new { x = 1, y = 3 }, outParams: new { z = 0 });
+			dynamic procResult = await db.ExecuteProcedureAsync("findMin", inParams: new { x = 1, y = 3 }, outParams: new { z = 0 });
 			Assert.AreEqual(1, procResult.z);
 		}
 
@@ -218,7 +218,7 @@ namespace Mighty.Dynamic.Tests.Oracle
 		{
 			var db = new SPTestsDatabase(ProviderName);
 			// To share cursors between commands in Oracle the commands must use the same connection
-			using(var conn = await db.OpenConnectionAsync())
+			using (var conn = await db.OpenConnectionAsync())
 			{
 				var res1 = await db.ExecuteWithParamsAsync("begin open :p_rc for select * from emp where deptno = 10; end;", outParams: new { p_rc = new Cursor() }, connection: conn);
 				Assert.AreEqual("OracleRefCursor", res1.p_rc.GetType().Name);

@@ -198,7 +198,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 		}
 
 
-#if !COREFX
+#if SYNC_ONLY && !COREFX
 		[Test]
 		public async Task DereferenceFromQuery_ManualWrapping()
 		{
@@ -207,7 +207,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 			// so in this case we need to add the wrapping transaction manually (with TransactionScope or
 			// BeginTransaction, see other examples in this file)
 			int count = 0;
-			using(var scope = new TransactionScope())
+			using (var scope = new TransactionScope())
 			{
 				var employees = await db.QueryAsync("SELECT * FROM cursor_employees()");
 				await employees.ForEachAsync(employee => {
@@ -225,6 +225,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 		{
 			var db = new SPTestsDatabase();
 			// use dummy cursor to trigger wrapping transaction support in Massive
+			// TO DO: document this
 			var employees = await db.QueryWithParamsAsync("SELECT * FROM cursor_employees()", outParams: new { abc = new Cursor() });
 			int count = 0;
 			await employees.ForEachAsync(employee => {
@@ -326,10 +327,10 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 		public async Task InputCursors_BeginTransaction()
 		{
 			var db = new SPTestsDatabase();
-			using(var conn = await db.OpenConnectionAsync())
+			using (var conn = await db.OpenConnectionAsync())
 			{
 				// cursors in PostgreSQL must share a transaction (not just a connection, as in Oracle)
-				using(var trans = conn.BeginTransaction())
+				using (var trans = conn.BeginTransaction())
 				{
 					var cursors = await db.ExecuteProcedureAsync("cursorNByOne", outParams: new { c1 = new Cursor(), c2 = new Cursor() }, connection: conn);
 					var cursor1 = await db.QueryFromProcedureAsync("fetch_next_ints_from_cursor", new { mycursor = new Cursor(cursors.c1) }, connection: conn);
@@ -353,7 +354,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 			}
 		}
 
-#if !COREFX
+#if SYNC_ONLY && !COREFX
 		[Test]
 		public async Task InputCursors_TransactionScope()
 		{
@@ -361,7 +362,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 
 			// cursors in PostgreSQL must share a transaction (not just a connection, as in Oracle)
 			// to use TransactionScope with Npgsql, the connection string must include "Enlist=true;"
-			using(var scope = new TransactionScope())
+			using (var scope = new TransactionScope())
 			{
 				var cursors = await db.ExecuteProcedureAsync("cursorNByOne", outParams: new { c1 = new Cursor(), c2 = new Cursor() });
 				var cursor1 = await db.QueryFromProcedureAsync("fetch_next_ints_from_cursor", new { mycursor = new Cursor(cursors.c1) });
@@ -428,7 +429,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 		}
 #endif
 
-// Temporarily commenting out large cursor tests
+		// Temporarily commenting out large cursor tests
 #if true
 		readonly int LargeCursorSize = 1000000;
 
@@ -442,10 +443,10 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 			int count = 0;
 			int batchCount = 0;
 			var db = new SPTestsDatabase();
-			using(var conn = await db.OpenConnectionAsync())
+			using (var conn = await db.OpenConnectionAsync())
 			{
 				// cursors in PostgreSQL must share a transaction (not just a connection, as in Oracle)
-				using(var trans = conn.BeginTransaction())
+				using (var trans = conn.BeginTransaction())
 				{
 					var result = await db.ExecuteProcedureAsync("lump", returnParams: new { cname = new Cursor() }, connection: conn);
 					while(true)

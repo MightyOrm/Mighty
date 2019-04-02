@@ -77,7 +77,7 @@ namespace Mighty
 			var info = binder.CallInfo;
 			if (info.ArgumentNames.Count != args.Length)
 			{
-				throw new InvalidOperationException("No non-dynamic method found; use named arguments for dynamically invoked queries: this can be a field name followed by a value, 'orderby:', 'colums:', 'where:' or 'args:'");
+				throw new InvalidOperationException("No non-dynamic method was found and named arguments are required for dynamically invoked methods. You can use: '<column-name>:', 'orderBy:', 'columns:', 'where:' or 'args:'");
 			}
 
 			var columns = "*";
@@ -127,6 +127,13 @@ namespace Mighty
 
 			var op = binder.Name;
 			var uOp = op.ToUpperInvariant();
+
+			bool useAsync = uOp.EndsWith("ASYNC");
+			if (useAsync)
+			{
+				uOp = uOp.Substring(0, uOp.Length - 5);
+			}
+
 			switch (uOp)
 			{
 				case "COUNT":
@@ -134,7 +141,15 @@ namespace Mighty
 				case "MAX":
 				case "MIN":
 				case "AVG":
-					result = Mighty.AggregateWithParams(string.Format("{0}({1})", uOp, columns), whereClause, inParams: nameValueArgs, args: userArgs);
+					if (useAsync)
+					{
+						result = Mighty.AggregateWithParamsAsync(string.Format("{0}({1})", uOp, columns), whereClause, inParams: nameValueArgs, args: userArgs);
+					}
+					else
+					{
+						throw new NotImplementedException($"sync dynamic {op}");
+						//result = Mighty.AggregateWithParams(string.Format("{0}({1})", uOp, columns), whereClause, inParams: nameValueArgs, args: userArgs);
+					}
 					break;
 				default:
 					var justOne = uOp.StartsWith("FIRST") || uOp.StartsWith("LAST") || uOp.StartsWith("GET") || uOp.StartsWith("FIND") || uOp.StartsWith("SINGLE");
@@ -148,11 +163,27 @@ namespace Mighty
 					}
 					if (justOne)
 					{
-						result = Mighty.SingleWithParams(whereClause, orderBy, columns, inParams: nameValueArgs, args: userArgs);
+						if (useAsync)
+						{
+							result = Mighty.SingleWithParamsAsync(whereClause, orderBy, columns, inParams: nameValueArgs, args: userArgs);
+						}
+						else
+						{
+							throw new NotImplementedException($"sync dynamic {op}");
+							//result = Mighty.SingleWithParams(whereClause, orderBy, columns, inParams: nameValueArgs, args: userArgs);
+						}
 					}
 					else
 					{
-						result = Mighty.AllWithParams(whereClause, orderBy, columns, inParams: nameValueArgs, args: userArgs);
+						if (useAsync)
+						{
+							result = Mighty.AllWithParamsAsync(whereClause, orderBy, columns, inParams: nameValueArgs, args: userArgs);
+						}
+						else
+						{
+							throw new NotImplementedException($"sync dynamic {op}");
+							//result = Mighty.AllWithParams(whereClause, orderBy, columns, inParams: nameValueArgs, args: userArgs);
+						}
 					}
 					break;
 			}

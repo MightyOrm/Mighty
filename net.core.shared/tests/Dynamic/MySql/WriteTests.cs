@@ -69,15 +69,15 @@ namespace Mighty.Dynamic.Tests.MySql
 			Assert.IsTrue(insertedCategoryID > 0);
 			// update it, with a better description
 			inserted.Description = "This is all jolly marvellous";
-			Assert.AreEqual(1, categories.Update(inserted), "Update should have affected 1 row");
-			var updatedRow = categories.Find(CategoryID: inserted.CategoryID);
+			Assert.AreEqual(1, await categories.UpdateAsync(inserted), "Update should have affected 1 row");
+			var updatedRow = await categories.FindAsync(CategoryID: inserted.CategoryID);
 			Assert.IsNotNull(updatedRow);
 			Assert.AreEqual(inserted.CategoryID, Convert.ToInt32(updatedRow.CategoryID)); // convert from uint
 			Assert.AreEqual(inserted.Description, updatedRow.Description);
 			// reset description to NULL
 			updatedRow.Description = null;
-			Assert.AreEqual(1, categories.Update(updatedRow), "Update should have affected 1 row");
-			var newUpdatedRow = categories.Find(CategoryID: updatedRow.CategoryID);
+			Assert.AreEqual(1, await categories.UpdateAsync(updatedRow), "Update should have affected 1 row");
+			var newUpdatedRow = await categories.FindAsync(CategoryID: updatedRow.CategoryID);
 			Assert.IsNotNull(newUpdatedRow);
 			Assert.AreEqual(updatedRow.CategoryID, newUpdatedRow.CategoryID);
 			Assert.AreEqual(updatedRow.Description, newUpdatedRow.Description);
