@@ -48,12 +48,12 @@ namespace Mighty
         internal PluginBase Plugin { get; set; }
 
 		/// <summary>
-		/// Allows setting a global connection string (used by default if nothing else set; set on untype <see cref="MightyOrm"/> to set it everywhere).
+		/// Allows setting a global connection string (used by default if nothing else set; set it on untyped <see cref="MightyOrm"/> to set it everywhere).
 		/// </summary>
 		static public string GlobalConnectionString { get; set; }
 
 		/// <summary>
-		/// Allows setting a global validator (used by default if nothing else set; set on untype <see cref="MightyOrm"/> to set it everywhere).
+		/// Allows setting a global validator (used by default if nothing else set; set it on untyped <see cref="MightyOrm"/> to set it everywhere).
 		/// </summary>
 		static public Validator GlobalValidator { get; set; }
 
@@ -63,7 +63,7 @@ namespace Mighty
         override public Validator Validator { get; protected set; }
 
 		/// <summary>
-		/// Allows setting a global sql mapper (used by default if nothing else set; set on untype <see cref="MightyOrm"/> to set it everywhere).
+		/// Allows setting a global sql mapper (used by default if nothing else set; set it on untyped <see cref="MightyOrm"/> to set it everywhere).
 		/// </summary>
 		static public SqlNamingMapper GlobalSqlMapper { get; set; }
 
@@ -73,7 +73,7 @@ namespace Mighty
         override public SqlNamingMapper SqlMapper { get; protected set; }
 
 		/// <summary>
-		/// Allows setting a global SQL profiler (used by default if nothing else set; set on untype <see cref="MightyOrm"/> to set it everywhere).
+		/// Allows setting a global SQL profiler (used by default if nothing else set; set it on untyped <see cref="MightyOrm"/> to set it everywhere).
 		/// </summary>
 		static public SqlProfiler GlobalSqlProfiler { get; set; }
 
