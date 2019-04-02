@@ -95,7 +95,12 @@ namespace Mighty
 					switch (name.ToLowerInvariant())
 					{
 						case "cancellationtoken":
-							cancellationToken = (CancellationToken)args[i];
+							var usable = args[i] as CancellationToken?;
+							if (usable == null)
+							{
+								throw new InvalidOperationException($"Invalid {nameof(CancellationToken)} passed to dynamically invoked method");
+							}
+							cancellationToken = (CancellationToken)usable;
 							break;
 						case "orderby":
 							orderBy = args[i].ToString();

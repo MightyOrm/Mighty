@@ -267,6 +267,16 @@ namespace Mighty.Dynamic.Tests.SqlServer
 
 
 		[Test]
+		public async Task DynamicMethod_ReportsInvalidCancellationToken()
+		{
+			dynamic soh = new SalesOrderHeader();
+			Assert.ThrowsAsync<InvalidOperationException>(async () => {
+				await soh.ManyAsync(columns: "SalesOrderID, SalesOrderNumber, OrderDate", cancellationToken: "");
+			});
+		}
+
+
+		[Test]
 		public async Task Query_AllRows()
 		{
 			var soh = new SalesOrderHeader();
