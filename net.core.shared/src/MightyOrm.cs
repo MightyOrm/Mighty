@@ -1043,7 +1043,7 @@ namespace Mighty
 					{
 						using (var reader = (outerReader == null ? await Plugin.ExecuteDereferencingReaderAsync(command, behavior, connection ?? localConn).ConfigureAwait(false) : null))
 						{
-							if (typeof(X) == typeof(IEnumerable<T>))
+							if (typeof(X) == typeof(IAsyncEnumerable<T>))
 							{
 								// query multiple pattern
 								do
