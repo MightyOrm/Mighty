@@ -7,6 +7,7 @@ using System.Dynamic;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 using Mighty.Dynamic.Tests.SqlServer.TableClasses;
 using NUnit.Framework;
@@ -239,6 +240,29 @@ namespace Mighty.Dynamic.Tests.SqlServer
 			Assert.AreEqual("SO43666", singleInstance.SalesOrderNumber);
 			Assert.AreEqual(new DateTime(2011, 5, 31), singleInstance.OrderDate);
 			Assert.AreEqual(3, ((ExpandoObject)singleInstance).ToDictionary().Count);
+		}
+
+
+		[Test]
+		public async Task DynamicMethod_RespondsToCancellation()
+		{
+			using (CancellationTokenSource cts = new CancellationTokenSource())
+			{
+				dynamic soh = new SalesOrderHeader();
+				IAsyncEnumerable<dynamic> manyInstances = await soh.ManyAsync(columns: "SalesOrderID, SalesOrderNumber, OrderDate", cancellationToken: cts.Token);
+				int count = 0;
+				Assert.ThrowsAsync<TaskCanceledException>(async () => {
+					await manyInstances.ForEachAsync(singleInstance => {
+						Assert.AreEqual(3, ((ExpandoObject)singleInstance).ToDictionary().Count);
+						count++;
+						if (count == 7)
+						{
+							cts.Cancel();
+						}
+					});
+				});
+				Assert.AreEqual(7, count);
+			}
 		}
 
 

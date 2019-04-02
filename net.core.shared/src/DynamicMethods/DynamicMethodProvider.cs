@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq.Expressions;
+using System.Threading;
 
 namespace Mighty
 {
@@ -84,6 +85,7 @@ namespace Mighty
 			var wherePredicates = new List<string>();
 			var nameValueArgs = new ExpandoObject();
 			var nameValueDictionary = nameValueArgs.ToDictionary();
+			var cancellationToken = CancellationToken.None;
 			object[] userArgs = null;
 			if (info.ArgumentNames.Count > 0)
 			{
@@ -92,6 +94,9 @@ namespace Mighty
 					var name = info.ArgumentNames[i];
 					switch (name.ToLowerInvariant())
 					{
+						case "cancellationtoken":
+							cancellationToken = (CancellationToken)args[i];
+							break;
 						case "orderby":
 							orderBy = args[i].ToString();
 							break;
@@ -142,7 +147,7 @@ namespace Mighty
 				case "AVG":
 					if (useAsync)
 					{
-						result = Mighty.AggregateWithParamsAsync(string.Format("{0}({1})", uOp, columns), whereClause, inParams: nameValueArgs, args: userArgs);
+						result = Mighty.AggregateWithParamsAsync(string.Format("{0}({1})", uOp, columns), cancellationToken, whereClause, inParams: nameValueArgs, args: userArgs);
 					}
 					else
 					{
@@ -164,7 +169,7 @@ namespace Mighty
 					{
 						if (useAsync)
 						{
-							result = Mighty.SingleWithParamsAsync(whereClause, orderBy, columns, inParams: nameValueArgs, args: userArgs);
+							result = Mighty.SingleWithParamsAsync(whereClause, cancellationToken, orderBy, columns, inParams: nameValueArgs, args: userArgs);
 						}
 						else
 						{
@@ -176,7 +181,7 @@ namespace Mighty
 					{
 						if (useAsync)
 						{
-							result = Mighty.AllWithParamsAsync(whereClause, orderBy, columns, inParams: nameValueArgs, args: userArgs);
+							result = Mighty.AllWithParamsAsync(cancellationToken, whereClause, orderBy, columns, inParams: nameValueArgs, args: userArgs);
 						}
 						else
 						{
