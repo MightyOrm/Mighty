@@ -4,6 +4,7 @@ using System.Data.Common;
 using System.Collections.Generic;
 
 using Mighty.Plugins;
+using System.Threading.Tasks;
 
 namespace Mighty.Npgsql
 {
@@ -21,13 +22,17 @@ namespace Mighty.Npgsql
 		private string Cursor = null;
 		private int Count; // # read on current FETCH
 
+		private DbDataReader originalReader;
+		private CommandBehavior Behavior;
+
+
 		/// <summary>
 		/// Create a safe, sensible dereferencing reader; we have already checked that there are at least some cursors to dereference at this point.
 		/// </summary>
 		/// <param name="reader">The original reader for the undereferenced query.</param>
+		/// <param name="behavior">The required <see cref="CommandBehavior"/></param>
 		/// <param name="connection">The connection to use.</param>
-		/// <param name="db">We need this for the DbCommand factory.</param>
-		/// <param name="fetchSize">Batch fetch size; zero or negative value will FETCH ALL from each cursor.</param>
+		/// <param name="mighty">The owning Mighty instance.</param>
 		/// <remarks>
 		/// FETCH ALL is genuinely useful in some situations (e.g. if using (abusing?) cursors to return small or medium sized multiple result
 		/// sets then we can and do save one round trip to the database overall: n cursors round trips, rather than n cursors plus one), but since
@@ -40,23 +45,36 @@ namespace Mighty.Npgsql
 			FetchSize = mighty.NpgsqlAutoDereferenceFetchSize;
 			Connection = connection;
 			Mighty = mighty;
+			Behavior = behavior;
+			originalReader = reader;
+		}
 
-			// We're not saving the behavior: this logic has already enforced SingleResult;
-			// for SingleRow, we rely on the user to only read one row and then dispose of everything.
-			bool earlyQuit = (behavior == CommandBehavior.SingleResult || behavior == CommandBehavior.SingleRow);
+		/// <summary>
+		/// Initialise the reader
+		/// </summary>
+		/// <returns></returns>
+		public async Task InitAsync()
+		{
+			// Behavior is only saved to be used here in this Init method; we don't need to check or enforce it again
+			// elsewhere since the logic below is already enforcing it.
+			// For SingleRow we additionally rely on the user to only read one row and then dispose of everything.
+			bool earlyQuit = (Behavior == CommandBehavior.SingleResult || Behavior == CommandBehavior.SingleRow);
 
-			using (reader)
+			// we're saving all the cursors from the original reader here, then disposing of it
+			// (we've already checked in CanDereference that there are at least some cursors)
+			using (originalReader)
 			{
 				// Supports 1x1 1xN Nx1 and NXM patterns of cursor data.
 				// If just some values are cursors we follow the pre-existing pattern set by the Oracle drivers, and dereference what we can.
-				while (reader.Read())
+				while (await originalReader.ReadAsync())
 				{
-					for (int i = 0; i < reader.FieldCount; i++)
+					for (int i = 0; i < originalReader.FieldCount; i++)
 					{
-						if (reader.GetDataTypeName(i) == "refcursor")
+						if (originalReader.GetDataTypeName(i) == "refcursor")
 						{
 							// cursor name can potentially contain " so stop that breaking us
-							Cursors.Add(reader.GetString(i).Replace(@"""", @""""""));
+							// TO DO: document how/why
+							Cursors.Add(originalReader.GetString(i).Replace(@"""", @""""""));
 							if (earlyQuit) break;
 						}
 					}
@@ -206,6 +224,7 @@ namespace Mighty.Npgsql
 		public override int GetValues(object[] values) { return Reader.GetValues(values); }
 		public override bool IsDBNull(int i) { return Reader.IsDBNull(i); }
 
+		// NB We *can't* override NextResultAsync or ReadAsync, which is probably a good sign.
 		public override bool NextResult()
 		{
 			var closeSql = CloseCursor(Index >= Cursors.Count);
