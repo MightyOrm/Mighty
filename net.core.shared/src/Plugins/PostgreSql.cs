@@ -43,10 +43,11 @@ namespace Mighty.Plugins
 		#endregion
 
 		#region Table info
-		override public async Task<IEnumerable<dynamic>> PostProcessTableMetaDataAsync(IAsyncEnumerable<dynamic> rawTableMetaData)
+		override public IEnumerable<dynamic> PostProcessTableMetaData(IEnumerable<dynamic> rawTableMetaData)
 		{
 			List<dynamic> results = new List<object>();
-			await rawTableMetaData.ForEachAsync(columnInfo => {
+			foreach (ExpandoObject columnInfo in rawTableMetaData)
+			{
 				var newInfo = new ExpandoObject();
 				var dict = newInfo.ToDictionary();
 				foreach (var pair in columnInfo)
@@ -54,7 +55,7 @@ namespace Mighty.Plugins
 					dict.Add(pair.Key.ToUpperInvariant(), pair.Value);
 				}
 				results.Add(newInfo);
-			});
+			}
 			return results;
 		}
 		#endregion
@@ -107,6 +108,38 @@ namespace Mighty.Plugins
 		#endregion
 
 		#region Npgsql cursor dereferencing
+		/// <summary>
+		/// Dereference cursors in more or less the way which used to be supported within Npgsql itself, only now considerably improved from that removed, partial support.
+		/// </summary>
+		/// <param name="cmd">The command.</param>
+		/// <param name="Connection">The connection - required for deferencing.</param>
+		/// <param name="db">The parent MightyOrm (or subclass) - required to get at the factory for deferencing and config vaules.</param>
+		/// <returns>The reader, dereferenced if needed.</returns>
+		/// <remarks>
+		/// https://github.com/npgsql/npgsql/issues/438
+		/// http://stackoverflow.com/questions/42292341/
+		/// </remarks>
+		override public DbDataReader ExecuteDereferencingReader(DbCommand cmd, CommandBehavior behavior, DbConnection Connection)
+		{
+			// We can never restrict the parent read to do LESS than the hint provided - because we might
+			// not be dereferencing it, but just using it; but we can always restrict to the hint provided,
+			// because the first cursor (if any) MUST always be in the first row of the first result.
+			var reader = cmd.ExecuteReader(behavior); // var reader = Execute(behavior);
+
+			// Remarks: Do not consider dereferencing if no returned columns are cursors, but if just some are cursors then follow the pre-existing convention set by
+			// the Oracle drivers and dereference what we can. The rest of the pattern is that we only ever try to dereference on Query and Scalar, never on Execute.
+			if (Mighty.NpgsqlAutoDereferenceCursors && NpgsqlDereferencingReader.CanDereference(reader))
+			{
+				// Passes <see cref="CommandBehavior"/> to dereferencing reader, which uses it where it can
+				// (e.g. to dereference only the first cursor, or only the first row of the first cursor)
+				var newReader = new NpgsqlDereferencingReader(reader, behavior, Connection, Mighty);
+				newReader.Init();
+				return newReader;
+			}
+
+			return reader;
+		}
+
 		/// <summary>
 		/// Dereference cursors in more or less the way which used to be supported within Npgsql itself, only now considerably improved from that removed, partial support.
 		/// </summary>

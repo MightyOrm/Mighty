@@ -51,99 +51,6 @@ namespace Mighty.Mocking
 	// which the microORM supports, with appropriately named fields).
 	abstract public partial class MightyOrmMockable<T>
 	{
-		// Abstract class 'interface' for Npgsql cursor control additions.
-		// These should ideally be contributed back to Npgsql ([ref]()), but for now are added to MightyOrm.
-		// (Note: unfortunately it looks far from trivial to set up a full Npgsql build environment in order to create
-		// a properly constructed and tested PR for that project. Which is not to say it won't be done at some point.)
-		#region Npgsql cursor dereferencing
-		/// <summary>
-		/// Should we auto-dereference cursors when using the Npgsql ADO.NET driver? (See Mighty documentation.)
-		/// </summary>
-		abstract public bool NpgsqlAutoDereferenceCursors { get; set; }
-
-		/// <summary>
-		/// How many rows at a time should we fetch if auto-dereferencing cursors on the Npgsql ADO.NET driver? (Default value 10,000.) (See Mighty documentation.)
-		/// </summary>
-		abstract public int NpgsqlAutoDereferenceFetchSize { get; set; }
-		#endregion
-
-		#region Properties
-		/// <summary>
-		/// Connection string
-		/// </summary>
-		abstract public string ConnectionString { get; protected set; }
-
-		/// <summary>
-		/// ADO.NET provider factory
-		/// </summary>
-		abstract public DbProviderFactory Factory { get; protected set; }
-
-		/// <summary>
-		/// Validator
-		/// </summary>
-		abstract public Validator Validator { get; protected set; }
-
-		/// <summary>
-		/// C# &lt;=&gt; SQL mapper
-		/// </summary>
-		abstract public SqlNamingMapper SqlMapper { get; protected set; }
-
-		/// <summary>
-		/// Optional SQL profiler
-		/// </summary>
-		abstract public SqlProfiler SqlProfiler { get; protected set; }
-
-		/// <summary>
-		/// Table name (null if non-table-specific instance)
-		/// </summary>
-		abstract public string TableName { get; protected set; }
-
-		/// <summary>
-		/// Table owner/schema (null if not specified)
-		/// </summary>
-		abstract public string TableOwner { get; protected set; }
-
-		/// <summary>
-		/// Bare table name (without owner/schema part)
-		/// </summary>
-		abstract public string BareTableName { get; protected set; }
-
-		/// <summary>
-		/// Primary key field or fields (no mapping applied)
-		/// </summary>
-		abstract public string PrimaryKeyFields { get; protected set; }
-
-		/// <summary>
-		/// Separated, lowered primary key fields (no mapping applied)
-		/// </summary>
-		abstract public List<string> PrimaryKeyList { get; protected set; }
-
-		/// <summary>
-		/// All columns in one string, or "*" (mapping, if any, already applied)
-		/// </summary>
-		abstract public string Columns { get; protected set; }
-
-		/// <summary>
-		/// Separated column names, in a list (mapping, if any, already applied)
-		/// </summary>
-		abstract public List<string> ColumnList { get; protected set; }
-
-		/// <summary>
-		/// Sequence name or identity retrieval fn. (always null for compound PK)
-		/// </summary>
-		abstract public string SequenceNameOrIdentityFn { get; protected set; }
-
-		/// <summary>
-		/// Column from which value is retrieved by <see cref="KeyValues"/>
-		/// </summary>
-		abstract public string ValueColumn { get; protected set; }
-
-		/// <summary>
-		/// Table meta data (filtered to be only for columns specified by the generic type T, or by <see cref="columns"/>, where present)
-		/// </summary>
-		abstract public IEnumerable<dynamic> TableMetaData { get; }
-		#endregion
-
 		// Okay, first attempt: always add optional `CancellationToken` after all compulsory params and just before any optional or `params` params
 
 		// 'Interface' for the general purpose data access wrapper methods (i.e. the ones which can be used
@@ -389,23 +296,6 @@ namespace Mighty.Mocking
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args);
-
-		abstract public DbCommand CreateCommand(string sql,
-			params object[] args);
-
-		abstract public DbCommand CreateCommand(string sql,
-			DbConnection connection,
-			params object[] args);
-
-		abstract public DbCommand CreateCommandWithParams(string sql,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false,
-			DbConnection connection = null,
-			params object[] args);
-
-		// TO DO: Add kv pair stuff for dropdowns? Maybe, at max, provide a method to convert IAsyncEnumerable<T> to kv pair.
-		// ...
-
-		abstract public dynamic ResultsAsExpando(DbCommand cmd);
 
 		abstract protected Task<IAsyncEnumerable<X>> QueryNWithParamsAsync<X>(string sql = null, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, params object[] args);
 		abstract protected Task<IAsyncEnumerable<X>> QueryNWithParamsAsync<X>(CancellationToken cancellationToken, string sql = null, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, params object[] args);
@@ -720,10 +610,6 @@ namespace Mighty.Mocking
 		abstract public Task<int> DeleteAsync(DbConnection connection, IEnumerable<object> items);
 		abstract public Task<int> DeleteAsync(DbConnection connection, IEnumerable<object> items, CancellationToken cancellationToken);
 
-		abstract public T New();
-
-		abstract public T NewFrom(object nameValues = null, bool addNonPresentAsDefaults = true);
-
 		/// <summary>
 		/// Apply all fields which are present in item to the row matching key.
 		/// We *don't* filter by available columns - call with <see cref="CreateFrom"/>(<see cref="partialItem"/>) to do that.
@@ -800,18 +686,9 @@ namespace Mighty.Mocking
 			CancellationToken cancellationToken,
 			params object[] args);
 
-		abstract public dynamic GetColumnInfo(string column, bool ExceptionOnAbsent = true);
-
-		abstract public object GetColumnDefault(string columnName);
-
-		abstract public List<object> IsValid(object item, OrmAction action = OrmAction.Save);
-
-		abstract public bool HasPrimaryKey(object item);
-
-		abstract public object GetPrimaryKey(object item, bool alwaysArray = false);
-
-		// TO DO: We should still be supporting this
+		// TO DO: We should still be supporting this in async
 #if KEY_VALUES
+		// kv pair stuff for dropdowns - a method to convert IEnumerable<T> to kv pair
 		abstract public async Task<IDictionary<string, string>> KeyValuesAsync(string orderBy = "");
 		abstract public async Task<IDictionary<string, string>> KeyValuesAsync(CancellationToken cancellationToken, string orderBy = "");
 #endif

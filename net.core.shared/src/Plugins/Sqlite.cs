@@ -47,15 +47,16 @@ namespace Mighty.Plugins
 			return string.Format("PRAGMA {1}table_info({0})", tableName, tableOwner != null ? string.Format("{0}.", tableOwner) : "");
 		}
 
-		override public async Task<IEnumerable<dynamic>> PostProcessTableMetaDataAsync(IAsyncEnumerable<dynamic> rawTableMetaData)
+		override public IEnumerable<dynamic> PostProcessTableMetaData(IEnumerable<dynamic> rawTableMetaData)
 		{
 			var results = new List<dynamic>();
-			await rawTableMetaData.ForEachAsync(row => {
+			foreach (dynamic row in rawTableMetaData)
+			{
 				row.COLUMN_NAME = row.name;
 				row.DATA_TYPE = row.type;
 				row.COLUMN_DEFAULT = row.dflt_value;
 				results.Add(row);
-			});
+			}
 			return results;
 		}
 		#endregion

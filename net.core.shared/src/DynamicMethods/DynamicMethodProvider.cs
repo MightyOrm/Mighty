@@ -156,8 +156,7 @@ namespace Mighty
 					}
 					else
 					{
-						throw new NotImplementedException($"sync dynamic {op}");
-						//result = Mighty.AggregateWithParams(string.Format("{0}({1})", uOp, columns), whereClause, inParams: nameValueArgs, args: userArgs);
+						result = Mighty.AggregateWithParams(string.Format("{0}({1})", uOp, columns), whereClause, inParams: nameValueArgs, args: userArgs);
 					}
 					break;
 				default:
@@ -178,8 +177,7 @@ namespace Mighty
 						}
 						else
 						{
-							throw new NotImplementedException($"sync dynamic {op}");
-							//result = Mighty.SingleWithParams(whereClause, orderBy, columns, inParams: nameValueArgs, args: userArgs);
+							result = Mighty.SingleWithParams(whereClause, orderBy, columns, inParams: nameValueArgs, args: userArgs);
 						}
 					}
 					else
@@ -190,8 +188,7 @@ namespace Mighty
 						}
 						else
 						{
-							throw new NotImplementedException($"sync dynamic {op}");
-							//result = Mighty.AllWithParams(whereClause, orderBy, columns, inParams: nameValueArgs, args: userArgs);
+							result = Mighty.AllWithParams(whereClause, orderBy, columns, inParams: nameValueArgs, args: userArgs);
 						}
 					}
 					break;

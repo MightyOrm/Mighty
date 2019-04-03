@@ -74,14 +74,15 @@ namespace Mighty.Plugins
 				tableOwner != null ? string.Format(" AND OWNER = {0}", PrefixParameterName("1")) : "");
 		}
 
-		override public async Task<IEnumerable<dynamic>> PostProcessTableMetaDataAsync(IAsyncEnumerable<dynamic> rawTableMetaData)
+		override public IEnumerable<dynamic> PostProcessTableMetaData(IEnumerable<dynamic> rawTableMetaData)
 		{
 			List<dynamic> results = new List<object>();
-			await rawTableMetaData.ForEachAsync(columnInfo => {
+			foreach (dynamic columnInfo in rawTableMetaData)
+			{
 				columnInfo.NUMERIC_SCALE = columnInfo.DATA_SCALE;
 				columnInfo.COLUMN_DEFAULT = columnInfo.DATA_DEFAULT;
 				results.Add(columnInfo);
-			});
+			}
 			return results;
 		}
 		#endregion

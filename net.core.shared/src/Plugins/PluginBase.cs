@@ -278,9 +278,9 @@ namespace Mighty.Plugins
 		/// <remarks>
 		/// TO DO: Just make the inner conversion function part of the plugin, not the loop.
 		/// </remarks>
-		virtual public async Task<IEnumerable<dynamic>> PostProcessTableMetaDataAsync(IAsyncEnumerable<dynamic> results)
+		virtual public IEnumerable<dynamic> PostProcessTableMetaData(IEnumerable<dynamic> results)
 		{
-			return await results.ToListAsync();
+			return results.ToList();
 		}
 
 		/// <summary>
@@ -414,6 +414,11 @@ namespace Mighty.Plugins
 		#endregion
 
 		#region Npgsql cursor dereferencing
+		virtual public DbDataReader ExecuteDereferencingReader(DbCommand cmd, CommandBehavior behavior, DbConnection conn)
+		{
+			return cmd.ExecuteReader(behavior);
+		}
+
 		virtual public async Task<DbDataReader> ExecuteDereferencingReaderAsync(DbCommand cmd, CommandBehavior behavior, DbConnection conn, CancellationToken cancellationToken)
 		{
 			return await cmd.ExecuteReaderAsync(behavior, cancellationToken).ConfigureAwait(false);

@@ -442,19 +442,6 @@ namespace Mighty
 			return await ScalarAsync(command, cancellationToken, connection).ConfigureAwait(false);
 		}
 
-		override public DbCommand CreateCommand(string sql,
-			params object[] args)
-		{
-			return CreateCommandWithParams(sql, args: args);
-		}
-
-		override public DbCommand CreateCommand(string sql,
-			DbConnection connection,
-			params object[] args)
-		{
-			return CreateCommandWithParams(sql, args: args);
-		}
-
 		override protected async Task<IAsyncEnumerable<X>> QueryNWithParamsAsync<X>(string sql = null, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, params object[] args)
 		{
 			var command = CreateCommandWithParams(sql, inParams, outParams, ioParams, returnParams, isProcedure, null, args);
@@ -875,11 +862,6 @@ namespace Mighty
 		override public async Task<int> DeleteAsync(DbConnection connection, IEnumerable<object> items, CancellationToken cancellationToken)
 		{
 			return await ActionOnItemsAsync(OrmAction.Delete, connection, items, cancellationToken).ConfigureAwait(false);
-		}
-
-		override public T New()
-		{
-			return NewFrom();
 		}
 
 		/// <summary>
