@@ -18,7 +18,7 @@ namespace Mighty.Generic.Tests.MySql
 #if !COREFX
 	[TestFixture("Devart.Data.MySql")]
 #endif
-	public class ReadTests
+	public class AsyncReadTests
 	{
 		private string ProviderName;
 
@@ -26,7 +26,7 @@ namespace Mighty.Generic.Tests.MySql
 		/// Initialise tests for given provider
 		/// </summary>
 		/// <param name="providerName">Provider name</param>
-		public ReadTests(string providerName)
+		public AsyncReadTests(string providerName)
 		{
 			ProviderName = providerName;
 		}

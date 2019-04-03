@@ -22,7 +22,7 @@ namespace Mighty.Generic.Tests.PostgreSql
 	/// These objects do not conflict with anything in the Northwind database, and can be added there.
 	/// </remarks>
 	[TestFixture]
-	public class SPTests
+	public class AsyncSPTests
 	{
 		[Test]
 		public async Task DereferenceCursorOutputParameter()

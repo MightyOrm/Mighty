@@ -20,7 +20,7 @@ namespace Mighty.Dynamic.Tests.Oracle
 	/// </remarks>
 	[TestFixture("Oracle.ManagedDataAccess.Client")]
 	[TestFixture("Oracle.DataAccess.Client")]
-	public class SPTests
+	public class AsyncSPTests
 	{
 		private string ProviderName;
 
@@ -28,7 +28,7 @@ namespace Mighty.Dynamic.Tests.Oracle
 		/// Initialise tests for given provider
 		/// </summary>
 		/// <param name="providerName">Provider name</param>
-		public SPTests(string providerName)
+		public AsyncSPTests(string providerName)
 		{
 			ProviderName = providerName;
 		}

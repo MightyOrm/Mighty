@@ -17,7 +17,7 @@ namespace Mighty.Dynamic.Tests.MySql
 #if !COREFX
 	[TestFixture("Devart.Data.MySql")]
 #endif
-	public class SPTests
+	public class AsyncSPTests
 	{
 		private string ProviderName;
 
@@ -25,7 +25,7 @@ namespace Mighty.Dynamic.Tests.MySql
 		/// Initialise tests for given provider
 		/// </summary>
 		/// <param name="providerName">Provider name</param>
-		public SPTests(string providerName)
+		public AsyncSPTests(string providerName)
 		{
 			ProviderName = providerName;
 		}

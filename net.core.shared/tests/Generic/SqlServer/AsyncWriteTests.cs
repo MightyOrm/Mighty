@@ -14,7 +14,7 @@ using NUnit.Framework;
 namespace Mighty.Generic.Tests.SqlServer
 {
 	[TestFixture]
-	public class WriteTests
+	public class AsyncWriteTests
 	{
 		[Test]
 		public async Task Insert_SingleRow()

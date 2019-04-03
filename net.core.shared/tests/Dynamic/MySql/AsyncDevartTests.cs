@@ -14,7 +14,7 @@ using NUnit.Framework;
 namespace Mighty.Dynamic.Tests.MySql
 {
 	[TestFixture]
-	public class DevartTests
+	public class AsyncDevartTests
 	{
 		private string ProviderName = "Devart.Data.MySql";
 

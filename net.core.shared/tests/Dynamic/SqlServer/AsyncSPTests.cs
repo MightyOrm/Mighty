@@ -18,7 +18,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
 	/// Runs against functions and procedures which are already in the AdventureWorks test database.
 	/// </remarks>
 	[TestFixture]
-	public class SPTests
+	public class AsyncSPTests
 	{
 		[Test]
 		public async Task NormalSingleCall()

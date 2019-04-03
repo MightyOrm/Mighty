@@ -17,7 +17,7 @@ namespace Mighty.Generic.Tests.PostgreSql
 	/// <remarks>Tests use the northwind DB clone for Postgresql. Writes are done on Product, reads on other tables. Tests are compiled against x64 as npgsql installs itself in 
 	/// x64's machine.config file by default. Change if required for your setup. </remarks>
 	[TestFixture]
-	public class ReadWriteTests
+	public class AsyncReadWriteTests
     {
 		[Test]
 		public async Task All_NoParameters()
