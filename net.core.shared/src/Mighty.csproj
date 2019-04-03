@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net45</TargetFrameworks>
+    <TargetFrameworks>net45;netcoreapp1.0;netcoreapp1.1</TargetFrameworks>
 	<PackageId>Mighty</PackageId>
     <PackageVersion>1.3.3-prerelease</PackageVersion>
     <Authors>Mike Beaton</Authors>
