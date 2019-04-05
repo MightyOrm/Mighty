@@ -97,8 +97,6 @@ Pre-Alpha version.
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
     <PackageReference Include="AsyncEnumerator" Version="3.0.0-beta1" />
-    <PackageReference Include="Microsoft.CSharp" Version="4.3.0" />
-    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.2" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net40'">
