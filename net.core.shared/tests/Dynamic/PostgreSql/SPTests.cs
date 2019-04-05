@@ -4,7 +4,7 @@ using System.Dynamic;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-#if !COREFX
+#if !(NETCOREAPP || NETSTANDARD)
 using System.Transactions;
 #endif
 using Mighty.Dynamic.Tests.PostgreSql.TableClasses;
@@ -198,7 +198,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 		}
 
 
-#if !COREFX
+#if !(NETCOREAPP || NETSTANDARD)
 		[Test]
 		public void DereferenceFromQuery_ManualWrapping()
 		{
@@ -358,7 +358,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 			}
 		}
 
-#if !COREFX
+#if !(NETCOREAPP || NETSTANDARD)
 		[Test]
 		public void InputCursors_TransactionScope()
 		{

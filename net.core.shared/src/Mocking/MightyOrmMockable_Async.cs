@@ -1,3 +1,4 @@
+#if !NET40
 using System.Collections.Async;
 using System.Collections.Generic;
 using System.Data;
@@ -695,3 +696,4 @@ namespace Mighty.Mocking
 		#endregion
 	}
 }
+#endif

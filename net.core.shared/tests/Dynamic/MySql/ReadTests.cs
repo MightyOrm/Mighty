@@ -12,7 +12,7 @@ using NUnit.Framework;
 namespace Mighty.Dynamic.Tests.MySql
 {
 	[TestFixture("MySql.Data.MySqlClient")]
-#if !COREFX
+#if !(NETCOREAPP || NETSTANDARD)
 	[TestFixture("Devart.Data.MySql")]
 #endif
 	public class ReadTests

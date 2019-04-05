@@ -30,7 +30,7 @@ namespace Mighty.Plugins
 		{
 			_installedPluginTypes = new List<Type>();
 			var targetType = typeof(PluginBase);
-#if COREFX
+#if (NETCOREAPP || NETSTANDARD)
 			// Seems to be the best way to do this in .NET Core 1.1?
 			var assemblyParts = targetType.AssemblyQualifiedName.Split(',');
 			var assembly = Assembly.Load(new AssemblyName(assemblyParts[1]));

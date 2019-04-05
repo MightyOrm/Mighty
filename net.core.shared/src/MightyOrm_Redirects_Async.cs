@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿#if !NET40
+using System.Collections.Generic;
 using System.Collections.Async;
 using System.Data;
 using System.Data.Common;
@@ -982,3 +983,4 @@ namespace Mighty
 		#endregion
 	}
 }
+#endif

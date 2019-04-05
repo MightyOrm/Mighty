@@ -4,7 +4,7 @@ using System.Dynamic;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-#if !COREFX
+#if !(NETCOREAPP || NETSTANDARD)
 using System.Transactions;
 #endif
 using Mighty.Generic.Tests.PostgreSql.TableClasses;
@@ -39,7 +39,7 @@ namespace Mighty.Generic.Tests.PostgreSql
 		}
 
 
-#if !COREFX
+#if !(NETCOREAPP || NETSTANDARD)
 		[Test]
 		public void DereferenceFromQuery_ManualWrapping()
 		{

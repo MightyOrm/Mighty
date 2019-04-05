@@ -13,7 +13,7 @@ namespace Mighty.Plugins
 			switch (loweredProviderName)
 			{
 				case "mysql.data.mysqlclient":
-					// older/beta qualified class name on COREFX was:
+					// older/beta qualified class name on .NET Core was:
 					//return "MySql.Data.MySqlClient.MySqlClientFactory, MySql.Data.Core";
 					return "MySql.Data.MySqlClient.MySqlClientFactory, MySql.Data";
 

@@ -1,12 +1,9 @@
 using System;
-using System.Collections.Async;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Dynamic;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Mighty.Plugins
 {
@@ -14,7 +11,7 @@ namespace Mighty.Plugins
 	/// Abstract class for database plugins; we're trying to put as much shared code as possible in here, while
 	/// maintaining reasonable readability.
 	/// </summary>
-	abstract internal class PluginBase
+	abstract internal partial class PluginBase
 	{
 		protected const string CRLF = "\r\n";
 
@@ -417,11 +414,6 @@ namespace Mighty.Plugins
 		virtual public DbDataReader ExecuteDereferencingReader(DbCommand cmd, CommandBehavior behavior, DbConnection conn)
 		{
 			return cmd.ExecuteReader(behavior);
-		}
-
-		virtual public async Task<DbDataReader> ExecuteDereferencingReaderAsync(DbCommand cmd, CommandBehavior behavior, DbConnection conn, CancellationToken cancellationToken)
-		{
-			return await cmd.ExecuteReaderAsync(behavior, cancellationToken).ConfigureAwait(false);
 		}
 
 		virtual public bool RequiresWrappingTransaction(DbCommand cmd)

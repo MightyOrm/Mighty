@@ -26,7 +26,7 @@ namespace Mighty.Dynamic.Tests.Sqlite
 			var db = new MightyOrm(TestConstants.ReadWriteTestConnection);
 			var guid = Guid.NewGuid();
 			var command = db.CreateCommand("SELECT @0 AS val", null, guid);
-#if COREFX
+#if (NETCOREAPP || NETSTANDARD)
 			// For some reason .NET Core provider doesn't have DbType.Guid support even though .NET Framework provider does
 			Assert.AreEqual(DbType.String, command.Parameters[0].DbType);
 #else

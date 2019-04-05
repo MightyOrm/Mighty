@@ -140,10 +140,14 @@ namespace Mighty
 			bool useAsync = uOp.EndsWith("ASYNC");
 			if (useAsync)
 			{
-				uOp = uOp.Substring(0, uOp.Length - 5);
-			}
+#if NET40
+                throw new InvalidOperationException($"Dynamically invoked method $op: async is not supported on .NET Framework 4.0");
+#else
+                uOp = uOp.Substring(0, uOp.Length - 5);
+#endif
+            }
 
-			switch (uOp)
+            switch (uOp)
 			{
 				case "COUNT":
 				case "SUM":
@@ -152,7 +156,9 @@ namespace Mighty
 				case "AVG":
 					if (useAsync)
 					{
-						result = Mighty.AggregateWithParamsAsync(string.Format("{0}({1})", uOp, columns), cancellationToken, whereClause, inParams: nameValueArgs, args: userArgs);
+#if !NET40
+                        result = Mighty.AggregateWithParamsAsync(string.Format("{0}({1})", uOp, columns), cancellationToken, whereClause, inParams: nameValueArgs, args: userArgs);
+#endif
 					}
 					else
 					{
@@ -173,7 +179,9 @@ namespace Mighty
 					{
 						if (useAsync)
 						{
+#if !NET40
 							result = Mighty.SingleWithParamsAsync(whereClause, cancellationToken, orderBy, columns, inParams: nameValueArgs, args: userArgs);
+#endif
 						}
 						else
 						{
@@ -184,7 +192,9 @@ namespace Mighty
 					{
 						if (useAsync)
 						{
+#if !NET40
 							result = Mighty.AllWithParamsAsync(cancellationToken, whereClause, orderBy, columns, inParams: nameValueArgs, args: userArgs);
+#endif
 						}
 						else
 						{

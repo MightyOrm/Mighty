@@ -7,7 +7,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
 {
 	public static class TestConstants
 	{
-#if COREFX
+#if (NETCOREAPP || NETSTANDARD)
 		public static readonly string ReadTestConnection = "data source=thor.sd.local;initial catalog=AdventureWorks;integrated security=SSPI;persist security info=False;packet size=4096;ProviderName=System.Data.SqlClient;";
 		public static readonly string WriteTestConnection = "data source=thor.sd.local;initial catalog=MassiveWriteTests;integrated security=SSPI;persist security info=False;packet size=4096;ProviderName=System.Data.SqlClient;";
 #else

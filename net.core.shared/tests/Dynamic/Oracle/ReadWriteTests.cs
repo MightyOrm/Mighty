@@ -1,4 +1,4 @@
-﻿#if !COREFX
+﻿#if !(NETCOREAPP || NETSTANDARD)
 using System;
 using System.Data;
 using System.Collections.Generic;

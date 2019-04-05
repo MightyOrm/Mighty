@@ -267,7 +267,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
 
 
 		[Test]
-		public async Task DynamicMethod_ReportsInvalidCancellationToken()
+		public void DynamicMethod_ReportsInvalidCancellationToken()
 		{
 			dynamic soh = new SalesOrderHeader();
 			Assert.ThrowsAsync<InvalidOperationException>(async () => {

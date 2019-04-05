@@ -3,7 +3,7 @@
   <PropertyGroup>
 	<OutputType>Exe</OutputType>
 	<!-- NB Oracle tests require setting Test/Test Settings/Default Processor Architecture to x64 if x64 version is installed -->
-    <TargetFrameworks>net45</TargetFrameworks>
+    <TargetFrameworks>netcoreapp1.0</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
@@ -25,11 +25,11 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp1.0'">
-    <DefineConstants>COREFX;COREFX1_0</DefineConstants>
+    <DefineConstants>NETCOREAPP;NETCOREAPP1_0</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp1.1'">
-    <DefineConstants>COREFX;COREFX1_1</DefineConstants>
+    <DefineConstants>NETCOREAPP;NETCOREAPP1_1</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp1.0'">
@@ -64,20 +64,9 @@
     <PackageReference Include="NUnit" Version="3.6.1" />
     <PackageReference Include="NUnitLite" Version="3.6.1" />
     <PackageReference Include="System.Data.SQLite" version="1.0.105" />
-    <PackageReference Include="AsyncEnumerator" Version="3.0.0-beta1" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net45'">
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Transactions" />
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0" />
-    <PackageReference Include="NUnit" Version="3.6.1" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.8.0-alpha1" />
-    <PackageReference Include="System.Data.SQLite" version="1.0.105" />
-    <PackageReference Include="AsyncEnumerator" Version="3.0.0-beta1" />
-  </ItemGroup>
-
-  <ItemGroup Condition="'$(TargetFramework)' == 'net461'">
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Transactions" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0" />

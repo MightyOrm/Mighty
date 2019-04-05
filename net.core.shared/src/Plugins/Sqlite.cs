@@ -1,9 +1,5 @@
-using System;
 using System.Data.Common;
-using System.Dynamic;
-using System.Collections.Async;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 
 namespace Mighty.Plugins
 {
