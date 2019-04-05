@@ -143,16 +143,20 @@ namespace Mighty
 		override public int Execute(string sql,
 			params object[] args)
 		{
-			var command = CreateCommandWithParams(sql, args: args);
-			return Execute(command);
+            using (var command = CreateCommandWithParams(sql, args: args))
+            {
+                return Execute(command);
+            }
 		}
 
 		override public int Execute(string sql,
 			DbConnection connection,
 			params object[] args)
 		{
-			var command = CreateCommandWithParams(sql, args: args);
-			return Execute(command, connection);
+            using (var command = CreateCommandWithParams(sql, args: args))
+            {
+                return Execute(command, connection);
+            }
 		}
 
 		/// <summary>
@@ -171,11 +175,13 @@ namespace Mighty
 			DbConnection connection = null,
 			params object[] args)
 		{
-			var command = CreateCommandWithParams(sql,
-			inParams, outParams, ioParams, returnParams,
-			args: args);
-			Execute(command, connection);
-			return ResultsAsExpando(command);
+            using (var command = CreateCommandWithParams(sql,
+                inParams, outParams, ioParams, returnParams,
+                args: args))
+            {
+                Execute(command, connection);
+                return ResultsAsExpando(command);
+            }
 		}
 
 		/// <summary>
@@ -194,28 +200,34 @@ namespace Mighty
 			DbConnection connection = null,
 			params object[] args)
 		{
-			var command = CreateCommandWithParams(spName,
-			inParams, outParams, ioParams, returnParams,
-			isProcedure: true,
-			args: args);
-			Execute(command, connection);
-			return ResultsAsExpando(command);
+            using (var command = CreateCommandWithParams(spName,
+            inParams, outParams, ioParams, returnParams,
+            isProcedure: true,
+            args: args))
+            {
+                Execute(command, connection);
+                return ResultsAsExpando(command);
+            }
 		}
 
 		// no connection, easy args
 		override public object Scalar(string sql,
 			params object[] args)
 		{
-			var command = CreateCommand(sql, args);
-			return Scalar(command);
+            using (var command = CreateCommand(sql, args))
+            {
+                return Scalar(command);
+            }
 		}
 
 		override public object Scalar(string sql,
 			DbConnection connection,
 			params object[] args)
 		{
-			var command = CreateCommand(sql, args);
-			return Scalar(command, connection);
+            using (var command = CreateCommand(sql, args))
+            {
+                return Scalar(command, connection);
+            }
 		}
 
 		override public object ScalarWithParams(string sql,
@@ -223,10 +235,12 @@ namespace Mighty
 			DbConnection connection = null,
 			params object[] args)
 		{
-			var command = CreateCommandWithParams(sql,
-			inParams, outParams, ioParams, returnParams,
-			args: args);
-			return Scalar(command, connection);
+            using (var command = CreateCommandWithParams(sql,
+            inParams, outParams, ioParams, returnParams,
+            args: args))
+            {
+                return Scalar(command, connection);
+            }
 		}
 
 		override public object ScalarFromProcedure(string spName,
@@ -234,17 +248,19 @@ namespace Mighty
 			DbConnection connection = null,
 			params object[] args)
 		{
-			var command = CreateCommandWithParams(spName,
-			inParams, outParams, ioParams, returnParams,
-			isProcedure: true,
-			args: args);
-			return Scalar(command, connection);
+            using (var command = CreateCommandWithParams(spName,
+            inParams, outParams, ioParams, returnParams,
+            isProcedure: true,
+            args: args))
+            {
+                return Scalar(command, connection);
+            }
 		}
 
 		override protected IEnumerable<X> QueryNWithParams<X>(string sql = null, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, params object[] args)
 		{
-			var command = CreateCommandWithParams(sql, inParams, outParams, ioParams, returnParams, isProcedure, null, args);
-			return QueryNWithParams<X>(command, behavior, connection);
+            var command = CreateCommandWithParams(sql, inParams, outParams, ioParams, returnParams, isProcedure, null, args);
+            return QueryNWithParams<X>(command, behavior, connection);
 		}
 		#endregion
 

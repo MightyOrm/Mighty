@@ -60,16 +60,18 @@ namespace Mighty.Npgsql
 			{
 				fetchReader.Dispose();
 			}
-			// fetch next n from cursor;
-			// optionally close previous cursor;
-			// iff we're fetching all, we can close this cursor in this command
-			var fetchCmd = CreateCommand(closePreviousSQL + FetchSQL() + (FetchSize <= 0 ? CloseSQL() : ""), Connection); // new NpgsqlCommand(..., Connection);
-			// NpgsqlCommand.ExecuteReaderAsync is ignoring its CancellationToken
-			if (cancellationToken.IsCancellationRequested)
-			{
-				throw new TaskCanceledException();
-			}
-			fetchReader = await fetchCmd.ExecuteReaderAsync(CommandBehavior.SingleResult, cancellationToken);
+            // fetch next n from cursor;
+            // optionally close previous cursor;
+            // iff we're fetching all, we can close this cursor in this command
+            using (var fetchCmd = CreateCommand(closePreviousSQL + FetchSQL() + (FetchSize <= 0 ? CloseSQL() : ""), Connection)) // new NpgsqlCommand(..., Connection);
+            {
+                // NpgsqlCommand.ExecuteReaderAsync is ignoring its CancellationToken
+                if (cancellationToken.IsCancellationRequested)
+                {
+                    throw new TaskCanceledException();
+                }
+                fetchReader = await fetchCmd.ExecuteReaderAsync(CommandBehavior.SingleResult, cancellationToken);
+            }
 			Count = 0;
 		}
 

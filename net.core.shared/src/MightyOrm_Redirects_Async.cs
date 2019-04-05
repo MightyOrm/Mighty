@@ -266,31 +266,39 @@ namespace Mighty
 		override public async Task<int> ExecuteAsync(string sql,
 			params object[] args)
 		{
-			var command = CreateCommandWithParams(sql, args: args);
-			return await ExecuteAsync(command).ConfigureAwait(false);
+            using (var command = CreateCommandWithParams(sql, args: args))
+            {
+                return await ExecuteAsync(command).ConfigureAwait(false);
+            }
 		}
 		override public async Task<int> ExecuteAsync(string sql,
 			CancellationToken cancellationToken,
 			params object[] args)
 		{
-			var command = CreateCommandWithParams(sql, args: args);
-			return await ExecuteAsync(command, cancellationToken).ConfigureAwait(false);
+            using (var command = CreateCommandWithParams(sql, args: args))
+            {
+                return await ExecuteAsync(command, cancellationToken).ConfigureAwait(false);
+            }
 		}
 
 		override public async Task<int> ExecuteAsync(string sql,
 			DbConnection connection,
 			params object[] args)
 		{
-			var command = CreateCommandWithParams(sql, args: args);
-			return await ExecuteAsync(command, connection).ConfigureAwait(false);
+            using (var command = CreateCommandWithParams(sql, args: args))
+            {
+                return await ExecuteAsync(command, connection).ConfigureAwait(false);
+            }
 		}
 		override public async Task<int> ExecuteAsync(string sql,
 			DbConnection connection,
 			CancellationToken cancellationToken,
 			params object[] args)
 		{
-			var command = CreateCommandWithParams(sql, args: args);
-			return await ExecuteAsync(command, cancellationToken, connection).ConfigureAwait(false);
+            using (var command = CreateCommandWithParams(sql, args: args))
+            {
+                return await ExecuteAsync(command, cancellationToken, connection).ConfigureAwait(false);
+            }
 		}
 
 		/// <summary>
@@ -309,11 +317,13 @@ namespace Mighty
 			DbConnection connection = null,
 			params object[] args)
 		{
-			var command = CreateCommandWithParams(sql,
-			inParams, outParams, ioParams, returnParams,
-			args: args);
-			await ExecuteAsync(command, connection).ConfigureAwait(false);
-			return ResultsAsExpando(command);
+            using (var command = CreateCommandWithParams(sql,
+                inParams, outParams, ioParams, returnParams,
+                args: args))
+            {
+                await ExecuteAsync(command, connection).ConfigureAwait(false);
+                return ResultsAsExpando(command);
+            }
 		}
 		override public async Task<dynamic> ExecuteWithParamsAsync(string sql,
 			CancellationToken cancellationToken,
@@ -321,11 +331,13 @@ namespace Mighty
 			DbConnection connection = null,
 			params object[] args)
 		{
-			var command = CreateCommandWithParams(sql,
-			inParams, outParams, ioParams, returnParams,
-			args: args);
-			await ExecuteAsync(command, cancellationToken, connection).ConfigureAwait(false);
-			return ResultsAsExpando(command);
+            using (var command = CreateCommandWithParams(sql,
+                inParams, outParams, ioParams, returnParams,
+                args: args))
+            {
+                await ExecuteAsync(command, cancellationToken, connection).ConfigureAwait(false);
+                return ResultsAsExpando(command);
+            }
 		}
 
 		/// <summary>
@@ -344,12 +356,14 @@ namespace Mighty
 			DbConnection connection = null,
 			params object[] args)
 		{
-			var command = CreateCommandWithParams(spName,
-			inParams, outParams, ioParams, returnParams,
-			isProcedure: true,
-			args: args);
-			await ExecuteAsync(command, connection).ConfigureAwait(false);
-			return ResultsAsExpando(command);
+            using (var command = CreateCommandWithParams(spName,
+            inParams, outParams, ioParams, returnParams,
+            isProcedure: true,
+            args: args))
+            {
+                await ExecuteAsync(command, connection).ConfigureAwait(false);
+                return ResultsAsExpando(command);
+            }
 		}
 		override public async Task<dynamic> ExecuteProcedureAsync(string spName,
 			CancellationToken cancellationToken,
@@ -357,43 +371,53 @@ namespace Mighty
 			DbConnection connection = null,
 			params object[] args)
 		{
-			var command = CreateCommandWithParams(spName,
-			inParams, outParams, ioParams, returnParams,
-			isProcedure: true,
-			args: args);
-			await ExecuteAsync(command, cancellationToken, connection).ConfigureAwait(false);
-			return ResultsAsExpando(command);
+            using (var command = CreateCommandWithParams(spName,
+                inParams, outParams, ioParams, returnParams,
+                isProcedure: true,
+                args: args))
+            {
+                await ExecuteAsync(command, cancellationToken, connection).ConfigureAwait(false);
+                return ResultsAsExpando(command);
+            }
 		}
 
 		// no connection, easy args
 		override public async Task<object> ScalarAsync(string sql,
 			params object[] args)
 		{
-			var command = CreateCommand(sql, args);
-			return await ScalarAsync(command).ConfigureAwait(false);
+            using (var command = CreateCommand(sql, args))
+            {
+                return await ScalarAsync(command).ConfigureAwait(false);
+            }
 		}
 		override public async Task<object> ScalarAsync(string sql,
 			CancellationToken cancellationToken,
 			params object[] args)
 		{
-			var command = CreateCommand(sql, args);
-			return await ScalarAsync(command, cancellationToken).ConfigureAwait(false);
+            using (var command = CreateCommand(sql, args))
+            {
+                return await ScalarAsync(command, cancellationToken).ConfigureAwait(false);
+            }
 		}
 
 		override public async Task<object> ScalarAsync(string sql,
 			DbConnection connection,
 			params object[] args)
 		{
-			var command = CreateCommand(sql, args);
-			return await ScalarAsync(command, connection).ConfigureAwait(false);
+            using (var command = CreateCommand(sql, args))
+            {
+                return await ScalarAsync(command, connection).ConfigureAwait(false);
+            }
 		}
 		override public async Task<object> ScalarAsync(string sql,
 			DbConnection connection,
 			CancellationToken cancellationToken,
 			params object[] args)
 		{
-			var command = CreateCommand(sql, args);
-			return await ScalarAsync(command, cancellationToken, connection).ConfigureAwait(false);
+            using (var command = CreateCommand(sql, args))
+            {
+                return await ScalarAsync(command, cancellationToken, connection).ConfigureAwait(false);
+            }
 		}
 
 		override public async Task<object> ScalarWithParamsAsync(string sql,
@@ -401,10 +425,12 @@ namespace Mighty
 			DbConnection connection = null,
 			params object[] args)
 		{
-			var command = CreateCommandWithParams(sql,
-				inParams, outParams, ioParams, returnParams,
-				args: args);
-			return await ScalarAsync(command, connection).ConfigureAwait(false);
+            using (var command = CreateCommandWithParams(sql,
+                inParams, outParams, ioParams, returnParams,
+                args: args))
+            {
+                return await ScalarAsync(command, connection).ConfigureAwait(false);
+            }
 		}
 		override public async Task<object> ScalarWithParamsAsync(string sql,
 			CancellationToken cancellationToken,
@@ -412,10 +438,12 @@ namespace Mighty
 			DbConnection connection = null,
 			params object[] args)
 		{
-			var command = CreateCommandWithParams(sql,
-				inParams, outParams, ioParams, returnParams,
-				args: args);
-			return await ScalarAsync(command, cancellationToken, connection).ConfigureAwait(false);
+            using (var command = CreateCommandWithParams(sql,
+                inParams, outParams, ioParams, returnParams,
+                args: args))
+            {
+                return await ScalarAsync(command, cancellationToken, connection).ConfigureAwait(false);
+            }
 		}
 
 		override public async Task<object> ScalarFromProcedureAsync(string spName,
@@ -423,11 +451,13 @@ namespace Mighty
 			DbConnection connection = null,
 			params object[] args)
 		{
-			var command = CreateCommandWithParams(spName,
-				inParams, outParams, ioParams, returnParams,
-				isProcedure: true,
-				args: args);
-			return await ScalarAsync(command, connection).ConfigureAwait(false);
+            using (var command = CreateCommandWithParams(spName,
+                inParams, outParams, ioParams, returnParams,
+                isProcedure: true,
+                args: args))
+            {
+                return await ScalarAsync(command, connection).ConfigureAwait(false);
+            }
 		}
 		override public async Task<object> ScalarFromProcedureAsync(string spName,
 			CancellationToken cancellationToken,
@@ -435,22 +465,24 @@ namespace Mighty
 			DbConnection connection = null,
 			params object[] args)
 		{
-			var command = CreateCommandWithParams(spName,
-				inParams, outParams, ioParams, returnParams,
-				isProcedure: true,
-				args: args);
-			return await ScalarAsync(command, cancellationToken, connection).ConfigureAwait(false);
+            using (var command = CreateCommandWithParams(spName,
+                inParams, outParams, ioParams, returnParams,
+                isProcedure: true,
+                args: args))
+            {
+                return await ScalarAsync(command, cancellationToken, connection).ConfigureAwait(false);
+            }
 		}
 
 		override protected async Task<IAsyncEnumerable<X>> QueryNWithParamsAsync<X>(string sql = null, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, params object[] args)
 		{
-			var command = CreateCommandWithParams(sql, inParams, outParams, ioParams, returnParams, isProcedure, null, args);
-			return await QueryNWithParamsAsync<X>(command, behavior, connection);
+            var command = CreateCommandWithParams(sql, inParams, outParams, ioParams, returnParams, isProcedure, null, args);
+            return await QueryNWithParamsAsync<X>(command, behavior, connection);
 		}
 		override protected async Task<IAsyncEnumerable<X>> QueryNWithParamsAsync<X>(CancellationToken cancellationToken, string sql = null, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, params object[] args)
 		{
-			var command = CreateCommandWithParams(sql, inParams, outParams, ioParams, returnParams, isProcedure, null, args);
-			return await QueryNWithParamsAsync<X>(command, cancellationToken, behavior, connection);
+            var command = CreateCommandWithParams(sql, inParams, outParams, ioParams, returnParams, isProcedure, null, args);
+            return await QueryNWithParamsAsync<X>(command, cancellationToken, behavior, connection);
 		}
 		#endregion
 

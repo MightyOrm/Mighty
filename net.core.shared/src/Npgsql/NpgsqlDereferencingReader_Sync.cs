@@ -57,11 +57,13 @@ namespace Mighty.Npgsql
 			{
 				fetchReader.Dispose();
 			}
-			// fetch next n from cursor;
-			// optionally close previous cursor;
-			// iff we're fetching all, we can close this cursor in this command
-			var fetchCmd = CreateCommand(closePreviousSQL + FetchSQL() + (FetchSize <= 0 ? CloseSQL() : ""), Connection); // new NpgsqlCommand(..., Connection);
-			fetchReader = fetchCmd.ExecuteReader(CommandBehavior.SingleResult);
+            // fetch next n from cursor;
+            // optionally close previous cursor;
+            // iff we're fetching all, we can close this cursor in this command
+            using (var fetchCmd = CreateCommand(closePreviousSQL + FetchSQL() + (FetchSize <= 0 ? CloseSQL() : ""), Connection)) // new NpgsqlCommand(..., Connection);
+            {
+                fetchReader = fetchCmd.ExecuteReader(CommandBehavior.SingleResult);
+            }
 			Count = 0;
 		}
 

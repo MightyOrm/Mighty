@@ -106,9 +106,10 @@ namespace Mighty.Npgsql
 				{
 					return closeSql;
 				}
-				var closeCmd = CreateCommand(closeSql, Connection); // new NpgsqlCommand(..., Connection);
-				closeCmd.ExecuteNonQuery();
-				closeCmd.Dispose();
+                using (var closeCmd = CreateCommand(closeSql, Connection)) // new NpgsqlCommand(..., Connection);
+                {
+                    closeCmd.ExecuteNonQuery();
+                }
 				Cursor = null;
 			}
 			return "";

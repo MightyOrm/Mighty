@@ -277,119 +277,122 @@ namespace Mighty
 		/// </summary>
 		override protected IEnumerable<X> QueryNWithParams<X>(DbCommand command, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, DbDataReader outerReader = null)
 		{
-			if (behavior == CommandBehavior.Default && typeof(X) == typeof(T))
-			{
-				// (= single result set, not single row...)
-				behavior = CommandBehavior.SingleResult;
-			}
-			// using is applied only to locally generated connection
-			using (var localConn = (connection == null ? OpenConnection() : null))
-			{
-				if (command != null)
-				{
-					command.Connection = connection ?? localConn;
-				}
-				// manage wrapping transaction if required, and if we have not been passed an incoming connection
-				// in which case assume user can/should manage it themselves
-				using (var trans = (connection == null
+            using (command)
+            {
+                if (behavior == CommandBehavior.Default && typeof(X) == typeof(T))
+                {
+                    // (= single result set, not single row...)
+                    behavior = CommandBehavior.SingleResult;
+                }
+                // using is applied only to locally generated connection
+                using (var localConn = (connection == null ? OpenConnection() : null))
+                {
+                    if (command != null)
+                    {
+                        command.Connection = connection ?? localConn;
+                    }
+                    // manage wrapping transaction if required, and if we have not been passed an incoming connection
+                    // in which case assume user can/should manage it themselves
+                    using (var trans = (connection == null
 #if NETFRAMEWORK
-					// TransactionScope support
-					&& Transaction.Current == null
+                        // TransactionScope support
+                        && Transaction.Current == null
 #endif
-					&& Plugin.RequiresWrappingTransaction(command) ? localConn.BeginTransaction() : null))
-				{
-					using (var reader = (outerReader == null ? Plugin.ExecuteDereferencingReader(command, behavior, connection ?? localConn) : null))
-					{
-						if (typeof(X) == typeof(IEnumerable<T>))
-						{
-							// query multiple pattern
-							do
-							{
-								// cast is required because compiler doesn't see that we've just checked that X is IEnumerable<T>
-								// first three params carefully chosen so as to avoid lots of checks about outerReader in the code above in this method
-								yield return (X)QueryNWithParams<T>(null, (CommandBehavior)(-1), connection ?? localConn, reader);
-							}
-							while (reader.NextResult());
-						}
-						else
-						{
-							// Reasonably fast inner loop to yield-return objects of the required type from the DbDataReader.
-							//
-							// Used to be a separate function YieldReturnRows(), called here or within the loop above; but you can't do a yield return
-							// for an outer function in an inner function (nor inside a delegate), so we're using recursion to avoid duplicating this
-							// entire inner loop.
-							//
-							DbDataReader useReader = outerReader ?? reader;
+                        && Plugin.RequiresWrappingTransaction(command) ? localConn.BeginTransaction() : null))
+                    {
+                        using (var reader = (outerReader == null ? Plugin.ExecuteDereferencingReader(command, behavior, connection ?? localConn) : null))
+                        {
+                            if (typeof(X) == typeof(IEnumerable<T>))
+                            {
+                                // query multiple pattern
+                                do
+                                {
+                                    // cast is required because compiler doesn't see that we've just checked that X is IEnumerable<T>
+                                    // first three params carefully chosen so as to avoid lots of checks about outerReader in the code above in this method
+                                    yield return (X)QueryNWithParams<T>(null, (CommandBehavior)(-1), connection ?? localConn, reader);
+                                }
+                                while (reader.NextResult());
+                            }
+                            else
+                            {
+                                // Reasonably fast inner loop to yield-return objects of the required type from the DbDataReader.
+                                //
+                                // Used to be a separate function YieldReturnRows(), called here or within the loop above; but you can't do a yield return
+                                // for an outer function in an inner function (nor inside a delegate), so we're using recursion to avoid duplicating this
+                                // entire inner loop.
+                                //
+                                DbDataReader useReader = outerReader ?? reader;
 
-							if (useReader.HasRows)
-							{
-								int fieldCount = useReader.FieldCount;
-								object[] rowValues = new object[fieldCount];
+                                if (useReader.HasRows)
+                                {
+                                    int fieldCount = useReader.FieldCount;
+                                    object[] rowValues = new object[fieldCount];
 
-								// this is for dynamic support
-								string[] columnNames = null;
-								// this is for generic<T> support
-								PropertyInfo[] propertyInfo = null;
+                                    // this is for dynamic support
+                                    string[] columnNames = null;
+                                    // this is for generic<T> support
+                                    PropertyInfo[] propertyInfo = null;
 
-								if (UseExpando) columnNames = new string[fieldCount];
-								else propertyInfo = new PropertyInfo[fieldCount];
+                                    if (UseExpando) columnNames = new string[fieldCount];
+                                    else propertyInfo = new PropertyInfo[fieldCount];
 
-								// for generic, we need array of properties to set; we find this
-								// from fieldNames array, using a look up from lowered name -> property
-								for (int i = 0; i < fieldCount; i++)
-								{
-									var columnName = useReader.GetName(i);
-									if (string.IsNullOrEmpty(columnName))
-									{
-										throw new InvalidOperationException("Cannot autopopulate from anonymous column");
-									}
-									if (UseExpando)
-									{
-										// For dynamics, create fields using the case that comes back from the database
-										// TO DO: Test how this is working now in Oracle
-										columnNames[i] = columnName;
-									}
-									else
-									{
-										// leaves as null if no match
-										columnNameToPropertyInfo.TryGetValue(columnName, out propertyInfo[i]);
-									}
-								}
-								while (useReader.Read())
-								{
-									useReader.GetValues(rowValues);
-									if (UseExpando)
-									{
-										ExpandoObject e = new ExpandoObject();
-										IDictionary<string, object> d = e.ToDictionary();
-										for (int i = 0; i < fieldCount; i++)
-										{
-											var v = rowValues[i];
-											d.Add(columnNames[i], v == DBNull.Value ? null : v);
-										}
-										yield return (X)(object)e;
-									}
-									else
-									{
-										T t = new T();
-										for (int i = 0; i < fieldCount; i++)
-										{
-											var v = rowValues[i];
-											if (propertyInfo[i] != null)
-											{
-												propertyInfo[i].SetValue(t, v == DBNull.Value ? null : v.ChangeType(propertyInfo[i].PropertyType));
-											}
-										}
-										yield return (X)(object)t;
-									}
-								}
-							}
-						}
-					}
-					if (trans != null) trans.Commit();
-				}
-			}
-		}
+                                    // for generic, we need array of properties to set; we find this
+                                    // from fieldNames array, using a look up from lowered name -> property
+                                    for (int i = 0; i < fieldCount; i++)
+                                    {
+                                        var columnName = useReader.GetName(i);
+                                        if (string.IsNullOrEmpty(columnName))
+                                        {
+                                            throw new InvalidOperationException("Cannot autopopulate from anonymous column");
+                                        }
+                                        if (UseExpando)
+                                        {
+                                            // For dynamics, create fields using the case that comes back from the database
+                                            // TO DO: Test how this is working now in Oracle
+                                            columnNames[i] = columnName;
+                                        }
+                                        else
+                                        {
+                                            // leaves as null if no match
+                                            columnNameToPropertyInfo.TryGetValue(columnName, out propertyInfo[i]);
+                                        }
+                                    }
+                                    while (useReader.Read())
+                                    {
+                                        useReader.GetValues(rowValues);
+                                        if (UseExpando)
+                                        {
+                                            ExpandoObject e = new ExpandoObject();
+                                            IDictionary<string, object> d = e.ToDictionary();
+                                            for (int i = 0; i < fieldCount; i++)
+                                            {
+                                                var v = rowValues[i];
+                                                d.Add(columnNames[i], v == DBNull.Value ? null : v);
+                                            }
+                                            yield return (X)(object)e;
+                                        }
+                                        else
+                                        {
+                                            T t = new T();
+                                            for (int i = 0; i < fieldCount; i++)
+                                            {
+                                                var v = rowValues[i];
+                                                if (propertyInfo[i] != null)
+                                                {
+                                                    propertyInfo[i].SetValue(t, v == DBNull.Value ? null : v.ChangeType(propertyInfo[i].PropertyType));
+                                                }
+                                            }
+                                            yield return (X)(object)t;
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        if (trans != null) trans.Commit();
+                    }
+                }
+            }
+        }
 		#endregion
 
 		#region ORM actions
