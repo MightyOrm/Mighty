@@ -264,22 +264,29 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 		}
 
 		// Test various dereferencing patters (more relevant since we are coding this ourselves)
-		private async void CheckMultiResultSetStructure(IAsyncEnumerable<IAsyncEnumerable<dynamic>> results, int count0 = 1, int count1 = 1, bool breakTest = false, bool idTest = false)
+		private async Task CheckMultiResultSetStructureAsync(IAsyncEnumerable<IAsyncEnumerable<dynamic>> results, int count0 = 1, int count1 = 1, bool breakTest = false, bool idTest = false)
 		{
 			int sets = 0;
 			int[] counts = new int[2];
-			await results.ForEachAsync(async set => {
-				await set.ForEachAsync(item => {
-					counts[sets]++;
-					if (idTest) Assert.AreEqual(typeof(int), item.id.GetType());
-					else if (sets == 0) Assert.AreEqual(typeof(int), item.a.GetType());
-					else Assert.AreEqual(typeof(int), item.c.GetType());
-					// TO DO: !
-					//if (breakTest) break;
-				});
-				sets++;
-			});
-			Assert.AreEqual(2, sets);
+
+            await results.ForEachAsync(async set => {
+                try
+                {
+                    await set.ForEachAsync(item => {
+                        counts[sets]++;
+                        if (idTest) Assert.AreEqual(typeof(int), item.id.GetType());
+                        else if (sets == 0) Assert.AreEqual(typeof(int), item.a.GetType());
+                        else Assert.AreEqual(typeof(int), item.c.GetType());
+                        if (breakTest) throw new AsyncEnumerationCanceledException();
+                    });
+                }
+                catch (AsyncEnumerationCanceledException)
+                {
+                }
+                sets++;
+            });
+
+            Assert.AreEqual(2, sets);
 			Assert.AreEqual(breakTest ? 1 : count0, counts[0]);
 			Assert.AreEqual(breakTest ? 1 : count1, counts[1]);
 		}
@@ -289,7 +296,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 		{
 			var db = new SPTestsDatabase();
 			var resultSetOneByN = await db.QueryMultipleFromProcedureAsync("cursorOneByN", outParams: new { xyz = new Cursor() });
-			CheckMultiResultSetStructure(resultSetOneByN);
+			await CheckMultiResultSetStructureAsync(resultSetOneByN);
 		}
 
 		[Test]
@@ -299,7 +306,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 			// For small result sets, this actually saves one round trip to the database
 			//db.AutoDereferenceFetchSize = -1;
 			var resultSetNByOne = await db.QueryMultipleFromProcedureAsync("cursorNByOne", outParams: new { c1 = new Cursor(), c2 = new Cursor() });
-			CheckMultiResultSetStructure(resultSetNByOne);
+			await CheckMultiResultSetStructureAsync(resultSetNByOne);
 		}
 
 		[Test]
@@ -308,7 +315,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 			var db = new SPTestsDatabase();
 			var resultSetOneByNSQL = await db.QueryMultipleWithParamsAsync("SELECT * FROM cursorOneByN()",
 																outParams: new { anyname = new Cursor() });
-			CheckMultiResultSetStructure(resultSetOneByNSQL);
+			await CheckMultiResultSetStructureAsync(resultSetOneByNSQL);
 		}
 
 		[Test]
@@ -317,7 +324,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 			var db = new SPTestsDatabase();
 			var resultSetNByOneSQL = await db.QueryMultipleWithParamsAsync("SELECT * FROM cursorNByOne()",
 																outParams: new { anyname = new Cursor() });
-			CheckMultiResultSetStructure(resultSetNByOneSQL);
+			await CheckMultiResultSetStructureAsync(resultSetNByOneSQL);
 		}
 
 		[Test]
@@ -325,9 +332,9 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 		{
 			var db = new SPTestsDatabase();
 			var resultCTestFull = await db.QueryMultipleFromProcedureAsync("cbreaktest", outParams: new { c1 = new Cursor(), c2 = new Cursor() });
-			CheckMultiResultSetStructure(resultCTestFull, 10, 11);
+			await CheckMultiResultSetStructureAsync(resultCTestFull, 10, 11);
 			var resultCTestToBreak = await db.QueryMultipleFromProcedureAsync("cbreaktest", ioParams: new { c1 = new Cursor(), c2 = new Cursor() });
-			CheckMultiResultSetStructure(resultCTestToBreak, breakTest: true);
+			await CheckMultiResultSetStructureAsync(resultCTestToBreak, breakTest: true);
 		}
 #endregion
 
@@ -574,7 +581,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 
 			var results = await db.QueryMultipleFromProcedureAsync("lump2", returnParams: new { abc = new Cursor() });
 			db.NpgsqlAutoDereferenceFetchSize = 4000000;
-			CheckMultiResultSetStructure(results, 10000000, 10000000, true, true);
+			await CheckMultiResultSetStructureAsync(results, 10000000, 10000000, true, true);
 
 			// one item from cursor
 			//using (var conn = db.OpenConnection())
