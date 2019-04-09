@@ -48,15 +48,19 @@ namespace Mighty.Mocking
 	// which the microORM supports, with appropriately named fields).
 	abstract public partial class MightyOrmMockable<T>
 	{
-		// Abstract class 'interface' for Npgsql cursor control additions.
-		// These should ideally be contributed back to Npgsql ([ref]()), but for now are added to MightyOrm.
-		// (Note: unfortunately it looks far from trivial to set up a full Npgsql build environment in order to create
-		// a properly constructed and tested PR for that project. Which is not to say it won't be done at some point.)
-		#region Npgsql cursor dereferencing
-		/// <summary>
-		/// Should we auto-dereference cursors when using the Npgsql ADO.NET driver? (See Mighty documentation.)
-		/// </summary>
-		abstract public bool NpgsqlAutoDereferenceCursors { get; set; }
+        // In C# (though not all languages, see discussion here https://stackoverflow.com/a/11271938/795690)
+        // constructors cannot be overridden, and therefore cannot be defined in abstract classes.
+
+        #region Npgsql cursor dereferencing
+        // Abstract class 'interface' for Npgsql cursor control additions.
+        // These should ideally be contributed back to Npgsql ([ref]()), but for now are added to MightyOrm.
+        // (Note: unfortunately it looks far from trivial to set up a full Npgsql build environment in order to create
+        // a properly constructed and tested PR for that project. Which is not to say it won't be done at some point.)
+
+        /// <summary>
+        /// Should we auto-dereference cursors when using the Npgsql ADO.NET driver? (See Mighty documentation.)
+        /// </summary>
+        abstract public bool NpgsqlAutoDereferenceCursors { get; set; }
 
 		/// <summary>
 		/// How many rows at a time should we fetch if auto-dereferencing cursors on the Npgsql ADO.NET driver? (Default value 10,000.) (See Mighty documentation.)
