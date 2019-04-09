@@ -13,7 +13,7 @@ using Mighty.Validation;
 /// </summary>
 namespace Mighty.Mocking
 {
-	abstract public partial class MightyOrmMockable<T>
+	abstract public partial class MightyOrmAbstractInterface<T>
 	{
 		// 'Interface' for the general purpose data access wrapper methods (i.e. the ones which can be used
 		// even if no table has been specified).

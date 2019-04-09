@@ -25,7 +25,7 @@ using System.Threading.Tasks;
 
 namespace Mighty
 {
-	public partial class MightyOrm<T> : MightyOrmMockable<T> where T : class, new()
+	public partial class MightyOrm<T> : MightyOrmAbstractInterface<T> where T : class, new()
 	{
 		// Only methods with a non-trivial implementation are here, the rest are in the MicroOrm abstract class.
 		#region MircoORM interface

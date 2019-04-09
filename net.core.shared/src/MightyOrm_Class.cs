@@ -99,7 +99,7 @@ namespace Mighty
 
 	}
 
-	public partial class MightyOrm<T> : MightyOrmMockable<T> where T : class, new()
+	public partial class MightyOrm<T> : MightyOrmAbstractInterface<T> where T : class, new()
 	{
 		#region Constructor
 		/// <summary>

@@ -46,7 +46,7 @@ namespace Mighty.Mocking
 	// NB MicroOrm is dynamic-focussed, so even when you are using MightyOrm<T> instead of MightyOrm (which is like MightyOrm<dynamic>), the
 	// T determines the output type, but not the input type (which can be of type T, but can also be any of the various arbitrary objects
 	// which the microORM supports, with appropriately named fields).
-	abstract public partial class MightyOrmMockable<T>
+	abstract public partial class MightyOrmAbstractInterface<T>
 	{
         // In C# (though not all languages, see discussion here https://stackoverflow.com/a/11271938/795690)
         // constructors cannot be overridden, and therefore cannot be defined in abstract classes.

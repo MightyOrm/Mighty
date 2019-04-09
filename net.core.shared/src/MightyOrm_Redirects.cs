@@ -14,7 +14,7 @@ using Mighty.Validation;
 /// </summary>
 namespace Mighty
 {
-	public partial class MightyOrm<T> : MightyOrmMockable<T> where T : class, new()
+	public partial class MightyOrm<T> : MightyOrmAbstractInterface<T> where T : class, new()
 	{
 		#region Non-table specific methods
 		override public DbCommand CreateCommand(string sql,
