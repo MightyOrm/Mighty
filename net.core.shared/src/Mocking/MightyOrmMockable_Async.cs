@@ -52,7 +52,11 @@ namespace Mighty.Mocking
 	// which the microORM supports, with appropriately named fields).
 	abstract public partial class MightyOrmMockable<T>
 	{
-		// Okay, first attempt: always add optional `CancellationToken` after all compulsory params and just before any optional or `params` params
+        // We are always adding optional `CancellationToken` after all compulsory params and just
+        // before any optional or `params` params.
+        // Also, even though it is quite a lot more work, we are providing versions with and without
+        // CancellationToken, so that the async interface to our `args` variants stays nice if you are not
+        // passing a CancellationToken.
 
 		// 'Interface' for the general purpose data access wrapper methods (i.e. the ones which can be used
 		// even if no table has been specified).
