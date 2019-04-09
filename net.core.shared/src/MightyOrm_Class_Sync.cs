@@ -219,24 +219,28 @@ namespace Mighty
 			}
 		}
 
-		/// <summary>
-		/// Return paged results from arbitrary select statement.
-		/// </summary>
-		/// <param name="columns">Column spec</param>
-		/// <param name="tablesAndJoins">Single table name, or join specification</param>
-		/// <param name="where">Optional</param>
-		/// <param name="orderBy">Required</param>
-		/// <param name="pageSize"></param>
-		/// <param name="currentPage"></param>
-		/// <param name="connection"></param>
-		/// <param name="args"></param>
-		/// <returns>The result of the paged query. Result properties are Items, TotalPages, and TotalRecords.</returns>
-		/// <remarks>
-		/// In this one instance, because of the connection to the underlying logic of these queries, the user
-		/// can pass "SELECT columns" instead of columns.
-		/// TO DO: Cancel the above, it makes no sense from a UI pov!
-		/// </remarks>
-		override public PagedResults<T> PagedFromSelect(string columns, string tablesAndJoins, string where, string orderBy,
+        /// <summary>
+        /// Return paged results from arbitrary select statement.
+        /// </summary>
+        /// <param name="columns">Column spec</param>
+        /// <param name="tableNameOrJoinSpec">Single table name, or join specification</param>
+        /// <param name="orderBy">Required</param>
+        /// <param name="where">Optional</param>
+        /// <param name="pageSize"></param>
+        /// <param name="currentPage"></param>
+        /// <param name="connection"></param>
+        /// <param name="args"></param>
+        /// <returns>The result of the paged query. Result properties are Items, TotalPages, and TotalRecords.</returns>
+        /// <remarks>
+        /// In this one instance, because of the connection to the underlying logic of these queries, the user
+        /// can pass "SELECT columns" instead of columns.
+        /// TO DO: Cancel the above, it makes no sense from a UI pov!
+        /// </remarks>
+        override public PagedResults<T> PagedFromSelect(
+            string columns,
+            string tableNameOrJoinSpec,
+            string orderBy,
+            string where,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args)
@@ -244,7 +248,7 @@ namespace Mighty
 			int limit = pageSize;
 			int offset = (currentPage - 1) * pageSize;
 			if (columns == null) columns = Columns;
-			var pagingQueryPair = Plugin.BuildPagingQueryPair(columns, tablesAndJoins, where, orderBy, limit, offset);
+			var pagingQueryPair = Plugin.BuildPagingQueryPair(columns, tableNameOrJoinSpec, orderBy, where, limit, offset);
 			var result = new PagedResults<T>();
 			result.TotalRecords = Convert.ToInt32(Scalar(pagingQueryPair.CountQuery));
 			result.TotalPages = (result.TotalRecords + pageSize - 1) / pageSize;

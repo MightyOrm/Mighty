@@ -29,10 +29,10 @@ namespace Mighty.Plugins
 			return BuildLimitSelect(columns, tableName, where, orderBy, limit);
 		}
 
-		override public PagingQueryPair BuildPagingQueryPair(string columns, string tablesAndJoins, string where, string orderBy,
+		override public PagingQueryPair BuildPagingQueryPair(string columns, string tableNameOrJoinSpec, string orderBy, string where,
 			int limit, int offset)
 		{
-			return BuildLimitOffsetPagingQueryPair(columns, tablesAndJoins, where, orderBy, limit, offset);
+			return BuildLimitOffsetPagingQueryPair(columns, tableNameOrJoinSpec, orderBy, where, limit, offset);
 		}
 		#endregion
 

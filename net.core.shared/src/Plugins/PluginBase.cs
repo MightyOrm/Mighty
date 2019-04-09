@@ -136,7 +136,7 @@ namespace Mighty.Plugins
 		/// Default to the LIMIT OFFSET pattern, which works exactly the same in all DBs which support it.
 		/// </summary>
 		/// <param name="columns"></param>
-		/// <param name="tablesAndJoins"></param>
+		/// <param name="tableNameOrJoinSpec"></param>
 		/// <param name="where"></param>
 		/// <param name="orderBy">Order by is required</param>
 		/// <param name="limit"></param>
@@ -151,29 +151,29 @@ namespace Mighty.Plugins
 		///	   support in the microORM) to get at the results of multiple selects from one DB call
 		///	   on Oracle.
 		/// </remarks>
-		abstract public PagingQueryPair BuildPagingQueryPair(string columns, string tablesAndJoins, string where, string orderBy,
+		abstract public PagingQueryPair BuildPagingQueryPair(string columns, string tableNameOrJoinSpec, string orderBy, string where,
 			int limit, int offset);
 
 		/// <summary>
 		/// Utility method to provide LIMIT-OFFSET paging pattern.
 		/// </summary>
 		/// <param name="columns"></param>
-		/// <param name="tablesAndJoins"></param>
+		/// <param name="tableNameOrJoinSpec"></param>
 		/// <param name="where"></param>
 		/// <param name="orderBy"></param>
 		/// <param name="limit"></param>
 		/// <param name="offset"></param>
 		/// <returns></returns>
-		protected PagingQueryPair BuildLimitOffsetPagingQueryPair(string columns, string tablesAndJoins, string where, string orderBy,
+		protected PagingQueryPair BuildLimitOffsetPagingQueryPair(string columns, string tableNameOrJoinSpec, string orderBy, string where,
 			int limit, int offset)
 		{
-			tablesAndJoins = tablesAndJoins.Unthingify("FROM");
+			tableNameOrJoinSpec = tableNameOrJoinSpec.Unthingify("FROM");
 			return new PagingQueryPair()
 			{
-				CountQuery = BuildSelect("COUNT(*) AS TotalCount", tablesAndJoins, where),
+				CountQuery = BuildSelect("COUNT(*) AS TotalCount", tableNameOrJoinSpec, where),
 				PagingQuery = string.Format("SELECT {0} FROM {1}{2} {3} LIMIT {4}{5}",
 									columns.Unthingify("SELECT"),
-									tablesAndJoins,
+									tableNameOrJoinSpec,
 									where == null ? "" : string.Format(" {0}", where.Thingify("WHERE")),
 									orderBy.Compulsify("ORDER BY", "paged select"),
 									limit,
@@ -186,19 +186,19 @@ namespace Mighty.Plugins
 		/// pattern can be used on Oracle and SQL Server.
 		/// </summary>
 		/// <param name="columns"></param>
-		/// <param name="tablesAndJoins"></param>
+		/// <param name="tableNameOrJoinSpec"></param>
 		/// <param name="where"></param>
 		/// <param name="orderBy">Order by is required</param>
 		/// <param name="limit"></param>
 		/// <param name="offset"></param>
 		/// <returns></returns>
 		/// <remarks>Unavoidably (without significant SQL parsing, which we do not do) adds column RowNumber to the results, which does not happen on LIMIT/OFFSET DBs</remarks>
-		protected PagingQueryPair BuildRowNumberPagingQueryPair(string columns, string tablesAndJoins, string where, string orderBy, int limit, int offset)
+		protected PagingQueryPair BuildRowNumberPagingQueryPair(string columns, string tableNameOrJoinSpec, string orderBy, string where, int limit, int offset)
 		{
-			tablesAndJoins = tablesAndJoins.Unthingify("FROM");
+			tableNameOrJoinSpec = tableNameOrJoinSpec.Unthingify("FROM");
 			return new PagingQueryPair()
 			{
-				CountQuery = BuildSelect("COUNT(*) AS TotalCount", tablesAndJoins, where),
+				CountQuery = BuildSelect("COUNT(*) AS TotalCount", tableNameOrJoinSpec, where),
 				// we have to use t_.* in the outer select as columns may refer to table names or aliases which are only in scope in the inner select
 				PagingQuery = string.Format("SELECT t_.*" + CRLF +
 									 "FROM" + CRLF +
@@ -209,8 +209,8 @@ namespace Mighty.Plugins
 									 ") t_" + CRLF +
 									 "WHERE {5}RowNumber < {4}" + CRLF +
 									 "ORDER BY RowNumber",
-					FixStarColumns(tablesAndJoins, columns),
-					tablesAndJoins,
+					FixStarColumns(tableNameOrJoinSpec, columns),
+					tableNameOrJoinSpec,
 					where == null ? "" : string.Format("    {0}" + CRLF, where.Thingify("WHERE")),
 					orderBy.Compulsify("ORDER BY", "paged select"),
 					offset + limit + 1,

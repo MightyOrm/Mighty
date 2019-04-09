@@ -147,7 +147,7 @@ namespace Mighty.Mocking
 			DbConnection connection = null,
 			params object[] args);
 
-		abstract public PagedResults<T> PagedFromSelect(string columns, string tablesAndJoins, string where, string orderBy,
+		abstract public PagedResults<T> PagedFromSelect(string columns, string tableNameOrJoinSpec, string orderBy, string where,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args);
@@ -269,10 +269,12 @@ namespace Mighty.Mocking
 		/// <param name="args"></param>
 		/// <returns>The result of the paged query. Result properties are Items, TotalPages, and TotalRecords.</returns>
 		/// <remarks>
-		/// <see cref="columns"/> parameter is not placed first because it's an override to something we may have alread provided in the constructor
-		/// (so we don't want the user to have to non-fluently re-type it, or else type null, every time).
+		/// `columns` parameter is not placed first because it's an override to something we may have alread provided in the constructor,
+		/// so we don't want the user to have to non-fluently re-type it, or else type null, every time.
 		/// </remarks>
-		abstract public PagedResults<T> Paged(string where = null, string orderBy = null,
+		abstract public PagedResults<T> Paged(
+            string orderBy = null,
+            string where = null,
 			string columns = null,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,

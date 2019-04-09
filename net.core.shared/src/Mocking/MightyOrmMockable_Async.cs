@@ -288,11 +288,11 @@ namespace Mighty.Mocking
 			DbConnection connection = null,
 			params object[] args);
 
-		abstract public Task<PagedResults<T>> PagedFromSelectAsync(string columns, string tablesAndJoins, string where, string orderBy,
+		abstract public Task<PagedResults<T>> PagedFromSelectAsync(string columns, string tableNameOrJoinSpec, string orderBy, string where,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args);
-		abstract public Task<PagedResults<T>> PagedFromSelectAsync(string columns, string tablesAndJoins, string where, string orderBy,
+		abstract public Task<PagedResults<T>> PagedFromSelectAsync(string columns, string tableNameOrJoinSpec, string orderBy, string where,
 			CancellationToken cancellationToken,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
@@ -455,12 +455,14 @@ namespace Mighty.Mocking
 		/// <see cref="columns"/> parameter is not placed first because it's an override to something we may have alread provided in the constructor
 		/// (so we don't want the user to have to non-fluently re-type it, or else type null, every time).
 		/// </remarks>
-		abstract public Task<PagedResults<T>> PagedAsync(string where = null, string orderBy = null,
+		abstract public Task<PagedResults<T>> PagedAsync(
+            string orderBy = null,
+            string where = null,
 			string columns = null,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args);
-		abstract public Task<PagedResults<T>> PagedAsync(CancellationToken cancellationToken, string where = null, string orderBy = null,
+		abstract public Task<PagedResults<T>> PagedAsync(CancellationToken cancellationToken, string orderBy = null, string where = null,
 			string columns = null,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,

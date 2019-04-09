@@ -366,13 +366,15 @@ namespace Mighty
 		/// <see cref="columns"/> parameter is not placed first because it's an override to something we may have alread provided in the constructor
 		/// (so we don't want the user to have to non-fluently re-type it, or else type null, every time).
 		/// </remarks>
-		override public PagedResults<T> Paged(string where = null, string orderBy = null,
+		override public PagedResults<T> Paged(
+            string orderBy = null,
+            string where = null,
 			string columns = null,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args)
 		{
-			return PagedFromSelect(columns, CheckGetTableName(), where, orderBy ?? CheckGetPrimaryKeyFields(), pageSize, currentPage, connection, args);
+			return PagedFromSelect(columns, CheckGetTableName(), orderBy ?? CheckGetPrimaryKeyFields(), where, pageSize, currentPage, connection, args);
 		}
 
 		/// <summary>

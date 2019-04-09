@@ -43,10 +43,10 @@ namespace Mighty.Plugins
 			}
 		}
 
-		override public PagingQueryPair BuildPagingQueryPair(string columns, string tablesAndJoins, string where, string orderBy,
+		override public PagingQueryPair BuildPagingQueryPair(string columns, string tableNameOrJoinSpec, string orderBy, string where,
 			int limit, int offset)
 		{
-			return BuildRowNumberPagingQueryPair(columns, tablesAndJoins, where, orderBy, limit, offset);
+			return BuildRowNumberPagingQueryPair(columns, tableNameOrJoinSpec, orderBy, where, limit, offset);
 		}
 
 		// Build an insert command which - even on Oracle - can insert and return the new PK in a single round-trip to the database.
