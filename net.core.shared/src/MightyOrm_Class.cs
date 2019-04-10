@@ -289,9 +289,11 @@ namespace Mighty
 				SequenceNameOrIdentityFn = SqlMapper.QuoteDatabaseIdentifier(sequence);
 			}
 
-			// Add dynamic method support (mainly for compatibility with Massive)
-			// TO DO: This line shouldn't be here, as it's so intimately tied to code in DynamicMethodProvider
-			DynamicObjectWrapper = new DynamicMethodProvider<T>(this);
+#if DYNAMIC_METHODS
+            // Add dynamic method support (mainly for compatibility with Massive)
+            // TO DO: This line shouldn't be here, as it's so intimately tied to code in DynamicMethodProvider
+            DynamicObjectWrapper = new DynamicMethodProvider<T>(this);
+#endif
 		}
 
 		protected void InitialiseTypeProperties(BindingFlags propertyBindingFlags)
@@ -313,10 +315,10 @@ namespace Mighty
 				pkProperty = columnNameToPropertyInfo[PrimaryKeyFields];
 			}
 		}
-		#endregion
+#endregion
 
 		// Only properties with a non-trivial implementation are here, the rest are in the MicroOrm abstract class.
-		#region Properties
+#region Properties
 		protected IEnumerable<dynamic> _TableMetaData;
 		override public IEnumerable<dynamic> TableMetaData
 		{
@@ -329,9 +331,9 @@ namespace Mighty
 
 		protected Dictionary<string, PropertyInfo> columnNameToPropertyInfo;
 		protected PropertyInfo pkProperty;
-		#endregion
+#endregion
 
-		#region Thread-safe initializer for table meta-data
+#region Thread-safe initializer for table meta-data
 		// Thread-safe initialization based on Microsoft DbProviderFactories reference 
 		// https://referencesource.microsoft.com/#System.Data/System/Data/Common/DbProviderFactories.cs
 
@@ -406,10 +408,10 @@ namespace Mighty
 				}
 			}
 		}
-		#endregion
+#endregion
 
 		// Only methods with a non-trivial implementation are here, the rest are in the MicroOrm abstract class.
-		#region MircoORM interface
+#region MircoORM interface
 		/// <summary>
 		/// Make a new item from the passed-in name-value collection.
 		/// </summary>
@@ -698,10 +700,10 @@ namespace Mighty
 			}
 			return array;
 		}
-		#endregion
+#endregion
 
 		// Only methods with a non-trivial implementation are here, the rest are in the DataAccessWrapper abstract class.
-		#region DataAccessWrapper interface
+#region DataAccessWrapper interface
 		/// <summary>
 		/// Create command, setting any provider specific features which we assume elsewhere.
 		/// </summary>
@@ -757,9 +759,9 @@ namespace Mighty
 			}
 			return e;
 		}
-		#endregion
+#endregion
 
-		#region ORM actions
+#region ORM actions
 		/// <summary>
 		/// Create update command
 		/// </summary>
@@ -980,7 +982,7 @@ namespace Mighty
 		/// Add named, typed directional params to DbCommand.
 		/// </summary>
 		/// <param name="cmd">The command</param>
-		/// <param name="nameValuePairs">Parameters to add (POCO, anonymous type, NameValueCollection, ExpandoObject, etc.) </param>
+		/// <param name="nameValuePairs">Parameters to add (POCO, anonymous type, NameValueCollection, ExpandoObject, etc.)</param>
 		/// <param name="direction">Parameter direction</param>
 		/// <param name="pkFilter">Optional PK filter control</param>
 		internal void AddNamedParams(DbCommand cmd, object nameValuePairs, ParameterDirection direction = ParameterDirection.Input, PkFilter pkFilter = PkFilter.DoNotFilter)
@@ -997,6 +999,42 @@ namespace Mighty
 				}
 			}
 		}
-		#endregion
-	}
+
+        /// <summary>
+        /// Produce WHERE clause and inParams or args from either name-value collection or primary key value-only collection
+        /// </summary>
+        /// <param name="whereParams">Name-value or value-only params</param>
+        /// <returns>WHERE; inParams; args</returns>
+        internal Tuple<string, object, object[]> GetWhereSpecFromWhereParams(object whereParams)
+        {
+            var wherePredicates = new List<string>();
+            var nameValueArgs = new ExpandoObject();
+            var nameValueDictionary = nameValueArgs.ToDictionary();
+
+            var enumerator = new NameValueTypeEnumerator(whereParams);
+
+            // If no value names in the whereParams, map the values to the primary key(s)
+            if (!enumerator.HasNames())
+            {
+                return new Tuple<string, object, object[]>(WhereForKeys(), null, KeyValuesFromKey(whereParams));
+            }
+
+            // Use (mapped) names as column names and values as values
+            foreach (var paramInfo in enumerator)
+            {
+                string name = SqlMapper.GetColumnNameFromPropertyName(typeof(T), paramInfo.Name);
+                wherePredicates.Add(string.Format("{0} = {1}", name, Plugin.PrefixParameterName(name)));
+                nameValueDictionary.Add(name, paramInfo.Value);
+            }
+
+            var whereClause = string.Empty;
+            if (wherePredicates.Count > 0)
+            {
+                whereClause = " WHERE " + string.Join(" AND ", wherePredicates);
+            }
+
+            return new Tuple<string, object, object[]>(whereClause, nameValueArgs, null);
+        }
+#endregion
+    }
 }

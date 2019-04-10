@@ -315,7 +315,7 @@ namespace Mighty.Mocking
 		/// </summary>
 		/// <param name="columns">Columns (defaults to *, but can be specified, e.g., to count non-nulls in a given field)</param>
 		/// <param name="where">Optional where clause</param>
-		/// <param name="connection">Optional connection</param>
+		/// <param name="connection">Optional connection to use</param>
 		/// <param name="args">Args</param>
 		/// <returns></returns>
 		abstract public Task<object> CountAsync(string columns = "*", string where = null,
@@ -330,7 +330,7 @@ namespace Mighty.Mocking
 		/// </summary>
 		/// <param name="expression">Scalar expression</param>
 		/// <param name="where">Optional where clause</param>
-		/// <param name="connection">Optional connection</param>
+		/// <param name="connection">Optional connection to use</param>
 		/// <param name="args">Parameters</param>
 		/// <returns></returns>
 		abstract public Task<object> AggregateAsync(string expression, string where = null,
@@ -349,7 +349,7 @@ namespace Mighty.Mocking
 		/// <param name="outParams">Optional output parameters</param>
 		/// <param name="ioParams">Optional input-output parameters</param>
 		/// <param name="returnParams">Optional return parameters</param>
-		/// <param name="connection">Optional connection</param>
+		/// <param name="connection">Optional connection to use</param>
 		/// <param name="args">Optional auto-named input parameters</param>
 		/// <returns></returns>
 		abstract public Task<object> AggregateWithParamsAsync(string expression, string where = null,
@@ -361,37 +361,37 @@ namespace Mighty.Mocking
 			DbConnection connection = null,
 			params object[] args);
 
-		/// <summary>
-		/// Get a single object from the current table by primary key value
-		/// </summary>
-		/// <param name="key">Single key (or any reasonable multi-value item for compound keys)</param>
-		/// <param name="columns">Optional columns to retrieve</param>
-		/// <param name="connection">Optional connection</param>
-		/// <returns></returns>
-		abstract public Task<T> GetAsync(object key, string columns = null,
-			DbConnection connection = null);
+        /// <summary>
+        /// Get single object from the current table using primary key or name-value specification.
+        /// </summary>
+        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="columns">Optional list of columns to retrieve</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <returns></returns>
+        abstract public Task<T> SingleAsync(object whereParams, string columns = null,
+            DbConnection connection = null);
 
         /// <summary>
-        /// Get a single object from the current table by primary key value
+        /// Get single object from the current table using primary key or name-value specification.
         /// </summary>
-        /// <param name="key">Single key (or any reasonable multi-value item for compound keys)</param>
-        /// <param name="columns">Optional columns to retrieve</param>
-        /// <param name="connection">Optional connection</param>
+        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="columns">Optional list of columns to retrieve</param>
+        /// <param name="connection">Optional connection to use</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
-        abstract public Task<T> GetAsync(object key, CancellationToken cancellationToken, string columns = null,
-			DbConnection connection = null);
+        abstract public Task<T> SingleAsync(object whereParams, CancellationToken cancellationToken, string columns = null,
+            DbConnection connection = null);
 
-		/// <summary>
-		/// Get a single object from the current table with where specification.
-		/// </summary>
-		/// <param name="where">Where clause</param>
-		/// <param name="args">Optional auto-named params</param>
-		/// <returns></returns>
-		/// <remarks>
-		/// 'Easy-calling' version, optional args straight after where.
-		/// </remarks>
-		abstract public Task<T> SingleAsync(string where,
+        /// <summary>
+        /// Get a single object from the current table with where specification.
+        /// </summary>
+        /// <param name="where">Where clause</param>
+        /// <param name="args">Optional auto-named params</param>
+        /// <returns></returns>
+        /// <remarks>
+        /// 'Easy-calling' version, optional args straight after where.
+        /// </remarks>
+        abstract public Task<T> SingleAsync(string where,
 			params object[] args);
 		abstract public Task<T> SingleAsync(string where,
 			CancellationToken cancellationToken,

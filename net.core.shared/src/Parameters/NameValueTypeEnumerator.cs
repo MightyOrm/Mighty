@@ -25,21 +25,81 @@ namespace Mighty.Parameters
 		private ParameterDirection? _direction;
 		private OrmAction? _action;
 
-		internal ParameterInfo Current { get; set; }
+        internal ParameterInfo Current { get; set; }
 
 		internal NameValueTypeEnumerator(object o, ParameterDirection? direction = null, OrmAction? action = null)
 		{
 			_o = o;
 			_direction = direction;
 			_action = action;
-		}
+        }
 
 		IEnumerator IEnumerable.GetEnumerator()
 		{
 			return GetEnumerator();
 		}
 
-		public IEnumerator<LazyNameValueTypeInfo> GetEnumerator()
+        /// <summary>
+        /// Determine whether the passed in type can provide names as well as values
+        /// </summary>
+        /// <remarks>NB The logic of this must match <see cref="GetEnumerator"/> below</remarks>
+        public bool HasNames()
+        {
+            // enumerate empty list if null
+            if (_o == null)
+            {
+                return true;
+            }
+
+            var o = _o as ExpandoObject;
+            if (o != null)
+            {
+                return true;
+            }
+
+            var nvc = _o as NameValueCollection;
+            if (nvc != null)
+            {
+                return true;
+            }
+
+            // possible support for Newtonsoft JObject here...
+
+            // Convert non-class objects to value array
+            object[] valueArray = null;
+            var type = _o.GetType();
+            if (!type
+#if !NETFRAMEWORK
+                .GetTypeInfo()
+#endif
+                .IsClass)
+            {
+                valueArray = new object[] { _o };
+            }
+            else
+            {
+                valueArray = _o as object[];
+            }
+
+            // This is for adding anonymous parameters (which will cause a different exception later on, in AddParam, if used on
+            // a DB which doesn't support it; even on DBs which do support it, it only makes sense on input parameters).
+            // NB This is not the same thing as the auto-named parameters added by AddParams(), which also use object[]
+            // but with a different meaning (namely the values for the auto-named params @0, @1 or :0, :1 etc.).
+            // Value-only processing now also used to support value-only collections of PK values when performing ORMAction on an item.
+            if (valueArray != null)
+            {
+                return false;
+            }
+
+            // names, values and types from properties of anonymous object (therefore with names and values on its fields!) or POCOs
+            return true;
+        }
+
+        /// <summary>
+        /// Enumerate over names and values, or just values, from passed in object
+        /// </summary>
+        /// <remarks>NB The logic of this must match <see cref="HasNames"/> above</remarks>
+        public IEnumerator<LazyNameValueTypeInfo> GetEnumerator()
 		{
 			// enumerate empty list if null
 			if (_o == null)

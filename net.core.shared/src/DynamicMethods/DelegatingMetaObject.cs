@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if DYNAMIC_METHODS
+using System;
 using System.Dynamic;
 using System.Linq.Expressions;
 
@@ -66,3 +67,4 @@ namespace Mighty
 		}
 	}
 }
+#endif

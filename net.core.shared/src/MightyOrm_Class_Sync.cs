@@ -43,7 +43,7 @@ namespace Mighty
 		/// <param name="outParams">Optional output parameters</param>
 		/// <param name="ioParams">Optional input-output parameters</param>
 		/// <param name="returnParams">Optional return parameters</param>
-		/// <param name="connection">Optional connection</param>
+		/// <param name="connection">Optional connection to use</param>
 		/// <param name="args">Optional auto-named input parameters</param>
 		/// <returns></returns>
 		/// <remarks>

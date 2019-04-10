@@ -8,6 +8,8 @@ using Mighty.Mapping;
 using Mighty.Plugins;
 using Mighty.Profiling;
 using Mighty.Validation;
+using System;
+using System.Dynamic;
 
 /// <summary>
 /// MightyOrm_Redirects.cs holds methods in Mighty than can be very simply defined in terms of other methods.
@@ -270,7 +272,7 @@ namespace Mighty
 		/// </summary>
 		/// <param name="expression">Scalar expression</param>
 		/// <param name="where">Optional where clause</param>
-		/// <param name="connection">Optional connection</param>
+		/// <param name="connection">Optional connection to use</param>
 		/// <param name="args">Parameters</param>
 		/// <returns></returns>
 		override public object Aggregate(string expression, string where = null,
@@ -280,29 +282,33 @@ namespace Mighty
 			return AggregateWithParams(expression, where, connection: connection, args: args);
 		}
 
-		/// <summary>
-		/// Get a single object from the current table by primary key value
-		/// </summary>
-		/// <param name="key">Single key (or any reasonable multi-value item for compound keys)</param>
-		/// <param name="columns">Optional columns to retrieve</param>
-		/// <param name="connection">Optional connection</param>
-		/// <returns></returns>
-		override public T Get(object key, string columns = null,
-			DbConnection connection = null)
-		{
-			return Single(WhereForKeys(), connection, columns, KeyValuesFromKey(key));
-		}
+        /// <summary>
+        /// Get single object from the current table using primary key or name-value specification.
+        /// </summary>
+        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="columns">Optional list of columns to retrieve</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <returns></returns>
+        override public T Single(object whereParams, string columns = null,
+            DbConnection connection = null)
+        {
+            Tuple<string, object, object[]> retval = GetWhereSpecFromWhereParams(whereParams);
+            return AllWithParams(
+                    where: retval.Item1, inParams: retval.Item2, args: retval.Item3, columns: columns, limit: 1,
+                    connection: connection)
+                .FirstOrDefault();
+        }
 
-		/// <summary>
-		/// Get a single object from the current table with where specification.
-		/// </summary>
-		/// <param name="where">Where clause</param>
-		/// <param name="args">Optional auto-named params</param>
-		/// <returns></returns>
-		/// <remarks>
-		/// 'Easy-calling' version, optional args straight after where.
-		/// </remarks>
-		override public T Single(string where,
+        /// <summary>
+        /// Get a single object from the current table with where specification.
+        /// </summary>
+        /// <param name="where">Where clause</param>
+        /// <param name="args">Optional auto-named params</param>
+        /// <returns></returns>
+        /// <remarks>
+        /// 'Easy-calling' version, optional args straight after where.
+        /// </remarks>
+        override public T Single(string where,
 			params object[] args)
 		{
 			return SingleWithParams(where, args: args);
@@ -579,7 +585,7 @@ namespace Mighty
 		override public int UpdateUsing(object partialItem, object key,
 			DbConnection connection)
 		{
-			return UpdateUsing(partialItem, WhereForKeys(), KeyValuesFromKey(key));
+			return UpdateUsing(partialItem, WhereForKeys(), args: KeyValuesFromKey(key));
 		}
 
 		/// <summary>

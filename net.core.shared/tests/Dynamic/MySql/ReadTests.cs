@@ -226,13 +226,15 @@ namespace Mighty.Dynamic.Tests.MySql
 		}
 
 
-		[Test]
+#if DYNAMIC_METHODS
+        [Test]
 		public void Get_AllColumns()
 		{
 			dynamic film = new Film(ProviderName);
 			var singleInstance = film.Get(film_id: 43);
 			Assert.AreEqual(43, singleInstance.film_id);
 		}
+#endif
 
 
 		[Test]
@@ -244,16 +246,34 @@ namespace Mighty.Dynamic.Tests.MySql
 		}
 
 
-		[Test]
+#if DYNAMIC_METHODS
+        [Test]
 		public void Single_AllColumns()
 		{
 			dynamic film = new Film(ProviderName);
 			var singleInstance = film.Single(film_id: 43);
 			Assert.AreEqual(43, singleInstance.film_id);
 		}
+#else
+        [Test]
+        public void Single_Where_AllColumns()
+        {
+            var film = new Film(ProviderName);
+            var singleInstance = film.Single(new { film_id = 43});
+            Assert.AreEqual(43, singleInstance.film_id);
+        }
+
+        [Test]
+        public void Single_Key_AllColumns()
+        {
+            var film = new Film(ProviderName);
+            var singleInstance = film.Single(43);
+            Assert.AreEqual(43, singleInstance.film_id);
+        }
+#endif
 
 
-		[Test]
+        [Test]
 		public void Query_AllRows()
 		{
 			var film = new Film(ProviderName);

@@ -12,6 +12,8 @@ using Mighty.Mapping;
 using Mighty.Plugins;
 using Mighty.Profiling;
 using Mighty.Validation;
+using System;
+using System.Dynamic;
 
 /// <summary>
 /// MightyOrm_Redirects.cs holds methods in Mighty than can be very simply defined in terms of other methods.
@@ -524,7 +526,7 @@ namespace Mighty
 		/// </summary>
 		/// <param name="expression">Scalar expression</param>
 		/// <param name="where">Optional where clause</param>
-		/// <param name="connection">Optional connection</param>
+		/// <param name="connection">Optional connection to use</param>
 		/// <param name="args">Parameters</param>
 		/// <returns></returns>
 		override public async Task<object> AggregateAsync(string expression, string where = null,
@@ -540,43 +542,48 @@ namespace Mighty
 			return await AggregateWithParamsAsync(expression, cancellationToken, where, connection: connection, args: args).ConfigureAwait(false);
 		}
 
-		/// <summary>
-		/// Get a single object from the current table by primary key value
-		/// </summary>
-		/// <param name="key">Single key (or any reasonable multi-value item for compound keys)</param>
-		/// <param name="columns">Optional columns to retrieve</param>
-		/// <param name="connection">Optional connection</param>
-		/// <returns></returns>
-		override public async Task<T> GetAsync(object key, string columns = null,
-			DbConnection connection = null)
-		{
-			return await SingleAsync(WhereForKeys(), connection, columns, KeyValuesFromKey(key)).ConfigureAwait(false);
-		}
+        /// <summary>
+        /// Get single object from the current table using primary key or name-value specification.
+        /// </summary>
+        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="columns">Optional list of columns to retrieve</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <returns></returns>
+        override public async Task<T> SingleAsync(object whereParams, string columns = null,
+            DbConnection connection = null)
+        {
+            return await SingleAsync(whereParams, CancellationToken.None, columns, connection).ConfigureAwait(false);
+        }
 
         /// <summary>
-        /// Get a single object from the current table by primary key value
+        /// Get single object from the current table using primary key or name-value specification.
         /// </summary>
-        /// <param name="key">Single key (or any reasonable multi-value item for compound keys)</param>
-        /// <param name="columns">Optional columns to retrieve</param>
-        /// <param name="connection">Optional connection</param>
+        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="columns">Optional list of columns to retrieve</param>
+        /// <param name="connection">Optional connection to use</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
-        override public async Task<T> GetAsync(object key, CancellationToken cancellationToken, string columns = null,
-			DbConnection connection = null)
-		{
-			return await SingleAsync(WhereForKeys(), cancellationToken, connection, columns, KeyValuesFromKey(key)).ConfigureAwait(false);
-		}
+        override public async Task<T> SingleAsync(object whereParams, CancellationToken cancellationToken, string columns = null,
+            DbConnection connection = null)
+        {
+            Tuple<string, object, object[]> retval = GetWhereSpecFromWhereParams(whereParams);
+            return await
+                (await AllWithParamsAsync(
+                    where: retval.Item1, inParams: retval.Item2, args: retval.Item3, columns: columns, limit: 1,
+                    connection: connection, cancellationToken: cancellationToken).ConfigureAwait(false))
+                .FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
+        }
 
-		/// <summary>
-		/// Get a single object from the current table with where specification.
-		/// </summary>
-		/// <param name="where">Where clause</param>
-		/// <param name="args">Optional auto-named params</param>
-		/// <returns></returns>
-		/// <remarks>
-		/// 'Easy-calling' version, optional args straight after where.
-		/// </remarks>
-		override public async Task<T> SingleAsync(string where,
+        /// <summary>
+        /// Get a single object from the current table with where specification.
+        /// </summary>
+        /// <param name="where">Where clause</param>
+        /// <param name="args">Optional auto-named params</param>
+        /// <returns></returns>
+        /// <remarks>
+        /// 'Easy-calling' version, optional args straight after where.
+        /// </remarks>
+        override public async Task<T> SingleAsync(string where,
 			params object[] args)
 		{
 			return await SingleWithParamsAsync(where, args: args).ConfigureAwait(false);
@@ -972,12 +979,12 @@ namespace Mighty
 		override public async Task<int> UpdateUsingAsync(object partialItem, object key,
 			DbConnection connection)
 		{
-			return await UpdateUsingAsync(partialItem, WhereForKeys(), connection, KeyValuesFromKey(key)).ConfigureAwait(false);
+			return await UpdateUsingAsync(partialItem, WhereForKeys(), connection, args: KeyValuesFromKey(key)).ConfigureAwait(false);
 		}
 		override public async Task<int> UpdateUsingAsync(object partialItem, object key,
 			DbConnection connection, CancellationToken cancellationToken)
 		{
-			return await UpdateUsingAsync(partialItem, WhereForKeys(), connection, cancellationToken, KeyValuesFromKey(key)).ConfigureAwait(false);
+			return await UpdateUsingAsync(partialItem, WhereForKeys(), connection, cancellationToken, args: KeyValuesFromKey(key)).ConfigureAwait(false);
 		}
 
 		/// <summary>

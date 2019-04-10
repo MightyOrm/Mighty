@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if DYNAMIC_METHODS
+using System;
 using System.Collections.Generic;
 using System.Dynamic;
 using System.Linq.Expressions;
@@ -100,3 +101,4 @@ namespace MightyTests.SOTests
 #endif
 	}
 }
+#endif
