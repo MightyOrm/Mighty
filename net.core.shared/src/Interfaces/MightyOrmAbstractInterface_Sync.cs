@@ -206,7 +206,7 @@ namespace Mighty.Mocking
 		/// <param name="columns">Optional columns to retrieve</param>
 		/// <param name="connection">Optional connection</param>
 		/// <returns></returns>
-		abstract public T Single(object key, string columns = null,
+		abstract public T Get(object key, string columns = null,
 			DbConnection connection = null);
 
 		/// <summary>

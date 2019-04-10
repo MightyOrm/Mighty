@@ -368,9 +368,18 @@ namespace Mighty.Mocking
 		/// <param name="columns">Optional columns to retrieve</param>
 		/// <param name="connection">Optional connection</param>
 		/// <returns></returns>
-		abstract public Task<T> SingleAsync(object key, string columns = null,
+		abstract public Task<T> GetAsync(object key, string columns = null,
 			DbConnection connection = null);
-		abstract public Task<T> SingleAsync(object key, CancellationToken cancellationToken, string columns = null,
+
+        /// <summary>
+        /// Get a single object from the current table by primary key value
+        /// </summary>
+        /// <param name="key">Single key (or any reasonable multi-value item for compound keys)</param>
+        /// <param name="columns">Optional columns to retrieve</param>
+        /// <param name="connection">Optional connection</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns></returns>
+        abstract public Task<T> GetAsync(object key, CancellationToken cancellationToken, string columns = null,
 			DbConnection connection = null);
 
 		/// <summary>

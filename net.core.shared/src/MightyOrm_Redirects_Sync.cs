@@ -287,7 +287,7 @@ namespace Mighty
 		/// <param name="columns">Optional columns to retrieve</param>
 		/// <param name="connection">Optional connection</param>
 		/// <returns></returns>
-		override public T Single(object key, string columns = null,
+		override public T Get(object key, string columns = null,
 			DbConnection connection = null)
 		{
 			return Single(WhereForKeys(), connection, columns, KeyValuesFromKey(key));

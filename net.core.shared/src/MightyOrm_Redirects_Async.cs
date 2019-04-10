@@ -547,12 +547,21 @@ namespace Mighty
 		/// <param name="columns">Optional columns to retrieve</param>
 		/// <param name="connection">Optional connection</param>
 		/// <returns></returns>
-		override public async Task<T> SingleAsync(object key, string columns = null,
+		override public async Task<T> GetAsync(object key, string columns = null,
 			DbConnection connection = null)
 		{
 			return await SingleAsync(WhereForKeys(), connection, columns, KeyValuesFromKey(key)).ConfigureAwait(false);
 		}
-		override public async Task<T> SingleAsync(object key, CancellationToken cancellationToken, string columns = null,
+
+        /// <summary>
+        /// Get a single object from the current table by primary key value
+        /// </summary>
+        /// <param name="key">Single key (or any reasonable multi-value item for compound keys)</param>
+        /// <param name="columns">Optional columns to retrieve</param>
+        /// <param name="connection">Optional connection</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns></returns>
+        override public async Task<T> GetAsync(object key, CancellationToken cancellationToken, string columns = null,
 			DbConnection connection = null)
 		{
 			return await SingleAsync(WhereForKeys(), cancellationToken, connection, columns, KeyValuesFromKey(key)).ConfigureAwait(false);
