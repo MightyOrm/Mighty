@@ -23,7 +23,7 @@ namespace Mighty.Generic.Tests.Oracle
 	[TestFixture("Oracle.DataAccess.Client")]
 	public class AsyncReadWriteTests
 	{
-		private string ProviderName;
+		private readonly string ProviderName;
 
 		/// <summary>
 		/// Initialise tests for given provider
@@ -147,7 +147,8 @@ namespace Mighty.Generic.Tests.Oracle
 		}
 
 		[Test]
-		public async Task PagedStarWithJoin_ThrowsInvalidOperationException()
+#pragma warning disable CS1998
+        public async Task PagedStarWithJoin_ThrowsInvalidOperationException()
 		{
             var ex = Assert.ThrowsAsync<InvalidOperationException>(async () => {
                 var depts = new Departments(ProviderName);
@@ -157,8 +158,10 @@ namespace Mighty.Generic.Tests.Oracle
             // Check that it was thrown for the right reason
             Assert.AreEqual("To query from joined tables you have to specify the columns explicitly not with *", ex.Message);
         }
+#pragma warning restore CS1998
 
         [Test]
+#pragma warning disable CS1998
         public async Task PagedNoOrderBy_ThrowsInvalidOperationException()
 		{
             var ex = Assert.ThrowsAsync<InvalidOperationException>(async () => {
@@ -169,6 +172,7 @@ namespace Mighty.Generic.Tests.Oracle
             // Check that it was thrown for the right reason
             Assert.AreEqual("Cannot complete paged select operation, you must provide an ORDER BY value", ex.Message);
         }
+#pragma warning restore CS1998
 
         [Test]
 		public async Task Insert_SingleRow()
@@ -192,7 +196,24 @@ namespace Mighty.Generic.Tests.Oracle
 		}
 
 
-		[Test]
+        [Test]
+        public async Task UpdateUsing_SingleRow()
+        {
+            var depts = new Departments(ProviderName);
+            dynamic toSave = new { DNAME = "Massive Dep", LOC = "Beach" }.ToExpando();
+            var saveResult = await depts.SaveAsync(toSave);
+            Assert.AreEqual(1, saveResult);
+            Assert.IsTrue(toSave.DEPTNO > 0);
+            var mightyDep = new { DNAME = "Mighty Dep" };
+            Assert.AreEqual(0, (await (await depts.AllAsync(mightyDep)).ToListAsync()).Count);
+            Assert.AreEqual(1, await depts.UpdateUsingAsync(mightyDep, toSave.DEPTNO));
+            Assert.AreEqual(1, (await (await depts.AllAsync(mightyDep)).ToListAsync()).Count);
+            Assert.AreEqual(1, await depts.DeleteAsync(toSave.DEPTNO));
+            Assert.AreEqual(0, (await (await depts.AllAsync(mightyDep)).ToListAsync()).Count);
+        }
+
+
+        [Test]
 		public async Task Save_MultipleRows()
 		{
 			var depts = new Departments(ProviderName);

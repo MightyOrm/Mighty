@@ -20,7 +20,7 @@ namespace Mighty.Dynamic.Tests.MySql
 #endif
 	public class AsyncReadTests
 	{
-		private string ProviderName;
+		private readonly string ProviderName;
 
 		/// <summary>
 		/// Initialise tests for given provider
@@ -272,6 +272,7 @@ namespace Mighty.Dynamic.Tests.MySql
 
 
         [Test]
+#pragma warning disable CS1998
         public async Task All_WhereParamsKey_ThrowsInvalidOperationException()
         {
             var ex = Assert.ThrowsAsync<InvalidOperationException>(async () => {
@@ -280,6 +281,7 @@ namespace Mighty.Dynamic.Tests.MySql
             });
             Assert.AreEqual("whereParams in AllAsync(...) should contain names and values but it contained values only. If you want to get a single item by its primary key use SingleAsync(...) instead.", ex.Message);
         }
+#pragma warning restore CS1998
 
 
 #if DYNAMIC_METHODS

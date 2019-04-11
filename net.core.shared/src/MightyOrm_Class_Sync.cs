@@ -54,17 +54,38 @@ namespace Mighty
 				connection, args);
 		}
 
-		/// <summary>
-		/// Update from fields in the item sent in. If PK has been specified, any primary key fields in the
-		/// item are ignored (this is an update, not an insert!). However the item is not filtered to remove fields
-		/// not in the table. If you need that, call <see cref="NewFrom"/>(<see cref="partialItem"/>, false) first.
-		/// </summary>
-		/// <param name="partialItem"></param>
-		/// <param name="where"></param>
-		/// <param name="connection">Optional connection to use</param>
-		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <summary>
+        /// Update all items matching WHERE clause using fields from the item sent in.
+        /// If `primaryKeyFields` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="NewFrom"/> with first parameter `partialItem` and second parameter `false` first.
+        /// </summary>
+        /// <param name="partialItem">Item containing values to update with</param>
+        /// <param name="where">WHERE clause specifying which rows to update</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
 		override public int UpdateUsing(object partialItem, string where,
+            DbConnection connection,
+            params object[] args)
+        {
+            return UpdateUsingWithParams(partialItem, where,
+                connection,
+                null,
+                args);
+        }
+
+        /// <summary>
+        /// Update all items matching WHERE clause using fields from the item sent in.
+        /// If `primaryKeyFields` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="NewFrom"/> with first parameter `partialItem` and second parameter `false` first.
+        /// </summary>
+        /// <param name="partialItem">Item containing values to update with</param>
+        /// <param name="where">WHERE clause specifying which rows to update</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="inParams">Input parameters</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        protected int UpdateUsingWithParams(object partialItem, string where,
 			DbConnection connection,
+            object inParams,
 			params object[] args)
 		{
 			var values = new StringBuilder();
@@ -84,7 +105,8 @@ namespace Mighty
 				}
 			}
 			var sql = Plugin.BuildUpdate(CheckGetTableName(), values.ToString(), where);
-			return ExecuteWithParams(sql, args: args, inParams: filteredItem, connection: connection);
+			var retval = ExecuteWithParams(sql, args: args, inParams: filteredItem, outParams: new { __rowcount = new RowCount() }, connection: connection);
+            return retval.__rowcount;
 		}
 
 		/// <summary>
@@ -154,9 +176,9 @@ namespace Mighty
 		{
 			string foo = string.Format(" to call {0}, please provide one in your constructor", nameof(KeyValues));
 			string valueField = CheckGetValueColumn(string.Format("ValueField is required{0}", foo));
-			string primaryKeyField = CheckGetKeyName(string.Format("A single primary key must be specified{0}", foo));
-			var results = All(orderBy: orderBy, columns: string.Format("{0}, {1}", primaryKeyField, valueField)).Cast<IDictionary<string, object>>();
-			return results.ToDictionary(item => item[primaryKeyField].ToString(), item => item[valueField].ToString());
+			string primaryKeyFields = CheckGetKeyName(string.Format("A single primary key must be specified{0}", foo));
+			var results = All(orderBy: orderBy, columns: string.Format("{0}, {1}", primaryKeyFields, valueField)).Cast<IDictionary<string, object>>();
+			return results.ToDictionary(item => item[primaryKeyFields].ToString(), item => item[valueField].ToString());
 		}
 #endif
 #endregion

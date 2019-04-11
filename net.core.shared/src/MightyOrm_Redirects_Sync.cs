@@ -11,9 +11,9 @@ using Mighty.Validation;
 using System;
 using System.Dynamic;
 
-/// <summary>
-/// MightyOrm_Redirects.cs holds methods in Mighty than can be very simply defined in terms of other methods.
-/// </summary>
+// <summary>
+// MightyOrm_Redirects.cs holds methods in Mighty than can be very simply defined in terms of other methods.
+// </summary>
 namespace Mighty
 {
 	public partial class MightyOrm<T> : MightyOrmAbstractInterface<T> where T : class, new()
@@ -177,12 +177,18 @@ namespace Mighty
 			DbConnection connection = null,
 			params object[] args)
 		{
-            using (var command = CreateCommandWithParams(sql,
+            var retval = CreateCommandWithParamsAndRowCountCheck(sql,
                 inParams, outParams, ioParams, returnParams,
-                args: args))
+                args: args);
+            using (retval.Item1)
             {
-                Execute(command, connection);
-                return ResultsAsExpando(command);
+                var rowCount = Execute(retval.Item1, connection);
+                var results = ResultsAsExpando(retval.Item1);
+                if (retval.Item2)
+                {
+                    AppendRowCountResults(rowCount, outParams, results);
+                }
+                return results;
             }
 		}
 
@@ -202,18 +208,24 @@ namespace Mighty
 			DbConnection connection = null,
 			params object[] args)
 		{
-            using (var command = CreateCommandWithParams(spName,
-            inParams, outParams, ioParams, returnParams,
-            isProcedure: true,
-            args: args))
+            var retval = CreateCommandWithParamsAndRowCountCheck(spName,
+                inParams, outParams, ioParams, returnParams,
+                isProcedure: true,
+                args: args);
+            using (retval.Item1)
             {
-                Execute(command, connection);
-                return ResultsAsExpando(command);
+                var rowCount = Execute(retval.Item1, connection);
+                var results = ResultsAsExpando(retval.Item1);
+                if (retval.Item2)
+                {
+                    AppendRowCountResults(rowCount, outParams, results);
+                }
+                return results;
             }
-		}
+        }
 
-		// no connection, easy args
-		override public object Scalar(string sql,
+        // no connection, easy args
+        override public object Scalar(string sql,
 			params object[] args)
 		{
             using (var command = CreateCommand(sql, args))
@@ -289,7 +301,7 @@ namespace Mighty
         /// <summary>
         /// Perform COUNT on current table.
         /// </summary>
-        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="columns">Columns (defaults to *, but can be specified, e.g., to count non-nulls in a given field)</param>
         /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
@@ -322,7 +334,7 @@ namespace Mighty
         /// Get MAX of column on current table.
         /// </summary>
         /// <param name="columns">Columns</param>
-        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
         override public object Max(
@@ -354,7 +366,7 @@ namespace Mighty
         /// Get MIN of column on current table.
         /// </summary>
         /// <param name="columns">Columns</param>
-        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
         override public object Min(
@@ -386,7 +398,7 @@ namespace Mighty
         /// Get SUM of column on current table.
         /// </summary>
         /// <param name="columns">Columns</param>
-        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
         override public object Sum(
@@ -418,7 +430,7 @@ namespace Mighty
         /// Get AVG of column on current table.
         /// </summary>
         /// <param name="columns">Columns</param>
-        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
         override public object Avg(
@@ -450,7 +462,7 @@ namespace Mighty
         /// </summary>
         /// <param name="function">Aggregate function</param>
         /// <param name="columns">Columns for aggregate function</param>
-        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
         override public object Aggregate(string function, string columns, object whereParams = null,
@@ -466,7 +478,7 @@ namespace Mighty
         /// <summary>
         /// Get single object from the current table using primary key or name-value specification.
         /// </summary>
-        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="columns">List of columns to return</param>
         /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
@@ -758,40 +770,43 @@ namespace Mighty
 			return ActionOnItems(OrmAction.Delete, connection, items);
 		}
 
-		/// <summary>
-		/// Apply all fields which are present in item to the row matching key.
-		/// We *don't* filter by available columns - call with <see cref="CreateFrom"/>(<see cref="partialItem"/>) to do that.
-		/// </summary>
-		/// <param name="partialItem"></param>
-		/// <param name="key"></param>
-		override public int UpdateUsing(object partialItem, object key)
+        /// <summary>
+        /// Update the row(s) specified by the primary key(s) or WHERE values sent in using the values from the item sent in.
+        /// If `primaryKeyFields` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="NewFrom"/> with first parameter `partialItem` and second parameter `false` first.
+        /// </summary>
+        /// <param name="partialItem">Item containing values to update with</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
+		override public int UpdateUsing(object partialItem, object whereParams)
 		{
-			return UpdateUsing(partialItem, key, null);
+			return UpdateUsing(partialItem, whereParams, null);
 		}
 
-		/// <summary>
-		/// Apply all fields which are present in item to the row matching key.
-		/// We *don't* filter by available columns - call with <see cref="CreateFrom"/>(<see cref="partialItem"/>) to do that.
-		/// </summary>
-		/// <param name="partialItem"></param>
-		/// <param name="key"></param>
-		/// <param name="connection">Optional connection to use</param>
-		override public int UpdateUsing(object partialItem, object key,
+        /// <summary>
+        /// Update the row(s) specified by the primary key(s) or WHERE values sent in using the values from the item sent in.
+        /// If `primaryKeyFields` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="NewFrom"/> with first parameter `partialItem` and second parameter `false` first.
+        /// </summary>
+        /// <param name="partialItem">Item containing values to update with</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
+        /// <param name="connection">Optional connection to use</param>
+		override public int UpdateUsing(object partialItem, object whereParams,
 			DbConnection connection)
 		{
-			return UpdateUsing(partialItem, WhereForKeys(), args: KeyValuesFromKey(key));
+            Tuple<string, object, object[]> retval = GetWhereSpecFromWhereParams(whereParams);
+            return UpdateUsingWithParams(partialItem,
+                where: retval.Item1, inParams: retval.Item2, args: retval.Item3,
+                connection: connection);
 		}
 
-		/// <summary>
-		/// Apply all fields which are present in item to all rows matching WHERE clause
-		/// for safety you MUST specify the WHERE clause yourself (use "1=1" to update all rows)/
-		/// This removes/ignores any PK fields from the action; keeps auto-named params for args,
-		/// and uses named params for the update feilds.
-		/// </summary>
-		/// <param name="partialItem"></param>
-		/// <param name="where"></param>
-		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
-		/// <returns></returns>
+        /// <summary>
+        /// Update all items matching WHERE clause using fields from the item sent in.
+        /// If `primaryKeyFields` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="NewFrom"/> with first parameter `partialItem` and second parameter `false` first.
+        /// </summary>
+        /// <param name="partialItem">Item containing values to update with</param>
+        /// <param name="where">WHERE clause specifying which rows to update</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
 		override public int UpdateUsing(object partialItem, string where,
 			params object[] args)
 		{

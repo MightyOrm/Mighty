@@ -9,12 +9,12 @@ using Mighty.Plugins;
 using Mighty.Profiling;
 using Mighty.Validation;
 
-/// <summary>
-/// `MightyOrm_Propeties.cs` holds various properties which used to be in the various interface files.
-/// </summary>
-/// <remarks>
-/// TO DO: And now could probably go into the main `MightyOrm.cs` file.
-/// </remarks>
+// <summary>
+// `MightyOrm_Propeties.cs` holds various properties which used to be in the various interface files.
+// </summary>
+// <remarks>
+// TO DO: And now could probably go into the main `MightyOrm.cs` file.
+// </remarks>
 namespace Mighty
 {
 	public partial class MightyOrm<T> : MightyOrmAbstractInterface<T> where T : class, new()

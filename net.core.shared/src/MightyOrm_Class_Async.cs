@@ -90,27 +90,69 @@ namespace Mighty
 				connection, args).ConfigureAwait(false);
 		}
 
-		/// <summary>
-		/// Update from fields in the item sent in. If PK has been specified, any primary key fields in the
-		/// item are ignored (this is an update, not an insert!). However the item is not filtered to remove fields
-		/// not in the table. If you need that, call <see cref="NewFrom"/>(<see cref="partialItem"/>, false) first.
-		/// </summary>
-		/// <param name="partialItem"></param>
-		/// <param name="where"></param>
-		/// <param name="connection">Optional connection to use</param>
-		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
-		override public async Task<int> UpdateUsingAsync(object partialItem, string where,
+        /// <summary>
+        /// Update all items matching WHERE clause using fields from the item sent in.
+        /// If `primaryKeyFields` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="NewFrom"/> with first parameter `partialItem` and second parameter `false` first.
+        /// </summary>
+        /// <param name="partialItem">Item containing values to update with</param>
+        /// <param name="where">WHERE clause specifying which rows to update</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        override public async Task<int> UpdateUsingAsync(object partialItem, string where,
 			DbConnection connection,
 			params object[] args)
 		{
-			return await UpdateUsingAsync(partialItem, where,
-				connection,
-				CancellationToken.None,
-				args: args);
+            return await UpdateUsingWithParamsAsync(
+                partialItem,
+                where,
+                connection,
+                CancellationToken.None,
+                null,
+                args);
 		}
-		override public async Task<int> UpdateUsingAsync(object partialItem, string where,
+
+        /// <summary>
+        /// Update all items matching WHERE clause using fields from the item sent in.
+        /// If `primaryKeyFields` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="NewFrom"/> with first parameter `partialItem` and second parameter `false` first.
+        /// </summary>
+        /// <param name="partialItem">Item containing values to update with</param>
+        /// <param name="where">WHERE clause specifying which rows to update</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        override public async Task<int> UpdateUsingAsync(object partialItem, string where,
+            DbConnection connection,
+            CancellationToken cancellationToken,
+            params object[] args)
+        {
+            return await UpdateUsingWithParamsAsync(
+                partialItem,
+                where,
+                connection,
+                cancellationToken,
+                null,
+                args);
+        }
+
+        /// <summary>
+        /// Update all items matching WHERE clause using fields from the item sent in.
+        /// If `primaryKeyFields` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="NewFrom"/> with first parameter `partialItem` and second parameter `false` first.
+        /// </summary>
+        /// <param name="partialItem">Item containing values to update with</param>
+        /// <param name="where">WHERE clause specifying which rows to update</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="inParams">Input parameters</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        protected async Task<int> UpdateUsingWithParamsAsync(
+            object partialItem,
+            string where,
 			DbConnection connection,
 			CancellationToken cancellationToken,
+            object inParams,
 			params object[] args)
 		{
 			var values = new StringBuilder();
@@ -130,7 +172,8 @@ namespace Mighty
 				}
 			}
 			var sql = Plugin.BuildUpdate(CheckGetTableName(), values.ToString(), where);
-			return await ExecuteWithParamsAsync(sql, cancellationToken, args: args, inParams: filteredItem, connection: connection).ConfigureAwait(false);
+			var retval = await ExecuteWithParamsAsync(sql, cancellationToken, args: args, inParams: filteredItem, outParams: new { __rowcount = new RowCount() }, connection: connection).ConfigureAwait(false);
+            return retval.__rowcount;
 		}
 
 		/// <summary>
@@ -215,9 +258,9 @@ namespace Mighty
 		{
 			string foo = string.Format(" to call {0}, please provide one in your constructor", nameof(KeyValues));
 			string valueField = CheckGetValueColumn(string.Format("ValueField is required{0}", foo));
-			string primaryKeyField = CheckGetKeyName(string.Format("A single primary key must be specified{0}", foo));
-			var results = (await AllAsync(orderBy: orderBy, columns: string.Format("{0}, {1}", primaryKeyField, valueField)).ConfigureAwait(false)).Cast<IDictionary<string, object>>();
-			return results.ToDictionary(item => item[primaryKeyField].ToString(), item => item[valueField].ToString());
+			string primaryKeyFields = CheckGetKeyName(string.Format("A single primary key must be specified{0}", foo));
+			var results = (await AllAsync(orderBy: orderBy, columns: string.Format("{0}, {1}", primaryKeyFields, valueField)).ConfigureAwait(false)).Cast<IDictionary<string, object>>();
+			return results.ToDictionary(item => item[primaryKeyFields].ToString(), item => item[valueField].ToString());
 		}
 #endif
         #endregion

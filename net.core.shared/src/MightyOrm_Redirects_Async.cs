@@ -15,9 +15,9 @@ using Mighty.Validation;
 using System;
 using System.Dynamic;
 
-/// <summary>
-/// MightyOrm_Redirects.cs holds methods in Mighty than can be very simply defined in terms of other methods.
-/// </summary>
+// <summary>
+// MightyOrm_Redirects.cs holds methods in Mighty than can be very simply defined in terms of other methods.
+// </summary>
 namespace Mighty
 {
 	public partial class MightyOrm<T> : MightyOrmAbstractInterface<T> where T : class, new()
@@ -351,72 +351,105 @@ namespace Mighty
 			DbConnection connection = null,
 			params object[] args)
 		{
-            using (var command = CreateCommandWithParams(sql,
+            return await ExecuteWithParamsAsync(sql,
+                CancellationToken.None,
                 inParams, outParams, ioParams, returnParams,
-                args: args))
-            {
-                await ExecuteAsync(command, connection).ConfigureAwait(false);
-                return ResultsAsExpando(command);
-            }
-		}
-		override public async Task<dynamic> ExecuteWithParamsAsync(string sql,
-			CancellationToken cancellationToken,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args)
-		{
-            using (var command = CreateCommandWithParams(sql,
-                inParams, outParams, ioParams, returnParams,
-                args: args))
-            {
-                await ExecuteAsync(command, cancellationToken, connection).ConfigureAwait(false);
-                return ResultsAsExpando(command);
-            }
+                connection,
+                args).ConfigureAwait(false);
 		}
 
-		/// <summary>
-		/// Execute stored procedure with parameters
-		/// </summary>
-		/// <param name="spName"></param>
-		/// <param name="inParams"></param>
-		/// <param name="outParams"></param>
-		/// <param name="ioParams"></param>
-		/// <param name="returnParams"></param>
-		/// <param name="connection">Optional connection to use</param>
-		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
-		/// <returns>The results of all non-input parameters</returns>
-		override public async Task<dynamic> ExecuteProcedureAsync(string spName,
+        /// <summary>
+        /// Execute command with parameters
+        /// </summary>
+        /// <param name="sql"></param>
+        /// <param name="inParams"></param>
+        /// <param name="outParams"></param>
+        /// <param name="ioParams"></param>
+        /// <param name="returnParams"></param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns>The results of all non-input parameters</returns>
+        override public async Task<dynamic> ExecuteWithParamsAsync(string sql,
+            CancellationToken cancellationToken,
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            DbConnection connection = null,
+            params object[] args)
+        {
+            var retval = CreateCommandWithParamsAndRowCountCheck(sql,
+                inParams, outParams, ioParams, returnParams,
+                args: args);
+            using (retval.Item1)
+            {
+                var rowCount = await ExecuteAsync(retval.Item1, connection).ConfigureAwait(false);
+                var results = ResultsAsExpando(retval.Item1);
+                if (retval.Item2)
+                {
+                    AppendRowCountResults(rowCount, outParams, results);
+                }
+                return results;
+            }
+        }
+
+        /// <summary>
+        /// Execute stored procedure with parameters
+        /// </summary>
+        /// <param name="spName"></param>
+        /// <param name="inParams"></param>
+        /// <param name="outParams"></param>
+        /// <param name="ioParams"></param>
+        /// <param name="returnParams"></param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns>The results of all non-input parameters</returns>
+        override public async Task<dynamic> ExecuteProcedureAsync(string spName,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args)
 		{
-            using (var command = CreateCommandWithParams(spName,
-            inParams, outParams, ioParams, returnParams,
-            isProcedure: true,
-            args: args))
-            {
-                await ExecuteAsync(command, connection).ConfigureAwait(false);
-                return ResultsAsExpando(command);
-            }
-		}
-		override public async Task<dynamic> ExecuteProcedureAsync(string spName,
+            return await ExecuteProcedureAsync(spName,
+                CancellationToken.None,
+                inParams, outParams, ioParams, returnParams,
+                connection,
+			    args);
+        }
+
+        /// <summary>
+        /// Execute stored procedure with parameters
+        /// </summary>
+        /// <param name="spName"></param>
+        /// <param name="inParams"></param>
+        /// <param name="outParams"></param>
+        /// <param name="ioParams"></param>
+        /// <param name="returnParams"></param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns>The results of all non-input parameters</returns>
+        override public async Task<dynamic> ExecuteProcedureAsync(string spName,
 			CancellationToken cancellationToken,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args)
 		{
-            using (var command = CreateCommandWithParams(spName,
+            var retval = CreateCommandWithParamsAndRowCountCheck(spName,
                 inParams, outParams, ioParams, returnParams,
                 isProcedure: true,
-                args: args))
+                args: args);
+            using (retval.Item1)
             {
-                await ExecuteAsync(command, cancellationToken, connection).ConfigureAwait(false);
-                return ResultsAsExpando(command);
+                var rowCount = await ExecuteAsync(retval.Item1, cancellationToken, connection).ConfigureAwait(false);
+                var results = ResultsAsExpando(retval.Item1);
+                if (retval.Item2)
+                {
+                    AppendRowCountResults(rowCount, outParams, results);
+                }
+                return results;
             }
-		}
+        }
 
-		// no connection, easy args
-		override public async Task<object> ScalarAsync(string sql,
+        // no connection, easy args
+        override public async Task<object> ScalarAsync(string sql,
 			params object[] args)
 		{
             using (var command = CreateCommand(sql, args))
@@ -562,7 +595,7 @@ namespace Mighty
         /// <summary>
         /// Perform COUNT on current table.
         /// </summary>
-        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="columns">Columns (defaults to *, but can be specified, e.g., to count non-nulls in a given field)</param>
         /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
@@ -577,7 +610,7 @@ namespace Mighty
         /// <summary>
         /// Perform COUNT on current table.
         /// </summary>
-        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="columns">Columns (defaults to *, but can be specified, e.g., to count non-nulls in a given field)</param>
 		/// <param name="connection">Optional connection to use</param>
 		/// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
@@ -631,7 +664,7 @@ namespace Mighty
         /// Get MAX of column on current table.
         /// </summary>
         /// <param name="columns">Columns</param>
-        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
         override public async Task<object> MaxAsync(
@@ -646,7 +679,7 @@ namespace Mighty
         /// Get MAX of column on current table.
         /// </summary>
         /// <param name="columns">Columns</param>
-        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
 		/// <param name="connection">Optional connection to use</param>
 		/// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
@@ -699,7 +732,7 @@ namespace Mighty
         /// Get MIN of column on current table.
         /// </summary>
         /// <param name="columns">Columns</param>
-        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
         override public async Task<object> MinAsync(
@@ -714,7 +747,7 @@ namespace Mighty
         /// Get MIN of column on current table.
         /// </summary>
         /// <param name="columns">Columns</param>
-        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
 		/// <param name="connection">Optional connection to use</param>
 		/// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
@@ -767,7 +800,7 @@ namespace Mighty
         /// Get SUM of column on current table.
         /// </summary>
         /// <param name="columns">Columns</param>
-        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
         override public async Task<object> SumAsync(
@@ -782,7 +815,7 @@ namespace Mighty
         /// Get SUM of column on current table.
         /// </summary>
         /// <param name="columns">Columns</param>
-        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
 		/// <param name="connection">Optional connection to use</param>
 		/// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
@@ -835,7 +868,7 @@ namespace Mighty
         /// Get AVG of column on current table.
         /// </summary>
         /// <param name="columns">Columns</param>
-        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
         override public async Task<object> AvgAsync(
@@ -850,7 +883,7 @@ namespace Mighty
         /// Get AVG of column on current table.
         /// </summary>
         /// <param name="columns">Columns</param>
-        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
 		/// <param name="connection">Optional connection to use</param>
 		/// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
@@ -901,7 +934,7 @@ namespace Mighty
         /// </summary>
         /// <param name="function">Aggregate function</param>
         /// <param name="columns">Columns for aggregate function</param>
-        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
         override public async Task<object> AggregateAsync(string function, string columns, object whereParams = null,
@@ -915,7 +948,7 @@ namespace Mighty
         /// </summary>
         /// <param name="function">Aggregate function</param>
         /// <param name="columns">Columns for aggregate function</param>
-        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="connection">Optional connection to use</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
@@ -932,7 +965,7 @@ namespace Mighty
         /// <summary>
         /// Get single object from the current table using primary key or name-value specification.
         /// </summary>
-        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="columns">List of columns to return</param>
         /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
@@ -945,7 +978,7 @@ namespace Mighty
         /// <summary>
         /// Get single object from the current table using primary key or name-value specification.
         /// </summary>
-        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="columns">List of columns to return</param>
         /// <param name="connection">Optional connection to use</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
@@ -1393,59 +1426,102 @@ namespace Mighty
 			return await ActionOnItemsAsync(OrmAction.Delete, connection, items, cancellationToken).ConfigureAwait(false);
 		}
 
-		/// <summary>
-		/// Apply all fields which are present in item to the row matching key.
-		/// We *don't* filter by available columns - call with <see cref="CreateFrom"/>(<see cref="partialItem"/>) to do that.
-		/// </summary>
-		/// <param name="partialItem"></param>
-		/// <param name="key"></param>
-		override public async Task<int> UpdateUsingAsync(object partialItem, object key)
+        /// <summary>
+        /// Update the row(s) specified by the primary key(s) or WHERE values sent in using the values from the item sent in.
+        /// If `primaryKeyFields` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="NewFrom"/> with first parameter `partialItem` and second parameter `false` first.
+        /// </summary>
+        /// <param name="partialItem">Item containing values to update with</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
+		override public async Task<int> UpdateUsingAsync(object partialItem, object whereParams)
 		{
-			return await UpdateUsingAsync(partialItem, key, null).ConfigureAwait(false);
-		}
-		override public async Task<int> UpdateUsingAsync(object partialItem, object key, CancellationToken cancellationToken)
-		{
-			return await UpdateUsingAsync(partialItem, key, null, cancellationToken).ConfigureAwait(false);
+			return await UpdateUsingAsync(partialItem, whereParams, null, CancellationToken.None).ConfigureAwait(false);
 		}
 
-		/// <summary>
-		/// Apply all fields which are present in item to the row matching key.
-		/// We *don't* filter by available columns - call with <see cref="CreateFrom"/>(<see cref="partialItem"/>) to do that.
-		/// </summary>
-		/// <param name="partialItem"></param>
-		/// <param name="key"></param>
-		/// <param name="connection">Optional connection to use</param>
-		override public async Task<int> UpdateUsingAsync(object partialItem, object key,
+        /// <summary>
+        /// Update the row(s) specified by the primary key(s) or WHERE values sent in using the values from the item sent in.
+        /// If `primaryKeyFields` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="NewFrom"/> with first parameter `partialItem` and second parameter `false` first.
+        /// </summary>
+        /// <param name="partialItem">Item containing values to update with</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        override public async Task<int> UpdateUsingAsync(object partialItem, object whereParams, CancellationToken cancellationToken)
+		{
+			return await UpdateUsingAsync(partialItem, whereParams, null, cancellationToken).ConfigureAwait(false);
+		}
+
+        /// <summary>
+        /// Update the row(s) specified by the primary key(s) or WHERE values sent in using the values from the item sent in.
+        /// If `primaryKeyFields` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="NewFrom"/> with first parameter `partialItem` and second parameter `false` first.
+        /// </summary>
+        /// <param name="partialItem">Item containing values to update with</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
+        /// <param name="connection">Optional connection to use</param>
+		override public async Task<int> UpdateUsingAsync(object partialItem, object whereParams,
 			DbConnection connection)
 		{
-			return await UpdateUsingAsync(partialItem, WhereForKeys(), connection, args: KeyValuesFromKey(key)).ConfigureAwait(false);
-		}
-		override public async Task<int> UpdateUsingAsync(object partialItem, object key,
-			DbConnection connection, CancellationToken cancellationToken)
-		{
-			return await UpdateUsingAsync(partialItem, WhereForKeys(), connection, cancellationToken, args: KeyValuesFromKey(key)).ConfigureAwait(false);
+			return await UpdateUsingAsync(partialItem, whereParams, connection, CancellationToken.None).ConfigureAwait(false);
 		}
 
-		/// <summary>
-		/// Apply all fields which are present in item to all rows matching WHERE clause
-		/// for safety you MUST specify the WHERE clause yourself (use "1=1" to update all rows)/
-		/// This removes/ignores any PK fields from the action; keeps auto-named params for args,
-		/// and uses named params for the update feilds.
-		/// </summary>
-		/// <param name="partialItem"></param>
-		/// <param name="where"></param>
-		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
-		/// <returns></returns>
+        /// <summary>
+        /// Update the row(s) specified by the primary key(s) or WHERE values sent in using the values from the item sent in.
+        /// If `primaryKeyFields` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="NewFrom"/> with first parameter `partialItem` and second parameter `false` first.
+        /// </summary>
+        /// <param name="partialItem">Item containing values to update with</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        override public async Task<int> UpdateUsingAsync(object partialItem, object whereParams,
+			DbConnection connection, CancellationToken cancellationToken)
+		{
+            Tuple<string, object, object[]> retval = GetWhereSpecFromWhereParams(whereParams);
+            return await UpdateUsingWithParamsAsync(
+                partialItem,
+                where: retval.Item1, inParams: retval.Item2, args: retval.Item3,
+                connection: connection, cancellationToken: cancellationToken).ConfigureAwait(false);
+		}
+
+        /// <summary>
+        /// Update all items matching WHERE clause using fields from the item sent in.
+        /// If `primaryKeyFields` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="NewFrom"/> with first parameter `partialItem` and second parameter `false` first.
+        /// </summary>
+        /// <param name="partialItem">Item containing values to update with</param>
+        /// <param name="where">WHERE clause specifying which rows to update</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
 		override public async Task<int> UpdateUsingAsync(object partialItem, string where,
 			params object[] args)
 		{
-			return await UpdateUsingAsync(partialItem, where, null, args).ConfigureAwait(false);
-		}
-		override public async Task<int> UpdateUsingAsync(object partialItem, string where,
+            return await UpdateUsingWithParamsAsync(
+                partialItem,
+                where,
+                null,
+                cancellationToken: CancellationToken.None,
+                args).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Update all items matching WHERE clause using fields from the item sent in.
+        /// If `primaryKeyFields` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="NewFrom"/> with first parameter `partialItem` and second parameter `false` first.
+        /// </summary>
+        /// <param name="partialItem">Item containing values to update with</param>
+        /// <param name="where">WHERE clause specifying which rows to update</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        override public async Task<int> UpdateUsingAsync(object partialItem, string where,
 			CancellationToken cancellationToken,
 			params object[] args)
 		{
-			return await UpdateUsingAsync(partialItem, where, null, cancellationToken, args).ConfigureAwait(false);
+			return await UpdateUsingWithParamsAsync(
+                partialItem,
+                where,
+                null,
+                cancellationToken,
+                args).ConfigureAwait(false);
 		}
 
 		/// <summary>

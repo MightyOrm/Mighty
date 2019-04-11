@@ -8,9 +8,9 @@ using Mighty.Mapping;
 using Mighty.Profiling;
 using Mighty.Validation;
 
-/// <summary>
-/// TO DO: Not sure about putting this in a separate namespace, but maybe best to hide the mockable version?
-/// </summary>
+// <summary>
+// TO DO: Not sure about putting this in a separate namespace, but maybe best to hide the mockable version?
+// </summary>
 namespace Mighty.Mocking
 {
 	// NEW new:
@@ -137,7 +137,7 @@ namespace Mighty.Mocking
 #endif
 
 		/// <summary>
-		/// Table meta data (filtered to be only for columns specified by the generic type T, or by <see cref="columns"/>, where present)
+		/// Table meta data (filtered to be only for columns specified by the generic type T, or by consturctor `columns`, if present)
 		/// </summary>
 		abstract public IEnumerable<dynamic> TableMetaData { get; }
 #endregion

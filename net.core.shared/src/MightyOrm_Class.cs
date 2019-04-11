@@ -36,7 +36,7 @@ namespace Mighty
 		/// as an additional config file attribute next to the connection string).
 		/// </param>
 		/// <param name="tableName">Table name</param>
-		/// <param name="primaryKeyField">Primary key field name; or comma separated list of names for compound PK</param>
+		/// <param name="primaryKeyFields">Primary key field name; or comma separated list of names for compound PK</param>
 		/// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
 		/// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
 		/// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
@@ -52,7 +52,7 @@ namespace Mighty
 		/// </remarks>
 		public MightyOrm(string connectionString = null,
 						 string tableName = null,
-						 string primaryKeyField = null,
+						 string primaryKeyFields = null,
 #if KEY_VALUES
 						 string valueColumn = null,
 #endif
@@ -78,7 +78,7 @@ namespace Mighty
 			{
 				tableClassName = me.Name;
 			}
-			Init(connectionString, tableName, tableClassName, primaryKeyField,
+			Init(connectionString, tableName, tableClassName, primaryKeyFields,
 #if KEY_VALUES
                 valueColumn,
 #endif
@@ -117,7 +117,7 @@ namespace Mighty
 		/// as an additional config file attribute next to the connection string).
 		/// </param>
 		/// <param name="tableName">Override the table name (defaults to using T class name)</param>
-		/// <param name="primaryKeyField">Primary key field name; or comma separated list of names for compound PK</param>
+		/// <param name="primaryKeyFields">Primary key field name; or comma separated list of names for compound PK</param>
 		/// <param name="valueColumn">Specify the value field, for lookup tables</param>
 		/// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
 		/// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
@@ -130,7 +130,7 @@ namespace Mighty
 		/// <param name="propertyBindingFlags">Specify which properties should be managed by the ORM</param>
 		public MightyOrm(string connectionString = null,
 						 string tableName = null,
-						 string primaryKeyField = null,
+						 string primaryKeyFields = null,
 #if KEY_VALUES
 						 string valueColumn = null,
 #endif
@@ -148,7 +148,7 @@ namespace Mighty
 			// Table name for MightyOrm<T> is taken from type T not from a constructor argument; use SqlNamingMapper to override it.
 			string tableClassName = typeof(T).Name;
 
-			Init(connectionString, tableName, tableClassName, primaryKeyField,
+			Init(connectionString, tableName, tableClassName, primaryKeyFields,
 #if KEY_VALUES
                 valueColumn,
 #endif
@@ -176,7 +176,7 @@ namespace Mighty
 		internal void Init(string connectionString,
 						 string tableName,
 						 string tableClassName,
-						 string primaryKeyField,
+						 string primaryKeyFields,
 #if KEY_VALUES
 						 string valueColumn,
 #endif
@@ -249,18 +249,18 @@ namespace Mighty
 			Plugin = (PluginBase)Activator.CreateInstance(pluginType, false);
 			Plugin.Mighty = this;
 
-			if (primaryKeyField == null && TableName != null)
+			if (primaryKeyFields == null && TableName != null)
 			{
-				primaryKeyField = SqlMapper.GetPrimaryKeyFieldFromClassName(TableName);
+				primaryKeyFields = SqlMapper.GetPrimaryKeyFieldFromClassName(TableName);
 			}
-			PrimaryKeyFields = primaryKeyField;
-			if (primaryKeyField == null)
+			PrimaryKeyFields = primaryKeyFields;
+			if (primaryKeyFields == null)
 			{
 				PrimaryKeyList = new List<string>();
 			}
 			else
 			{
-				PrimaryKeyList = primaryKeyField.Split(',').Select(k => k.Trim()).ToList();
+				PrimaryKeyList = primaryKeyFields.Split(',').Select(k => k.Trim()).ToList();
 			}
 			if (columns == null || columns == "*")
 			{
@@ -336,7 +336,11 @@ namespace Mighty
 		// Only properties with a non-trivial implementation are here, the rest are in the MicroOrm abstract class.
 #region Properties
 		protected IEnumerable<dynamic> _TableMetaData;
-		override public IEnumerable<dynamic> TableMetaData
+
+        /// <summary>
+        /// Table meta data (filtered to be only for columns specified by the generic type T, or by consturctor `columns`, if present)
+        /// </summary>
+        override public IEnumerable<dynamic> TableMetaData
 		{
 			get
 			{
@@ -736,23 +740,38 @@ namespace Mighty
 			return command;
 		}
 
-		/// <summary>
-		/// Create command with named, typed, directional parameters.
-		/// </summary>
-		override public DbCommand CreateCommandWithParams(string sql,
+        /// <summary>
+        /// Create command with named, typed, directional parameters.
+        /// </summary>
+        override public DbCommand CreateCommandWithParams(string sql,
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false,
+            DbConnection connection = null,
+            params object[] args)
+        {
+            return CreateCommandWithParamsAndRowCountCheck(sql,
+                inParams, outParams, ioParams, returnParams, isProcedure,
+                connection,
+                args).Item1;
+        }
+
+        /// <summary>
+        /// Create command with named, typed, directional parameters.
+        /// </summary>
+        protected Tuple<DbCommand, bool> CreateCommandWithParamsAndRowCountCheck(string sql,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false,
 			DbConnection connection = null,
 			params object[] args)
 		{
+            bool hasRowCountParams = false;
 			var command = CreateCommand(sql);
 			command.Connection = connection;
 			if (isProcedure) command.CommandType = CommandType.StoredProcedure;
 			AddParams(command, args);
 			AddNamedParams(command, inParams, ParameterDirection.Input);
-			AddNamedParams(command, outParams, ParameterDirection.Output);
+            hasRowCountParams = AddNamedParams(command, outParams, ParameterDirection.Output);
 			AddNamedParams(command, ioParams, ParameterDirection.InputOutput);
 			AddNamedParams(command, returnParams, ParameterDirection.ReturnValue);
-			return command;
+			return new Tuple<DbCommand, bool>(command, hasRowCountParams);
 		}
 
 		/// <summary>
@@ -777,17 +796,35 @@ namespace Mighty
 			}
 			return e;
 		}
-#endregion
 
-#region ORM actions
-		/// <summary>
-		/// Create update command
-		/// </summary>
-		/// <param name="item"></param>
-		/// <param name="updateNameValuePairs"></param>
-		/// <param name="whereNameValuePairs"></param>
-		/// <returns></returns>
-		private DbCommand CreateUpdateCommand(object item, List<string> updateNameValuePairs, List<string> whereNameValuePairs)
+        /// <summary>
+        /// Add Execute results for <see cref="RowCount"/> parameters.
+        /// </summary>
+        /// <param name="rowCount">The row count</param>
+        /// <param name="outParams">The list of output parameters</param>
+        /// <param name="results">The results object to add to</param>
+        protected void AppendRowCountResults(int rowCount, object outParams, dynamic results)
+        {
+            var dictionary = ((ExpandoObject)results).ToDictionary();
+            foreach (var paramInfo in new NameValueTypeEnumerator(outParams, ParameterDirection.Input))
+            {
+                if (paramInfo.Value is RowCount)
+                {
+                    dictionary.Add(paramInfo.Name, rowCount);
+                }
+            }
+        }
+        #endregion
+
+        #region ORM actions
+        /// <summary>
+        /// Create update command
+        /// </summary>
+        /// <param name="item"></param>
+        /// <param name="updateNameValuePairs"></param>
+        /// <param name="whereNameValuePairs"></param>
+        /// <returns></returns>
+        private DbCommand CreateUpdateCommand(object item, List<string> updateNameValuePairs, List<string> whereNameValuePairs)
 		{
 			string sql = Plugin.BuildUpdate(TableName, string.Join(", ", updateNameValuePairs), string.Join(" AND ", whereNameValuePairs));
 			return CreateCommandWithParams(sql, inParams: item);
@@ -1003,20 +1040,34 @@ namespace Mighty
 		/// <param name="nameValuePairs">Parameters to add (POCO, anonymous type, NameValueCollection, ExpandoObject, etc.)</param>
 		/// <param name="direction">Parameter direction</param>
 		/// <param name="pkFilter">Optional PK filter control</param>
-		internal void AddNamedParams(DbCommand cmd, object nameValuePairs, ParameterDirection direction = ParameterDirection.Input, PkFilter pkFilter = PkFilter.DoNotFilter)
+		internal bool AddNamedParams(DbCommand cmd, object nameValuePairs, ParameterDirection direction = ParameterDirection.Input, PkFilter pkFilter = PkFilter.DoNotFilter)
 		{
 			if (nameValuePairs == null)
 			{
-				return;
+                // We want to return quickly in this case
+				return false;
 			}
-			foreach (var paramInfo in new NameValueTypeEnumerator(nameValuePairs, direction))
+            bool containsRowCount = false;
+            foreach (var paramInfo in new NameValueTypeEnumerator(nameValuePairs, direction))
 			{
 				if (pkFilter == PkFilter.DoNotFilter || (IsKey(paramInfo.Name) == (pkFilter == PkFilter.KeysOnly)))
 				{
-					AddParam(cmd, paramInfo.Value, paramInfo.Name, direction, paramInfo.Type);
-				}
+                    if (paramInfo.Value is RowCount)
+                    {
+                        if (direction != ParameterDirection.Output)
+                        {
+                            throw new InvalidOperationException($"${direction} ${nameof(RowCount)} parameter ${paramInfo.Name} is invalid, ${nameof(RowCount)} can only be used for ${ParameterDirection.Output} direction parameters");
+                        }
+                        containsRowCount = true;
+                    }
+                    else
+                    {
+                        AddParam(cmd, paramInfo.Value, paramInfo.Name, direction, paramInfo.Type);
+                    }
+                }
 			}
-		}
+            return containsRowCount;
+        }
 
         /// <summary>
         /// Produce WHERE clause and inParams or args from either name-value collection or primary key value-only collection

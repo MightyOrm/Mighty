@@ -166,7 +166,24 @@ namespace Mighty.Generic.Tests.Oracle
 		}
 
 
-		[Test]
+        [Test]
+        public void UpdateUsing_SingleRow()
+        {
+            var depts = new Departments(ProviderName);
+            dynamic toSave = new { DNAME = "Massive Dep", LOC = "Beach" }.ToExpando();
+            var saveResult = depts.Save(toSave);
+            Assert.AreEqual(1, saveResult);
+            Assert.IsTrue(toSave.DEPTNO > 0);
+            var mightyDep = new { DNAME = "Mighty Dep" };
+            Assert.AreEqual(0, depts.All(mightyDep).ToList().Count);
+            Assert.AreEqual(1, depts.UpdateUsing(mightyDep, toSave.DEPTNO));
+            Assert.AreEqual(1, depts.All(mightyDep).ToList().Count);
+            Assert.AreEqual(1, depts.Delete(toSave.DEPTNO));
+            Assert.AreEqual(0, depts.All(mightyDep).ToList().Count);
+        }
+
+
+        [Test]
 		public void Save_MultipleRows()
 		{
 			var depts = new Departments(ProviderName);

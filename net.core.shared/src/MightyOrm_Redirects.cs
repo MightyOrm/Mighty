@@ -9,9 +9,9 @@ using Mighty.Plugins;
 using Mighty.Profiling;
 using Mighty.Validation;
 
-/// <summary>
-/// MightyOrm_Redirects.cs holds methods in Mighty than can be very simply defined in terms of other methods.
-/// </summary>
+// <summary>
+// MightyOrm_Redirects.cs holds methods in Mighty than can be very simply defined in terms of other methods.
+// </summary>
 namespace Mighty
 {
 	public partial class MightyOrm<T> : MightyOrmAbstractInterface<T> where T : class, new()
