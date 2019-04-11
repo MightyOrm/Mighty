@@ -20,7 +20,11 @@ namespace Mighty.Generic.Tests.Oracle.TableClasses
 
 
 		public Departments(string providerName, bool includeSchema) 
-			: base(string.Format(TestConstants.ReadWriteTestConnection, providerName), includeSchema ? "SCOTT.DEPT" : "DEPT", "DEPTNO", string.Empty, includeSchema ? "SCOTT.DEPT_SEQ" : "DEPT_SEQ")
+			: base(string.Format(TestConstants.ReadWriteTestConnection, providerName), includeSchema ? "SCOTT.DEPT" : "DEPT", "DEPTNO",
+#if KEY_VALUES
+                  string.Empty,
+#endif
+                  includeSchema ? "SCOTT.DEPT_SEQ" : "DEPT_SEQ")
 		{
 			
 		}

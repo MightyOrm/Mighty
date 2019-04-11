@@ -40,7 +40,7 @@ namespace Mighty
 		/// <summary>
 		/// ADO.NET provider factory
 		/// </summary>
-		override public DbProviderFactory Factory { get; protected set; }
+		protected DbProviderFactory Factory { get; set; } // when public, was protected set
 
 		/// <summary>
 		/// Plugin
@@ -118,19 +118,21 @@ namespace Mighty
 		override public List<string> ColumnList { get; protected set; }
 
 		/// <summary>
-		/// Sequence name or identity retrieval fn. (always null for compound PK)
+		/// Sequence name or identity retrieval function (always null for compound PK)
 		/// </summary>
-		override public string SequenceNameOrIdentityFn { get; protected set; }
+		override public string SequenceNameOrIdentityFunction { get; protected set; }
 
+#if KEY_VALUES
 		/// <summary>
 		/// Column from which value is retrieved by <see cref="KeyValues"/>
 		/// </summary>
 		override public string ValueColumn { get; protected set; }
+#endif
 
 		/// <summary>
 		/// true for dynamic instantiation; false if generically typed instantiation
 		/// </summary>
 		internal bool UseExpando { get; set; }
-		#endregion
+#endregion
 	}
 }

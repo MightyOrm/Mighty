@@ -75,11 +75,6 @@ namespace Mighty.Mocking
 		abstract public string ConnectionString { get; protected set; }
 
 		/// <summary>
-		/// ADO.NET provider factory
-		/// </summary>
-		abstract public DbProviderFactory Factory { get; protected set; }
-
-		/// <summary>
 		/// Validator
 		/// </summary>
 		abstract public Validator Validator { get; protected set; }
@@ -130,25 +125,27 @@ namespace Mighty.Mocking
 		abstract public List<string> ColumnList { get; protected set; }
 
 		/// <summary>
-		/// Sequence name or identity retrieval fn. (always null for compound PK)
+		/// Sequence name or identity retrieval function (always null for compound PK)
 		/// </summary>
-		abstract public string SequenceNameOrIdentityFn { get; protected set; }
+		abstract public string SequenceNameOrIdentityFunction { get; protected set; }
 
+#if KEY_VALUES
 		/// <summary>
 		/// Column from which value is retrieved by <see cref="KeyValues"/>
 		/// </summary>
 		abstract public string ValueColumn { get; protected set; }
+#endif
 
 		/// <summary>
 		/// Table meta data (filtered to be only for columns specified by the generic type T, or by <see cref="columns"/>, where present)
 		/// </summary>
 		abstract public IEnumerable<dynamic> TableMetaData { get; }
-		#endregion
+#endregion
 
 		// 'Interface' for the general purpose data access wrapper methods (i.e. the ones which can be used
 		// even if no table has been specified).
 		// All versions which simply redirect to other versions are defined here, not in the main class.
-		#region Non-table specific methods
+#region Non-table specific methods
 		abstract public DbCommand CreateCommand(string sql,
 			params object[] args);
 
@@ -162,9 +159,9 @@ namespace Mighty.Mocking
 			params object[] args);
 
 		abstract public dynamic ResultsAsExpando(DbCommand cmd);
-		#endregion
+#endregion
 
-		#region Table specific methods
+#region Table specific methods
 		abstract public T New();
 
 		abstract public T NewFrom(object nameValues = null, bool addNonPresentAsDefaults = true);
@@ -178,6 +175,6 @@ namespace Mighty.Mocking
 		abstract public bool HasPrimaryKey(object item);
 
 		abstract public object GetPrimaryKey(object item, bool alwaysArray = false);
-		#endregion
+#endregion
 	}
 }

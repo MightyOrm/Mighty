@@ -20,7 +20,11 @@ namespace Mighty.Generic.Tests.Oracle.TableClasses
 
 
 		public Employees(string providerName, bool includeSchema)
-			: base(string.Format(TestConstants.ReadWriteTestConnection, providerName), includeSchema ? "SCOTT.EMP" : "EMP", "EMPNO", string.Empty, includeSchema ? "SCOTT.EMP_SEQ" : "EMP_SEQ")
+			: base(string.Format(TestConstants.ReadWriteTestConnection, providerName), includeSchema ? "SCOTT.EMP" : "EMP", "EMPNO",
+#if KEY_VALUES
+                  string.Empty,
+#endif
+                  includeSchema ? "SCOTT.EMP_SEQ" : "EMP_SEQ")
 		{
 
 		}

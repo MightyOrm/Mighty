@@ -27,59 +27,64 @@ namespace Mighty
 {
 	public partial class MightyOrm<T> : MightyOrmAbstractInterface<T> where T : class, new()
 	{
-		// Only methods with a non-trivial implementation are here, the rest are in the MicroOrm abstract class.
-		#region MircoORM interface
-		// In theory COUNT expression could vary across SQL variants, in practice it doesn't.
-		override public async Task<object> CountAsync(string columns = "*", string where = null,
-			DbConnection connection = null,
-			params object[] args)
-		{
-			return await CountAsync(CancellationToken.None, columns, where,
-				connection,
-				args: args);
-		}
-		override public async Task<object> CountAsync(CancellationToken cancellationToken, string columns = "*", string where = null,
-			DbConnection connection = null,
-			params object[] args)
-		{
-			var expression = string.Format("COUNT({0})", columns);
-			return await AggregateWithParamsAsync(expression, cancellationToken, where, connection, args: args).ConfigureAwait(false);
-		}
-
-		/// <summary>
-		/// Perform scalar operation on the current table (use for SUM, MAX, MIN, AVG, etc.), with support for named params.
-		/// </summary>
-		/// <param name="expression">Scalar expression</param>
-		/// <param name="where">Optional where clause</param>
-		/// <param name="inParams">Optional input parameters</param>
-		/// <param name="outParams">Optional output parameters</param>
-		/// <param name="ioParams">Optional input-output parameters</param>
-		/// <param name="returnParams">Optional return parameters</param>
-		/// <param name="connection">Optional connection to use</param>
-		/// <param name="args">Optional auto-named input parameters</param>
-		/// <returns></returns>
-		/// <remarks>
-		/// This only lets you pass in the aggregate expressions of your SQL variant, but SUM, AVG, MIN, MAX are supported on all.
-		/// </remarks>
-		/// <remarks>
-		/// This is very close to a 'redirect' method, but couldn't have been in the abstract interface before because of the plugin access.
-		/// </remarks>
-		override public async Task<object> AggregateWithParamsAsync(string expression, string where = null,
+        // Only methods with a non-trivial implementation are here, the rest are in the MicroOrm abstract class.
+        #region MircoORM interface
+        /// <summary>
+        /// Perform aggregate operation on the current table (use for SUM, MAX, MIN, AVG, etc.), with support for named params.
+        /// </summary>
+        /// <param name="function">Aggregate function</param>
+        /// <param name="columns">Columns for aggregate function</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="inParams">Input parameters</param>
+        /// <param name="outParams">Output parameters</param>
+        /// <param name="ioParams">Input-output parameters</param>
+        /// <param name="returnParams">Return parameters</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
+        /// <remarks>
+        /// This only lets you pass in the aggregate expressions of your SQL variant, but SUM, AVG, MIN, MAX are supported on all.
+        /// </remarks>
+        /// <remarks>
+        /// This is very close to a 'redirect' method, but couldn't have been in the abstract interface before because of the plugin access.
+        /// </remarks>
+        override public async Task<object> AggregateWithParamsAsync(string function, string columns, string where = null,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args)
 		{
-			return await AggregateWithParamsAsync(expression, CancellationToken.None, where,
+			return await AggregateWithParamsAsync(function, columns, CancellationToken.None, where,
 				inParams, outParams, ioParams, returnParams,
 				connection,
 				args: args);
 		}
-		override public async Task<object> AggregateWithParamsAsync(string expression, CancellationToken cancellationToken, string where = null,
+
+        /// <summary>
+        /// Perform aggregate operation on the current table (use for SUM, MAX, MIN, AVG, etc.), with support for named params.
+        /// </summary>
+        /// <param name="function">Aggregate function</param>
+        /// <param name="columns">Columns for aggregate function</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="inParams">Input parameters</param>
+        /// <param name="outParams">Output parameters</param>
+        /// <param name="ioParams">Input-output parameters</param>
+        /// <param name="returnParams">Return parameters</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns></returns>
+        /// <remarks>
+        /// This only lets you pass in the aggregate expressions of your SQL variant, but SUM, AVG, MIN, MAX are supported on all.
+        /// </remarks>
+        /// <remarks>
+        /// This is very close to a 'redirect' method, but couldn't have been in the abstract interface before because of the plugin access.
+        /// </remarks>
+		override public async Task<object> AggregateWithParamsAsync(string function, string columns, CancellationToken cancellationToken, string where = null,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args)
 		{
-			return await ScalarWithParamsAsync(Plugin.BuildSelect(expression, CheckGetTableName(), where),
+			return await ScalarWithParamsAsync(Plugin.BuildSelect(string.Format("{0}({1})", function, columns), CheckGetTableName(), where),
 				cancellationToken,
 				inParams, outParams, ioParams, returnParams,
 				connection, args).ConfigureAwait(false);
@@ -92,8 +97,8 @@ namespace Mighty
 		/// </summary>
 		/// <param name="partialItem"></param>
 		/// <param name="where"></param>
-		/// <param name="connection"></param>
-		/// <param name="args"></param>
+		/// <param name="connection">Optional connection to use</param>
+		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
 		override public async Task<int> UpdateUsingAsync(object partialItem, string where,
 			DbConnection connection,
 			params object[] args)
@@ -132,10 +137,10 @@ namespace Mighty
 		/// Delete rows from ORM table based on WHERE clause.
 		/// </summary>
 		/// <param name="where">
-		/// Non-optional where clause.
+		/// Non-optional WHERE clause.
 		/// Specify "1=1" if you are sure that you want to delete all rows.</param>
 		/// <param name="connection">The DbConnection to use</param>
-		/// <param name="args">Optional auto-named parameters for the WHERE clause</param>
+		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
 		/// <returns></returns>
 		override public async Task<int> DeleteAsync(string where,
 			DbConnection connection,
@@ -201,7 +206,7 @@ namespace Mighty
 			return new Tuple<int, T>(affected, insertedItem);
 		}
 
-		// TO DO: We should still be supporting this
+        // TO DO: We should still be supporting this
 #if KEY_VALUES
 		/// <summary>
 		/// Returns a string/string dictionary which can be bound directly to dropdowns etc http://stackoverflow.com/q/805595/
@@ -215,22 +220,29 @@ namespace Mighty
 			return results.ToDictionary(item => item[primaryKeyField].ToString(), item => item[valueField].ToString());
 		}
 #endif
-		#endregion
+        #endregion
 
-		// Only methods with a non-trivial implementation are here, the rest are in the DataAccessWrapper abstract class.
-		#region DataAccessWrapper interface
-		/// <summary>
-		/// Creates a new DbConnection. You do not normally need to call this! (MightyOrm normally manages its own
-		/// connections. Create a connection here and pass it on to other MightyOrm commands only in non-standard
-		/// cases where you need to explicitly manage transactions or share connections, e.g. when using explicit
-		/// cursors).
-		/// </summary>
-		/// <returns></returns>
-		override public async Task<DbConnection> OpenConnectionAsync()
+        // Only methods with a non-trivial implementation are here, the rest are in the DataAccessWrapper abstract class.
+        #region DataAccessWrapper interface
+        /// <summary>
+        /// Creates a new DbConnection. You do not normally need to call this! (MightyOrm normally manages its own
+        /// connections. Create a connection here and pass it on to other MightyOrm commands only in non-standard use
+        /// cases where you need to explicitly manage transactions or share connections, e.g. when using explicit cursors.)
+        /// </summary>
+        /// <returns></returns>
+        override public async Task<DbConnection> OpenConnectionAsync()
 		{
 			return await OpenConnectionAsync(CancellationToken.None);
 		}
-		override public async Task<DbConnection> OpenConnectionAsync(CancellationToken cancellationToken)
+
+        /// <summary>
+        /// Creates a new DbConnection. You do not normally need to call this! (MightyOrm normally manages its own
+        /// connections. Create a connection here and pass it on to other MightyOrm commands only in non-standard use
+        /// cases where you need to explicitly manage transactions or share connections, e.g. when using explicit cursors.)
+        /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns></returns>
+        override public async Task<DbConnection> OpenConnectionAsync(CancellationToken cancellationToken)
 		{
 			var connection = Factory.CreateConnection();
 			connection = SqlProfiler.Wrap(connection);
@@ -243,7 +255,7 @@ namespace Mighty
 		/// Execute DbCommand
 		/// </summary>
 		/// <param name="command">The command</param>
-		/// <param name="connection">Optional DbConnection to use</param>
+		/// <param name="connection">Optional connection to use</param>
 		/// <returns></returns>
 		override public async Task<int> ExecuteAsync(DbCommand command,
 			DbConnection connection = null)
@@ -266,7 +278,7 @@ namespace Mighty
 		/// Return scalar from DbCommand
 		/// </summary>
 		/// <param name="command">The command</param>
-		/// <param name="connection">Optional DbConnection to use</param>
+		/// <param name="connection">Optional connection to use</param>
 		/// <returns></returns>
 		override public async Task<object> ScalarAsync(DbCommand command,
 			DbConnection connection = null)
@@ -290,40 +302,61 @@ namespace Mighty
         /// </summary>
         /// <param name="columns">Column spec</param>
         /// <param name="tableNameOrJoinSpec">Single table name, or join specification</param>
-        /// <param name="orderBy">Required</param>
-        /// <param name="where">Optional</param>
-        /// <param name="pageSize"></param>
-        /// <param name="currentPage"></param>
-        /// <param name="connection"></param>
-        /// <param name="args"></param>
+        /// <param name="orderBy">ORDER BY clause</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="pageSize">Page size</param>
+        /// <param name="currentPage">Current page</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
         /// <returns>The result of the paged query. Result properties are Items, TotalPages, and TotalRecords.</returns>
         /// <remarks>
         /// In this one instance, because of the connection to the underlying logic of these queries, the user
         /// can pass "SELECT columns" instead of columns.
-        /// TO DO: Cancel the above, it makes no sense from a UI pov!
+        /// TO DO: Possibly Possibly cancel the above, it makes no sense from a UI pov!
         /// </remarks>
         override public async Task<PagedResults<T>> PagedFromSelectAsync(
-            string columns,
             string tableNameOrJoinSpec,
             string orderBy,
+            string columns = null,
             string where = null,
-			int pageSize = 20, int currentPage = 1,
+            int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args)
 		{
-			return await PagedFromSelectAsync(columns, tableNameOrJoinSpec, orderBy, where,
+			return await PagedFromSelectAsync(tableNameOrJoinSpec, orderBy,
 				CancellationToken.None,
-				pageSize, currentPage,
+                columns,
+                where,
+                pageSize, currentPage,
 				connection,
 				args: args);
 		}
-		override public async Task<PagedResults<T>> PagedFromSelectAsync(
-            string columns,
+
+        /// <summary>
+        /// Return paged results from arbitrary select statement.
+        /// </summary>
+        /// <param name="columns">Column spec</param>
+        /// <param name="tableNameOrJoinSpec">Single table name, or join specification</param>
+        /// <param name="orderBy">ORDER BY clause</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="pageSize">Page size</param>
+        /// <param name="currentPage">Current page</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns>The result of the paged query. Result properties are Items, TotalPages, and TotalRecords.</returns>
+        /// <remarks>
+        /// In this one instance, because of the connection to the underlying logic of these queries, the user
+        /// can pass "SELECT columns" instead of columns.
+        /// TO DO: Possibly Possibly cancel the above, it makes no sense from a UI pov!
+        /// </remarks>
+        override public async Task<PagedResults<T>> PagedFromSelectAsync(
             string tableNameOrJoinSpec,
             string orderBy,
-            string where,
-			CancellationToken cancellationToken,
-			int pageSize = 20, int currentPage = 1,
+            CancellationToken cancellationToken,
+            string columns = null,
+            string where = null,
+            int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args)
 		{
@@ -574,7 +607,7 @@ namespace Mighty
 						nDefaultKeyValues++;
 					}
 
-					if (SequenceNameOrIdentityFn == null)
+					if (SequenceNameOrIdentityFunction == null)
 					{
 						insertNames.Add(name);
 						insertValues.Add(paramName);
@@ -584,7 +617,7 @@ namespace Mighty
 						if (Plugin.IsSequenceBased)
 						{
 							insertNames.Add(name);
-							insertValues.Add(string.Format(Plugin.BuildNextval(SequenceNameOrIdentityFn)));
+							insertValues.Add(string.Format(Plugin.BuildNextval(SequenceNameOrIdentityFunction)));
 						}
 					}
 
@@ -630,14 +663,14 @@ namespace Mighty
 					break;
 
 				case OrmAction.Insert:
-					if (SequenceNameOrIdentityFn != null && Plugin.IsSequenceBased)
+					if (SequenceNameOrIdentityFunction != null && Plugin.IsSequenceBased)
 					{
-						// our copy of SequenceNameOrIdentityFn is only ever non-null when there is a non-compound PK
+						// our copy of SequenceNameOrIdentityFunction is only ever non-null when there is a non-compound PK
 						insertNames.Add(PrimaryKeyFields);
 						// TO DO: Should there be two places for BuildNextval? (See above.) Why?
-						insertValues.Add(Plugin.BuildNextval(SequenceNameOrIdentityFn));
+						insertValues.Add(Plugin.BuildNextval(SequenceNameOrIdentityFunction));
 					}
-					// TO DO: Hang on, we've got a different check here from SequenceNameOrIdentityFn != null;
+					// TO DO: Hang on, we've got a different check here from SequenceNameOrIdentityFunction != null;
 					// either one or other is right, or else some exceptions should be thrown if they come apart.
 					command = CreateInsertCommand(argsItem, insertNames, insertValues, nDefaultKeyValues > 0 ? PkFilter.NoKeys : PkFilter.DoNotFilter);
 					break;
@@ -651,7 +684,7 @@ namespace Mighty
 					throw new Exception("incorrect " + nameof(OrmAction) + "=" + action + " at action choice in " + nameof(ActionOnItemAsync));
 			}
 			command.Connection = connection;
-			if (action == OrmAction.Insert && SequenceNameOrIdentityFn != null)
+			if (action == OrmAction.Insert && SequenceNameOrIdentityFunction != null)
 			{
 				// *All* DBs return a huge sized number for their identity by default, following Massive we are normalising to int
 				var pk = Convert.ToInt32(await ScalarAsync(command, cancellationToken).ConfigureAwait(false));

@@ -112,34 +112,36 @@ namespace Mighty.Generic.Tests.Oracle
 		[Test]
 		public void Paged_SqlSpecification()
 		{
-			// TO DO: Separate tests, with lambdas
-			// Exception on "*" columns
-			InvalidOperationException ex1 = Assert.Throws<InvalidOperationException>(new TestDelegate(TestStarWithJoin));
-			// Exception on empty order by
-			InvalidOperationException ex2 = Assert.Throws<InvalidOperationException>(new TestDelegate(TestPagedNoOrderBy));
-
 			var depts = new Departments(ProviderName);
-			var page2 = depts.PagedFromSelect("EMPNO, ENAME, DNAME", "SCOTT.EMP e INNER JOIN SCOTT.DEPT d ON e.DEPTNO = d.DEPTNO", null, "EMPNO", pageSize: 5, currentPage: 2);
+			var page2 = depts.PagedFromSelect("SCOTT.EMP e INNER JOIN SCOTT.DEPT d ON e.DEPTNO = d.DEPTNO", "EMPNO", "EMPNO, ENAME, DNAME", pageSize: 5, currentPage: 2);
 			var pageItems = page2.Items.ToList();
 			Assert.AreEqual(5, pageItems.Count);
 			Assert.AreEqual(14, page2.TotalRecords);
 			Assert.AreEqual(3, page2.TotalPages);
 		}
 
-		// These two are called above and are meant to throw exceptions, they should be in separate tests
-		private void TestStarWithJoin()
+        [Test]
+        public void PagedStarWithJoin_ThrowsInvalidOperationException()
 		{
-			var depts = new Departments(ProviderName);
-			var page2 = depts.PagedFromSelect("*", "SCOTT.EMP e INNER JOIN SCOTT.DEPT d ON e.DEPTNO = d.DEPTNO", null, "EMPNO", pageSize: 2, currentPage: 2);
-			var pageItems = page2.Items.ToList();
+            var ex = Assert.Throws<InvalidOperationException>(() => {
+                var depts = new Departments(ProviderName);
+                var page2 = depts.PagedFromSelect("SCOTT.EMP e INNER JOIN SCOTT.DEPT d ON e.DEPTNO = d.DEPTNO", "EMPNO", "*", pageSize: 2, currentPage: 2);
+                var pageItems = page2.Items.ToList();
+            });
+            // Check that it was thrown for the right reason
+            Assert.AreEqual("To query from joined tables you have to specify the columns explicitly not with *", ex.Message);
 		}
 
-		// These two are called above and are meant to throw exceptions, they should be in separate tests
-		private void TestPagedNoOrderBy()
+        [Test]
+        public void PagedNoOrderBy_ThrowsInvalidOperationException()
 		{
-			var depts = new Departments(ProviderName);
-			var page2 = depts.PagedFromSelect("EMPNO, ENAME, DNAME", "SCOTT.EMP e INNER JOIN SCOTT.DEPT d ON e.DEPTNO = d.DEPTNO", null, null, pageSize: 2, currentPage: 2);
-			var pageItems = page2.Items.ToList();
+            var ex = Assert.Throws<InvalidOperationException>(() => {
+                var depts = new Departments(ProviderName);
+                var page2 = depts.PagedFromSelect("SCOTT.EMP e INNER JOIN SCOTT.DEPT d ON e.DEPTNO = d.DEPTNO", null, "EMPNO, ENAME, DNAME", pageSize: 2, currentPage: 2);
+                var pageItems = page2.Items.ToList();
+            });
+            // Check that it was thrown for the right reason
+            Assert.AreEqual("Cannot complete paged select operation, you must provide an ORDER BY value", ex.Message);
 		}
 
 		[Test]

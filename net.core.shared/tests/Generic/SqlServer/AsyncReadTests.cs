@@ -20,7 +20,7 @@ namespace Mighty.Generic.Tests.SqlServer
 		public async Task MaxOnFilteredSet()
 		{
 			var soh = new SalesOrderHeaders();
-			var result = await ((dynamic)soh).MaxAsync(columns: "SalesOrderID", where: "SalesOrderID < @0", args: 100000);
+			var result = await soh.MaxAsync(columns: "SalesOrderID", where: "SalesOrderID < @0", args: 100000);
 			Assert.AreEqual(75123, result);
 		}
 
@@ -29,7 +29,7 @@ namespace Mighty.Generic.Tests.SqlServer
 		public async Task MaxOnFilteredSet2()
 		{
 			var soh = new SalesOrderHeaders();
-			var result = await ((dynamic)soh).MaxAsync(columns: "SalesOrderID", TerritoryID: 10);
+			var result = await soh.MaxAsync("SalesOrderID", new { TerritoryID = 10 });
 			Assert.AreEqual(75117, result);
 		}
 
@@ -192,7 +192,8 @@ namespace Mighty.Generic.Tests.SqlServer
 		}
 
 
-		[Test]
+#if DYNAMIC_METHODS
+        [Test]
 		public async Task Find_AllColumns()
 		{
 			dynamic soh = new SalesOrderHeaders();
@@ -227,36 +228,64 @@ namespace Mighty.Generic.Tests.SqlServer
 			var singleInstance = await soh.FirstAsync(SalesOrderID: 43666);
 			Assert.AreEqual(43666, singleInstance.SalesOrderID);
 		}
+#endif
 
 
-		[Test]
-		public async Task Single_AllColumns()
-		{
-			dynamic soh = new SalesOrderHeaders();
-			SalesOrderHeader singleInstance = await soh.SingleAsync(SalesOrderID: 43666);
-			Assert.AreEqual(43666, singleInstance.SalesOrderID);
-			Assert.Greater(singleInstance.CustomerID, 0);
-			Assert.Greater(singleInstance.SalesPersonID, 0);
-			Assert.Greater(singleInstance.Status, 0);
-			Assert.AreNotEqual(singleInstance.PurchaseOrderNumber, "");
-			Assert.Greater(singleInstance.OrderDate, DateTime.MinValue);
-		}
+        [Test]
+        public async Task Single_Where_AllColumns()
+        {
+            var soh = new SalesOrderHeaders();
+            SalesOrderHeader singleInstance = await soh.SingleAsync(new { SalesOrderID = 43666 });
+            Assert.AreEqual(43666, singleInstance.SalesOrderID);
+            Assert.Greater(singleInstance.CustomerID, 0);
+            Assert.Greater(singleInstance.SalesPersonID, 0);
+            Assert.Greater(singleInstance.Status, 0);
+            Assert.AreNotEqual(singleInstance.PurchaseOrderNumber, "");
+            Assert.Greater(singleInstance.OrderDate, DateTime.MinValue);
+        }
 
 
-		[Test]
-		public async Task Single_ThreeColumns()
-		{
-			dynamic soh = new SalesOrderHeaders();
-			SalesOrderHeader singleInstance = await soh.SingleAsync(SalesOrderID: 43666, columns: "SalesOrderID, SalesOrderNumber, OrderDate");
-			Assert.AreEqual(43666, singleInstance.SalesOrderID);
-			Assert.AreEqual("SO43666", singleInstance.SalesOrderNumber);
-			Assert.AreEqual(new DateTime(2011, 5, 31), singleInstance.OrderDate);
-			Assert.Null(singleInstance.PurchaseOrderNumber, "");
-			Assert.AreEqual(singleInstance.CustomerID, 0);
-		}
+        [Test]
+        public async Task Single_Key_AllColumns()
+        {
+            var soh = new SalesOrderHeaders();
+            SalesOrderHeader singleInstance = await soh.SingleAsync(43666);
+            Assert.AreEqual(43666, singleInstance.SalesOrderID);
+            Assert.Greater(singleInstance.CustomerID, 0);
+            Assert.Greater(singleInstance.SalesPersonID, 0);
+            Assert.Greater(singleInstance.Status, 0);
+            Assert.AreNotEqual(singleInstance.PurchaseOrderNumber, "");
+            Assert.Greater(singleInstance.OrderDate, DateTime.MinValue);
+        }
 
 
-		[Test]
+        [Test]
+        public async Task Single_Where_ThreeColumns()
+        {
+            var soh = new SalesOrderHeaders();
+            SalesOrderHeader singleInstance = await soh.SingleAsync(new { SalesOrderID = 43666 }, columns: "SalesOrderID, SalesOrderNumber, OrderDate");
+            Assert.AreEqual(43666, singleInstance.SalesOrderID);
+            Assert.AreEqual("SO43666", singleInstance.SalesOrderNumber);
+            Assert.AreEqual(new DateTime(2011, 5, 31), singleInstance.OrderDate);
+            Assert.Null(singleInstance.PurchaseOrderNumber, "");
+            Assert.AreEqual(singleInstance.CustomerID, 0);
+        }
+
+
+        [Test]
+        public async Task Single_Key_ThreeColumns()
+        {
+            var soh = new SalesOrderHeaders();
+            SalesOrderHeader singleInstance = await soh.SingleAsync(43666, columns: "SalesOrderID, SalesOrderNumber, OrderDate");
+            Assert.AreEqual(43666, singleInstance.SalesOrderID);
+            Assert.AreEqual("SO43666", singleInstance.SalesOrderNumber);
+            Assert.AreEqual(new DateTime(2011, 5, 31), singleInstance.OrderDate);
+            Assert.Null(singleInstance.PurchaseOrderNumber, "");
+            Assert.AreEqual(singleInstance.CustomerID, 0);
+        }
+
+
+        [Test]
 		public async Task Query_AllRows()
 		{
 			var soh = new SalesOrderHeaders();
@@ -341,7 +370,8 @@ namespace Mighty.Generic.Tests.SqlServer
 		}
 
 
-		[Test]
+#if DYNAMIC_METHODS
+        [Test]
 		public async Task Count_WhereSpecification_FromArgsPlusNameValue()
 		{
 			dynamic soh = new SalesOrderHeaders();
@@ -369,9 +399,18 @@ namespace Mighty.Generic.Tests.SqlServer
 			var total = await soh.CountAsync(where: "1=1 OR 0=0", CustomerID: 11212);
 			Assert.AreEqual(17, total);
 		}
+#else
+        [Test]
+        public async Task Count_WhereSpecification_FromNameValuePairs()
+        {
+            dynamic soh = new SalesOrderHeaders();
+            var total = await soh.CountAsync(new { CustomerID = 11212, ModifiedDate = new DateTime(2013, 10, 10) });
+            Assert.AreEqual(2, total);
+        }
+#endif
 
 
-		[Test]
+        [Test]
 		public void DefaultValue()
 		{
 			var soh = new SalesOrderHeaders(false);
@@ -383,12 +422,12 @@ namespace Mighty.Generic.Tests.SqlServer
 		[Test]
 		public async Task IsValid_SalesPersonIDCheck()
 		{
-			dynamic soh = new SalesOrderHeaders();
-			var toValidate = await soh.FindAsync(SalesOrderID: 45816);
+			var soh = new SalesOrderHeaders();
+			var toValidate = await soh.SingleAsync(new { SalesOrderID = 45816 });
 			// is invalid
 			Assert.AreEqual(1, soh.IsValid(toValidate).Count);
 
-			toValidate = await soh.FindAsync(SalesOrderID: 45069);
+			toValidate = await soh.SingleAsync(new { SalesOrderID = 45069 });
 			// is valid
 			Assert.AreEqual(0, soh.IsValid(toValidate).Count);
 		}
@@ -397,8 +436,8 @@ namespace Mighty.Generic.Tests.SqlServer
 		[Test]
 		public async Task PrimaryKey_Read_Check()
 		{
-			dynamic soh = new SalesOrderHeaders();
-			var toValidate = await soh.FindAsync(SalesOrderID: 45816);
+			var soh = new SalesOrderHeaders();
+			var toValidate = await soh.SingleAsync(new { SalesOrderID = 45816 });
 
 			Assert.IsTrue(soh.HasPrimaryKey(toValidate));
 

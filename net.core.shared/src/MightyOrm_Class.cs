@@ -53,7 +53,9 @@ namespace Mighty
 		public MightyOrm(string connectionString = null,
 						 string tableName = null,
 						 string primaryKeyField = null,
+#if KEY_VALUES
 						 string valueColumn = null,
+#endif
 						 string sequence = null,
 						 string columns = null,
 						 Validator validator = null,
@@ -76,7 +78,11 @@ namespace Mighty
 			{
 				tableClassName = me.Name;
 			}
-			Init(connectionString, tableName, tableClassName, primaryKeyField, valueColumn, sequence, columns, validator, mapper, profiler, 0, connectionProvider);
+			Init(connectionString, tableName, tableClassName, primaryKeyField,
+#if KEY_VALUES
+                valueColumn,
+#endif
+                sequence, columns, validator, mapper, profiler, 0, connectionProvider);
 		}
 #endregion
 
@@ -101,7 +107,7 @@ namespace Mighty
 
 	public partial class MightyOrm<T> : MightyOrmAbstractInterface<T> where T : class, new()
 	{
-		#region Constructor
+#region Constructor
 		/// <summary>
 		/// Strongly typed MightyOrm constructor
 		/// </summary>
@@ -125,7 +131,9 @@ namespace Mighty
 		public MightyOrm(string connectionString = null,
 						 string tableName = null,
 						 string primaryKeyField = null,
+#if KEY_VALUES
 						 string valueColumn = null,
+#endif
 						 string sequence = null,
 						 string columns = null,
 						 Validator validator = null,
@@ -140,11 +148,15 @@ namespace Mighty
 			// Table name for MightyOrm<T> is taken from type T not from a constructor argument; use SqlNamingMapper to override it.
 			string tableClassName = typeof(T).Name;
 
-			Init(connectionString, tableName, tableClassName, primaryKeyField, valueColumn, sequence, columns, validator, mapper, profiler, propertyBindingFlags, connectionProvider);
+			Init(connectionString, tableName, tableClassName, primaryKeyField,
+#if KEY_VALUES
+                valueColumn,
+#endif
+                sequence, columns, validator, mapper, profiler, propertyBindingFlags, connectionProvider);
 		}
-		#endregion
+#endregion
 
-		#region Convenience factory
+#region Convenience factory
 		// mini-factory for non-table specific access
 		// (equivalent to a constructor call)
 		// <remarks>static, so can't be defined anywhere but here</remarks>
@@ -165,7 +177,9 @@ namespace Mighty
 						 string tableName,
 						 string tableClassName,
 						 string primaryKeyField,
+#if KEY_VALUES
 						 string valueColumn,
+#endif
 						 string sequence,
 						 string columns,
 						 Validator xvalidator,
@@ -258,23 +272,25 @@ namespace Mighty
 				ColumnList = columns.Split(',').Select(column => SqlMapper.GetColumnNameFromPropertyName(typeof(T), column)).ToList();
 				Columns = columns == null || columns == "*" ? "*" : string.Join(",", ColumnList);
 			}
+#if KEY_VALUES
 			ValueColumn = string.IsNullOrEmpty(valueColumn) ? null : SqlMapper.GetColumnNameFromPropertyName(typeof(T), valueColumn);
-			// After all this, SequenceNameOrIdentityFn is only non-null if we really are expecting to use it
+#endif
+			// After all this, SequenceNameOrIdentityFunction is only non-null if we really are expecting to use it
 			// (which entails exactly one PK)
 			if (!Plugin.IsSequenceBased)
 			{
 				if (PrimaryKeyList.Count != 1)
 				{
-					SequenceNameOrIdentityFn = null;
+					SequenceNameOrIdentityFunction = null;
 				}
 				else
 				{
 					// empty string on identity-based DB specifies that PK is manually controlled
-					if (sequence == "") SequenceNameOrIdentityFn = null;
+					if (sequence == "") SequenceNameOrIdentityFunction = null;
 					// other non-null value overrides default identity retrieval fn (e.g. use "@@IDENTITY" on SQL CE)
-					else if (sequence != null) SequenceNameOrIdentityFn = sequence;
+					else if (sequence != null) SequenceNameOrIdentityFunction = sequence;
 					// default fn
-					else SequenceNameOrIdentityFn = Plugin.IdentityRetrievalFunction;
+					else SequenceNameOrIdentityFunction = Plugin.IdentityRetrievalFunction;
 				}
 			}
 			else if (sequence != null)
@@ -286,7 +302,7 @@ namespace Mighty
 				{
 					throw new InvalidOperationException("Sequence may only be specified for tables with a single primary key");
 				}
-				SequenceNameOrIdentityFn = SqlMapper.QuoteDatabaseIdentifier(sequence);
+				SequenceNameOrIdentityFunction = SqlMapper.QuoteDatabaseIdentifier(sequence);
 			}
 
 #if DYNAMIC_METHODS
@@ -309,8 +325,8 @@ namespace Mighty
 			}
 			Columns = string.Join(",", ColumnList);
 
-			// SequenceNameOrIdentityFn is only left at non-null when there is a single PK
-			if (SequenceNameOrIdentityFn != null)
+			// SequenceNameOrIdentityFunction is only left at non-null when there is a single PK
+			if (SequenceNameOrIdentityFunction != null)
 			{
 				pkProperty = columnNameToPropertyInfo[PrimaryKeyFields];
 			}
@@ -552,6 +568,7 @@ namespace Mighty
 			return PrimaryKeyFields;
 		}
 
+#if KEY_VALUES
 		/// <summary>
 		/// Return value column, raising an exception if not specified.
 		/// </summary>
@@ -564,6 +581,7 @@ namespace Mighty
 			}
 			return ValueColumn;
 		}
+#endif
 
 		/// <summary>
 		/// Return the single (non-compound) primary key name, with meaningful exception if there isn't one.
@@ -786,10 +804,10 @@ namespace Mighty
 		private DbCommand CreateInsertCommand(object item, List<string> insertNames, List<string> insertValues, PkFilter pkFilter)
 		{
 			string sql = Plugin.BuildInsert(TableName, string.Join(", ", insertNames), string.Join(", ", insertValues));
-			if (SequenceNameOrIdentityFn != null)
+			if (SequenceNameOrIdentityFunction != null)
 			{
 				sql += ";\r\n" +
-					   (Plugin.IsSequenceBased ? Plugin.BuildCurrvalSelect(SequenceNameOrIdentityFn) : string.Format("SELECT {0}", SequenceNameOrIdentityFn)) +
+					   (Plugin.IsSequenceBased ? Plugin.BuildCurrvalSelect(SequenceNameOrIdentityFunction) : string.Format("SELECT {0}", SequenceNameOrIdentityFunction)) +
 					   ";";
 			}
 			var command = CreateCommand(sql);
@@ -955,7 +973,7 @@ namespace Mighty
 		/// using C# parameter syntax)
 		/// </summary>
 		/// <param name="cmd"></param>
-		/// <param name="args"></param>
+		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
 		internal void AddParams(DbCommand cmd, params object[] args)
 		{
 			if (args == null)

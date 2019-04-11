@@ -58,12 +58,26 @@ namespace Mighty.Mocking
         // CancellationToken, so that the async interface to our `args` variants stays nice if you are not
         // passing a CancellationToken.
 
-		// 'Interface' for the general purpose data access wrapper methods (i.e. the ones which can be used
-		// even if no table has been specified).
-		// All versions which simply redirect to other versions are defined here, not in the main class.
-		#region Non-table specific methods
-		abstract public Task<DbConnection> OpenConnectionAsync();
-		abstract public Task<DbConnection> OpenConnectionAsync(CancellationToken cancellationToken);
+        // 'Interface' for the general purpose data access wrapper methods (i.e. the ones which can be used
+        // even if no table has been specified).
+        // All versions which simply redirect to other versions are defined here, not in the main class.
+        #region Non-table specific methods
+        /// <summary>
+        /// Creates a new DbConnection. You do not normally need to call this! (MightyOrm normally manages its own
+        /// connections. Create a connection here and pass it on to other MightyOrm commands only in non-standard use
+        /// cases where you need to explicitly manage transactions or share connections, e.g. when using explicit cursors.)
+        /// </summary>
+        /// <returns></returns>
+        abstract public Task<DbConnection> OpenConnectionAsync();
+
+        /// <summary>
+        /// Creates a new DbConnection. You do not normally need to call this! (MightyOrm normally manages its own
+        /// connections. Create a connection here and pass it on to other MightyOrm commands only in non-standard use
+        /// cases where you need to explicitly manage transactions or share connections, e.g. when using explicit cursors.)
+        /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns></returns>
+        abstract public Task<DbConnection> OpenConnectionAsync(CancellationToken cancellationToken);
 
 
 		abstract public Task<IAsyncEnumerable<T>> QueryAsync(DbCommand command,
@@ -217,8 +231,8 @@ namespace Mighty.Mocking
 		/// <param name="outParams"></param>
 		/// <param name="ioParams"></param>
 		/// <param name="returnParams"></param>
-		/// <param name="connection"></param>
-		/// <param name="args"></param>
+		/// <param name="connection">Optional connection to use</param>
+		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
 		/// <returns>The results of all non-input parameters</returns>
 		abstract public Task<dynamic> ExecuteWithParamsAsync(string sql,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
@@ -238,8 +252,8 @@ namespace Mighty.Mocking
 		/// <param name="outParams"></param>
 		/// <param name="ioParams"></param>
 		/// <param name="returnParams"></param>
-		/// <param name="connection"></param>
-		/// <param name="args"></param>
+		/// <param name="connection">Optional connection to use</param>
+		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
 		/// <returns>The results of all non-input parameters</returns>
 		abstract public Task<dynamic> ExecuteProcedureAsync(string spName,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
@@ -292,13 +306,57 @@ namespace Mighty.Mocking
 			DbConnection connection = null,
 			params object[] args);
 
-		abstract public Task<PagedResults<T>> PagedFromSelectAsync(string columns, string tableNameOrJoinSpec, string orderBy, string where,
-			int pageSize = 20, int currentPage = 1,
+        /// <summary>
+        /// Return paged results from arbitrary select statement.
+        /// </summary>
+        /// <param name="columns">Column spec</param>
+        /// <param name="tableNameOrJoinSpec">Single table name, or join specification</param>
+        /// <param name="orderBy">ORDER BY clause</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="pageSize">Page size</param>
+        /// <param name="currentPage">Current page</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns>The result of the paged query. Result properties are Items, TotalPages, and TotalRecords.</returns>
+        /// <remarks>
+        /// In this one instance, because of the connection to the underlying logic of these queries, the user
+        /// can pass "SELECT columns" instead of columns.
+        /// TO DO: Possibly Possibly cancel the above, it makes no sense from a UI pov!
+        /// </remarks>
+		abstract public Task<PagedResults<T>> PagedFromSelectAsync(
+            string tableNameOrJoinSpec,
+            string orderBy,
+            string columns = null,
+            string where = null,
+            int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args);
-		abstract public Task<PagedResults<T>> PagedFromSelectAsync(string columns, string tableNameOrJoinSpec, string orderBy, string where,
-			CancellationToken cancellationToken,
-			int pageSize = 20, int currentPage = 1,
+
+        /// <summary>
+        /// Return paged results from arbitrary select statement.
+        /// </summary>
+        /// <param name="columns">Column spec</param>
+        /// <param name="tableNameOrJoinSpec">Single table name, or join specification</param>
+        /// <param name="orderBy">ORDER BY clause</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="pageSize">Page size</param>
+        /// <param name="currentPage">Current page</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns>The result of the paged query. Result properties are Items, TotalPages, and TotalRecords.</returns>
+        /// <remarks>
+        /// In this one instance, because of the connection to the underlying logic of these queries, the user
+        /// can pass "SELECT columns" instead of columns.
+        /// TO DO: Possibly Possibly cancel the above, it makes no sense from a UI pov!
+        /// </remarks>
+        abstract public Task<PagedResults<T>> PagedFromSelectAsync(
+            string tableNameOrJoinSpec,
+            string orderBy,
+            CancellationToken cancellationToken,
+            string columns = null,
+            string where = null,
+            int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args);
 
@@ -307,56 +365,372 @@ namespace Mighty.Mocking
 
 		abstract protected Task<IAsyncEnumerable<X>> QueryNWithParamsAsync<X>(DbCommand command, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, DbDataReader outerReader = null);
 		abstract protected Task<IAsyncEnumerable<X>> QueryNWithParamsAsync<X>(DbCommand command, CancellationToken cancellationToken, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, DbDataReader outerReader = null);
-		#endregion
+        #endregion
 
-		#region Table specific methods
-		/// <summary>
-		/// Perform COUNT on current table
-		/// </summary>
-		/// <param name="columns">Columns (defaults to *, but can be specified, e.g., to count non-nulls in a given field)</param>
-		/// <param name="where">Optional where clause</param>
-		/// <param name="connection">Optional connection to use</param>
-		/// <param name="args">Args</param>
-		/// <returns></returns>
-		abstract public Task<object> CountAsync(string columns = "*", string where = null,
-			DbConnection connection = null,
-			params object[] args);
-		abstract public Task<object> CountAsync(CancellationToken cancellationToken, string columns = "*", string where = null,
-			DbConnection connection = null,
-			params object[] args);
-
-		/// <summary>
-		/// Perform scalar operation on the current table (use for SUM, MAX, MIN, AVG, etc.)
-		/// </summary>
-		/// <param name="expression">Scalar expression</param>
-		/// <param name="where">Optional where clause</param>
-		/// <param name="connection">Optional connection to use</param>
-		/// <param name="args">Parameters</param>
-		/// <returns></returns>
-		abstract public Task<object> AggregateAsync(string expression, string where = null,
-			DbConnection connection = null,
-			params object[] args);
-		abstract public Task<object> AggregateAsync(string expression, CancellationToken cancellationToken, string where = null,
+        #region Table specific methods
+        /// <summary>
+        /// Perform COUNT on current table.
+        /// </summary>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="columns">Columns (defaults to *, but can be specified, e.g., to count non-nulls in a given field)</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
+        abstract public Task<object> CountAsync(
+            string where = null,
+            string columns = "*",
 			DbConnection connection = null,
 			params object[] args);
 
-		/// <summary>
-		/// Perform scalar operation on the current table (use for SUM, MAX, MIN, AVG, etc.), with support for named params.
-		/// </summary>
-		/// <param name="expression">Scalar expression</param>
-		/// <param name="where">Optional where clause</param>
-		/// <param name="inParams">Optional input parameters</param>
-		/// <param name="outParams">Optional output parameters</param>
-		/// <param name="ioParams">Optional input-output parameters</param>
-		/// <param name="returnParams">Optional return parameters</param>
-		/// <param name="connection">Optional connection to use</param>
-		/// <param name="args">Optional auto-named input parameters</param>
-		/// <returns></returns>
-		abstract public Task<object> AggregateWithParamsAsync(string expression, string where = null,
+        /// <summary>
+        /// Perform COUNT on current table.
+        /// </summary>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="columns">Columns (defaults to *, but can be specified, e.g., to count non-nulls in a given field)</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="cancellationToken">See <see cref="CancellationToken"/></param>
+        /// <returns></returns>
+        abstract public Task<object> CountAsync(
+            CancellationToken cancellationToken,
+            string where = null,
+            string columns = "*",
+			DbConnection connection = null,
+			params object[] args);
+
+        /// <summary>
+        /// Perform COUNT on current table.
+        /// </summary>
+        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="columns">Columns (defaults to *, but can be specified, e.g., to count non-nulls in a given field)</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <returns></returns>
+        abstract public Task<object> CountAsync(
+            object whereParams = null,
+            string columns = "*",
+            DbConnection connection = null);
+
+        /// <summary>
+        /// Perform COUNT on current table.
+        /// </summary>
+        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="columns">Columns (defaults to *, but can be specified, e.g., to count non-nulls in a given field)</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="cancellationToken">See <see cref="CancellationToken"/></param>
+        /// <returns></returns>
+        abstract public Task<object> CountAsync(
+            CancellationToken cancellationToken,
+            object whereParams = null,
+            string columns = "*",
+            DbConnection connection = null);
+
+        /// <summary>
+        /// Get MAX of column on current table.
+        /// </summary>
+        /// <param name="columns">Columns</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
+        abstract public Task<object> MaxAsync(
+            string columns,
+            string where = null,
+            DbConnection connection = null,
+            params object[] args);
+
+        /// <summary>
+        /// Get MAX of column on current table.
+        /// </summary>
+        /// <param name="columns">Columns</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="cancellationToken">See <see cref="CancellationToken"/></param>
+        /// <returns></returns>
+        abstract public Task<object> MaxAsync(
+            string columns,
+            CancellationToken cancellationToken,
+            string where = null,
+            DbConnection connection = null,
+            params object[] args);
+
+        /// <summary>
+        /// Get MAX of column on current table.
+        /// </summary>
+        /// <param name="columns">Columns</param>
+        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <returns></returns>
+        abstract public Task<object> MaxAsync(
+            string columns,
+            object whereParams = null,
+            DbConnection connection = null);
+
+        /// <summary>
+        /// Get MAX of column on current table.
+        /// </summary>
+        /// <param name="columns">Columns</param>
+        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="cancellationToken">See <see cref="CancellationToken"/></param>
+        /// <returns></returns>
+        abstract public Task<object> MaxAsync(
+            string columns,
+            CancellationToken cancellationToken,
+            object whereParams = null,
+            DbConnection connection = null);
+
+        /// <summary>
+        /// Get MIN of column on current table.
+        /// </summary>
+        /// <param name="columns">Columns</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
+        abstract public Task<object> MinAsync(
+            string columns,
+            string where = null,
+            DbConnection connection = null,
+            params object[] args);
+
+        /// <summary>
+        /// Get MIN of column on current table.
+        /// </summary>
+        /// <param name="columns">Columns</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="cancellationToken">See <see cref="CancellationToken"/></param>
+        /// <returns></returns>
+        abstract public Task<object> MinAsync(
+            string columns,
+            CancellationToken cancellationToken,
+            string where = null,
+            DbConnection connection = null,
+            params object[] args);
+
+        /// <summary>
+        /// Get MIN of column on current table.
+        /// </summary>
+        /// <param name="columns">Columns</param>
+        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <returns></returns>
+        abstract public Task<object> MinAsync(
+            string columns,
+            object whereParams = null,
+            DbConnection connection = null);
+
+        /// <summary>
+        /// Get MIN of column on current table.
+        /// </summary>
+        /// <param name="columns">Columns</param>
+        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="cancellationToken">See <see cref="CancellationToken"/></param>
+        /// <returns></returns>
+        abstract public Task<object> MinAsync(
+            string columns,
+            CancellationToken cancellationToken,
+            object whereParams = null,
+            DbConnection connection = null);
+
+        /// <summary>
+        /// Get SUM of column on current table.
+        /// </summary>
+        /// <param name="columns">Columns</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
+        abstract public Task<object> SumAsync(
+            string columns,
+            string where = null,
+            DbConnection connection = null,
+            params object[] args);
+
+        /// <summary>
+        /// Get SUM of column on current table.
+        /// </summary>
+        /// <param name="columns">Columns</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="cancellationToken">See <see cref="CancellationToken"/></param>
+        /// <returns></returns>
+        abstract public Task<object> SumAsync(
+            string columns,
+            CancellationToken cancellationToken,
+            string where = null,
+            DbConnection connection = null,
+            params object[] args);
+
+        /// <summary>
+        /// Get SUM of column on current table.
+        /// </summary>
+        /// <param name="columns">Columns</param>
+        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <returns></returns>
+        abstract public Task<object> SumAsync(
+            string columns,
+            object whereParams = null,
+            DbConnection connection = null);
+
+        /// <summary>
+        /// Get SUM of column on current table.
+        /// </summary>
+        /// <param name="columns">Columns</param>
+        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="cancellationToken">See <see cref="CancellationToken"/></param>
+        /// <returns></returns>
+        abstract public Task<object> SumAsync(
+            string columns,
+            CancellationToken cancellationToken,
+            object whereParams = null,
+            DbConnection connection = null);
+
+        /// <summary>
+        /// Get AVG of column on current table.
+        /// </summary>
+        /// <param name="columns">Columns</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
+        abstract public Task<object> AvgAsync(
+            string columns,
+            string where = null,
+            DbConnection connection = null,
+            params object[] args);
+
+        /// <summary>
+        /// Get AVG of column on current table.
+        /// </summary>
+        /// <param name="columns">Columns</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="cancellationToken">See <see cref="CancellationToken"/></param>
+        /// <returns></returns>
+        abstract public Task<object> AvgAsync(
+            string columns,
+            CancellationToken cancellationToken,
+            string where = null,
+            DbConnection connection = null,
+            params object[] args);
+
+        /// <summary>
+        /// Get AVG of column on current table.
+        /// </summary>
+        /// <param name="columns">Columns</param>
+        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <returns></returns>
+        abstract public Task<object> AvgAsync(
+            string columns,
+            object whereParams = null,
+            DbConnection connection = null);
+
+        /// <summary>
+        /// Get AVG of column on current table.
+        /// </summary>
+        /// <param name="columns">Columns</param>
+        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="cancellationToken">See <see cref="CancellationToken"/></param>
+        /// <returns></returns>
+        abstract public Task<object> AvgAsync(
+            string columns,
+            CancellationToken cancellationToken,
+            object whereParams = null,
+            DbConnection connection = null);
+
+        /// <summary>
+        /// Perform aggregate operation on the current table (use for SUM, MAX, MIN, AVG, etc.)
+        /// </summary>
+        /// <param name="function">Aggregate function</param>
+        /// <param name="columns">Columns for aggregate function</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
+        abstract public Task<object> AggregateAsync(string function, string columns, string where = null,
+			DbConnection connection = null,
+			params object[] args);
+
+        /// <summary>
+        /// Perform aggregate operation on the current table (use for SUM, MAX, MIN, AVG, etc.)
+        /// </summary>
+        /// <param name="function">Aggregate function</param>
+        /// <param name="columns">Columns for aggregate function</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="cancellationToken">See <see cref="CancellationToken"/></param>
+        /// <returns></returns>
+		abstract public Task<object> AggregateAsync(string function, string columns, CancellationToken cancellationToken, string where = null,
+			DbConnection connection = null,
+			params object[] args);
+
+        /// <summary>
+        /// Perform aggregate operation on the current table (use for SUM, MAX, MIN, AVG, etc.)
+        /// </summary>
+        /// <param name="function">Aggregate function</param>
+        /// <param name="columns">Columns for aggregate function</param>
+        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <returns></returns>
+        abstract public Task<object> AggregateAsync(string function, string columns, object whereParams = null,
+            DbConnection connection = null);
+
+        /// <summary>
+        /// Perform aggregate operation on the current table (use for SUM, MAX, MIN, AVG, etc.)
+        /// </summary>
+        /// <param name="function">Aggregate function</param>
+        /// <param name="columns">Columns for aggregate function</param>
+        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="cancellationToken">See <see cref="CancellationToken"/></param>
+        /// <returns></returns>
+		abstract public Task<object> AggregateAsync(string function, string columns, CancellationToken cancellationToken, object whereParams = null,
+            DbConnection connection = null);
+
+        /// <summary>
+        /// Perform aggregate operation on the current table (use for SUM, MAX, MIN, AVG, etc.), with support for named params.
+        /// </summary>
+        /// <param name="function">Aggregate function</param>
+		/// <param name="columns">Columns for aggregate function</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="inParams">Input parameters</param>
+        /// <param name="outParams">Output parameters</param>
+        /// <param name="ioParams">Input-output parameters</param>
+        /// <param name="returnParams">Return parameters</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
+        abstract public Task<object> AggregateWithParamsAsync(string function, string columns = "*", string where = null,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args);
-		abstract public Task<object> AggregateWithParamsAsync(string expression, CancellationToken cancellationToken, string where = null,
+
+        /// <summary>
+        /// Perform aggregate operation on the current table (use for SUM, MAX, MIN, AVG, etc.), with support for named params.
+        /// </summary>
+        /// <param name="function">Aggregate function</param>
+        /// <param name="columns">Columns for aggregate function</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="inParams">Input parameters</param>
+        /// <param name="outParams">Output parameters</param>
+        /// <param name="ioParams">Input-output parameters</param>
+        /// <param name="returnParams">Return parameters</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns></returns>
+        abstract public Task<object> AggregateWithParamsAsync(string function, string columns, CancellationToken cancellationToken, string where = null,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,
 			params object[] args);
@@ -365,7 +739,7 @@ namespace Mighty.Mocking
         /// Get single object from the current table using primary key or name-value specification.
         /// </summary>
         /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
-        /// <param name="columns">Optional list of columns to retrieve</param>
+        /// <param name="columns">List of columns to return</param>
         /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
         abstract public Task<T> SingleAsync(object whereParams, string columns = null,
@@ -375,7 +749,7 @@ namespace Mighty.Mocking
         /// Get single object from the current table using primary key or name-value specification.
         /// </summary>
         /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
-        /// <param name="columns">Optional list of columns to retrieve</param>
+        /// <param name="columns">List of columns to return</param>
         /// <param name="connection">Optional connection to use</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
@@ -385,8 +759,8 @@ namespace Mighty.Mocking
         /// <summary>
         /// Get a single object from the current table with where specification.
         /// </summary>
-        /// <param name="where">Where clause</param>
-        /// <param name="args">Optional auto-named params</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
         /// <returns></returns>
         /// <remarks>
         /// 'Easy-calling' version, optional args straight after where.
@@ -401,10 +775,10 @@ namespace Mighty.Mocking
 		/// 
 		/// </summary>
 		/// <param name="where"></param>
-		/// <param name="connection"></param>
+		/// <param name="connection">Optional connection to use</param>
 		/// <param name="orderBy"></param>
 		/// <param name="columns"></param>
-		/// <param name="args"></param>
+		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
 		/// <returns></returns>
 		/// <remarks>
 		/// DbConnection coming early (not just before args) in this one case is really useful, as it avoids ambiguity between
@@ -453,30 +827,48 @@ namespace Mighty.Mocking
 			DbConnection connection = null,
 			params object[] args);
 
-		/// <summary>
-		/// Table-specific paging; there is also a data wrapper version of paging <see cref="PagedFromSelect"/>.
-		/// </summary>
-		/// <param name="orderBy">You may provide orderBy, if you don't it will try to order by PK and will produce an exception if there is no PK defined.</param>
-		/// <param name="where"></param>
-		/// <param name="columns"></param>
-		/// <param name="pageSize"></param>
-		/// <param name="currentPage"></param>
-		/// <param name="connection"></param>
-		/// <param name="args"></param>
-		/// <returns>The result of the paged query. Result properties are Items, TotalPages, and TotalRecords.</returns>
-		/// <remarks>
-		/// <see cref="columns"/> parameter is not placed first because it's an override to something we may have alread provided in the constructor
-		/// (so we don't want the user to have to non-fluently re-type it, or else type null, every time).
-		/// </remarks>
-		abstract public Task<PagedResults<T>> PagedAsync(
+        /// <summary>
+        /// Table-specific paging; there is also a data wrapper version of paging <see cref="PagedFromSelect"/>.
+        /// </summary>
+        /// <param name="orderBy">You may provide orderBy, if you don't it will try to order by PK and will produce an exception if there is no PK defined.</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="columns">Columns to return</param>
+        /// <param name="pageSize">Page size</param>
+        /// <param name="currentPage">Current page</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns>The result of the paged query. Result properties are Items, TotalPages, and TotalRecords.</returns>
+        /// <remarks>
+        /// `columns` parameter is not placed first because it's an override to something we may have alread provided in the constructor
+        /// (so we don't want the user to have to non-fluently re-type it, or else type null, every time).
+        /// </remarks>
+        abstract public Task<PagedResults<T>> PagedAsync(
             string orderBy = null,
+            string columns = null,
             string where = null,
-			string columns = null,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args);
-		abstract public Task<PagedResults<T>> PagedAsync(CancellationToken cancellationToken, string orderBy = null, string where = null,
-			string columns = null,
+
+        /// <summary>
+        /// Table-specific paging; there is also a data wrapper version of paging <see cref="PagedFromSelect"/>.
+        /// </summary>
+        /// <param name="orderBy">You may provide orderBy, if you don't it will try to order by PK and will produce an exception if there is no PK defined.</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="columns">Columns to return</param>
+        /// <param name="pageSize">Page size</param>
+        /// <param name="currentPage">Current page</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns>The result of the paged query. Result properties are Items, TotalPages, and TotalRecords.</returns>
+        /// <remarks>
+        /// `columns` parameter is not placed first because it's an override to something we may have alread provided in the constructor
+        /// (so we don't want the user to have to non-fluently re-type it, or else type null, every time).
+        /// </remarks>
+        abstract public Task<PagedResults<T>> PagedAsync(CancellationToken cancellationToken, string orderBy = null,
+            string columns = null,
+            string where = null,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args);
@@ -641,21 +1033,21 @@ namespace Mighty.Mocking
 		/// </summary>
 		/// <param name="partialItem"></param>
 		/// <param name="key"></param>
-		/// <param name="connection"></param>
+		/// <param name="connection">Optional connection to use</param>
 		abstract public Task<int> UpdateUsingAsync(object partialItem, object key,
 			DbConnection connection);
 		abstract public Task<int> UpdateUsingAsync(object partialItem, object key,
 			DbConnection connection, CancellationToken cancellationToken);
 
 		/// <summary>
-		/// Apply all fields which are present in item to all rows matching where clause
-		/// for safety you MUST specify the where clause yourself (use "1=1" to update all rows)/
+		/// Apply all fields which are present in item to all rows matching WHERE clause
+		/// for safety you MUST specify the WHERE clause yourself (use "1=1" to update all rows)/
 		/// This removes/ignores any PK fields from the action; keeps auto-named params for args,
 		/// and uses named params for the update feilds.
 		/// </summary>
 		/// <param name="partialItem"></param>
 		/// <param name="where"></param>
-		/// <param name="args"></param>
+		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
 		/// <returns></returns>
 		abstract public Task<int> UpdateUsingAsync(object partialItem, string where,
 			params object[] args);
@@ -670,8 +1062,8 @@ namespace Mighty.Mocking
 		/// </summary>
 		/// <param name="partialItem"></param>
 		/// <param name="where"></param>
-		/// <param name="connection"></param>
-		/// <param name="args"></param>
+		/// <param name="connection">Optional connection to use</param>
+		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
 		abstract public Task<int> UpdateUsingAsync(object partialItem, string where,
 			DbConnection connection,
 			params object[] args);
@@ -684,9 +1076,9 @@ namespace Mighty.Mocking
 		/// Delete rows from ORM table based on WHERE clause.
 		/// </summary>
 		/// <param name="where">
-		/// Non-optional where clause.
+		/// Non-optional WHERE clause.
 		/// Specify "1=1" if you are sure that you want to delete all rows.</param>
-		/// <param name="args">Optional auto-named parameters for the WHERE clause</param>
+		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
 		/// <returns></returns>
 		abstract public Task<int> DeleteAsync(string where,
 			params object[] args);

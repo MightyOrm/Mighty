@@ -47,7 +47,7 @@ namespace Mighty.Dynamic.Tests.MySql
 		public void Max_SingleArg()
 		{
 			var soh = new Film(ProviderName);
-			var result = ((dynamic)soh).Max(columns: "film_id", where: "rental_duration > @0", args: 6);
+			var result = soh.Max(columns: "film_id", where: "rental_duration > @0", args: 6);
 			Assert.AreEqual(988, result);
 		}
 
@@ -56,7 +56,7 @@ namespace Mighty.Dynamic.Tests.MySql
 		public void Max_TwoArgs()
 		{
 			var soh = new Film(ProviderName);
-			var result = ((dynamic)soh).Max(columns: "film_id", where: "rental_duration > @0 AND rental_duration < @1", args: new object[] { 6, 100 });
+			var result = soh.Max(columns: "film_id", where: "rental_duration > @0 AND rental_duration < @1", args: new object[] { 6, 100 });
 			Assert.AreEqual(988, result);
 		}
 
@@ -65,7 +65,7 @@ namespace Mighty.Dynamic.Tests.MySql
 		public void Max_NameValuePair()
 		{
 			var film = new Film(ProviderName);
-			var result = ((dynamic)film).Max(columns: "film_id", rental_duration: 6);
+			var result = film.Max("film_id", new { rental_duration = 6 });
 			Assert.AreEqual(998, result);
 		}
 
@@ -206,24 +206,26 @@ namespace Mighty.Dynamic.Tests.MySql
 		}
 
 
-		[Test]
-		public void Find_AllColumns()
-		{
-			dynamic film = new Film(ProviderName);
-			var singleInstance = film.Find(film_id: 43);
-			Assert.AreEqual(43, singleInstance.film_id);
-		}
+        [Test]
+        public void Single_Where_OneColumn()
+        {
+            var film = new Film(ProviderName);
+            var singleInstance = film.Single(new { film_id = 43 }, columns: "film_id");
+            Assert.AreEqual(43, singleInstance.film_id);
+            var siAsDict = (IDictionary<string, object>)singleInstance;
+            Assert.AreEqual(1, siAsDict.Count);
+        }
 
 
-		[Test]
-		public void Find_OneColumn()
-		{
-			dynamic film = new Film(ProviderName);
-			var singleInstance = film.Find(film_id: 43, columns: "film_id");
-			Assert.AreEqual(43, singleInstance.film_id);
-			var siAsDict = (IDictionary<string, object>)singleInstance;
-			Assert.AreEqual(1, siAsDict.Count);
-		}
+        [Test]
+        public void Single_Key_OneColumn()
+        {
+            var film = new Film(ProviderName);
+            var singleInstance = film.Single(43, columns: "film_id");
+            Assert.AreEqual(43, singleInstance.film_id);
+            var siAsDict = (IDictionary<string, object>)singleInstance;
+            Assert.AreEqual(1, siAsDict.Count);
+        }
 
 
 #if DYNAMIC_METHODS
@@ -234,10 +236,9 @@ namespace Mighty.Dynamic.Tests.MySql
 			var singleInstance = film.Get(film_id: 43);
 			Assert.AreEqual(43, singleInstance.film_id);
 		}
-#endif
 
 
-		[Test]
+        [Test]
 		public void First_AllColumns()
 		{
 			dynamic film = new Film(ProviderName);
@@ -246,7 +247,6 @@ namespace Mighty.Dynamic.Tests.MySql
 		}
 
 
-#if DYNAMIC_METHODS
         [Test]
 		public void Single_AllColumns()
 		{
@@ -372,12 +372,12 @@ namespace Mighty.Dynamic.Tests.MySql
 		[Test]
 		public void IsValid_FilmIDCheck()
 		{
-			dynamic film = new Film(ProviderName);
-			var toValidate = film.Find(film_id: 72);
+			var film = new Film(ProviderName);
+			var toValidate = film.Single(new { film_id = 72 });
 			// is invalid
 			Assert.AreEqual(1, film.IsValid(toValidate).Count);
 
-			toValidate = film.Find(film_id: 2);
+			toValidate = film.Single(new { film_id = 2 });
 			// is valid
 			Assert.AreEqual(0, film.IsValid(toValidate).Count);
 		}
@@ -386,8 +386,8 @@ namespace Mighty.Dynamic.Tests.MySql
 		[Test]
 		public void PrimaryKey_Read_Check()
 		{
-			dynamic film = new Film(ProviderName);
-			var toValidate = film.Find(film_id: 45);
+			var film = new Film(ProviderName);
+			var toValidate = film.Single(new { film_id = 45 });
 
 			Assert.IsTrue(film.HasPrimaryKey(toValidate));
 

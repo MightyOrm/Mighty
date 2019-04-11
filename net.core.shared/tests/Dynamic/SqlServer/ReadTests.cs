@@ -31,7 +31,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
 		public void MaxOnFilteredSet()
 		{
 			var soh = new SalesOrderHeader();
-			var result = ((dynamic)soh).Max(columns: "SalesOrderID", where: "SalesOrderID < @0", args: 100000);
+			var result = soh.Max(columns: "SalesOrderID", where: "SalesOrderID < @0", args: 100000);
 			Assert.AreEqual(75123, result);
 		}
 
@@ -40,7 +40,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
 		public void MaxOnFilteredSet2()
 		{
 			var soh = new SalesOrderHeader();
-			var result = ((dynamic)soh).Max(columns: "SalesOrderID", TerritoryID: 10);
+			var result = soh.Max("SalesOrderID", new { TerritoryID = 10 });
 			Assert.AreEqual(75117, result);
 		}
 
@@ -167,7 +167,8 @@ namespace Mighty.Dynamic.Tests.SqlServer
 		}
 
 
-		[Test]
+#if DYNAMIC_METHODS
+        [Test]
 		public void All_WhereSpecification_ColumnsSpecification_LimitSpecification()
 		{
 			var soh = new SalesOrderHeader();
@@ -217,31 +218,54 @@ namespace Mighty.Dynamic.Tests.SqlServer
 			var singleInstance = soh.First(SalesOrderID: 43666);
 			Assert.AreEqual(43666, singleInstance.SalesOrderID);
 		}
+#endif
 
 
-		[Test]
-		public void Single_AllColumns()
-		{
-			dynamic soh = new SalesOrderHeader();
-			var singleInstance = soh.Single(SalesOrderID: 43666);
-			Assert.AreEqual(43666, singleInstance.SalesOrderID);
-			Assert.AreEqual(26, ((ExpandoObject)singleInstance).ToDictionary().Count);
-		}
+        [Test]
+        public void Single_Where_AllColumns()
+        {
+            var soh = new SalesOrderHeader();
+            var singleInstance = soh.Single(new { SalesOrderID = 43666 });
+            Assert.AreEqual(43666, singleInstance.SalesOrderID);
+            Assert.AreEqual(26, ((ExpandoObject)singleInstance).ToDictionary().Count);
+        }
 
 
-		[Test]
-		public void Single_ThreeColumns()
-		{
-			dynamic soh = new SalesOrderHeader();
-			var singleInstance = soh.Single(SalesOrderID: 43666, columns: "SalesOrderID, SalesOrderNumber, OrderDate");
-			Assert.AreEqual(43666, singleInstance.SalesOrderID);
-			Assert.AreEqual("SO43666", singleInstance.SalesOrderNumber);
-			Assert.AreEqual(new DateTime(2011, 5, 31), singleInstance.OrderDate);
-			Assert.AreEqual(3, ((ExpandoObject)singleInstance).ToDictionary().Count);
-		}
+        [Test]
+        public void Single_Key_AllColumns()
+        {
+            var soh = new SalesOrderHeader();
+            var singleInstance = soh.Single(43666);
+            Assert.AreEqual(43666, singleInstance.SalesOrderID);
+            Assert.AreEqual(26, ((ExpandoObject)singleInstance).ToDictionary().Count);
+        }
 
 
-		[Test]
+        [Test]
+        public void Single_Where_ThreeColumns()
+        {
+            var soh = new SalesOrderHeader();
+            var singleInstance = soh.Single(new { SalesOrderID = 43666 }, columns: "SalesOrderID, SalesOrderNumber, OrderDate");
+            Assert.AreEqual(43666, singleInstance.SalesOrderID);
+            Assert.AreEqual("SO43666", singleInstance.SalesOrderNumber);
+            Assert.AreEqual(new DateTime(2011, 5, 31), singleInstance.OrderDate);
+            Assert.AreEqual(3, ((ExpandoObject)singleInstance).ToDictionary().Count);
+        }
+
+
+        [Test]
+        public void Single_Key_ThreeColumns()
+        {
+            var soh = new SalesOrderHeader();
+            var singleInstance = soh.Single(43666, columns: "SalesOrderID, SalesOrderNumber, OrderDate");
+            Assert.AreEqual(43666, singleInstance.SalesOrderID);
+            Assert.AreEqual("SO43666", singleInstance.SalesOrderNumber);
+            Assert.AreEqual(new DateTime(2011, 5, 31), singleInstance.OrderDate);
+            Assert.AreEqual(3, ((ExpandoObject)singleInstance).ToDictionary().Count);
+        }
+
+
+        [Test]
 		public void Query_AllRows()
 		{
 			var soh = new SalesOrderHeader();
@@ -328,7 +352,8 @@ namespace Mighty.Dynamic.Tests.SqlServer
 		}
 
 
-		[Test]
+#if DYNAMIC_METHODS
+        [Test]
 		public void Count_WhereSpecification_FromArgsPlusNameValue()
 		{
 			dynamic soh = new SalesOrderHeader();
@@ -356,9 +381,18 @@ namespace Mighty.Dynamic.Tests.SqlServer
 			var total = soh.Count(where: "1=1 OR 0=0", CustomerID: 11212);
 			Assert.AreEqual(17, total);
 		}
+#else
+        [Test]
+        public void Count_WhereSpecification_FromNameValuePairs()
+        {
+            var soh = new SalesOrderHeader();
+            var total = soh.Count(new { CustomerID = 11212, ModifiedDate = new DateTime(2013, 10, 10) });
+            Assert.AreEqual(2, total);
+        }
+#endif
 
 
-		[Test]
+        [Test]
 		public void DefaultValue()
 		{
 			var soh = new SalesOrderHeader(false);
@@ -370,12 +404,12 @@ namespace Mighty.Dynamic.Tests.SqlServer
 		[Test]
 		public void IsValid_SalesPersonIDCheck()
 		{
-			dynamic soh = new SalesOrderHeader();
-			var toValidate = soh.Find(SalesOrderID: 45816);
+			var soh = new SalesOrderHeader();
+			var toValidate = soh.Single(new { SalesOrderID = 45816 });
 			// is invalid
 			Assert.AreEqual(1, soh.IsValid(toValidate).Count);
 
-			toValidate = soh.Find(SalesOrderID: 45069);
+			toValidate = soh.Single(new { SalesOrderID = 45069 });
 			// is valid
 			Assert.AreEqual(0, soh.IsValid(toValidate).Count);
 		}
@@ -384,8 +418,8 @@ namespace Mighty.Dynamic.Tests.SqlServer
 		[Test]
 		public void PrimaryKey_Read_Check()
 		{
-			dynamic soh = new SalesOrderHeader();
-			var toValidate = soh.Find(SalesOrderID: 45816);
+			var soh = new SalesOrderHeader();
+			var toValidate = soh.Single(new { SalesOrderID = 45816 });
 
 			Assert.IsTrue(soh.HasPrimaryKey(toValidate));
 

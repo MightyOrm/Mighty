@@ -37,7 +37,7 @@ namespace Mighty.Dynamic.Tests.MySql
 		{
 			MightyOrm.GlobalConnectionString = string.Format(TestConstants.ReadTestConnection, ProviderName);
 			dynamic film = new MightyOrm(tableName: "sakila.film");
-			var singleInstance = await film.FindAsync(film_id: 43);
+			var singleInstance = await film.SingleAsync(new { film_id = 43 });
 			Assert.AreEqual(43, singleInstance.film_id);
 		}
 
@@ -60,7 +60,7 @@ namespace Mighty.Dynamic.Tests.MySql
 		public async Task Max_SingleArg()
 		{
 			var soh = new Film(ProviderName);
-			var result = await ((dynamic)soh).MaxAsync(columns: "film_id", where: "rental_duration > @0", args: 6);
+			var result = await soh.MaxAsync(columns: "film_id", where: "rental_duration > @0", args: 6);
 			Assert.AreEqual(988, result);
 		}
 
@@ -69,7 +69,7 @@ namespace Mighty.Dynamic.Tests.MySql
 		public async Task Max_TwoArgs()
 		{
 			var soh = new Film(ProviderName);
-			var result = await ((dynamic)soh).MaxAsync(columns: "film_id", where: "rental_duration > @0 AND rental_duration < @1", args: new object[] { 6, 100 });
+			var result = await soh.MaxAsync(columns: "film_id", where: "rental_duration > @0 AND rental_duration < @1", args: new object[] { 6, 100 });
 			Assert.AreEqual(988, result);
 		}
 
@@ -78,7 +78,7 @@ namespace Mighty.Dynamic.Tests.MySql
 		public async Task Max_NameValuePair()
 		{
 			var film = new Film(ProviderName);
-			var result = await ((dynamic)film).MaxAsync(columns: "film_id", rental_duration: 6);
+			var result = await film.MaxAsync(columns: "film_id", whereParams: new { rental_duration = 6 });
 			Assert.AreEqual(998, result);
 		}
 
@@ -218,7 +218,8 @@ namespace Mighty.Dynamic.Tests.MySql
 		}
 
 
-		[Test]
+#if DYNAMIC_METHODS
+        [Test]
 		public async Task Find_AllColumns()
 		{
 			dynamic film = new Film(ProviderName);
@@ -265,7 +266,65 @@ namespace Mighty.Dynamic.Tests.MySql
 		}
 
 
-		[Test]
+        [Test]
+        public async Task Single_AllColumns()
+        {
+            dynamic film = new Film(ProviderName);
+            var singleInstance = await film.SingleAsync(film_id: 43);
+            Assert.AreEqual(43, singleInstance.film_id);
+        }
+#else
+        [Test]
+        public async Task Single_Where_AllColumns()
+        {
+            var film = new Film(ProviderName);
+            var singleInstance = await film.SingleAsync(new { film_id = 43 });
+            Assert.AreEqual(43, singleInstance.film_id);
+        }
+
+
+        [Test]
+        public async Task Single_Key_AllColumns()
+        {
+            var film = new Film(ProviderName);
+            var singleInstance = await film.SingleAsync(43);
+            Assert.AreEqual(43, singleInstance.film_id);
+        }
+
+
+        [Test]
+        public async Task Single_Where_OneColumn()
+        {
+            var film = new Film(ProviderName);
+            var singleInstance = await film.SingleAsync(new { film_id = 43 }, columns: "film_id");
+            Assert.AreEqual(43, singleInstance.film_id);
+            var siAsDict = (IDictionary<string, object>)singleInstance;
+            Assert.AreEqual(1, siAsDict.Count);
+        }
+
+
+        [Test]
+        public async Task Single_Key_OneColumn()
+        {
+            var film = new Film(ProviderName);
+            var singleInstance = await film.SingleAsync(43, columns: "film_id");
+            Assert.AreEqual(43, singleInstance.film_id);
+            var siAsDict = (IDictionary<string, object>)singleInstance;
+            Assert.AreEqual(1, siAsDict.Count);
+        }
+
+
+        //[Test]
+        //public async Task First_AllColumns()
+        //{
+        //    // TO DO: Maybe support non-dynamic First method?
+        //    dynamic film = new Film(ProviderName);
+        //    var singleInstance = await film.FirstAsync(film_id: 43);
+        //    Assert.AreEqual(43, singleInstance.film_id);
+        //}
+#endif
+
+        [Test]
 		public async Task Query_AllRows()
 		{
 			var film = new Film(ProviderName);
@@ -388,22 +447,22 @@ namespace Mighty.Dynamic.Tests.MySql
 		[Test]
 		public async Task IsValid_FilmIDCheck()
 		{
-			dynamic film = new Film(ProviderName);
-			var toValidate = await film.FindAsync(film_id: 72);
+			var film = new Film(ProviderName);
+			var toValidate = await film.SingleAsync(new { film_id = 72 });
 			// is invalid
 			Assert.AreEqual(1, film.IsValid(toValidate).Count);
 
-			toValidate = await film.FindAsync(film_id: 2);
+			toValidate = await film.SingleAsync(new { film_id = 2 });
 			// is valid
 			Assert.AreEqual(0, film.IsValid(toValidate).Count);
 		}
 
 
-		[Test]
-		public async Task PrimaryKey_Read_Check()
-		{
-			dynamic film = new Film(ProviderName);
-			var toValidate = await film.FindAsync(film_id: 45);
+        [Test]
+        public async Task PrimaryKey_Read_Check()
+        {
+            var film = new Film(ProviderName);
+            var toValidate = await film.SingleAsync(new { film_id = 45 });
 
 			Assert.IsTrue(film.HasPrimaryKey(toValidate));
 

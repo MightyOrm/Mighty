@@ -21,7 +21,7 @@ namespace Mighty.Profiling
 		/// <summary>
 		/// Override here to wrap at the connection level.
 		/// </summary>
-		/// <param name="connection"></param>
+		/// <param name="connection">Optional connection to use</param>
 		/// <returns></returns>
 		virtual public DbConnection Wrap(DbConnection connection)
 		{

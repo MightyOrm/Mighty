@@ -22,7 +22,11 @@ namespace Mighty.Generic.Tests.Sqlite.TableClasses
 
 
 		public Albums(bool includeSchema) :
-			base(TestConstants.ReadWriteTestConnection, includeSchema ? "Album" : "Album", "AlbumId", string.Empty, "last_insert_rowid()")
+			base(TestConstants.ReadWriteTestConnection, includeSchema ? "Album" : "Album", "AlbumId",
+#if KEY_VALUES
+                string.Empty,
+#endif
+                "last_insert_rowid()")
 		{
 		}
 	}

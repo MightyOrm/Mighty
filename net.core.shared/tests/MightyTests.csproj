@@ -3,7 +3,7 @@
   <PropertyGroup>
 	<OutputType>Exe</OutputType>
 	<!-- NB Oracle tests require setting Test/Test Settings/Default Processor Architecture to x64 if x64 version is installed -->
-    <TargetFrameworks>netcoreapp3.0</TargetFrameworks>
+    <TargetFrameworks>net45</TargetFrameworks>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">

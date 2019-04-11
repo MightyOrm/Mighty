@@ -131,37 +131,39 @@ namespace Mighty.Dynamic.Tests.Oracle
 		[Test]
 		public async Task Paged_SqlSpecification()
 		{
-			// TO DO: Separate tests, with lambdas
-			// Exception on "*" columns
-			InvalidOperationException ex1 = Assert.ThrowsAsync<InvalidOperationException>(new AsyncTestDelegate(TestStarWithJoin));
-			// Exception on empty order by
-			InvalidOperationException ex2 = Assert.ThrowsAsync<InvalidOperationException>(new AsyncTestDelegate(TestPagedNoOrderBy));
-
 			var depts = new Department(ProviderName);
-			var page2 = await depts.PagedFromSelectAsync("EMPNO, ENAME, DNAME", "SCOTT.EMP e INNER JOIN SCOTT.DEPT d ON e.DEPTNO = d.DEPTNO", null, "EMPNO", pageSize: 5, currentPage: 2);
+			var page2 = await depts.PagedFromSelectAsync("SCOTT.EMP e INNER JOIN SCOTT.DEPT d ON e.DEPTNO = d.DEPTNO", "EMPNO", "EMPNO, ENAME, DNAME", pageSize: 5, currentPage: 2);
 			var pageItems = ((IEnumerable<dynamic>)page2.Items).ToList();
 			Assert.AreEqual(5, pageItems.Count);
 			Assert.AreEqual(14, page2.TotalRecords);
 			Assert.AreEqual(3, page2.TotalPages);
 		}
 
-		// These two are called above and are meant to throw exceptions, they should be in separate tests
-		private async Task TestStarWithJoin()
-		{
-			var depts = new Department(ProviderName);
-			var page2 = await depts.PagedFromSelectAsync("*", "SCOTT.EMP e INNER JOIN SCOTT.DEPT d ON e.DEPTNO = d.DEPTNO", null, "EMPNO", pageSize: 2, currentPage: 2);
-			var pageItems = ((IEnumerable<dynamic>)page2.Items).ToList();
-		}
-
-		// These two are called above and are meant to throw exceptions, they should be in separate tests
-		private async Task TestPagedNoOrderBy()
-		{
-			var depts = new Department(ProviderName);
-			var page2 = await depts.PagedFromSelectAsync("EMPNO, ENAME, DNAME", "SCOTT.EMP e INNER JOIN SCOTT.DEPT d ON e.DEPTNO = d.DEPTNO", null, null, pageSize: 2, currentPage: 2);
-			var pageItems = ((IEnumerable<dynamic>)page2.Items).ToList();
-		}
-
 		[Test]
+		public async Task PagedStarWithJoin_ThrowsInvalidOperationException()
+		{
+            var ex = Assert.ThrowsAsync<InvalidOperationException>(async () => {
+                var depts = new Department(ProviderName);
+                var page2 = await depts.PagedFromSelectAsync("SCOTT.EMP e INNER JOIN SCOTT.DEPT d ON e.DEPTNO = d.DEPTNO", "EMPNO", "*", pageSize: 2, currentPage: 2);
+                var pageItems = ((IEnumerable<dynamic>)page2.Items).ToList();
+            });
+            // Check that it was thrown for the right reason
+            Assert.AreEqual("To query from joined tables you have to specify the columns explicitly not with *", ex.Message);
+        }
+
+        [Test]
+        public async Task PagedNoOrderBy_ThrowsInvalidOperationException()
+		{
+            var ex = Assert.ThrowsAsync<InvalidOperationException>(async () => {
+                var depts = new Department(ProviderName);
+                var page2 = await depts.PagedFromSelectAsync("SCOTT.EMP e INNER JOIN SCOTT.DEPT d ON e.DEPTNO = d.DEPTNO", null, "EMPNO, ENAME, DNAME", pageSize: 2, currentPage: 2);
+                var pageItems = ((IEnumerable<dynamic>)page2.Items).ToList();
+            });
+            // Check that it was thrown for the right reason
+            Assert.AreEqual("Cannot complete paged select operation, you must provide an ORDER BY value", ex.Message);
+        }
+
+        [Test]
 		public async Task Insert_SingleRow()
 		{
 			var depts = new Department(ProviderName);

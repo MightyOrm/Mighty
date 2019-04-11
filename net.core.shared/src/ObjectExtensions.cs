@@ -88,13 +88,23 @@ namespace Mighty
 			return Thingify(sql, thing, compulsory: true, op: op);
 		}
 
+        static internal string IndefiniteArticle(this string word)
+        {
+            if (word.Length > 0)
+            {
+                char c = char.ToLowerInvariant(word[0]);
+                if ("aeiou".Contains(c)) return "an";
+            }
+            return "a";
+        }
+
 		static internal string Thingify(this string sql, string thing, bool yes = true, bool compulsory = false, string op = null)
 		{
 			if (sql == null || (sql = sql.Trim()) == string.Empty)
 			{
 				if (compulsory)
 				{
-					throw new InvalidOperationException(string.Format("Abandoning {0}, empty {1} clause{2}", op, thing, thing == "WHERE" ? " (specify 1=1 to affect all rows)" : ""));
+					throw new InvalidOperationException(string.Format("Cannot complete {0} operation, you must provide {1} {2} value{3}", op, thing.IndefiniteArticle(), thing, thing == "WHERE" ? " (specify 1=1 to affect all rows)" : ""));
 				}
 				return string.Empty;
 			}

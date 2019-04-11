@@ -33,7 +33,7 @@ namespace Mighty.Generic.Tests.MySql
 		public void Max_SingleArg()
 		{
 			var soh = new Films(ProviderName);
-			var result = ((dynamic)soh).Max(columns: "film_id", where: "rental_duration > @0", args: 6);
+			var result = soh.Max(columns: "film_id", where: "rental_duration > @0", args: 6);
 			Assert.AreEqual(988, result);
 		}
 
@@ -42,7 +42,7 @@ namespace Mighty.Generic.Tests.MySql
 		public void Max_TwoArgs()
 		{
 			var soh = new Films(ProviderName);
-			var result = ((dynamic)soh).Max(columns: "film_id", where: "rental_duration > @0 AND rental_duration < @1", args: new object[] { 6, 100 });
+			var result = soh.Max(columns: "film_id", where: "rental_duration > @0 AND rental_duration < @1", args: new object[] { 6, 100 });
 			Assert.AreEqual(988, result);
 		}
 
@@ -51,7 +51,7 @@ namespace Mighty.Generic.Tests.MySql
 		public void Max_NameValuePair()
 		{
 			var films = new Films(ProviderName);
-			var result = ((dynamic)films).Max(columns: "film_id", rental_duration: 6);
+			var result = films.Max(columns: "film_id", whereParams: new { rental_duration = 6 });
 			Assert.AreEqual(998, result);
 		}
 
@@ -193,7 +193,8 @@ namespace Mighty.Generic.Tests.MySql
 		}
 
 
-		[Test]
+#if DYNAMIC_METHODS
+        [Test]
 		public void Find_AllColumns()
 		{
 			dynamic films = new Films(ProviderName);
@@ -229,18 +230,28 @@ namespace Mighty.Generic.Tests.MySql
 			var singleInstance = films.First(film_id: 43);
 			Assert.AreEqual(43, singleInstance.film_id);
 		}
+#endif
 
 
-		[Test]
-		public void Single_AllColumns()
-		{
-			dynamic films = new Films(ProviderName);
-			var singleInstance = films.Single(film_id: 43);
-			Assert.AreEqual(43, singleInstance.film_id);
-		}
+        [Test]
+        public void Single_Where_AllColumns()
+        {
+            var films = new Films(ProviderName);
+            var singleInstance = films.Single(new { film_id = 43 });
+            Assert.AreEqual(43, singleInstance.film_id);
+        }
 
 
-		[Test]
+        [Test]
+        public void Single_Key_AllColumns()
+        {
+            var films = new Films(ProviderName);
+            var singleInstance = films.Single(43);
+            Assert.AreEqual(43, singleInstance.film_id);
+        }
+
+
+        [Test]
 		public void Query_AllRows()
 		{
 			var films = new Films(ProviderName);
@@ -337,12 +348,12 @@ namespace Mighty.Generic.Tests.MySql
 		[Test]
 		public void IsValid_FilmIDCheck()
 		{
-			dynamic films = new Films(ProviderName);
-			var toValidate = films.Find(film_id: 72);
+			var films = new Films(ProviderName);
+			var toValidate = films.Single(new { film_id = 72 });
 			// is invalid
 			Assert.AreEqual(1, films.IsValid(toValidate).Count);
 
-			toValidate = films.Find(film_id: 2);
+			toValidate = films.Single(new { film_id = 2 });
 			// is valid
 			Assert.AreEqual(0, films.IsValid(toValidate).Count);
 		}
@@ -351,8 +362,8 @@ namespace Mighty.Generic.Tests.MySql
 		[Test]
 		public void PrimaryKey_Read_Check()
 		{
-			dynamic films = new Films(ProviderName);
-			var toValidate = films.Find(film_id: 45);
+			var films = new Films(ProviderName);
+			var toValidate = films.Single(new { film_id = 45 });
 
 			Assert.IsTrue(films.HasPrimaryKey(toValidate));
 

@@ -19,7 +19,11 @@ namespace Mighty.Generic.Tests.PostgreSql.TableClasses
 
 
 		public Products(bool includeSchema) :
-			base(TestConstants.ReadWriteTestConnection, includeSchema ? "public.products" : "products", "productid", string.Empty, "products_productid_seq")
+			base(TestConstants.ReadWriteTestConnection, includeSchema ? "public.products" : "products", "productid",
+#if KEY_VALUES
+                string.Empty,
+#endif
+                "products_productid_seq")
 		{
 		}
 	}

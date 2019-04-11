@@ -237,7 +237,7 @@ namespace Mighty.Plugins
 			{
 				if (tableName.Any(Char.IsWhiteSpace))
 				{
-					throw new InvalidOperationException("To query from joined tables you must specify the columns explicitly (not *)");
+					throw new InvalidOperationException("To query from joined tables you have to specify the columns explicitly not with *");
 				}
 				columns = string.Format("{0}.{1}", tableName, columns);
 			}

@@ -158,12 +158,12 @@ namespace Mighty
 					if (useAsync)
 					{
 #if !NET40
-                        result = Mighty.AggregateWithParamsAsync(string.Format("{0}({1})", uOp, columns), cancellationToken, whereClause, inParams: nameValueArgs, args: userArgs);
+                        result = Mighty.AggregateWithParamsAsync(uOp, columns, cancellationToken, whereClause, inParams: nameValueArgs, args: userArgs);
 #endif
 					}
 					else
 					{
-						result = Mighty.AggregateWithParams(string.Format("{0}({1})", uOp, columns), whereClause, inParams: nameValueArgs, args: userArgs);
+						result = Mighty.AggregateWithParams(uOp, columns, whereClause, inParams: nameValueArgs, args: userArgs);
 					}
 					break;
 				default:

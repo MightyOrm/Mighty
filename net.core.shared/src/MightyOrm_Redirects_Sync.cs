@@ -169,8 +169,8 @@ namespace Mighty
 		/// <param name="outParams"></param>
 		/// <param name="ioParams"></param>
 		/// <param name="returnParams"></param>
-		/// <param name="connection"></param>
-		/// <param name="args"></param>
+		/// <param name="connection">Optional connection to use</param>
+		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
 		/// <returns>The results of all non-input parameters</returns>
 		override public dynamic ExecuteWithParams(string sql,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
@@ -194,8 +194,8 @@ namespace Mighty
 		/// <param name="outParams"></param>
 		/// <param name="ioParams"></param>
 		/// <param name="returnParams"></param>
-		/// <param name="connection"></param>
-		/// <param name="args"></param>
+		/// <param name="connection">Optional connection to use</param>
+		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
 		/// <returns>The results of all non-input parameters</returns>
 		override public dynamic ExecuteProcedure(string spName,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
@@ -264,29 +264,210 @@ namespace Mighty
             var command = CreateCommandWithParams(sql, inParams, outParams, ioParams, returnParams, isProcedure, null, args);
             return QueryNWithParams<X>(command, behavior, connection);
 		}
-		#endregion
+        #endregion
 
-		#region Table specific methods
-		/// <summary>
-		/// Perform scalar operation on the current table (use for SUM, MAX, MIN, AVG, etc.)
-		/// </summary>
-		/// <param name="expression">Scalar expression</param>
-		/// <param name="where">Optional where clause</param>
+        #region Table specific methods
+        // In theory COUNT expression could vary across SQL variants, in practice it doesn't.
+
+        /// <summary>
+        /// Perform COUNT on current table.
+        /// </summary>
+		/// <param name="where">WHERE clause</param>
+        /// <param name="columns">Columns (defaults to *, but can be specified, e.g., to count non-nulls in a given field)</param>
 		/// <param name="connection">Optional connection to use</param>
-		/// <param name="args">Parameters</param>
-		/// <returns></returns>
-		override public object Aggregate(string expression, string where = null,
+		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
+        override public object Count(
+            string where = null,
+            string columns = "*",
+            DbConnection connection = null,
+            params object[] args)
+        {
+            return AggregateWithParams("COUNT", columns, where, connection, args: args);
+        }
+
+        /// <summary>
+        /// Perform COUNT on current table.
+        /// </summary>
+        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="columns">Columns (defaults to *, but can be specified, e.g., to count non-nulls in a given field)</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <returns></returns>
+        override public object Count(
+            object whereParams = null,
+            string columns = "*",
+            DbConnection connection = null)
+        {
+            return Aggregate("COUNT", columns, whereParams, connection);
+        }
+
+        /// <summary>
+        /// Get MAX of column on current table.
+        /// </summary>
+        /// <param name="columns">Columns</param>
+		/// <param name="where">WHERE clause</param>
+		/// <param name="connection">Optional connection to use</param>
+		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
+        override public object Max(
+            string columns,
+            string where = null,
+            DbConnection connection = null,
+            params object[] args)
+        {
+            return AggregateWithParams("MAX", columns, where, connection, args: args);
+        }
+
+        /// <summary>
+        /// Get MAX of column on current table.
+        /// </summary>
+        /// <param name="columns">Columns</param>
+        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <returns></returns>
+        override public object Max(
+            string columns,
+            object whereParams = null,
+            DbConnection connection = null)
+        {
+            return Aggregate("MAX", columns, whereParams, connection);
+        }
+
+        /// <summary>
+        /// Get MIN of column on current table.
+        /// </summary>
+        /// <param name="columns">Columns</param>
+		/// <param name="where">WHERE clause</param>
+		/// <param name="connection">Optional connection to use</param>
+		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
+        override public object Min(
+            string columns,
+            string where = null,
+            DbConnection connection = null,
+            params object[] args)
+        {
+            return AggregateWithParams("MIN", columns, where, connection, args: args);
+        }
+
+        /// <summary>
+        /// Get MIN of column on current table.
+        /// </summary>
+        /// <param name="columns">Columns</param>
+        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <returns></returns>
+        override public object Min(
+            string columns,
+            object whereParams = null,
+            DbConnection connection = null)
+        {
+            return Aggregate("MIN", columns, whereParams, connection);
+        }
+
+        /// <summary>
+        /// Get SUM of column on current table.
+        /// </summary>
+        /// <param name="columns">Columns</param>
+		/// <param name="where">WHERE clause</param>
+		/// <param name="connection">Optional connection to use</param>
+		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
+        override public object Sum(
+            string columns,
+            string where = null,
+            DbConnection connection = null,
+            params object[] args)
+        {
+            return AggregateWithParams("SUM", columns, where, connection, args: args);
+        }
+
+        /// <summary>
+        /// Get SUM of column on current table.
+        /// </summary>
+        /// <param name="columns">Columns</param>
+        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <returns></returns>
+        override public object Sum(
+            string columns,
+            object whereParams = null,
+            DbConnection connection = null)
+        {
+            return Aggregate("SUM", columns, whereParams, connection);
+        }
+
+        /// <summary>
+        /// Get AVG of column on current table.
+        /// </summary>
+        /// <param name="columns">Columns</param>
+		/// <param name="where">WHERE clause</param>
+		/// <param name="connection">Optional connection to use</param>
+		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
+        override public object Avg(
+            string columns,
+            string where = null,
+            DbConnection connection = null,
+            params object[] args)
+        {
+            return AggregateWithParams("AVG", columns, where, connection, args: args);
+        }
+
+        /// <summary>
+        /// Get AVG of column on current table.
+        /// </summary>
+        /// <param name="columns">Columns</param>
+        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <returns></returns>
+        override public object Avg(
+            string columns,
+            object whereParams = null,
+            DbConnection connection = null)
+        {
+            return Aggregate("AVG", columns, whereParams, connection);
+        }
+
+        /// <summary>
+        /// Perform aggregate operation on the current table (use for SUM, MAX, MIN, AVG, etc.)
+        /// </summary>
+        /// <param name="function">Aggregate function</param>
+        /// <param name="columns">Columns for aggregate function</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
+        override public object Aggregate(string function, string columns, string where = null,
 			DbConnection connection = null,
 			params object[] args)
 		{
-			return AggregateWithParams(expression, where, connection: connection, args: args);
+			return AggregateWithParams(function, columns, where, connection: connection, args: args);
 		}
+
+        /// <summary>
+        /// Perform aggregate operation on the current table (use for SUM, MAX, MIN, AVG, etc.)
+        /// </summary>
+        /// <param name="function">Aggregate function</param>
+        /// <param name="columns">Columns for aggregate function</param>
+        /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <returns></returns>
+        override public object Aggregate(string function, string columns, object whereParams = null,
+            DbConnection connection = null)
+        {
+            Tuple<string, object, object[]> retval = GetWhereSpecFromWhereParams(whereParams);
+            return AggregateWithParams(
+                function, columns,
+                where: retval.Item1, inParams: retval.Item2, args: retval.Item3,
+                connection: connection);
+        }
 
         /// <summary>
         /// Get single object from the current table using primary key or name-value specification.
         /// </summary>
         /// <param name="whereParams">Value(s) which are mapped to the table's primary key(s), or named field(s) which are mapped to the named column(s)</param>
-        /// <param name="columns">Optional list of columns to retrieve</param>
+        /// <param name="columns">List of columns to return</param>
         /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
         override public T Single(object whereParams, string columns = null,
@@ -302,8 +483,8 @@ namespace Mighty
         /// <summary>
         /// Get a single object from the current table with where specification.
         /// </summary>
-        /// <param name="where">Where clause</param>
-        /// <param name="args">Optional auto-named params</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
         /// <returns></returns>
         /// <remarks>
         /// 'Easy-calling' version, optional args straight after where.
@@ -318,10 +499,10 @@ namespace Mighty
 		/// 
 		/// </summary>
 		/// <param name="where"></param>
-		/// <param name="connection"></param>
+		/// <param name="connection">Optional connection to use</param>
 		/// <param name="orderBy"></param>
 		/// <param name="columns"></param>
-		/// <param name="args"></param>
+		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
 		/// <returns></returns>
 		/// <remarks>
 		/// DbConnection coming early (not just before args) in this one case is really useful, as it avoids ambiguity between
@@ -357,30 +538,30 @@ namespace Mighty
 			return AllWithParams(where, orderBy, columns, limit, args: args);
 		}
 
-		/// <summary>
-		/// Table-specific paging; there is also a data wrapper version of paging <see cref="PagedFromSelect"/>.
-		/// </summary>
-		/// <param name="orderBy">You may provide orderBy, if you don't it will try to order by PK and will produce an exception if there is no PK defined.</param>
-		/// <param name="where"></param>
-		/// <param name="columns"></param>
-		/// <param name="pageSize"></param>
-		/// <param name="currentPage"></param>
-		/// <param name="connection"></param>
-		/// <param name="args"></param>
-		/// <returns>The result of the paged query. Result properties are Items, TotalPages, and TotalRecords.</returns>
-		/// <remarks>
-		/// <see cref="columns"/> parameter is not placed first because it's an override to something we may have alread provided in the constructor
-		/// (so we don't want the user to have to non-fluently re-type it, or else type null, every time).
-		/// </remarks>
-		override public PagedResults<T> Paged(
+        /// <summary>
+        /// Table-specific paging; there is also a data wrapper version of paging <see cref="PagedFromSelect"/>.
+        /// </summary>
+        /// <param name="orderBy">You may provide orderBy, if you don't it will try to order by PK and will produce an exception if there is no PK defined.</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="columns">Columns to return</param>
+        /// <param name="pageSize">Page size</param>
+        /// <param name="currentPage">Current page</param>
+        /// <param name="connection">Connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns>The result of the paged query. Result properties are Items, TotalPages, and TotalRecords.</returns>
+        /// <remarks>
+        /// `columns` parameter is not placed first because it's an override to something we may have already provided in the constructor
+        /// (so we don't want the user to have to non-fluently re-type it, or else type null, every time).
+        /// </remarks>
+        override public PagedResults<T> Paged(
             string orderBy = null,
+            string columns = null,
             string where = null,
-			string columns = null,
 			int pageSize = 20, int currentPage = 1,
 			DbConnection connection = null,
 			params object[] args)
 		{
-			return PagedFromSelect(columns, CheckGetTableName(), orderBy ?? CheckGetPrimaryKeyFields(), where, pageSize, currentPage, connection, args);
+			return PagedFromSelect(CheckGetTableName(), orderBy ?? CheckGetPrimaryKeyFields(), columns, where, pageSize, currentPage, connection, args);
 		}
 
 		/// <summary>
@@ -581,7 +762,7 @@ namespace Mighty
 		/// </summary>
 		/// <param name="partialItem"></param>
 		/// <param name="key"></param>
-		/// <param name="connection"></param>
+		/// <param name="connection">Optional connection to use</param>
 		override public int UpdateUsing(object partialItem, object key,
 			DbConnection connection)
 		{
@@ -589,14 +770,14 @@ namespace Mighty
 		}
 
 		/// <summary>
-		/// Apply all fields which are present in item to all rows matching where clause
-		/// for safety you MUST specify the where clause yourself (use "1=1" to update all rows)/
+		/// Apply all fields which are present in item to all rows matching WHERE clause
+		/// for safety you MUST specify the WHERE clause yourself (use "1=1" to update all rows)/
 		/// This removes/ignores any PK fields from the action; keeps auto-named params for args,
 		/// and uses named params for the update feilds.
 		/// </summary>
 		/// <param name="partialItem"></param>
 		/// <param name="where"></param>
-		/// <param name="args"></param>
+		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
 		/// <returns></returns>
 		override public int UpdateUsing(object partialItem, string where,
 			params object[] args)
@@ -608,9 +789,9 @@ namespace Mighty
 		/// Delete rows from ORM table based on WHERE clause.
 		/// </summary>
 		/// <param name="where">
-		/// Non-optional where clause.
+		/// Non-optional WHERE clause.
 		/// Specify "1=1" if you are sure that you want to delete all rows.</param>
-		/// <param name="args">Optional auto-named parameters for the WHERE clause</param>
+		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
 		/// <returns></returns>
 		override public int Delete(string where,
 			params object[] args)

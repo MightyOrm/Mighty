@@ -16,7 +16,11 @@ namespace Mighty.Dynamic.Tests.Sqlite.TableClasses
 
 
 		public Playlist(bool includeSchema) :
-			base(TestConstants.ReadWriteTestConnection, includeSchema ? "Playlist" : "Playlist", "PlaylistId", string.Empty, "last_insert_rowid()")
+			base(TestConstants.ReadWriteTestConnection, includeSchema ? "Playlist" : "Playlist", "PlaylistId",
+#if KEY_VALUES
+                string.Empty,
+#endif
+                "last_insert_rowid()")
 		{
 		}
 	}

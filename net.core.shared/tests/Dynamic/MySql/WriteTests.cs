@@ -60,7 +60,7 @@ namespace Mighty.Dynamic.Tests.MySql
 		[Test]
 		public void Update_SingleRow()
 		{
-			dynamic categories = new Category(ProviderName);
+			var categories = new Category(ProviderName);
 			// insert something to update first. 
 			var inserted = categories.Insert(new { CategoryName = "Cool stuff", Description = "You know... cool stuff! Cool. n. stuff." });
 			int insertedCategoryID = inserted.CategoryID;
@@ -68,14 +68,14 @@ namespace Mighty.Dynamic.Tests.MySql
 			// update it, with a better description
 			inserted.Description = "This is all jolly marvellous";
 			Assert.AreEqual(1, categories.Update(inserted), "Update should have affected 1 row");
-			var updatedRow = categories.Find(CategoryID: inserted.CategoryID);
+			var updatedRow = categories.Single(new { CategoryID = inserted.CategoryID });
 			Assert.IsNotNull(updatedRow);
 			Assert.AreEqual(inserted.CategoryID, Convert.ToInt32(updatedRow.CategoryID)); // convert from uint
 			Assert.AreEqual(inserted.Description, updatedRow.Description);
 			// reset description to NULL
 			updatedRow.Description = null;
 			Assert.AreEqual(1, categories.Update(updatedRow), "Update should have affected 1 row");
-			var newUpdatedRow = categories.Find(CategoryID: updatedRow.CategoryID);
+			var newUpdatedRow = categories.Single(new { CategoryID = updatedRow.CategoryID });
 			Assert.IsNotNull(newUpdatedRow);
 			Assert.AreEqual(updatedRow.CategoryID, newUpdatedRow.CategoryID);
 			Assert.AreEqual(updatedRow.Description, newUpdatedRow.Description);
