@@ -649,7 +649,7 @@ namespace Mighty.Mocking
 			params object[] args);
 
 		/// <summary>
-		/// Delete rows from ORM table based on WHERE clause.
+		/// Delete rows from current table based on WHERE clause.
 		/// </summary>
 		/// <param name="where">
 		/// Non-optional WHERE clause.
@@ -659,7 +659,16 @@ namespace Mighty.Mocking
 		abstract public int Delete(string where,
 			params object[] args);
 
-		abstract public int Delete(string where,
+        /// <summary>
+        /// Delete rows from current table based on WHERE clause.
+        /// </summary>
+        /// <param name="where">
+        /// Non-optional WHERE clause.
+        /// Specify "1=1" if you are sure that you want to delete all rows.</param>
+        /// <param name="connection">Connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
+        abstract public int Delete(string where,
 			DbConnection connection,
 			params object[] args);
 

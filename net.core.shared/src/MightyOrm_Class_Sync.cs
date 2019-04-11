@@ -110,7 +110,7 @@ namespace Mighty
 		}
 
 		/// <summary>
-		/// Delete rows from ORM table based on WHERE clause.
+		/// Delete rows from current table based on WHERE clause.
 		/// </summary>
 		/// <param name="where">
 		/// Non-optional WHERE clause.
