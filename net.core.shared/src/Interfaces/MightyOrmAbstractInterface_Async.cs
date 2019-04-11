@@ -782,7 +782,7 @@ namespace Mighty.Mocking
 		/// <returns></returns>
 		/// <remarks>
 		/// DbConnection coming early (not just before args) in this one case is really useful, as it avoids ambiguity between
-		/// the <see cref="columns" /> and <see cref="orderBy" /> strings and optional string args.
+		/// the `columns` and `orderBy` strings and optional string args.
 		/// </remarks>
 		abstract public Task<T> SingleAsync(string where,
 			DbConnection connection = null,
@@ -806,16 +806,22 @@ namespace Mighty.Mocking
 			DbConnection connection = null,
 			params object[] args);
 
-		// ORM
-		abstract public Task<IAsyncEnumerable<T>> AllAsync(
-			string where = null, string orderBy = null, string columns = null, int limit = 0,
-			params object[] args);
-		abstract public Task<IAsyncEnumerable<T>> AllAsync(
-			CancellationToken cancellationToken,
-			string where = null, string orderBy = null, string columns = null, int limit = 0,
-			params object[] args);
+        // ORM
+        abstract public Task<IAsyncEnumerable<T>> AllAsync(
+            string where = null, string orderBy = null, string columns = null, int limit = 0,
+            params object[] args);
+        abstract public Task<IAsyncEnumerable<T>> AllAsync(
+            CancellationToken cancellationToken,
+            string where = null, string orderBy = null, string columns = null, int limit = 0,
+            params object[] args);
 
-		abstract public Task<IAsyncEnumerable<T>> AllWithParamsAsync(
+        abstract public Task<IAsyncEnumerable<T>> AllAsync(
+            object whereParams = null, string orderBy = null, string columns = null, int limit = 0);
+        abstract public Task<IAsyncEnumerable<T>> AllAsync(
+            CancellationToken cancellationToken,
+            object whereParams = null, string orderBy = null, string columns = null, int limit = 0);
+
+        abstract public Task<IAsyncEnumerable<T>> AllWithParamsAsync(
 			string where = null, string orderBy = null, string columns = null, int limit = 0,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,

@@ -30,20 +30,55 @@ namespace Mighty.Mocking
 		abstract public IEnumerable<T> Query(DbCommand command,
 			DbConnection connection = null);
 
-		abstract public T Single(DbCommand command,
+        /// <summary>
+        /// Get single item returned by database command.
+        /// (To ensure consistent behaviour use <see cref="CreateCommand(string, object[])"/> or
+        /// <see cref="CreateCommand(string, DbConnection, object[])"/> to create commands passed in to Mighty.)
+        /// </summary>
+        /// <param name="command">Database command</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <returns></returns>
+        abstract public T Single(DbCommand command,
 			DbConnection connection = null);
 
-		// no connection, easy args
-		abstract public IEnumerable<T> Query(string sql,
+        // no connection, easy args
+
+        /// <summary>
+        /// Get <see cref="IEnumerable{T}"/> of items returned by SQL query
+        /// </summary>
+        /// <param name="sql">SQL</param>
+		/// <param name="args">Auto-numbered parameter values for SQL</param>
+        /// <returns></returns>
+        abstract public IEnumerable<T> Query(string sql,
 			params object[] args);
 
+        /// <summary>
+        /// Get single item returned by SQL query
+        /// </summary>
+        /// <param name="sql">SQL</param>
+		/// <param name="args">Auto-numbered parameter values for SQL</param>
+        /// <returns></returns>
 		abstract public T SingleFromQuery(string sql,
 			params object[] args);
 
+        /// <summary>
+        /// Get <see cref="IEnumerable{T}"/> of items returned by SQL query
+        /// </summary>
+        /// <param name="sql">SQL</param>
+        /// <param name="connection"><see cref="DbConnection"/> to use</param>
+		/// <param name="args">Auto-numbered parameter values for SQL</param>
+        /// <returns></returns>
 		abstract public IEnumerable<T> Query(string sql,
 			DbConnection connection,
 			params object[] args);
 
+        /// <summary>
+        /// Get single item returned by SQL query
+        /// </summary>
+        /// <param name="sql">SQL</param>
+        /// <param name="connection"><see cref="DbConnection"/> to use</param>
+		/// <param name="args">Auto-numbered parameter values for SQL</param>
+        /// <returns></returns>
 		abstract public T SingleFromQuery(string sql,
 			DbConnection connection,
 			params object[] args);
@@ -390,7 +425,7 @@ namespace Mighty.Mocking
 		/// <returns></returns>
 		/// <remarks>
 		/// DbConnection coming early (not just before args) in this one case is really useful, as it avoids ambiguity between
-		/// the <see cref="columns" /> and <see cref="orderBy" /> strings and optional string args.
+		/// the `columns` and `orderBy` strings and optional string args.
 		/// </remarks>
 		abstract public T Single(string where,
 			DbConnection connection = null,
@@ -404,12 +439,15 @@ namespace Mighty.Mocking
 			DbConnection connection = null,
 			params object[] args);
 
-		// ORM
-		abstract public IEnumerable<T> All(
-			string where = null, string orderBy = null, string columns = null, int limit = 0,
-			params object[] args);
+        // ORM
+        abstract public IEnumerable<T> All(
+            string where = null, string orderBy = null, string columns = null, int limit = 0,
+            params object[] args);
 
-		abstract public IEnumerable<T> AllWithParams(
+        abstract public IEnumerable<T> All(
+            object whereParams = null, string orderBy = null, string columns = null, int limit = 0);
+
+        abstract public IEnumerable<T> AllWithParams(
 			string where = null, string orderBy = null, string columns = null, int limit = 0,
 			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
 			DbConnection connection = null,

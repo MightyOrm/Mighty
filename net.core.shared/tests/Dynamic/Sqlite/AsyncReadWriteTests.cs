@@ -86,7 +86,7 @@ namespace Mighty.Dynamic.Tests.Sqlite
 
 
 		[Test]
-		public async Task All_WhereSpecification_OrderBySpecification()
+		public async Task All_WhereClause_OrderBy()
 		{
 			var albums = new Album();
 			var allRows = await (await albums.AllAsync(orderBy: "Title DESC", where: "WHERE ArtistId=@0", args: 90)).ToListAsync();
@@ -101,7 +101,34 @@ namespace Mighty.Dynamic.Tests.Sqlite
 		}
 
 
-		[Test]
+        [Test]
+        public async Task All_WhereParams_OrderBy()
+        {
+            var albums = new Album();
+            var allRows = await (await albums.AllAsync(orderBy: "Title DESC", whereParams: new { ArtistId = 90 })).ToListAsync();
+            Assert.AreEqual(21, allRows.Count);
+            string previous = string.Empty;
+            foreach (var r in allRows)
+            {
+                string current = r.Title;
+                Assert.IsTrue(string.IsNullOrEmpty(previous) || string.Compare(previous, current) > 0);
+                previous = current;
+            }
+        }
+
+
+        [Test]
+        public async Task All_WhereParamsKey_ThrowsInvalidOperationException()
+        {
+            var ex = Assert.ThrowsAsync<InvalidOperationException>(async () => {
+                var albums = new Album();
+                var allRows = await (await albums.AllAsync(orderBy: "Title DESC", whereParams: 90)).ToListAsync();
+            });
+            Assert.AreEqual("whereParams in AllAsync(...) should contain names and values but it contained values only. If you want to get a single item by its primary key use SingleAsync(...) instead.", ex.Message);
+        }
+
+
+        [Test]
 		public async Task All_WhereSpecification_OrderBySpecification_LimitSpecification()
 		{
 			var albums = new Album();

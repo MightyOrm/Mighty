@@ -496,17 +496,17 @@ namespace Mighty
 		}
 
 		/// <summary>
-		/// 
+		/// Get single item from current table
 		/// </summary>
-		/// <param name="where"></param>
+		/// <param name="where">WHERE clause</param>
 		/// <param name="connection">Optional connection to use</param>
-		/// <param name="orderBy"></param>
-		/// <param name="columns"></param>
+		/// <param name="orderBy">ORDER BY clause</param>
+		/// <param name="columns">Columns to return</param>
 		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
 		/// <returns></returns>
 		/// <remarks>
 		/// DbConnection coming early (not just before args) in this one case is really useful, as it avoids ambiguity between
-		/// the <see cref="columns" /> and <see cref="orderBy" /> strings and optional string args.
+		/// the `columns` and `orderBy` strings and optional string args.
 		/// </remarks>
 		override public T Single(string where,
 			DbConnection connection = null,
@@ -530,13 +530,26 @@ namespace Mighty
 				args).FirstOrDefault();
 		}
 
-		// ORM
-		override public IEnumerable<T> All(
-			string where = null, string orderBy = null, string columns = null, int limit = 0,
-			params object[] args)
-		{
-			return AllWithParams(where, orderBy, columns, limit, args: args);
-		}
+        // ORM
+        override public IEnumerable<T> All(
+            string where = null, string orderBy = null, string columns = null, int limit = 0,
+            params object[] args)
+        {
+            return AllWithParams(where, orderBy, columns, limit, args: args);
+        }
+
+        override public IEnumerable<T> All(
+            object whereParams = null, string orderBy = null, string columns = null, int limit = 0)
+        {
+            Tuple<string, object, object[]> retval = GetWhereSpecFromWhereParams(whereParams);
+            if (retval.Item3 != null)
+            {
+                throw new InvalidOperationException($"{nameof(whereParams)} in {nameof(All)}(...) should contain names and values but it contained values only. If you want to get a single item by its primary key use {nameof(Single)}(...) instead.");
+            }
+            return AllWithParams(
+                where: retval.Item1, inParams: retval.Item2,
+                orderBy: orderBy, columns: columns, limit: limit);
+        }
 
         /// <summary>
         /// Table-specific paging; there is also a data wrapper version of paging <see cref="PagedFromSelect"/>.

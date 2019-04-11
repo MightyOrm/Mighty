@@ -128,7 +128,7 @@ namespace Mighty.Generic.Tests.SqlServer
 
 
 		[Test]
-		public void All_WhereSpecification()
+		public void All_WhereClause()
 		{
 			var soh = new SalesOrderHeaders();
 			var allRows = soh.All(where: "WHERE CustomerId=@0", args: 30052).ToList();
@@ -137,7 +137,7 @@ namespace Mighty.Generic.Tests.SqlServer
 
 
 		[Test]
-		public void All_WhereSpecification_OrderBySpecification()
+		public void All_WhereClause_OrderBy()
 		{
 			var soh = new SalesOrderHeaders();
 			var allRows = soh.All(orderBy: "SalesOrderID DESC", where: "WHERE CustomerId=@0", args: 30052).ToList();
@@ -153,7 +153,7 @@ namespace Mighty.Generic.Tests.SqlServer
 		
 
 		[Test]
-		public void All_WhereSpecification_ColumnsSpecification()
+		public void All_WhereClause_Columns()
 		{
 			var soh = new SalesOrderHeaders();
 			var allRows = soh.All(columns: "SalesOrderID, Status, SalesPersonID", where: "WHERE CustomerId=@0", args: 30052);
@@ -173,7 +173,7 @@ namespace Mighty.Generic.Tests.SqlServer
 
 
 		[Test]
-		public void All_WhereSpecification_ColumnsSpecification_LimitSpecification()
+		public void All_WhereClause_Columns_Limit()
 		{
 			var soh = new SalesOrderHeaders();
 			var allRows = soh.All(limit: 2, columns: "SalesOrderID, Status, SalesPersonID", where: "WHERE CustomerId=@0", args: 30052).ToList();
@@ -190,6 +190,82 @@ namespace Mighty.Generic.Tests.SqlServer
 			}
 			Assert.AreEqual(2, count);
 		}
+
+
+        [Test]
+        public void All_WhereParams()
+        {
+            var soh = new SalesOrderHeaders();
+            var allRows = soh.All(new { CustomerId = 30052 }).ToList();
+            Assert.AreEqual(4, allRows.Count);
+        }
+
+
+        [Test]
+        public void All_WhereParams_OrderBy()
+        {
+            var soh = new SalesOrderHeaders();
+            var allRows = soh.All(orderBy: "SalesOrderID DESC", whereParams: new { CustomerId = 30052 }).ToList();
+            Assert.AreEqual(4, allRows.Count);
+            int previous = int.MaxValue;
+            foreach (var r in allRows)
+            {
+                int current = r.SalesOrderID;
+                Assert.IsTrue(current <= previous);
+                previous = current;
+            }
+        }
+
+
+        [Test]
+        public void All_WhereParams_Columns()
+        {
+            var soh = new SalesOrderHeaders();
+            var allRows = soh.All(columns: "SalesOrderID, Status, SalesPersonID", whereParams: new { CustomerId = 30052 });
+            int count = 0;
+            foreach (var item in allRows)
+            {
+                Assert.Greater(item.SalesOrderID, 0);
+                Assert.Greater(item.Status, 0);
+                Assert.Greater(item.SalesPersonID, 0);
+
+                Assert.AreEqual(item.CustomerID, 0);
+                Assert.Null(item.PurchaseOrderNumber);
+                count++;
+            }
+            Assert.AreEqual(4, count);
+        }
+
+
+        [Test]
+        public void All_WhereParams_Columns_Limit()
+        {
+            var soh = new SalesOrderHeaders();
+            var allRows = soh.All(limit: 2, columns: "SalesOrderID, Status, SalesPersonID", whereParams: new { CustomerId = 30052 }).ToList();
+            int count = 0;
+            foreach (var item in allRows)
+            {
+                Assert.Greater(item.SalesOrderID, 0);
+                Assert.Greater(item.Status, 0);
+                Assert.Greater(item.SalesPersonID, 0);
+
+                Assert.AreEqual(item.CustomerID, 0);
+                Assert.Null(item.PurchaseOrderNumber);
+                count++;
+            }
+            Assert.AreEqual(2, count);
+        }
+
+
+        [Test]
+        public void All_WhereParamsKey_ThrowsInvalidOperationException()
+        {
+            var ex = Assert.Throws<InvalidOperationException>(() => {
+                var soh = new SalesOrderHeaders();
+                var allRows = soh.All(limit: 2, columns: "SalesOrderID, Status, SalesPersonID", whereParams: 30052).ToList();
+            });
+            Assert.AreEqual("whereParams in All(...) should contain names and values but it contained values only. If you want to get a single item by its primary key use Single(...) instead.", ex.Message);
+        }
 
 
 #if DYNAMIC_METHODS

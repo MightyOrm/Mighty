@@ -165,57 +165,121 @@ namespace Mighty.Dynamic.Tests.MySql
 		}
 
 
-		[Test]
-		public async Task All_WhereSpecification()
-		{
-			var film = new Film(ProviderName);
-			var allRows = await (await film.AllAsync(where: "WHERE rental_duration=@0", args: 5)).ToListAsync();
-			Assert.AreEqual(191, allRows.Count);
-		}
+        [Test]
+        public async Task All_WhereClause()
+        {
+            var film = new Film(ProviderName);
+            var allRows = await (await film.AllAsync(where: "WHERE rental_duration=@0", args: 5)).ToListAsync();
+            Assert.AreEqual(191, allRows.Count);
+        }
 
 
-		[Test]
-		public async Task All_WhereSpecification_OrderBySpecification()
-		{
-			var film = new Film(ProviderName);
-			var allRows = await (await film.AllAsync(orderBy: "film_id DESC", where: "WHERE rental_duration=@0", args: 5)).ToListAsync();
-			Assert.AreEqual(191, allRows.Count);
-			int previous = int.MaxValue;
-			foreach(var r in allRows)
-			{
-				int current = r.film_id;
-				Assert.IsTrue(current <= previous);
-				previous = current;
-			}
-		}
+        [Test]
+        public async Task All_WhereClause_OrderBy()
+        {
+            var film = new Film(ProviderName);
+            var allRows = await (await film.AllAsync(orderBy: "film_id DESC", where: "WHERE rental_duration=@0", args: 5)).ToListAsync();
+            Assert.AreEqual(191, allRows.Count);
+            int previous = int.MaxValue;
+            foreach (var r in allRows)
+            {
+                int current = r.film_id;
+                Assert.IsTrue(current <= previous);
+                previous = current;
+            }
+        }
 
 
-		[Test]
-		public async Task All_WhereSpecification_ColumnsSpecification()
-		{
-			var film = new Film(ProviderName);
-			var allRows = await (await film.AllAsync(columns: "film_id as FILMID, description, language_id", where: "WHERE rental_duration=@0", args: 5)).ToListAsync();
-			Assert.AreEqual(191, allRows.Count);
-			var firstRow = (IDictionary<string, object>)allRows[0];
-			Assert.AreEqual(3, firstRow.Count);
-			Assert.IsTrue(firstRow.ContainsKey("FILMID"));
-			Assert.IsTrue(firstRow.ContainsKey("description"));
-			Assert.IsTrue(firstRow.ContainsKey("language_id"));
-		}
+        [Test]
+        public async Task All_WhereClause_Columns()
+        {
+            var film = new Film(ProviderName);
+            var allRows = await (await film.AllAsync(columns: "film_id as FILMID, description, language_id", where: "WHERE rental_duration=@0", args: 5)).ToListAsync();
+            Assert.AreEqual(191, allRows.Count);
+            var firstRow = (IDictionary<string, object>)allRows[0];
+            Assert.AreEqual(3, firstRow.Count);
+            Assert.IsTrue(firstRow.ContainsKey("FILMID"));
+            Assert.IsTrue(firstRow.ContainsKey("description"));
+            Assert.IsTrue(firstRow.ContainsKey("language_id"));
+        }
 
 
-		[Test]
-		public async Task All_WhereSpecification_ColumnsSpecification_LimitSpecification()
-		{
-			var film = new Film(ProviderName);
-			var allRows = await (await film.AllAsync(limit: 2, columns: "film_id as FILMID, description, language_id", where: "WHERE rental_duration=@0", args: 5)).ToListAsync();
-			Assert.AreEqual(2, allRows.Count);
-			var firstRow = (IDictionary<string, object>)allRows[0];
-			Assert.AreEqual(3, firstRow.Count);
-			Assert.IsTrue(firstRow.ContainsKey("FILMID"));
-			Assert.IsTrue(firstRow.ContainsKey("description"));
-			Assert.IsTrue(firstRow.ContainsKey("language_id"));
-		}
+        [Test]
+        public async Task All_WhereClause_Columns_Limit()
+        {
+            var film = new Film(ProviderName);
+            var allRows = await (await film.AllAsync(limit: 2, columns: "film_id as FILMID, description, language_id", where: "WHERE rental_duration=@0", args: 5)).ToListAsync();
+            Assert.AreEqual(2, allRows.Count);
+            var firstRow = (IDictionary<string, object>)allRows[0];
+            Assert.AreEqual(3, firstRow.Count);
+            Assert.IsTrue(firstRow.ContainsKey("FILMID"));
+            Assert.IsTrue(firstRow.ContainsKey("description"));
+            Assert.IsTrue(firstRow.ContainsKey("language_id"));
+        }
+
+
+        [Test]
+        public async Task All_WhereParams()
+        {
+            var film = new Film(ProviderName);
+            var allRows = await (await film.AllAsync(new { rental_duration = 5})).ToListAsync();
+            Assert.AreEqual(191, allRows.Count);
+        }
+
+
+        [Test]
+        public async Task All_WhereParams_OrderBy()
+        {
+            var film = new Film(ProviderName);
+            var allRows = await (await film.AllAsync(orderBy: "film_id DESC", whereParams: new { rental_duration = 5 })).ToListAsync();
+            Assert.AreEqual(191, allRows.Count);
+            int previous = int.MaxValue;
+            foreach (var r in allRows)
+            {
+                int current = r.film_id;
+                Assert.IsTrue(current <= previous);
+                previous = current;
+            }
+        }
+
+
+        [Test]
+        public async Task All_WhereParams_Columns()
+        {
+            var film = new Film(ProviderName);
+            var allRows = await (await film.AllAsync(columns: "film_id as FILMID, description, language_id", whereParams: new { rental_duration = 5 })).ToListAsync();
+            Assert.AreEqual(191, allRows.Count);
+            var firstRow = (IDictionary<string, object>)allRows[0];
+            Assert.AreEqual(3, firstRow.Count);
+            Assert.IsTrue(firstRow.ContainsKey("FILMID"));
+            Assert.IsTrue(firstRow.ContainsKey("description"));
+            Assert.IsTrue(firstRow.ContainsKey("language_id"));
+        }
+
+
+        [Test]
+        public async Task All_WhereParams_Columns_Limit()
+        {
+            var film = new Film(ProviderName);
+            var allRows = await (await film.AllAsync(limit: 2, columns: "film_id as FILMID, description, language_id", whereParams: new { rental_duration = 5 })).ToListAsync();
+            Assert.AreEqual(2, allRows.Count);
+            var firstRow = (IDictionary<string, object>)allRows[0];
+            Assert.AreEqual(3, firstRow.Count);
+            Assert.IsTrue(firstRow.ContainsKey("FILMID"));
+            Assert.IsTrue(firstRow.ContainsKey("description"));
+            Assert.IsTrue(firstRow.ContainsKey("language_id"));
+        }
+
+
+        [Test]
+        public async Task All_WhereParamsKey_ThrowsInvalidOperationException()
+        {
+            var ex = Assert.ThrowsAsync<InvalidOperationException>(async () => {
+                var film = new Film(ProviderName);
+                var allRows = await (await film.AllAsync(limit: 2, columns: "film_id as FILMID, description, language_id", whereParams: 5)).ToListAsync();
+            });
+            Assert.AreEqual("whereParams in AllAsync(...) should contain names and values but it contained values only. If you want to get a single item by its primary key use SingleAsync(...) instead.", ex.Message);
+        }
 
 
 #if DYNAMIC_METHODS

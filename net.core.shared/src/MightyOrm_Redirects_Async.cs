@@ -993,7 +993,7 @@ namespace Mighty
 		/// <returns></returns>
 		/// <remarks>
 		/// DbConnection coming early (not just before args) in this one case is really useful, as it avoids ambiguity between
-		/// the <see cref="columns" /> and <see cref="orderBy" /> strings and optional string args.
+		/// the `columns` and `orderBy` strings and optional string args.
 		/// </remarks>
 		override public async Task<T> SingleAsync(string where,
 			DbConnection connection = null,
@@ -1056,6 +1056,26 @@ namespace Mighty
 		{
 			return await AllWithParamsAsync(cancellationToken, where, orderBy, columns, limit, args: args).ConfigureAwait(false);
 		}
+
+        override public async Task<IAsyncEnumerable<T>> AllAsync(
+            object whereParams = null, string orderBy = null, string columns = null, int limit = 0)
+        {
+            return await AllAsync(CancellationToken.None, whereParams, orderBy, columns, limit);
+        }
+        override public async Task<IAsyncEnumerable<T>> AllAsync(
+            CancellationToken cancellationToken,
+            object whereParams = null, string orderBy = null, string columns = null, int limit = 0)
+        {
+            Tuple<string, object, object[]> retval = GetWhereSpecFromWhereParams(whereParams);
+            if (retval.Item3 != null)
+            {
+                throw new InvalidOperationException($"{nameof(whereParams)} in {nameof(AllAsync)}(...) should contain names and values but it contained values only. If you want to get a single item by its primary key use {nameof(SingleAsync)}(...) instead.");
+            }
+            return await AllWithParamsAsync(
+                cancellationToken,
+                where: retval.Item1, inParams: retval.Item2,
+                orderBy: orderBy, columns: columns, limit: limit);
+        }
 
         /// <summary>
         /// Table-specific paging; there is also a data wrapper version of paging <see cref="PagedFromSelect"/>.
