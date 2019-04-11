@@ -88,24 +88,25 @@ namespace Mighty
             object inParams,
 			params object[] args)
 		{
-			var values = new StringBuilder();
-			var parameters = new NameValueTypeEnumerator(partialItem);
-			var filteredItem = new ExpandoObject();
-			var toDict = filteredItem.ToDictionary();
-			int i = 0;
-			foreach (var paramInfo in parameters)
+			var updateValues = new StringBuilder();
+			var partialItemParameters = new NameValueTypeEnumerator(partialItem);
+            // TO DO: Test that this combinedInputParams approach works
+            var combinedInputParams = inParams?.ToExpando() ?? new ExpandoObject();
+            var toDict = combinedInputParams.ToDictionary();
+            int i = 0;
+			foreach (var paramInfo in partialItemParameters)
 			{
 				if (!IsKey(paramInfo.Name))
 				{
-					if (i > 0) values.Append(", ");
-					values.Append(paramInfo.Name).Append(" = ").Append(Plugin.PrefixParameterName(paramInfo.Name));
+					if (i > 0) updateValues.Append(", ");
+					updateValues.Append(paramInfo.Name).Append(" = ").Append(Plugin.PrefixParameterName(paramInfo.Name));
 					i++;
 
 					toDict.Add(paramInfo.Name, paramInfo.Value);
 				}
 			}
-			var sql = Plugin.BuildUpdate(CheckGetTableName(), values.ToString(), where);
-			var retval = ExecuteWithParams(sql, args: args, inParams: filteredItem, outParams: new { __rowcount = new RowCount() }, connection: connection);
+			var sql = Plugin.BuildUpdate(CheckGetTableName(), updateValues.ToString(), where);
+			var retval = ExecuteWithParams(sql, args: args, inParams: combinedInputParams, outParams: new { __rowcount = new RowCount() }, connection: connection);
             return retval.__rowcount;
 		}
 
@@ -126,25 +127,26 @@ namespace Mighty
 			return Execute(sql, connection, args);
 		}
 
-		/// <summary>
-		/// Perform CRUD action for the item or items in the params list.
-		/// For insert only, the PK of the first item is returned.
-		/// For all others, the number of items affected is returned.
-		/// </summary>
-		/// <param name="action">The ORM action</param>
-		/// <param name="connection">The DbConnection</param>
-		/// <param name="items">The item or items</param>
-		/// <returns></returns>
-		/// <remarks>Here and in <see cref="UpsertItemPK"/> we always return the modified original object, where possible</remarks>
-		internal int ActionOnItems(OrmAction action, DbConnection connection, IEnumerable<object> items, out T insertedItem)
+        /// <summary>
+        /// Perform CRUD action for the item or items in the params list.
+        /// For insert only, the PK of the first item is returned.
+        /// For all others, the number of items affected is returned.
+        /// </summary>
+        /// <param name="action">The ORM action</param>
+        /// <param name="connection">The DbConnection</param>
+        /// <param name="items">The item or items</param>
+		/// <param name="insertedItem">The final item that got inserted; null if not an <see cref="OrmAction.Insert"/> operation or no item was inserted</param>
+        /// <returns></returns>
+        /// <remarks>Here and in <see cref="UpsertItemPK"/> we always return the modified original object, where possible</remarks>
+        internal int ActionOnItems(OrmAction action, DbConnection connection, IEnumerable<object> items, out T insertedItem)
 		{
 			insertedItem = null;
 			int count = 0;
 			int affected = 0;
-			Prevalidate(items, action);
+			ValidateAction(items, action);
 			foreach (var item in items)
 			{
-				if (Validator.PerformingAction(item, action))
+				if (Validator.ShouldPerformAction(item, action))
 				{
 					var _inserted = ActionOnItem(action, item, connection, count);
 					if (count == 0 && _inserted != null && action == OrmAction.Insert)
@@ -160,7 +162,7 @@ namespace Mighty
 						}
 						insertedItem = (T)_inserted;
 					}
-					Validator.PerformedAction(item, action);
+					Validator.HasPerformedAction(item, action);
 					affected++;
 				}
 				count++;
@@ -511,7 +513,7 @@ namespace Mighty
 					throw new InvalidOperationException("All or no primary key fields must start with their default values in item for " + action);
 				}
 			}
-			DbCommand command = null;
+			DbCommand command;
 			OrmAction originalAction = action;
 			if (action == OrmAction.Save)
 			{

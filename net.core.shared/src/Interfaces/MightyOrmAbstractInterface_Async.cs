@@ -1,4 +1,5 @@
 #if !NET40
+using System.Collections;
 using System.Collections.Async;
 using System.Collections.Generic;
 using System.Data;
@@ -917,7 +918,7 @@ namespace Mighty.Mocking
 		/// Insert single item, returning the item sent in but with PK populated.
 		/// If you need all fields populated (i.e. you want to get back DB default values for non-PK fields), please create the item using New() before inserting it.
 		/// </summary>
-		/// <param name="items">The item to insert, in any reasonable format (for MightyOrm&lt;T&gt; this includes, but is not limited to, in instance of type T)</param>
+		/// <param name="item">The item to insert, in any reasonable format (for MightyOrm&lt;T&gt; this includes, but is not limited to, in instance of type T)</param>
 		/// <returns>The inserted item</returns>
 		abstract public Task<T> InsertAsync(object item);
 		abstract public Task<T> InsertAsync(object item, CancellationToken cancellationToken);

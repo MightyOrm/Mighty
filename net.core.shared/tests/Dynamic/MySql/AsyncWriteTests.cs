@@ -19,7 +19,7 @@ namespace Mighty.Dynamic.Tests.MySql
 #endif
 	public class AsyncWriteTests
 	{
-		private string ProviderName;
+		private readonly string ProviderName;
 
 		/// <summary>
 		/// Initialise tests for given provider
@@ -70,14 +70,14 @@ namespace Mighty.Dynamic.Tests.MySql
 			// update it, with a better description
 			inserted.Description = "This is all jolly marvellous";
 			Assert.AreEqual(1, await categories.UpdateAsync(inserted), "Update should have affected 1 row");
-			var updatedRow = await categories.SingleAsync(new { CategoryID = inserted.CategoryID });
+			var updatedRow = await categories.SingleAsync(new { inserted.CategoryID });
 			Assert.IsNotNull(updatedRow);
 			Assert.AreEqual(inserted.CategoryID, Convert.ToInt32(updatedRow.CategoryID)); // convert from uint
 			Assert.AreEqual(inserted.Description, updatedRow.Description);
 			// reset description to NULL
 			updatedRow.Description = null;
 			Assert.AreEqual(1, await categories.UpdateAsync(updatedRow), "Update should have affected 1 row");
-			var newUpdatedRow = await categories.SingleAsync(new { CategoryID = updatedRow.CategoryID });
+			var newUpdatedRow = await categories.SingleAsync(new { updatedRow.CategoryID });
 			Assert.IsNotNull(newUpdatedRow);
 			Assert.AreEqual(updatedRow.CategoryID, newUpdatedRow.CategoryID);
 			Assert.AreEqual(updatedRow.Description, newUpdatedRow.Description);
@@ -100,7 +100,7 @@ namespace Mighty.Dynamic.Tests.MySql
 			for(int i = 0; i < 4; i++)
 			{
 				var category = i % 2 == 0 ? insertedCategory1 : insertedCategory2;
-				var p = await products.InsertAsync(new { ProductName = "Prod" + i, CategoryID = category.CategoryID });
+				var p = await products.InsertAsync(new { ProductName = "Prod" + i, category.CategoryID });
 				Assert.IsTrue(p.ProductID > 0);
 			}
 			var allCat1Products = await (await products.AllAsync(where: "WHERE CategoryID=@0", args: category1ID)).ToArrayAsync();

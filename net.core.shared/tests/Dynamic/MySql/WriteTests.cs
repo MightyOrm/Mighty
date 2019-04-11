@@ -17,7 +17,7 @@ namespace Mighty.Dynamic.Tests.MySql
 #endif
 	public class WriteTests
 	{
-		private string ProviderName;
+		private readonly string ProviderName;
 
 		/// <summary>
 		/// Initialise tests for given provider
@@ -68,14 +68,14 @@ namespace Mighty.Dynamic.Tests.MySql
 			// update it, with a better description
 			inserted.Description = "This is all jolly marvellous";
 			Assert.AreEqual(1, categories.Update(inserted), "Update should have affected 1 row");
-			var updatedRow = categories.Single(new { CategoryID = inserted.CategoryID });
+			var updatedRow = categories.Single(new { inserted.CategoryID });
 			Assert.IsNotNull(updatedRow);
 			Assert.AreEqual(inserted.CategoryID, Convert.ToInt32(updatedRow.CategoryID)); // convert from uint
 			Assert.AreEqual(inserted.Description, updatedRow.Description);
 			// reset description to NULL
 			updatedRow.Description = null;
 			Assert.AreEqual(1, categories.Update(updatedRow), "Update should have affected 1 row");
-			var newUpdatedRow = categories.Single(new { CategoryID = updatedRow.CategoryID });
+			var newUpdatedRow = categories.Single(new { updatedRow.CategoryID });
 			Assert.IsNotNull(newUpdatedRow);
 			Assert.AreEqual(updatedRow.CategoryID, newUpdatedRow.CategoryID);
 			Assert.AreEqual(updatedRow.Description, newUpdatedRow.Description);
@@ -98,7 +98,7 @@ namespace Mighty.Dynamic.Tests.MySql
 			for(int i = 0; i < 4; i++)
 			{
 				var category = i % 2 == 0 ? insertedCategory1 : insertedCategory2;
-				var p = products.Insert(new { ProductName = "Prod" + i, CategoryID = category.CategoryID });
+				var p = products.Insert(new { ProductName = "Prod" + i, category.CategoryID });
 				Assert.IsTrue(p.ProductID > 0);
 			}
 			var allCat1Products = products.All(where: "WHERE CategoryID=@0", args: category1ID).ToArray();

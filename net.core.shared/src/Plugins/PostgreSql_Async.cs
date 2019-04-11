@@ -13,10 +13,11 @@ namespace Mighty.Plugins
         /// <summary>
         /// Dereference cursors in more or less the way which used to be supported within Npgsql itself, only now considerably improved from that removed, partial support.
         /// </summary>
-        /// <param name="cmd">The command.</param>
-        /// <param name="Connection">The connection - required for deferencing.</param>
-        /// <param name="db">The parent MightyOrm (or subclass) - required to get at the factory for deferencing and config vaules.</param>
-        /// <returns>The reader, dereferenced if needed.</returns>
+        /// <param name="cmd">The command</param>
+        /// <param name="behavior">The required command behaviour</param>
+        /// <param name="Connection">The connection - required for deferencing</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns>The reader, dereferenced if needed</returns>
         /// <remarks>
         /// https://github.com/npgsql/npgsql/issues/438
         /// http://stackoverflow.com/questions/42292341/

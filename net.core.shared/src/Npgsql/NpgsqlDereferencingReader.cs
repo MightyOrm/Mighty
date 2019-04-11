@@ -11,18 +11,18 @@ namespace Mighty.Npgsql
 	// Note that Oracle basically does the equivalent of this in the driver.
 	internal partial class NpgsqlDereferencingReader : DbDataReader, IDisposable
 	{
-		private DbConnection Connection;
-		private dynamic Mighty;
-		private int FetchSize;
+		private readonly DbConnection Connection;
+		private readonly dynamic Mighty;
+		private readonly int FetchSize;
 
 		private DbDataReader fetchReader = null; // current FETCH reader
-		private List<string> Cursors = new List<string>();
+		private readonly List<string> Cursors = new List<string>();
 		private int Index = 0;
 		private string Cursor = null;
 		private int Count; // # read on current FETCH
 
-		private DbDataReader originalReader;
-		private CommandBehavior Behavior;
+		private readonly DbDataReader originalReader;
+		private readonly CommandBehavior Behavior;
 
 		/// <summary>
 		/// Create a safe, sensible dereferencing reader; we have already checked that there are at least some cursors to dereference at this point.
@@ -31,7 +31,6 @@ namespace Mighty.Npgsql
 		/// <param name="behavior">The required <see cref="CommandBehavior"/></param>
 		/// <param name="connection">The connection to use.</param>
 		/// <param name="mighty">The owning Mighty instance.</param>
-		/// <param name="cancellationToken">Async <see cref="CancellationToken"/>.</param>
 		/// <remarks>
 		/// FETCH ALL is genuinely useful in some situations (e.g. if using (abusing?) cursors to return small or medium sized multiple result
 		/// sets then we can and do save one round trip to the database overall: n cursors round trips, rather than n cursors plus one), but since

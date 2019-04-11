@@ -20,47 +20,49 @@ namespace Mighty.Plugins
 		/// </summary>
 		public dynamic Mighty { get; set; }
 
-		#region Provider support
-		/// <summary>
-		/// Returns the provider factory class name for the known provider(s) for this DB;
-		/// should simply return null if the plugin does not know that it can support the
-		/// named provider.
-		///
-		/// There is no C# syntax to enforce sub-classes of DatabasePlugin to provide a static method with this name,
-		/// but they must do so (failure to do so results in a runtime exception).
-		///
-		/// If you wan't to create a plugin for an unknown provider for a known database, subclass the existing plugin
-		/// for that database and provide your own implementation of just this method. Then either call
-		/// <see cref="DatabasePluginManager.RegisterPlugin"/> to register the plugin for use with extended connection
-		/// strings, or pass it to the MightyOrm constructor using your own sub-class of <see cref="ConnectionProvider"/>.
-		/// </summary>
-		/// <param name="loweredProviderName"></param>
-		/// <returns></returns>
-		static public string GetProviderFactoryClassName(string loweredProviderName)
+        #region Provider support
+#pragma warning disable IDE0060 // Remove unused parameter
+        /// <summary>
+        /// Returns the provider factory class name for the known provider(s) for this DB;
+        /// should simply return null if the plugin does not know that it can support the
+        /// named provider.
+        ///
+        /// There is no C# syntax to enforce sub-classes of DatabasePlugin to provide a static method with this name,
+        /// but they must do so (failure to do so results in a runtime exception).
+        ///
+        /// If you wan't to create a plugin for an unknown provider for a known database, subclass the existing plugin
+        /// for that database and provide your own implementation of just this method. Then either call
+        /// <see cref="DatabasePluginManager.RegisterPlugin"/> to register the plugin for use with extended connection
+        /// strings, or pass it to the MightyOrm constructor using your own sub-class of <see cref="ConnectionProviders.ConnectionProvider"/>.
+        /// </summary>
+        /// <param name="loweredProviderName"></param>
+        /// <returns></returns>
+        static public string GetProviderFactoryClassName(string loweredProviderName)
 		{
 			// NB because of the way static methods work in C#, this method can never be found and called from
 			// a sub-class.
 			throw new InvalidOperationException(string.Format("{0} should only ever be called on sub-classes of {1}",
 				nameof(GetProviderFactoryClassName), typeof(PluginBase)));
 		}
-		#endregion
+#pragma warning restore IDE0060
+        #endregion
 
-		#region SQL
-		/// <summary>
-		/// SELECT pattern, using either LIMIT or TOP
-		/// </summary>
-		/// <param name="columns"></param>
-		/// <param name="tableName"></param>
-		/// <param name="where"></param>
-		/// <param name="orderBy"></param>
-		/// <param name="limit"></param>
-		/// <returns></returns>
-		/// <remarks>
-		/// It makes sense to handle this separately from paging, because the semantics of LIMIT/TOP are simpler than
-		/// the semantics of LIMIT OFFSET/ROW_NUMBER() queries, in particular a pure LIMIT/TOP query doesn't require
-		/// an explicit ORDER BY.
-		/// </remarks>
-		abstract public string BuildSelect(string columns, string tableName, string where, string orderBy = null, int limit = 0);
+        #region SQL
+        /// <summary>
+        /// SELECT pattern, using either LIMIT or TOP
+        /// </summary>
+        /// <param name="columns"></param>
+        /// <param name="tableName"></param>
+        /// <param name="where"></param>
+        /// <param name="orderBy"></param>
+        /// <param name="limit"></param>
+        /// <returns></returns>
+        /// <remarks>
+        /// It makes sense to handle this separately from paging, because the semantics of LIMIT/TOP are simpler than
+        /// the semantics of LIMIT OFFSET/ROW_NUMBER() queries, in particular a pure LIMIT/TOP query doesn't require
+        /// an explicit ORDER BY.
+        /// </remarks>
+        abstract public string BuildSelect(string columns, string tableName, string where, string orderBy = null, int limit = 0);
 
 		/// <summary>
 		/// TOP SELECT pattern

@@ -14,6 +14,7 @@ using Mighty.Profiling;
 using Mighty.Validation;
 using System;
 using System.Dynamic;
+using System.Collections;
 
 // <summary>
 // MightyOrm_Redirects.cs holds methods in Mighty than can be very simply defined in terms of other methods.
@@ -1241,13 +1242,21 @@ namespace Mighty
 		/// Insert single item, returning the item sent in but with PK populated.
 		/// If you need all fields populated (i.e. you want to get back DB default values for non-PK fields), please create the item using New() before inserting it.
 		/// </summary>
-		/// <param name="items">The item to insert, in any reasonable format (for MightyOrm&lt;T&gt; this includes, but is not limited to, in instance of type T)</param>
+		/// <param name="item">The item to insert, in any reasonable format (for MightyOrm&lt;T&gt; this includes, but is not limited to, in instance of type T)</param>
 		/// <returns>The inserted item</returns>
 		override public async Task<T> InsertAsync(object item)
 		{
 			return (await ActionOnItemsWithOutputAsync(OrmAction.Insert, null, new object[] { item }).ConfigureAwait(false)).Item2;
 		}
-		override public async Task<T> InsertAsync(object item, CancellationToken cancellationToken)
+
+        /// <summary>
+        /// Insert single item, returning the item sent in but with PK populated.
+        /// If you need all fields populated (i.e. you want to get back DB default values for non-PK fields), please create the item using New() before inserting it.
+        /// </summary>
+        /// <param name="item">The item to insert, in any reasonable format (for MightyOrm&lt;T&gt; this includes, but is not limited to, in instance of type T)</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns>The inserted item</returns>
+        override public async Task<T> InsertAsync(object item, CancellationToken cancellationToken)
 		{
 			return (await ActionOnItemsWithOutputAsync(OrmAction.Insert, null, new object[] { item }, cancellationToken).ConfigureAwait(false)).Item2;
 		}

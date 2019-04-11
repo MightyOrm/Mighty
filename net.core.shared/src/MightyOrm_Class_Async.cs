@@ -155,24 +155,25 @@ namespace Mighty
             object inParams,
 			params object[] args)
 		{
-			var values = new StringBuilder();
-			var parameters = new NameValueTypeEnumerator(partialItem);
-			var filteredItem = new ExpandoObject();
-			var toDict = filteredItem.ToDictionary();
+			var setValues = new StringBuilder();
+			var partialItemParameters = new NameValueTypeEnumerator(partialItem);
+            // TO DO: Test that this combinedInputParams approach works
+            var combinedInputParams = inParams?.ToExpando() ?? new ExpandoObject();
+			var toDict = combinedInputParams.ToDictionary();
 			int i = 0;
-			foreach (var paramInfo in parameters)
+			foreach (var paramInfo in partialItemParameters)
 			{
 				if (!IsKey(paramInfo.Name))
 				{
-					if (i > 0) values.Append(", ");
-					values.Append(paramInfo.Name).Append(" = ").Append(Plugin.PrefixParameterName(paramInfo.Name));
+					if (i > 0) setValues.Append(", ");
+					setValues.Append(paramInfo.Name).Append(" = ").Append(Plugin.PrefixParameterName(paramInfo.Name));
 					i++;
 
 					toDict.Add(paramInfo.Name, paramInfo.Value);
 				}
 			}
-			var sql = Plugin.BuildUpdate(CheckGetTableName(), values.ToString(), where);
-			var retval = await ExecuteWithParamsAsync(sql, cancellationToken, args: args, inParams: filteredItem, outParams: new { __rowcount = new RowCount() }, connection: connection).ConfigureAwait(false);
+			var sql = Plugin.BuildUpdate(CheckGetTableName(), setValues.ToString(), where);
+			var retval = await ExecuteWithParamsAsync(sql, cancellationToken, args: args, inParams: combinedInputParams, outParams: new { __rowcount = new RowCount() }, connection: connection).ConfigureAwait(false);
             return retval.__rowcount;
 		}
 
@@ -222,10 +223,10 @@ namespace Mighty
 			T insertedItem = null;
 			int count = 0;
 			int affected = 0;
-			Prevalidate(items, action);
+			ValidateAction(items, action);
 			foreach (var item in items)
 			{
-				if (Validator.PerformingAction(item, action))
+				if (Validator.ShouldPerformAction(item, action))
 				{
 					var _inserted = await ActionOnItemAsync(action, item, connection, count, cancellationToken).ConfigureAwait(false);
 					if (count == 0 && _inserted != null && action == OrmAction.Insert)
@@ -241,7 +242,7 @@ namespace Mighty
 						}
 						insertedItem = (T)_inserted;
 					}
-					Validator.PerformedAction(item, action);
+					Validator.HasPerformedAction(item, action);
 					affected++;
 				}
 				count++;
@@ -456,11 +457,13 @@ namespace Mighty
 		{
 			return await QueryNWithParamsAsync<X>(command, CancellationToken.None, behavior, connection, outerReader);
 		}
-		/// <summary>
-		/// Yield return values for Query or QueryMultiple.
-		/// Use with &lt;T&gt; for single or &lt;IEnumerable&lt;T&gt;&gt; for multiple.
-		/// </summary>
-		override protected async Task<IAsyncEnumerable<X>> QueryNWithParamsAsync<X>(DbCommand command, CancellationToken cancellationToken, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, DbDataReader outerReader = null)
+
+#pragma warning disable CS1998
+        /// <summary>
+        /// Yield return values for Query or QueryMultiple.
+        /// Use with &lt;T&gt; for single or &lt;IEnumerable&lt;T&gt;&gt; for multiple.
+        /// </summary>
+        override protected async Task<IAsyncEnumerable<X>> QueryNWithParamsAsync<X>(DbCommand command, CancellationToken cancellationToken, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, DbDataReader outerReader = null)
 		{
 			return new AsyncEnumerable<X>(async yield => {
                 using (command)
@@ -583,30 +586,31 @@ namespace Mighty
                 }
             });
 		}
-		#endregion
+#pragma warning restore CS1998
+        #endregion
 
-		#region ORM actions
-		/// <summary>
-		/// Save, Insert, Update or Delete an item.
-		/// Save means: update item if PK field or fields are present and at non-default values, insert otherwise.
-		/// On inserting an item with a single PK and a sequence/identity 1) the PK of the new item is returned;
-		/// 2) the PK field of the item itself is a) created if not present and b) filled with the new PK value,
-		/// where this is possible (e.g. fields can't be created on POCOs, property values can't be set on immutable
-		/// items such as anonymously typed objects).
-		/// </summary>
-		/// <param name="action">Save, Insert, Update or Delete</param>
-		/// <param name="item">item</param>
-		/// <param name="connection">connection to use</param>
-		/// <param name="outerCount">when zero we are on the first item in the loop</param>
-		/// <returns>The PK of the inserted item, iff a new auto-generated PK value is available.</returns>
-		/// <remarks>
-		/// It *is* technically possibly (by writing to private backing fields) to change the field value in anonymously
-		/// typed objects - http://stackoverflow.com/a/30242237/795690 - and bizarrely VB supports writing to fields in
-		/// anonymously typed objects natively even though C# doesn't - http://stackoverflow.com/a/9065678/795690 (which
-		/// sounds as if it means that if this part of the library was written in VB then doing this would be officially
-		/// supported? not quite sure, that assumes that the different implementations of anonymous types can co-exist)
-		/// </remarks>
-		private async Task<object> ActionOnItemAsync(OrmAction action, object item, DbConnection connection, int outerCount)
+        #region ORM actions
+        /// <summary>
+        /// Save, Insert, Update or Delete an item.
+        /// Save means: update item if PK field or fields are present and at non-default values, insert otherwise.
+        /// On inserting an item with a single PK and a sequence/identity 1) the PK of the new item is returned;
+        /// 2) the PK field of the item itself is a) created if not present and b) filled with the new PK value,
+        /// where this is possible (e.g. fields can't be created on POCOs, property values can't be set on immutable
+        /// items such as anonymously typed objects).
+        /// </summary>
+        /// <param name="action">Save, Insert, Update or Delete</param>
+        /// <param name="item">item</param>
+        /// <param name="connection">connection to use</param>
+        /// <param name="outerCount">when zero we are on the first item in the loop</param>
+        /// <returns>The PK of the inserted item, iff a new auto-generated PK value is available.</returns>
+        /// <remarks>
+        /// It *is* technically possibly (by writing to private backing fields) to change the field value in anonymously
+        /// typed objects - http://stackoverflow.com/a/30242237/795690 - and bizarrely VB supports writing to fields in
+        /// anonymously typed objects natively even though C# doesn't - http://stackoverflow.com/a/9065678/795690 (which
+        /// sounds as if it means that if this part of the library was written in VB then doing this would be officially
+        /// supported? not quite sure, that assumes that the different implementations of anonymous types can co-exist)
+        /// </remarks>
+        private async Task<object> ActionOnItemAsync(OrmAction action, object item, DbConnection connection, int outerCount)
 		{
 			return await ActionOnItemAsync(action, item, connection, outerCount, CancellationToken.None);
 		}
@@ -686,7 +690,7 @@ namespace Mighty
 					throw new InvalidOperationException("All or no primary key fields must start with their default values in item for " + action);
 				}
 			}
-			DbCommand command = null;
+			DbCommand command;
 			OrmAction originalAction = action;
 			if (action == OrmAction.Save)
 			{

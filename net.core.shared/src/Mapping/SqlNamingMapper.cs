@@ -26,7 +26,7 @@ namespace Mighty.Mapping
 		/// You could override this to establish, for example, the convention of using _ to separate schema/owner from table (just replace "_" with
 		/// "." and return), or maybe to use the C# namespace structure for the same purpose. By default the unmodified class name is used.
 		/// </summary>
-		/// <param name="type">Will be sent the type of your data class</param>
+		/// <param name="className">Will be sent the class name of your data class</param>
 		/// <returns></returns>
 		/// <remarks>TO DO: should be sent type, so it can look at namespace, etc.</remarks>
 		virtual public string GetTableNameFromClassName(string className) { return className; }
@@ -34,8 +34,8 @@ namespace Mighty.Mapping
 		/// <summary>
 		/// Get database column name for C# field name. By default the unmodified property name is used.
 		/// </summary>
-		/// <param name="type"></param>
-		/// <param name="property"></param>
+		/// <param name="classType"></param>
+		/// <param name="propertyName"></param>
 		/// <returns></returns>
 		/// <remarks>The field can be from an ExpandoObject, so it might not have a PropertyInfo - which probably means we need typed and untyped mappers</remarks>
 		virtual public string GetColumnNameFromPropertyName(Type classType, string propertyName) { return propertyName; }
@@ -43,7 +43,7 @@ namespace Mighty.Mapping
 		/// <summary>
 		/// Get primary key field from class. Note that the C# field name (or names) should be returned.
 		/// </summary>
-		/// <param name="type"></param>
+		/// <param name="className"></param>
 		/// <returns></returns>
 		/// <remarks>TO DO: should be sent type, so it can look at namespace, etc.</remarks>
 		virtual public string GetPrimaryKeyFieldFromClassName(string className) { return null; }

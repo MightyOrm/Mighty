@@ -26,21 +26,23 @@ namespace Mighty
 	/// </summary>
 	public class MightyOrm : MightyOrm<dynamic>
 	{
-		#region Constructor
-		/// <summary>
-		/// Constructor for pure dynamic version.
-		/// </summary>
-		/// <param name="connectionString">
-		/// Connection string with support for additional, non-standard "ProviderName=" property.
-		/// On .NET Framework but not .NET Core this can also, optionally, be a config file connection string name (in which case the provider name is specified
-		/// as an additional config file attribute next to the connection string).
-		/// </param>
-		/// <param name="tableName">Table name</param>
-		/// <param name="primaryKeyFields">Primary key field name; or comma separated list of names for compound PK</param>
-		/// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
-		/// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
-		/// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
+        #region Constructor
+#if KEY_VALUES
 		/// <param name="valueColumn">Specify the value field, for lookup tables</param>
+#endif
+        /// <summary>
+        /// Constructor for pure dynamic version.
+        /// </summary>
+        /// <param name="connectionString">
+        /// Connection string with support for additional, non-standard "ProviderName=" property.
+        /// On .NET Framework but not .NET Core this can also, optionally, be a config file connection string name (in which case the provider name is specified
+        /// as an additional config file attribute next to the connection string).
+        /// </param>
+        /// <param name="tableName">Table name</param>
+        /// <param name="primaryKeyFields">Primary key field name; or comma separated list of names for compound PK</param>
+        /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
+        /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
+        /// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
 		/// <param name="columns">Default column list</param>
 		/// <param name="validator">Optional validator</param>
 		/// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
@@ -107,28 +109,30 @@ namespace Mighty
 
 	public partial class MightyOrm<T> : MightyOrmAbstractInterface<T> where T : class, new()
 	{
-#region Constructor
-		/// <summary>
-		/// Strongly typed MightyOrm constructor
-		/// </summary>
-		/// <param name="connectionString">
-		/// Connection string with support for additional, non-standard "ProviderName=" property.
-		/// On .NET Framework but not .NET Core this can also, optionally, be a config file connection string name (in which case the provider name is specified
-		/// as an additional config file attribute next to the connection string).
-		/// </param>
-		/// <param name="tableName">Override the table name (defaults to using T class name)</param>
-		/// <param name="primaryKeyFields">Primary key field name; or comma separated list of names for compound PK</param>
-		/// <param name="valueColumn">Specify the value field, for lookup tables</param>
-		/// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
-		/// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
-		/// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
-		/// <param name="columns">Default column list (specifies C# names rather than SQL names, if you have defined a mapper)</param>
-		/// <param name="validator">Optional validator</param>
-		/// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
-		/// <param name="profiler">Optional SQL profiler</param>
-		/// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyOrm)</param>
-		/// <param name="propertyBindingFlags">Specify which properties should be managed by the ORM</param>
-		public MightyOrm(string connectionString = null,
+        #region Constructor
+#if KEY_VALUES
+        /// <param name="valueColumn">Specify the value field, for lookup tables</param>
+#endif
+        /// <summary>
+        /// Strongly typed MightyOrm constructor
+        /// </summary>
+        /// <param name="connectionString">
+        /// Connection string with support for additional, non-standard "ProviderName=" property.
+        /// On .NET Framework but not .NET Core this can also, optionally, be a config file connection string name (in which case the provider name is specified
+        /// as an additional config file attribute next to the connection string).
+        /// </param>
+        /// <param name="tableName">Override the table name (defaults to using T class name)</param>
+        /// <param name="primaryKeyFields">Primary key field name; or comma separated list of names for compound PK</param>
+        /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
+        /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
+        /// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
+        /// <param name="columns">Default column list (specifies C# names rather than SQL names, if you have defined a mapper)</param>
+        /// <param name="validator">Optional validator</param>
+        /// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
+        /// <param name="profiler">Optional SQL profiler</param>
+        /// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyOrm)</param>
+        /// <param name="propertyBindingFlags">Specify which properties should be managed by the ORM</param>
+        public MightyOrm(string connectionString = null,
 						 string tableName = null,
 						 string primaryKeyFields = null,
 #if KEY_VALUES
@@ -391,7 +395,7 @@ namespace Mighty
 		// fields for thread-safe initialization of TableMetaData
 		// (done once or less per instance of MightyOrm, so not static)
 		private ConnectionState _initState; // closed (default value), connecting, open
-		private object _lockobj = new object();
+		private readonly object _lockobj = new object();
 
 		private void InitializeTableMetaData()
 		{
@@ -587,12 +591,12 @@ namespace Mighty
 		}
 #endif
 
-		/// <summary>
-		/// Return the single (non-compound) primary key name, with meaningful exception if there isn't one.
-		/// </summary>
-		/// <param name="i"></param>
-		/// <returns></returns>
-		protected string CheckGetKeyName(string message)
+        /// <summary>
+        /// Return the single (non-compound) primary key name, or throw <see cref="InvalidOperationException"/> with the provided message if there isn't one.
+        /// </summary>
+        /// <param name="message">Exception message to use on failure</param>
+        /// <returns></returns>
+        protected string CheckGetKeyName(string message)
 		{
 			if (PrimaryKeyList.Count != 1)
 			{
@@ -601,12 +605,13 @@ namespace Mighty
 			return PrimaryKeyList[0];
 		}
 
-		/// <summary>
-		/// Return ith primary key name, with meaningful exception if too many requested.
-		/// </summary>
-		/// <param name="i"></param>
-		/// <returns></returns>
-		protected string CheckGetKeyName(int i, string message)
+        /// <summary>
+        /// Return ith primary key name, with meaningful exception if too many requested.
+        /// </summary>
+        /// <param name="i">i</param>
+		/// <param name="message">Meaningful exception message</param>
+        /// <returns></returns>
+        protected string CheckGetKeyName(int i, string message)
 		{
 			if (i >= PrimaryKeyList.Count)
 			{
@@ -630,11 +635,11 @@ namespace Mighty
 
 		/// <summary>
 		/// Checks that every item in the list is valid for the action to be undertaken.
-		/// Normally you should not need to override this, but override <see cref="IsValidForAction" /> instead.
+		/// Normally you should not need to override this, but override <see cref="Validator.Validate" /> instead.
 		/// </summary>
 		/// <param name="action">The ORM action</param>
 		/// <param name="items">The list of items. (Can be T, dynamic, or anything else with suitable name-value (and optional type) data in it.)</param>
-		virtual internal void Prevalidate(IEnumerable<object> items, OrmAction action)
+		virtual internal void ValidateAction(IEnumerable<object> items, OrmAction action)
 		{
 			if (Validator.Prevalidation == Prevalidation.Off)
 			{
@@ -646,7 +651,7 @@ namespace Mighty
 			foreach (var item in items)
 			{
 				int oldCount = Errors.Count;
-				Validator.ValidateForAction(item, action, Errors);
+				Validator.Validate(action, item, Errors);
 				if (Errors.Count > oldCount)
 				{
 					valid = false;
@@ -670,7 +675,7 @@ namespace Mighty
 			List<object> Errors = new List<object>();
 			if (Validator != null)
 			{
-				Validator.ValidateForAction(item, action, Errors);
+				Validator.Validate(action, item, Errors);
 			}
 			return Errors;
 		}
@@ -754,6 +759,9 @@ namespace Mighty
                 args).Item1;
         }
 
+// We are getting "IDE0059 Value assigned to 'hasRowCountParams' is never used" for this method
+// (at least in VS 2019 preview), but this is simply wrong; the value is returned and used.
+#pragma warning disable IDE0059 // Value assigned is never used
         /// <summary>
         /// Create command with named, typed, directional parameters.
         /// </summary>
@@ -773,14 +781,15 @@ namespace Mighty
 			AddNamedParams(command, returnParams, ParameterDirection.ReturnValue);
 			return new Tuple<DbCommand, bool>(command, hasRowCountParams);
 		}
+#pragma warning restore IDE0059
 
-		/// <summary>
-		/// Put all output and return parameter values into an expando.
-		/// Due to ADO.NET limitations, should only be called after disposing of any associated reader.
-		/// </summary>
-		/// <param name="cmd">The command</param>
-		/// <returns></returns>
-		override public dynamic ResultsAsExpando(DbCommand cmd)
+        /// <summary>
+        /// Put all output and return parameter values into an expando.
+        /// Due to ADO.NET limitations, should only be called after disposing of any associated reader.
+        /// </summary>
+        /// <param name="cmd">The command</param>
+        /// <returns></returns>
+        override public dynamic ResultsAsExpando(DbCommand cmd)
 		{
 			var e = new ExpandoObject();
 			var resultDictionary = e.ToDictionary();
@@ -814,9 +823,9 @@ namespace Mighty
                 }
             }
         }
-        #endregion
+#endregion
 
-        #region ORM actions
+#region ORM actions
         /// <summary>
         /// Create update command
         /// </summary>
@@ -931,16 +940,18 @@ namespace Mighty
 			return false;
 		}
 
-		/// <summary>
-		/// Is this the name of a PK field?
-		/// </summary>
-		/// <param name="fieldName">The name to check</param>
-		/// <returns></returns>
-		internal bool IsKey(string fieldName)
+#pragma warning disable IDE0059 // Value assigned is never used
+        /// <summary>
+        /// Is this the name of a PK field?
+        /// </summary>
+        /// <param name="fieldName">The name to check</param>
+        /// <returns></returns>
+        internal bool IsKey(string fieldName)
 		{
 			string canonicalKeyName;
 			return IsKey(fieldName, out canonicalKeyName);
 		}
+#pragma warning restore IDE0059
 #endregion
 
 #region Parameters

@@ -101,21 +101,21 @@ namespace Mighty.Plugins
 		{
 			return true;
 		}
-		#endregion
+        #endregion
 
-		#region Npgsql cursor dereferencing
-		/// <summary>
-		/// Dereference cursors in more or less the way which used to be supported within Npgsql itself, only now considerably improved from that removed, partial support.
-		/// </summary>
-		/// <param name="cmd">The command.</param>
-		/// <param name="Connection">The connection - required for deferencing.</param>
-		/// <param name="db">The parent MightyOrm (or subclass) - required to get at the factory for deferencing and config vaules.</param>
-		/// <returns>The reader, dereferenced if needed.</returns>
-		/// <remarks>
-		/// https://github.com/npgsql/npgsql/issues/438
-		/// http://stackoverflow.com/questions/42292341/
-		/// </remarks>
-		override public DbDataReader ExecuteDereferencingReader(DbCommand cmd, CommandBehavior behavior, DbConnection Connection)
+        #region Npgsql cursor dereferencing
+        /// <summary>
+        /// Dereference cursors in more or less the way which used to be supported within Npgsql itself, only now considerably improved from that removed, partial support.
+        /// </summary>
+        /// <param name="cmd">The command</param>
+		/// <param name="behavior">The required command behaviour</param>
+        /// <param name="Connection">The connection - required for deferencing</param>
+        /// <returns>The reader, dereferenced if needed</returns>
+        /// <remarks>
+        /// https://github.com/npgsql/npgsql/issues/438
+        /// http://stackoverflow.com/questions/42292341/
+        /// </remarks>
+        override public DbDataReader ExecuteDereferencingReader(DbCommand cmd, CommandBehavior behavior, DbConnection Connection)
 		{
 			// We can never restrict the parent read to do LESS than the hint provided - because we might
 			// not be dereferencing it, but just using it; but we can always restrict to the hint provided,
@@ -140,7 +140,6 @@ namespace Mighty.Plugins
 		/// Returns true if this command requires a wrapping transaction.
 		/// </summary>
 		/// <param name="cmd">The command.</param>
-		/// <param name="db">The dynamic model, to access config params.</param>
 		/// <returns>true if it requires a wrapping transaction</returns>
 		/// <remarks>
 		/// Only relevant to Postgres cursor dereferencing and in this case we also do some relevant pre-processing of the command.

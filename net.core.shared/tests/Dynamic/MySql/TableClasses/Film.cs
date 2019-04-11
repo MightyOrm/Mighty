@@ -22,7 +22,7 @@ namespace Mighty.Dynamic.Tests.MySql.TableClasses
 
 		public class FilmValidator : Validator
 		{
-			override public void ValidateForAction(dynamic item, OrmAction action, List<object> Errors)
+			override public void Validate(OrmAction action, dynamic item, List<object> Errors)
 			{
 				// bogus validation: isn't valid if rental_duration > 5
 

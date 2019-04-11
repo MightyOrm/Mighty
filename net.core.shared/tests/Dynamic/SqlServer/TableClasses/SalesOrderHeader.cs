@@ -22,7 +22,7 @@ namespace Mighty.Dynamic.Tests.SqlServer.TableClasses
 
 		public class SalesOrderHeaderValidator : Validator
 		{
-			override public void ValidateForAction(dynamic item, OrmAction action, List<object> Errors)
+			override public void Validate(OrmAction action, dynamic item, List<object> Errors)
 			{
 				// bogus validation: isn't valid if sales person is null. 
 
