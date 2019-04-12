@@ -48,9 +48,9 @@ namespace Mighty.Interfaces
 	//	  So assuming you aren't building any SQL to execute yourself within the DB, from the values passed in, then strings etc. which are
 	//	  passed in will not need any escaping to be safe.
 	//
-	// NB MicroOrm is dynamic-focussed, so even when you are using MightyOrm<T> instead of MightyOrm (which is like MightyOrm<dynamic>), the
+	// NB Mighty is dynamic-focussed, so even when you are using MightyOrm<T> instead of MightyOrm (which is like MightyOrm<dynamic>), the
 	// T determines the output type, but not the input type (which can be of type T, but can also be any of the various arbitrary objects
-	// which the microORM supports, with appropriately named fields).
+	// which the micro-ORM supports, with appropriately named fields).
 	abstract public partial class MightyOrmAbstractInterface<T>
 	{
         // We are always adding optional `CancellationToken` after all compulsory params and just
@@ -227,11 +227,11 @@ namespace Mighty.Interfaces
 		/// <summary>
 		/// Execute command with parameters
 		/// </summary>
-		/// <param name="sql"></param>
-		/// <param name="inParams"></param>
-		/// <param name="outParams"></param>
-		/// <param name="ioParams"></param>
-		/// <param name="returnParams"></param>
+		/// <param name="sql">The command SQL (with optional DB-native parameter placeholders)</param>
+		/// <param name="inParams">Named input parameters</param>
+		/// <param name="outParams">Named output parameters</param>
+		/// <param name="ioParams">Named input-output parameters</param>
+		/// <param name="returnParams">Named return parameters</param>
 		/// <param name="connection">Optional connection to use</param>
 		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
 		/// <returns>The results of all non-input parameters</returns>
@@ -248,11 +248,11 @@ namespace Mighty.Interfaces
 		/// <summary>
 		/// Execute stored procedure with parameters
 		/// </summary>
-		/// <param name="spName"></param>
-		/// <param name="inParams"></param>
-		/// <param name="outParams"></param>
-		/// <param name="ioParams"></param>
-		/// <param name="returnParams"></param>
+		/// <param name="spName">Stored procedure name</param>
+		/// <param name="inParams">Named input parameters</param>
+		/// <param name="outParams">Named output parameters</param>
+		/// <param name="ioParams">Named input-output parameters</param>
+		/// <param name="returnParams">Named return parameters</param>
 		/// <param name="connection">Optional connection to use</param>
 		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
 		/// <returns>The results of all non-input parameters</returns>
@@ -311,7 +311,7 @@ namespace Mighty.Interfaces
         /// Return paged results from arbitrary select statement.
         /// </summary>
         /// <param name="columns">Column spec</param>
-        /// <param name="tableNameOrJoinSpec">Single table name, or join specification</param>
+        /// <param name="tableNameOrJoinSpec">A table name, or a complete join specification (i.e. anything you can SELECT FROM in SQL)</param>
         /// <param name="orderBy">ORDER BY clause</param>
         /// <param name="where">WHERE clause</param>
         /// <param name="pageSize">Page size</param>
@@ -337,7 +337,7 @@ namespace Mighty.Interfaces
         /// Return paged results from arbitrary select statement.
         /// </summary>
         /// <param name="columns">Column spec</param>
-        /// <param name="tableNameOrJoinSpec">Single table name, or join specification</param>
+        /// <param name="tableNameOrJoinSpec">A table name, or a complete join specification (i.e. anything you can SELECT FROM in SQL)</param>
         /// <param name="orderBy">ORDER BY clause</param>
         /// <param name="where">WHERE clause</param>
         /// <param name="pageSize">Page size</param>
@@ -705,10 +705,10 @@ namespace Mighty.Interfaces
         /// <param name="function">Aggregate function</param>
 		/// <param name="columns">Columns for aggregate function</param>
         /// <param name="where">WHERE clause</param>
-        /// <param name="inParams">Input parameters</param>
-        /// <param name="outParams">Output parameters</param>
-        /// <param name="ioParams">Input-output parameters</param>
-        /// <param name="returnParams">Return parameters</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
         /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
         /// <returns></returns>
@@ -723,10 +723,10 @@ namespace Mighty.Interfaces
         /// <param name="function">Aggregate function</param>
         /// <param name="columns">Columns for aggregate function</param>
         /// <param name="where">WHERE clause</param>
-        /// <param name="inParams">Input parameters</param>
-        /// <param name="outParams">Output parameters</param>
-        /// <param name="ioParams">Input-output parameters</param>
-        /// <param name="returnParams">Return parameters</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
         /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
@@ -775,10 +775,10 @@ namespace Mighty.Interfaces
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="where"></param>
+		/// <param name="where">WHERE clause</param>
 		/// <param name="connection">Optional connection to use</param>
-		/// <param name="orderBy"></param>
-		/// <param name="columns"></param>
+		/// <param name="orderBy">ORDER BY clause</param>
+		/// <param name="columns">Comma separated list of columns to return or "*"</param>
 		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
 		/// <returns></returns>
 		/// <remarks>

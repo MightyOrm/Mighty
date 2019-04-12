@@ -8,10 +8,23 @@ using Mighty.Parameters;
 
 namespace Mighty
 {
-	// There is no need to make these extensions public (note that access modifiers on extension methods are relative to the package they are defined in,
-	// not relative to the package which they extend); making some of them public turns them into utilty methods which are provided as part of the microORM.
-	static public partial class ObjectExtensions
+    /// <summary>
+    /// Mighty object extension methods.
+    /// </summary>
+    /// <remarks>
+    /// There is no strict need to make any of these extensions public;
+    /// making some of them public turns them into utilty methods which are provided as part of Mighty.
+    /// (Note that access modifiers on extension methods are relative to the package they are *defined* in,
+    /// not relative to the package which they extend.)
+    /// At the moment <see cref="ToExpando"/> and <see cref="ToDictionary"/> are the only public extension methods.
+    /// </remarks>
+    static public partial class ObjectExtensions
 	{
+        /// <summary>
+        /// Convert arbitrary name-value object or collection to an <see cref="ExpandoObject"/>
+        /// </summary>
+        /// <param name="o">The <see cref="ExpandoObject"/></param>
+        /// <returns></returns>
 		static public ExpandoObject ToExpando(this object o)
 		{
 			var oAsExpando = o as ExpandoObject;
@@ -40,8 +53,8 @@ namespace Mighty
 		/// <summary>
 		/// Fixup for slightly weird way that runtime refuses to convert from t to t? (which should surely be trivial?)
 		/// </summary>
-		/// <param name="value"></param>
-		/// <param name="t"></param>
+		/// <param name="value">The value</param>
+		/// <param name="t">The type</param>
 		/// <returns></returns>
 		/// <remarks>http://stackoverflow.com/q/18015425/</remarks>
 		internal static object ChangeType(this object value, Type t)
@@ -61,19 +74,19 @@ namespace Mighty
 			return Convert.ChangeType(value, t);
 		}
 
-		/// <summary>
-		/// Convert ExpandoObject to dictionary.
-		/// </summary>
-		/// <param name="o"></param>
-		/// <returns></returns>
-		/// <remarks>
-		/// Not sure whether this is really useful or not... syntax is nicer and saves a little typing, even though functionality is obviously very simple.
-		/// Hopefully compiler removes any apparent inefficiency.
-		/// In theory this could work for other dynamic types, not just ExpandoObject (with argument type of <see cref="object"/> or
-		/// <see cref="IDynamicMetaObjectProvider"/>), but MightyOrm itself implements that interface, and we don't really want this
-		/// method to appear in IntelliSense in places where it doesn't make sense.
-		/// </remarks>
-		static public IDictionary<string, object> ToDictionary(this ExpandoObject o)
+        /// <summary>
+        /// Convert <see cref="ExpandoObject"/> to dictionary.
+        /// </summary>
+        /// <param name="o">The <see cref="ExpandoObject"/></param>
+        /// <returns></returns>
+        /// <remarks>
+        /// Not sure whether this is really useful or not... syntax is nicer and saves a little typing, even though functionality is obviously very simple.
+        /// Hopefully compiler removes any apparent inefficiency.
+        /// In theory this could work for other dynamic types, not just ExpandoObject (with argument type of <see cref="object"/> or
+        /// <see cref="IDynamicMetaObjectProvider"/>), but MightyOrm itself implements that interface, and we don't really want this
+        /// method to appear in IntelliSense in places where it doesn't make sense.
+        /// </remarks>
+        static public IDictionary<string, object> ToDictionary(this ExpandoObject o)
 		{
 			return (IDictionary<string, object>)o;
 		}

@@ -36,7 +36,7 @@ namespace Mighty.Interfaces
         /// (To ensure consistent behaviour use <see cref="CreateCommand(string, object[])"/> or
         /// <see cref="CreateCommand(string, DbConnection, object[])"/> to create commands passed in to Mighty.)
         /// </summary>
-        /// <param name="command">Database command</param>
+        /// <param name="command">The command</param>
         /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
         abstract public T Single(DbCommand command,
@@ -47,7 +47,7 @@ namespace Mighty.Interfaces
         /// <summary>
         /// Get <see cref="IEnumerable{T}"/> of items returned by SQL query
         /// </summary>
-        /// <param name="sql">SQL</param>
+        /// <param name="sql">The command SQL (with optional DB-native parameter placeholders)</param>
 		/// <param name="args">Auto-numbered parameter values for SQL</param>
         /// <returns></returns>
         abstract public IEnumerable<T> Query(string sql,
@@ -56,7 +56,7 @@ namespace Mighty.Interfaces
         /// <summary>
         /// Get single item returned by SQL query
         /// </summary>
-        /// <param name="sql">SQL</param>
+        /// <param name="sql">The command SQL (with optional DB-native parameter placeholders)</param>
 		/// <param name="args">Auto-numbered parameter values for SQL</param>
         /// <returns></returns>
 		abstract public T SingleFromQuery(string sql,
@@ -65,7 +65,7 @@ namespace Mighty.Interfaces
         /// <summary>
         /// Get <see cref="IEnumerable{T}"/> of items returned by SQL query
         /// </summary>
-        /// <param name="sql">SQL</param>
+        /// <param name="sql">The command SQL (with optional DB-native parameter placeholders)</param>
         /// <param name="connection">The connection to use</param>
 		/// <param name="args">Auto-numbered parameter values for SQL</param>
         /// <returns></returns>
@@ -76,7 +76,7 @@ namespace Mighty.Interfaces
         /// <summary>
         /// Get single item returned by SQL query
         /// </summary>
-        /// <param name="sql">SQL</param>
+        /// <param name="sql">The command SQL (with optional DB-native parameter placeholders)</param>
         /// <param name="connection">The connection to use</param>
 		/// <param name="args">Auto-numbered parameter values for SQL</param>
         /// <returns></returns>
@@ -139,11 +139,11 @@ namespace Mighty.Interfaces
 		/// <summary>
 		/// Execute command with parameters
 		/// </summary>
-		/// <param name="sql"></param>
-		/// <param name="inParams"></param>
-		/// <param name="outParams"></param>
-		/// <param name="ioParams"></param>
-		/// <param name="returnParams"></param>
+		/// <param name="sql">The command SQL (with optional DB-native parameter placeholders)</param>
+		/// <param name="inParams">Named input parameters</param>
+		/// <param name="outParams">Named output parameters</param>
+		/// <param name="ioParams">Named input-output parameters</param>
+		/// <param name="returnParams">Named return parameters</param>
 		/// <param name="connection">Optional connection to use</param>
 		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
 		/// <returns>The results of all non-input parameters</returns>
@@ -155,11 +155,11 @@ namespace Mighty.Interfaces
 		/// <summary>
 		/// Execute stored procedure with parameters
 		/// </summary>
-		/// <param name="spName"></param>
-		/// <param name="inParams"></param>
-		/// <param name="outParams"></param>
-		/// <param name="ioParams"></param>
-		/// <param name="returnParams"></param>
+		/// <param name="spName">Stored procedure name</param>
+		/// <param name="inParams">Named input parameters</param>
+		/// <param name="outParams">Named output parameters</param>
+		/// <param name="ioParams">Named input-output parameters</param>
+		/// <param name="returnParams">Named return parameters</param>
 		/// <param name="connection">Optional connection to use</param>
 		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
 		/// <returns>The results of all non-input parameters</returns>
@@ -193,7 +193,7 @@ namespace Mighty.Interfaces
         /// Return paged results from arbitrary select statement.
         /// </summary>
         /// <param name="columns">Column spec</param>
-        /// <param name="tableNameOrJoinSpec">Single table name, or join specification</param>
+        /// <param name="tableNameOrJoinSpec">A table name, or a complete join specification (i.e. anything you can SELECT FROM in SQL)</param>
         /// <param name="orderBy">ORDER BY clause</param>
         /// <param name="where">WHERE clause</param>
         /// <param name="pageSize">Page size</param>
@@ -381,10 +381,10 @@ namespace Mighty.Interfaces
         /// <param name="function">Aggregate function</param>
         /// <param name="columns">Columns for aggregate function</param>
         /// <param name="where">WHERE clause</param>
-        /// <param name="inParams">Input parameters</param>
-        /// <param name="outParams">Output parameters</param>
-        /// <param name="ioParams">Input-output parameters</param>
-        /// <param name="returnParams">Return parameters</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
         /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
         /// <returns></returns>
@@ -418,10 +418,10 @@ namespace Mighty.Interfaces
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="where"></param>
+		/// <param name="where">WHERE clause</param>
 		/// <param name="connection">Optional connection to use</param>
-		/// <param name="orderBy"></param>
-		/// <param name="columns"></param>
+		/// <param name="orderBy">ORDER BY clause</param>
+		/// <param name="columns">Comma separated list of columns to return or "*"</param>
 		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
 		/// <returns></returns>
 		/// <remarks>

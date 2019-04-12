@@ -11,7 +11,7 @@ namespace Mighty.Mapping
 	abstract public class SqlNamingMapper
 	{
 		/// <summary>
-		/// Instruct the microORM whether or not to use case-insensitive mapping when mapping between db names and class names.
+		/// Instruct Mighty whether or not to use case-insensitive mapping when mapping between db names and class names.
 		/// Defaults to true (typically DBs use different case conventions from C#).
 		/// </summary>
 		virtual public bool UseCaseInsensitiveMapping { get; protected set; } = true;
@@ -26,27 +26,29 @@ namespace Mighty.Mapping
 		virtual public string GetTableNameFromClassName(string className) { return className; }
 
 		/// <summary>
-		/// Get database column name for C# field name. By default the unmodified property name is used.
+		/// Get database column name from C# property name. By default the unmodified property name is used.
 		/// </summary>
-		/// <param name="classType"></param>
-		/// <param name="propertyName"></param>
+		/// <param name="classType">The class type</param>
+		/// <param name="propertyName">The property name</param>
 		/// <returns></returns>
 		/// <remarks>The field can be from an ExpandoObject, so it might not have a PropertyInfo - which probably means we need typed and untyped mappers</remarks>
 		virtual public string GetColumnNameFromPropertyName(Type classType, string propertyName) { return propertyName; }
 
-		/// <summary>
-		/// Get primary key field from class. Note that the C# field name (or names) should be returned.
-		/// </summary>
-		/// <param name="className"></param>
-		/// <returns></returns>
-		/// <remarks>TO DO: should be sent type, so it can look at namespace, etc.</remarks>
-		virtual public string GetPrimaryKeyFieldFromClassName(string className) { return null; }
+        /// <summary>
+        /// Automatically derive the primary key field name(s) from an items C# class name.
+        /// Note that the relevant C# property name(s) should be returned (and not the database column names
+        /// if these are also mapped).
+        /// </summary>
+        /// <param name="className">The class name</param>
+        /// <returns></returns>
+        /// <remarks>TO DO: should be sent type, so it can look at namespace, etc.</remarks>
+        virtual public string GetPrimaryKeyFieldFromClassName(string className) { return null; }
 
 		/// <summary>
-		/// Database specific quoting.
-		/// You could handle quoting here or in <see cref="GetTableNameFromClassName(string)"/> and <see cref="GetColumnNameFromPropertyName(Type, string)"/>, but not both.
+		/// Perform database specific quoting (such as name -> [name] or name -> 'name').
+		/// You might handle quoting here or in <see cref="GetTableNameFromClassName(string)"/> and <see cref="GetColumnNameFromPropertyName(Type, string)"/>, but not both.
 		/// </summary>
-		/// <param name="id"></param>
+		/// <param name="id">The name to be quoted</param>
 		/// <returns></returns>
 		/// <remarks>
 		/// TO DO: needs virtual method which splits the name at the dots then rejoins it, with single overrideable method to quote the individual parts

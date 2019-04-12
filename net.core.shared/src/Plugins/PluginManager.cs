@@ -33,7 +33,7 @@ namespace Mighty.Plugins
         /// this registers unknown plugins for use with Mighty's "ProviderName=..." in ConnectionString feature.)
         /// <remarks>TO DO: This approach can be tested by registering an existing plugin with a silly name...</remarks>
         /// </summary>
-        /// <param name="pluginType"></param>
+        /// <param name="pluginType">The plugin type to register, must be a sub-class of <see cref="PluginBase"/></param>
         static public void RegisterPlugin(Type pluginType)
 		{
 			// no incorrect type exception here - a perfectly meaningful exception will be thrown as soon as Mighty tries to use this

@@ -339,11 +339,11 @@ namespace Mighty
 		/// <summary>
 		/// Execute command with parameters
 		/// </summary>
-		/// <param name="sql"></param>
-		/// <param name="inParams"></param>
-		/// <param name="outParams"></param>
-		/// <param name="ioParams"></param>
-		/// <param name="returnParams"></param>
+		/// <param name="sql">The command SQL (with optional DB-native parameter placeholders)</param>
+		/// <param name="inParams">Named input parameters</param>
+		/// <param name="outParams">Named output parameters</param>
+		/// <param name="ioParams">Named input-output parameters</param>
+		/// <param name="returnParams">Named return parameters</param>
 		/// <param name="connection">Optional connection to use</param>
 		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
 		/// <returns>The results of all non-input parameters</returns>
@@ -362,11 +362,11 @@ namespace Mighty
         /// <summary>
         /// Execute command with parameters
         /// </summary>
-        /// <param name="sql"></param>
-        /// <param name="inParams"></param>
-        /// <param name="outParams"></param>
-        /// <param name="ioParams"></param>
-        /// <param name="returnParams"></param>
+        /// <param name="sql">The command SQL (with optional DB-native parameter placeholders)</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
         /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
@@ -395,11 +395,11 @@ namespace Mighty
         /// <summary>
         /// Execute stored procedure with parameters
         /// </summary>
-        /// <param name="spName"></param>
-        /// <param name="inParams"></param>
-        /// <param name="outParams"></param>
-        /// <param name="ioParams"></param>
-        /// <param name="returnParams"></param>
+        /// <param name="spName">Stored procedure name</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
         /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
         /// <returns>The results of all non-input parameters</returns>
@@ -418,11 +418,11 @@ namespace Mighty
         /// <summary>
         /// Execute stored procedure with parameters
         /// </summary>
-        /// <param name="spName"></param>
-        /// <param name="inParams"></param>
-        /// <param name="outParams"></param>
-        /// <param name="ioParams"></param>
-        /// <param name="returnParams"></param>
+        /// <param name="spName">Stored procedure name</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
         /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
@@ -1019,10 +1019,10 @@ namespace Mighty
 		/// <summary>
 		/// 
 		/// </summary>
-		/// <param name="where"></param>
+		/// <param name="where">WHERE clause</param>
 		/// <param name="connection">Optional connection to use</param>
-		/// <param name="orderBy"></param>
-		/// <param name="columns"></param>
+		/// <param name="orderBy">ORDER BY clause</param>
+		/// <param name="columns">Comma separated list of columns to return or "*"</param>
 		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
 		/// <returns></returns>
 		/// <remarks>

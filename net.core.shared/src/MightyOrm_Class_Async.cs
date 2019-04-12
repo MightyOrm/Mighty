@@ -27,7 +27,7 @@ namespace Mighty
 {
 	public partial class MightyOrm<T> : MightyOrmAbstractInterface<T> where T : class, new()
 	{
-        // Only methods with a non-trivial implementation are here, the rest are in the MicroOrm abstract class.
+        // Only methods with a non-trivial implementation are here, the rest are in the MightyOrm_Redirects_Async file.
         #region MircoORM interface
         /// <summary>
         /// Perform aggregate operation on the current table (use for SUM, MAX, MIN, AVG, etc.), with support for named params.
@@ -35,10 +35,10 @@ namespace Mighty
         /// <param name="function">Aggregate function</param>
         /// <param name="columns">Columns for aggregate function</param>
         /// <param name="where">WHERE clause</param>
-        /// <param name="inParams">Input parameters</param>
-        /// <param name="outParams">Output parameters</param>
-        /// <param name="ioParams">Input-output parameters</param>
-        /// <param name="returnParams">Return parameters</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
         /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
         /// <returns></returns>
@@ -65,10 +65,10 @@ namespace Mighty
         /// <param name="function">Aggregate function</param>
         /// <param name="columns">Columns for aggregate function</param>
         /// <param name="where">WHERE clause</param>
-        /// <param name="inParams">Input parameters</param>
-        /// <param name="outParams">Output parameters</param>
-        /// <param name="ioParams">Input-output parameters</param>
-        /// <param name="returnParams">Return parameters</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
         /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
@@ -144,7 +144,7 @@ namespace Mighty
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="where">WHERE clause specifying which rows to update</param>
         /// <param name="connection">Optional connection to use</param>
-        /// <param name="inParams">Input parameters</param>
+        /// <param name="inParams">Named input parameters</param>
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         protected async Task<int> UpdateUsingWithParamsAsync(
@@ -358,7 +358,7 @@ namespace Mighty
         /// Return paged results from arbitrary select statement.
         /// </summary>
         /// <param name="columns">Column spec</param>
-        /// <param name="tableNameOrJoinSpec">Single table name, or join specification</param>
+        /// <param name="tableNameOrJoinSpec">A table name, or a complete join specification (i.e. anything you can SELECT FROM in SQL)</param>
         /// <param name="orderBy">ORDER BY clause</param>
         /// <param name="where">WHERE clause</param>
         /// <param name="pageSize">Page size</param>
@@ -393,7 +393,7 @@ namespace Mighty
         /// Return paged results from arbitrary select statement.
         /// </summary>
         /// <param name="columns">Column spec</param>
-        /// <param name="tableNameOrJoinSpec">Single table name, or join specification</param>
+        /// <param name="tableNameOrJoinSpec">A table name, or a complete join specification (i.e. anything you can SELECT FROM in SQL)</param>
         /// <param name="orderBy">ORDER BY clause</param>
         /// <param name="where">WHERE clause</param>
         /// <param name="pageSize">Page size</param>

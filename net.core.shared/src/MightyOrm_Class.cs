@@ -34,9 +34,10 @@ namespace Mighty
         /// Constructor for pure dynamic version.
         /// </summary>
         /// <param name="connectionString">
-        /// Connection string with support for additional, non-standard "ProviderName=" property.
-        /// On .NET Framework but not .NET Core this can also, optionally, be a config file connection string name (in which case the provider name is specified
-        /// as an additional config file attribute next to the connection string).
+        /// Connection string, with additional Mighty-specific support for non-standard "ProviderName=" property
+        /// within the connection string itself.
+        /// On .NET Framework (but not .NET Core) this can instead be a connection string name, in which case the
+        /// connection string itself and provider name are looked up in the ConnectionStrings section of the .config file.
         /// </param>
         /// <param name="tableName">Table name</param>
         /// <param name="primaryKeyFields">Primary key field name; or comma separated list of names for compound PK</param>
@@ -86,22 +87,27 @@ namespace Mighty
 #endif
                 sequence, columns, validator, mapper, profiler, 0, connectionProvider);
 		}
-#endregion
+        #endregion
 
-#region Convenience factory
-		/// <summary>
-		/// Mini-factory for non-table specific access (equivalent to a constructor call)
-		/// </summary>
-		/// <param name="connectionStringOrName"></param>
-		/// <returns></returns>
-		/// <remarks>
-		/// Static, so can't be made part of any kind of interface, even though we want this on the generic and dynamic versions.
-		/// I think this requires new because of the conflict with the MightyOrm&lt;T&gt; version.
-		/// TO DO: check.
-		/// </remarks>
-		new static public MightyOrm DB(string connectionStringOrName = null)
+        #region Convenience factory
+        /// <summary>
+        /// Mini-factory for non-table specific access (equivalent to a constructor call)
+        /// </summary>
+        /// <param name="connectionString">
+        /// Connection string, with additional Mighty-specific support for non-standard "ProviderName=" property
+        /// within the connection string itself.
+        /// On .NET Framework (but not .NET Core) this can instead be a connection string name, in which case the
+        /// connection string itself and provider name are looked up in the ConnectionStrings section of the .config file.
+        /// </param>
+        /// <returns></returns>
+        /// <remarks>
+        /// Static, so can't be made part of any kind of interface, even though we want this on the generic and dynamic versions.
+        /// I think this requires new because of the conflict with the MightyOrm&lt;T&gt; version.
+        /// TO DO: check.
+        /// </remarks>
+        new static public MightyOrm DB(string connectionString = null)
 		{
-			return new MightyOrm(connectionStringOrName);
+			return new MightyOrm(connectionString);
 		}
 #endregion
 
@@ -117,9 +123,10 @@ namespace Mighty
         /// Strongly typed MightyOrm constructor
         /// </summary>
         /// <param name="connectionString">
-        /// Connection string with support for additional, non-standard "ProviderName=" property.
-        /// On .NET Framework but not .NET Core this can also, optionally, be a config file connection string name (in which case the provider name is specified
-        /// as an additional config file attribute next to the connection string).
+        /// Connection string, with additional Mighty-specific support for non-standard "ProviderName=" property
+        /// within the connection string itself.
+        /// On .NET Framework (but not .NET Core) this can instead be a connection string name, in which case the
+        /// connection string itself and provider name are looked up in the ConnectionStrings section of the .config file.
         /// </param>
         /// <param name="tableName">Override the table name (defaults to using T class name)</param>
         /// <param name="primaryKeyFields">Primary key field name; or comma separated list of names for compound PK</param>
@@ -337,7 +344,7 @@ namespace Mighty
 		}
 #endregion
 
-		// Only properties with a non-trivial implementation are here, the rest are in the MicroOrm abstract class.
+		// Only properties with a non-trivial implementation are here, the rest are in the MightyOrm_Properties file.
 #region Properties
 		protected IEnumerable<dynamic> _TableMetaData;
 
@@ -377,12 +384,13 @@ namespace Mighty
 			_TableMetaData = FilterTableMetaData(postProcessedMetaData);
 		}
 
-		/// <summary>
-		/// We drive creating new objects by this list, but we only want to add columns
-		/// </summary>
-		/// <param name="tableMetaData"></param>
-		/// <returns></returns>
-		private IEnumerable<dynamic> FilterTableMetaData(IEnumerable<dynamic> tableMetaData)
+        /// <summary>
+        /// We drive creating new objects by the table meta-data list, but we only want to add columns which are actually
+        /// specified for this instance of Mighty
+        /// </summary>
+        /// <param name="tableMetaData">The table meta-data</param>
+        /// <returns></returns>
+        private IEnumerable<dynamic> FilterTableMetaData(IEnumerable<dynamic> tableMetaData)
 		{
 			foreach (var columnInfo in tableMetaData)
 			{
@@ -432,17 +440,20 @@ namespace Mighty
 				}
 			}
 		}
-#endregion
+        #endregion
 
-		// Only methods with a non-trivial implementation are here, the rest are in the MicroOrm abstract class.
-#region MircoORM interface
-		/// <summary>
-		/// Make a new item from the passed-in name-value collection.
-		/// </summary>
-		/// <param name="nameValues"></param>
-		/// <param name="addNonPresentAsDefaults"></param>
-		/// <returns></returns>
-		override public T NewFrom(object nameValues = null, bool addNonPresentAsDefaults = true)
+        // Only methods with a non-trivial implementation are here, the rest are in the MightyOrm_Redirects file.
+        #region MircoORM interface
+        /// <summary>
+        /// Make a new item from the passed-in name-value collection.
+        /// </summary>
+        /// <param name="nameValues">The name-value collection</param>
+        /// <param name="addNonPresentAsDefaults">
+        /// If true also include default values for fields not present in the collection
+        /// but which exist in columns for the current table in Mighty
+        /// </param>
+        /// <returns></returns>
+        override public T NewFrom(object nameValues = null, bool addNonPresentAsDefaults = true)
 		{
 			var nvtEnumerator = new NameValueTypeEnumerator(nameValues);
 			Dictionary<string, object> columnNameToValue = new Dictionary<string, object>();
@@ -505,7 +516,7 @@ namespace Mighty
 		/// <summary>
 		/// Get the default value for a column.
 		/// </summary>
-		/// <param name="columnName"></param>
+		/// <param name="columnName">The column name</param>
 		/// <returns></returns>
 		/// <remarks>
 		/// Although it might look more efficient, GetColumnDefault should not do buffering, as we don't
@@ -698,7 +709,7 @@ namespace Mighty
 		/// <summary>
 		/// Return primary key for item, as simple object for simple PK, or as object[] for compound PK.
 		/// </summary>
-		/// <param name="item"></param>
+		/// <param name="item">The item</param>
 		/// <param name="alwaysArray">If true return object[] of 1 item, even for simple PK</param>
 		/// <returns></returns>
 		override public object GetPrimaryKey(object item, bool alwaysArray = false)
@@ -734,7 +745,7 @@ namespace Mighty
 		/// <summary>
 		/// Create command, setting any provider specific features which we assume elsewhere.
 		/// </summary>
-		/// <param name="sql">The command text</param>
+		/// <param name="sql">The command SQL (with optional DB-native parameter placeholders)</param>
 		/// <returns></returns>
 		internal DbCommand CreateCommand(string sql)
 		{
@@ -823,15 +834,15 @@ namespace Mighty
                 }
             }
         }
-#endregion
+        #endregion
 
-#region ORM actions
+        #region ORM actions
         /// <summary>
         /// Create update command
         /// </summary>
-        /// <param name="item"></param>
-        /// <param name="updateNameValuePairs"></param>
-        /// <param name="whereNameValuePairs"></param>
+        /// <param name="item">The item which contains the update values</param>
+        /// <param name="updateNameValuePairs">The columns to update (with values as SQL params)</param>
+        /// <param name="whereNameValuePairs">The columns which specify what to update (with values as SQL params)</param>
         /// <returns></returns>
         private DbCommand CreateUpdateCommand(object item, List<string> updateNameValuePairs, List<string> whereNameValuePairs)
 		{
@@ -842,10 +853,10 @@ namespace Mighty
 		/// <summary>
 		/// Create insert command
 		/// </summary>
-		/// <param name="item"></param>
-		/// <param name="insertNames"></param>
-		/// <param name="insertValues"></param>
-		/// <param name="pkFilter"></param>
+		/// <param name="item">The item containing the update values</param>
+		/// <param name="insertNames">The names of the columns to update</param>
+		/// <param name="insertValues">The values (as SQL parameters) of the columns to update</param>
+		/// <param name="pkFilter">The PK filter setting</param>
 		/// <returns></returns>
 		private DbCommand CreateInsertCommand(object item, List<string> insertNames, List<string> insertValues, PkFilter pkFilter)
 		{
@@ -865,8 +876,8 @@ namespace Mighty
 		/// <summary>
 		/// Create delete command
 		/// </summary>
-		/// <param name="item"></param>
-		/// <param name="whereNameValuePairs"></param>
+		/// <param name="item">The item containg the param values</param>
+		/// <param name="whereNameValuePairs">The column names (and values as SQL params) specifying what to delete</param>
 		/// <returns></returns>
 		private DbCommand CreateDeleteCommand(object item, List<string> whereNameValuePairs)
 		{
@@ -1017,10 +1028,10 @@ namespace Mighty
 		}
 
 		/// <summary>
-		/// Add auto-named parameters from an array of parameter values (normally would have been passed in to microORM
-		/// using C# parameter syntax)
+		/// Add auto-named parameters to a command from an array of parameter values (which typically would have been
+        /// passed in to Mighty using C# parameter syntax)
 		/// </summary>
-		/// <param name="cmd"></param>
+		/// <param name="cmd">The command</param>
 		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
 		internal void AddParams(DbCommand cmd, params object[] args)
 		{

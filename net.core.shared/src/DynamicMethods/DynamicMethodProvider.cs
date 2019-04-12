@@ -7,16 +7,22 @@ using System.Threading;
 
 namespace Mighty
 {
-	// Allow dynamic methods on instances of MightyOrm, implementing them via a wrapper object.
-	// (We can't make MightyOrm directly implement DynamicObject, since it inherits from MicroOrm and C# doesn't allow multiple inheritance.)
-	public partial class MightyOrm<T> : IDynamicMetaObjectProvider where T : class, new()
+    /// <summary>
+    /// Allow dynamic methods on instances of <see cref="MightyOrm"/>, implementing them via a wrapper object. 
+    /// </summary>
+    /// <remarks>
+    /// We can't make MightyOrm directly implement <see cref="DynamicObject"/>, since it inherits from
+    /// <see cref="Interfaces.MightyOrmAbstractInterface{T}"/> and C# doesn't allow multiple inheritance.
+    /// </remarks>
+    /// <typeparam name="T"></typeparam>
+    public partial class MightyOrm<T> : IDynamicMetaObjectProvider where T : class, new()
 	{
 		private DynamicMethodProvider<T> DynamicObjectWrapper;
 
 		/// <summary>
 		/// Implements IDynamicMetaObjectProvider.
 		/// </summary>
-		/// <param name="expression"></param>
+		/// <param name="expression">The expression defining what is needed</param>
 		/// <returns></returns>
 		/// <remarks>
 		/// Inspired by http://stackoverflow.com/a/17634595/795690
@@ -41,7 +47,7 @@ namespace Mighty
 	/// This is included mainly for easy compatibility with Massive.
 	/// Pros: The methods this provides are quite cool...
 	/// Cons: They're never visible in IntelliSense; you don't really need them; it turns out this adds overhead to
-	/// *every* call to the microORM, even when the object is not stored in a dynamic.
+	/// *every* call to the micro-ORM, even when the object is not stored in a dynamic.
 	/// </remarks>
 	internal class DynamicMethodProvider<T> : DynamicObject where T : class, new()
 	{
@@ -51,7 +57,7 @@ namespace Mighty
 		/// Wrap MightyOrm to provide Massive-compatible dynamic methods.
 		/// You can access almost all this functionality non-dynamically (and if you do, you get IntelliSense, which makes life easier).
 		/// </summary>
-		/// <param name="me"></param>
+		/// <param name="me">The <see cref="MightyOrm{T}"/> instance</param>
 		internal DynamicMethodProvider(MightyOrm<T> me)
 		{
 			Mighty = me;

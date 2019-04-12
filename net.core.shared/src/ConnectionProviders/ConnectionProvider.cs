@@ -33,7 +33,11 @@ namespace Mighty.ConnectionProviders
         /// (You may ignore connectionStringOrName input here if appropriate, in which case you
         /// would pass null as the connectionStringOrName value to the <see cref="MightyOrm"/> constructor.)
         /// </summary>
-        /// <param name="connectionStringOrName"></param>
+        /// <param name="connectionStringOrName">
+        /// A connection provider will typically either be passed either a connection string
+        /// or a name by which a connection string can be looked up elsewhere. (But note that your
+        /// connection provider can just ignore this input parameter if it needs to.)
+        /// </param>
         /// <returns></returns>
         abstract public ConnectionProvider Init(string connectionStringOrName);
 	}

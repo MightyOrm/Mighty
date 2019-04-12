@@ -43,9 +43,9 @@ namespace Mighty.Interfaces
 	//	  So assuming you aren't building any SQL to execute yourself within the DB, from the values passed in, then strings etc. which are
 	//	  passed in will not need any escaping to be safe.
 	//
-	// NB MicroOrm is dynamic-focussed, so even when you are using MightyOrm<T> instead of MightyOrm (which is like MightyOrm<dynamic>), the
+	// NB Mighty is dynamic-focussed, so even when you are using MightyOrm<T> instead of MightyOrm (which is like MightyOrm<dynamic>), the
 	// T determines the output type, but not the input type (which can be of type T, but can also be any of the various arbitrary objects
-	// which the microORM supports, with appropriately named fields).
+	// which the micro-ORM supports, with appropriately named fields).
 
     /// <summary>
     /// Abstract interface for all features of <see cref="MightyOrm{T}"/>, provided for injection and mocking.

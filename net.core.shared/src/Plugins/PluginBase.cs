@@ -38,7 +38,7 @@ namespace Mighty.Plugins
         /// <see cref="PluginManager.RegisterPlugin"/> to register the plugin for use with extended connection
         /// strings, or pass it to the MightyOrm constructor using your own sub-class of <see cref="ConnectionProviders.ConnectionProvider"/>.
         /// </summary>
-        /// <param name="loweredProviderName"></param>
+        /// <param name="loweredProviderName">The provider name, converted to lower case</param>
         /// <returns></returns>
         static public string GetProviderFactoryClassName(string loweredProviderName)
 		{
@@ -54,11 +54,11 @@ namespace Mighty.Plugins
         /// <summary>
         /// SELECT pattern, using either LIMIT or TOP
         /// </summary>
-        /// <param name="columns"></param>
-        /// <param name="tableName"></param>
-        /// <param name="where"></param>
-        /// <param name="orderBy"></param>
-        /// <param name="limit"></param>
+        /// <param name="columns">Comma separated list of columns to return or "*"</param>
+        /// <param name="tableName">The table name</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="orderBy">ORDER BY clause</param>
+        /// <param name="limit">The maximum number of rows to return</param>
         /// <returns></returns>
         /// <remarks>
         /// It makes sense to handle this separately from paging, because the semantics of LIMIT/TOP are simpler than
@@ -70,11 +70,11 @@ namespace Mighty.Plugins
 		/// <summary>
 		/// TOP SELECT pattern
 		/// </summary>
-		/// <param name="columns"></param>
-		/// <param name="tableName"></param>
-		/// <param name="where"></param>
-		/// <param name="orderBy"></param>
-		/// <param name="limit"></param>
+		/// <param name="columns">Comma separated list of columns to return or "*"</param>
+		/// <param name="tableName">The table name</param>
+		/// <param name="where">WHERE clause</param>
+		/// <param name="orderBy">ORDER BY clause</param>
+		/// <param name="limit">The maximum number of rows to return</param>
 		/// <returns></returns>
 		protected string BuildTopSelect(string columns, string tableName, string where, string orderBy = null, int limit = 0)
 		{
@@ -85,11 +85,11 @@ namespace Mighty.Plugins
 		/// <summary>
 		/// LIMIT SELECT pattern
 		/// </summary>
-		/// <param name="columns"></param>
-		/// <param name="tableName"></param>
-		/// <param name="where"></param>
-		/// <param name="orderBy"></param>
-		/// <param name="limit"></param>
+		/// <param name="columns">Comma separated list of columns to return or "*"</param>
+		/// <param name="tableName">The table name</param>
+		/// <param name="where">WHERE clause</param>
+		/// <param name="orderBy">ORDER BY clause</param>
+		/// <param name="limit">The maximum number of rows to return</param>
 		/// <returns></returns>
 		protected string BuildLimitSelect(string columns, string tableName, string where, string orderBy = null, int limit = 0)
 		{
@@ -100,8 +100,8 @@ namespace Mighty.Plugins
 		/// <summary>
 		/// Is the same for every (currently supported?) database
 		/// </summary>
-		/// <param name="tableName"></param>
-		/// <param name="where"></param>
+		/// <param name="tableName">The table name</param>
+		/// <param name="where">WHERE clause</param>
 		/// <returns></returns>
 		virtual public string BuildDelete(string tableName, string where)
 		{
@@ -112,9 +112,9 @@ namespace Mighty.Plugins
 		/// <summary>
 		/// Is the same for every (currently supported?) database
 		/// </summary>
-		/// <param name="tableName"></param>
-		/// <param name="columns"></param>
-		/// <param name="values"></param>
+		/// <param name="tableName">The table name</param>
+		/// <param name="columns">Comma separated list of columns to return or "*"</param>
+		/// <param name="values">The values (as SQL parameters)</param>
 		/// <returns></returns>
 		virtual public string BuildInsert(string tableName, string columns, string values)
 		{
@@ -125,9 +125,9 @@ namespace Mighty.Plugins
 		/// <summary>
 		/// Is the same for every (currently supported?) database
 		/// </summary>
-		/// <param name="tableName"></param>
-		/// <param name="values"></param>
-		/// <param name="where"></param>
+		/// <param name="tableName">The table name</param>
+		/// <param name="values">The values (as SQL parameters)</param>
+		/// <param name="where">WHERE clause</param>
 		/// <returns></returns>
 		virtual public string BuildUpdate(string tableName, string values, string where)
 		{
@@ -140,12 +140,12 @@ namespace Mighty.Plugins
 		/// a normal result set of the page of items.
 		/// Default to the LIMIT OFFSET pattern, which works exactly the same in all DBs which support it.
 		/// </summary>
-		/// <param name="columns"></param>
-		/// <param name="tableNameOrJoinSpec"></param>
-		/// <param name="where"></param>
+		/// <param name="columns">Comma separated list of columns to return or "*"</param>
+		/// <param name="tableNameOrJoinSpec">A table name, or a complete join specification (i.e. anything you can SELECT FROM in SQL)</param>
+		/// <param name="where">WHERE clause</param>
 		/// <param name="orderBy">Order by is required</param>
-		/// <param name="limit"></param>
-		/// <param name="offset"></param>
+		/// <param name="limit">The maximum number of rows to return (i.e. the page size)</param>
+		/// <param name="offset">The starting row offset for the page</param>
 		/// <returns></returns>
 		/// <remarks>
 		/// Has to be done as two round-trips to the DB for one main reason:
@@ -153,7 +153,7 @@ namespace Mighty.Plugins
 		///	   start the reader until the results are needed, but we do want the count straight away.
 		/// Less importantly
 		/// 2) It is difficult (though possible now, using Oracle's automatic dereferencing and the cursor
-		///	   support in the microORM) to get at the results of multiple selects from one DB call
+		///	   support in Mighty) to get at the results of multiple selects from one DB call
 		///	   on Oracle.
 		/// </remarks>
 		abstract public PagingQueryPair BuildPagingQueryPair(string columns, string tableNameOrJoinSpec, string orderBy, string where,
@@ -162,12 +162,12 @@ namespace Mighty.Plugins
 		/// <summary>
 		/// Utility method to provide LIMIT-OFFSET paging pattern.
 		/// </summary>
-		/// <param name="columns"></param>
-		/// <param name="tableNameOrJoinSpec"></param>
-		/// <param name="where"></param>
-		/// <param name="orderBy"></param>
-		/// <param name="limit"></param>
-		/// <param name="offset"></param>
+		/// <param name="columns">Comma separated list of columns to return or "*"</param>
+		/// <param name="tableNameOrJoinSpec">A table name, or a complete join specification (i.e. anything you can SELECT FROM in SQL)</param>
+		/// <param name="where">WHERE clause</param>
+		/// <param name="orderBy">ORDER BY clause</param>
+		/// <param name="limit">The maximum number of rows to return (i.e. the page size)</param>
+		/// <param name="offset">The starting row offset for the page</param>
 		/// <returns></returns>
 		protected PagingQueryPair BuildLimitOffsetPagingQueryPair(string columns, string tableNameOrJoinSpec, string orderBy, string where,
 			int limit, int offset)
@@ -190,12 +190,12 @@ namespace Mighty.Plugins
         /// Utility method to provide the ROW_NUMBER() paging pattern; contrary to popular belief, *exactly* the same
         /// pattern can be used on Oracle and SQL Server.
         /// </summary>
-        /// <param name="columns"></param>
-        /// <param name="tableNameOrJoinSpec"></param>
-        /// <param name="where"></param>
+        /// <param name="columns">Comma separated list of columns to return or "*"</param>
+        /// <param name="tableNameOrJoinSpec">A table name, or a complete join specification (i.e. anything you can SELECT FROM in SQL)</param>
+        /// <param name="where">WHERE clause</param>
         /// <param name="orderBy">Order by is required</param>
-        /// <param name="limit"></param>
-        /// <param name="offset"></param>
+        /// <param name="limit">The maximum number of rows to return (i.e. the page size)</param>
+        /// <param name="offset">The starting row offset for the page</param>
         /// <returns></returns>
         /// <remarks>Unavoidably (without significant SQL parsing, which we do not do) adds column RowNumber to the results, which does not happen on LIMIT/OFFSET DBs</remarks>
         protected PagingQueryPair BuildRowNumberPagingQueryPair(string columns, string tableNameOrJoinSpec, string orderBy, string where, int limit, int offset)
@@ -249,11 +249,11 @@ namespace Mighty.Plugins
 			return columns;
 		}
 
-		/// <summary>
-		/// Required for Oracle only
-		/// </summary>
-		/// <param name="command"></param>
-		virtual public void FixupInsertCommand(DbCommand command) { }
+        /// <summary>
+        /// Required for Oracle only
+        /// </summary>
+        /// <param name="command">The command</param>
+        virtual public void FixupInsertCommand(DbCommand command) { }
 		#endregion
 
 		#region Table info
@@ -275,7 +275,7 @@ namespace Mighty.Plugins
 		/// differently named table, on Oracle as well as on the above three) then we don't need to override this;
 		/// however, this DOES need ToList, as it is converting from delayed execution to something ready to use.
 		/// </summary>
-		/// <param name="results"></param>
+		/// <param name="results">The unprocessed table meta-data</param>
 		/// <returns></returns>
 		/// <remarks>
 		/// TO DO: Just make the inner conversion function part of the plugin, not the loop.
@@ -288,7 +288,7 @@ namespace Mighty.Plugins
 		/// <summary>
 		/// Get default value for a column - was done as a plugin method, but now the same for everything.
 		/// </summary>
-		/// <param name="columnInfo"></param>
+		/// <param name="columnInfo">The column info (which was collected from the database the first time that table meta-data was required)</param>
 		/// <returns></returns>
 		/// <remarks>
 		/// Not DB-specific, and not trivial... should move into <see cref="MightyOrm"/>.
