@@ -3,7 +3,7 @@ using System.Data.Common;
 namespace Mighty.Profiling
 {
     /// <summary>
-    /// Implement this abstract class and pass it to the constructor of <see cref="MightyOrm"/> in order to trap System.Data.Common operations at any or all of the
+    /// Implement this abstract class and pass an instance of it to the constructor of <see cref="MightyOrm"/> in order to trap System.Data.Common operations at any or all of the
     /// <see cref="DbProviderFactory"/>, <see cref="DbConnection"/> or <see cref="DbCommand"/> levels.
     /// </summary>
 	abstract public class SqlProfiler

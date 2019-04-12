@@ -4,7 +4,7 @@ using System.Collections.Generic;
 namespace Mighty.Validation
 {
     /// <summary>
-    /// Imlement this abstract class and pass it to the constructor of <see cref="MightyOrm"/> to provide validation for your table items.
+    /// Implement this abstract class and pass an instance of it to the constructor of <see cref="MightyOrm"/> to provide validation for your table items.
     /// Note that because almost any type of item can be passed into most Mighty commands, this validator is NOT strongly typed.
     /// If you know you care only going to pass items of type T, you can just add a cast to your validation methods.
     /// </summary>

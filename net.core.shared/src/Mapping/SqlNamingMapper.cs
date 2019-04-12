@@ -4,7 +4,7 @@ using System.Reflection;
 namespace Mighty.Mapping
 {
 	/// <summary>
-	/// Implement this abstract class and pass it to the constructor of <see cref="MightyOrm"/> in order to get Mighty
+	/// Implement this abstract class and pass an instance of it to the constructor of <see cref="MightyOrm"/> in order to get Mighty
     /// to do mapping between C# field names and SQL column names.
     /// All methods have sensible default implementations, so it is up to you what you override.
 	/// </summary>
