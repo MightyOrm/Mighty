@@ -19,9 +19,9 @@ namespace Mighty.ConnectionProviders
 	//
 	internal class MightyProviderFactories
 	{
+#if !NETFRAMEWORK
 		private const string INSTANCE_FIELD_NAME = "Instance";
 
-#if !NETFRAMEWORK
 		static internal DbProviderFactory GetFactory(string providerName)
 		{
 			string assemblyName = null;
@@ -47,7 +47,7 @@ namespace Mighty.ConnectionProviders
 		}
 #endif
 
-		static private object GetProviderFactoryClassNameOrDatabasePluginType(string providerName, bool returnClassType)
+        static private object GetProviderFactoryClassNameOrDatabasePluginType(string providerName, bool returnClassType)
 		{
 			string loweredProviderName = providerName.ToLowerInvariant();
 			foreach (var type in PluginManager.InstalledPluginTypes)
@@ -71,12 +71,14 @@ namespace Mighty.ConnectionProviders
 			throw new InvalidOperationException("Unknown database provider: " + providerName);
 		}
 
-		static private string GetProviderFactoryClassName(string providerName)
+#if !NETFRAMEWORK
+        static private string GetProviderFactoryClassName(string providerName)
 		{
 			return (string)GetProviderFactoryClassNameOrDatabasePluginType(providerName, false);
 		}
+#endif
 
-		static internal Type GetDatabasePluginAsType(string providerName)
+        static internal Type GetDatabasePluginAsType(string providerName)
 		{
 			return (Type)GetProviderFactoryClassNameOrDatabasePluginType(providerName, true);
 		}

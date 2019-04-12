@@ -91,7 +91,7 @@ namespace Mighty
 
         #region Convenience factory
         /// <summary>
-        /// Mini-factory for non-table specific access (equivalent to a constructor call)
+        /// Return a new non-table specific instances of <see cref="MightyOrm"/> (equivalent to a constructor call).
         /// </summary>
         /// <param name="connectionString">
         /// Connection string, with additional Mighty-specific support for non-standard "ProviderName=" property
@@ -165,15 +165,23 @@ namespace Mighty
 #endif
                 sequence, columns, validator, mapper, profiler, propertyBindingFlags, connectionProvider);
 		}
-#endregion
+        #endregion
 
-#region Convenience factory
-		// mini-factory for non-table specific access
-		// (equivalent to a constructor call)
-		// <remarks>static, so can't be defined anywhere but here</remarks>
-		static public MightyOrm<T> DB(string connectionStringOrName = null)
+        #region Convenience factory
+        /// <summary>
+        /// Return a new non-table specific instances of <see cref="MightyOrm{T}"/> (equivalent to a constructor call).
+        /// </summary>
+        /// <param name="connectionString">
+        /// Connection string, with additional Mighty-specific support for non-standard "ProviderName=" property
+        /// within the connection string itself.
+        /// On .NET Framework (but not .NET Core) this can instead be a connection string name, in which case the
+        /// connection string itself and provider name are looked up in the ConnectionStrings section of the .config file.
+        /// </param>
+        /// <returns></returns>
+        /// <remarks>Static, so can't be defined anywhere but here.</remarks>
+        static public MightyOrm<T> DB(string connectionString = null)
 		{
-			return new MightyOrm<T>(connectionStringOrName);
+			return new MightyOrm<T>(connectionString);
 		}
 #endregion
 
@@ -323,9 +331,12 @@ namespace Mighty
 #endif
 		}
 
+        /// <summary>
+	    /// Store column names and their respective reflected <see cref="PropertyInfo"/> values as defined by the generic type.
+        /// </summary>
+        /// <param name="propertyBindingFlags"></param>
 		protected void InitialiseTypeProperties(BindingFlags propertyBindingFlags)
 		{
-			// For generic version only, store the column names defined by the generic type
 			columnNameToPropertyInfo = new Dictionary<string, PropertyInfo>(SqlMapper.UseCaseInsensitiveMapping ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
 			ColumnList = new List<string>();
 			foreach (var prop in typeof(T).GetProperties(propertyBindingFlags))
@@ -346,7 +357,7 @@ namespace Mighty
 
 		// Only properties with a non-trivial implementation are here, the rest are in the MightyOrm_Properties file.
 #region Properties
-		protected IEnumerable<dynamic> _TableMetaData;
+		private IEnumerable<dynamic> _TableMetaData;
 
         /// <summary>
         /// Table meta data (filtered to be only for columns specified by the generic type T, or by consturctor `columns`, if present)
@@ -360,7 +371,14 @@ namespace Mighty
 			}
 		}
 
+        /// <summary>
+        /// The reflected <see cref="PropertyInfo"/> from <typeparamref name="T" /> for all specified columns in the database table.
+        /// </summary>
 		protected Dictionary<string, PropertyInfo> columnNameToPropertyInfo;
+
+        /// <summary>
+        /// For a single primary key only, the reflected <see cref="PropertyInfo"/> corresponding the the primary key field in <typeparamref name="T" />.
+        /// </summary>
 		protected PropertyInfo pkProperty;
 #endregion
 
@@ -450,7 +468,8 @@ namespace Mighty
         /// <param name="nameValues">The name-value collection</param>
         /// <param name="addNonPresentAsDefaults">
         /// If true also include default values for fields not present in the collection
-        /// but which exist in columns for the current table in Mighty
+        /// but which exist in columns for the current table in Mighty, which correctly
+        /// reflect the defaults of the current database table.
         /// </param>
         /// <returns></returns>
         override public T NewFrom(object nameValues = null, bool addNonPresentAsDefaults = true)

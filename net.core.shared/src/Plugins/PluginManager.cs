@@ -70,7 +70,7 @@ namespace Mighty.Plugins
 		// fields for thread safe access to the list of default + registered database plugins
 		private static ConnectionState _initState; // closed (default value), connecting, open
 		private static List<Type> _installedPluginTypes;
-		private static object _lockobj = new object();
+		private static readonly object _lockobj = new object();
 
 		static private void Initialize()
 		{

@@ -604,7 +604,9 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 		}
 #endif
 
-		public void ToDo()
+// TO DO:
+#if false
+        public void ToDo()
 		{
 			var db = new SPTestsDatabase();
 
@@ -612,5 +614,6 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 			//dynamic intResult = db.Execute(":a := 1", inParams: new aArgs());
 			//dynamic dateResult = db.Execute("begin :d := SYSDATE; end;", outParams: new myParamsD());
 		}
+#endif
 	}
 }

@@ -32,6 +32,10 @@ namespace Mighty
 		#endregion
 
 		#region Table specific methods
+        /// <summary>
+        /// Return a new item populated with defaults values which correctly reflect the defaults of the current database table, when these are present.
+        /// </summary>
+        /// <returns></returns>
 		override public T New()
 		{
 			return NewFrom();

@@ -164,11 +164,25 @@ namespace Mighty.Interfaces
 			params object[] args);
 
 		abstract public dynamic ResultsAsExpando(DbCommand cmd);
-#endregion
+        #endregion
 
-#region Table specific methods
-		abstract public T New();
+        #region Table specific methods
+        /// <summary>
+        /// Return a new item populated with defaults values which correctly reflect the defaults of the current database table, when these are present.
+        /// </summary>
+        /// <returns></returns>
+        abstract public T New();
 
+        /// <summary>
+        /// Make a new item from the passed-in name-value collection.
+        /// </summary>
+        /// <param name="nameValues">The name-value collection</param>
+        /// <param name="addNonPresentAsDefaults">
+        /// If true also include default values for fields not present in the collection
+        /// but which exist in columns for the current table in Mighty, which correctly
+        /// reflect the defaults of the current database table.
+        /// </param>
+        /// <returns></returns>
 		abstract public T NewFrom(object nameValues = null, bool addNonPresentAsDefaults = true);
 
 		abstract public dynamic GetColumnInfo(string column, bool ExceptionOnAbsent = true);

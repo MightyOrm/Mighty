@@ -27,7 +27,7 @@ namespace Mighty.ConnectionProviders
 		// null may be passed in, to request the first non-Machine.config connection string, if there is one
 		private ConnectionStringSettings GetConnectionStringSettings(string connectionStringName)
 		{
-			ConnectionStringSettings connectionStringSettings = null;
+			ConnectionStringSettings connectionStringSettings;
 			if (connectionStringName == null)
 			{
 				// http://stackoverflow.com/a/4681754/

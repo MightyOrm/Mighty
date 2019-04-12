@@ -16,6 +16,9 @@ namespace Mighty.Plugins
     /// </remarks>
     abstract public partial class PluginBase
 	{
+        /// <summary>
+        /// CRLF for use in generating SQL (all SQL is generated in Windows CRLF format on all platforms, currently)
+        /// </summary>
 		protected const string CRLF = "\r\n";
 
 		/// <summary>
@@ -360,29 +363,74 @@ namespace Mighty.Plugins
 		#endregion
 
 		#region Keys and sequences
+        /// <summary>
+        /// Is this sequence based? If not then identity based.
+        /// </summary>
 		virtual public bool IsSequenceBased { get; protected set; } = false;
+
+        /// <summary>
+        /// Build an SQL fragment which references the next value from the named sequence
+        /// </summary>
+        /// <param name="sequence">The sequence</param>
+        /// <returns></returns>
 		virtual public string BuildNextval(string sequence) => throw new NotImplementedException();
+
+        /// <summary>
+        /// Build SQL to select the current value from the named sequence
+        /// </summary>
+        /// <param name="sequence">The sequence</param>
+        /// <returns></returns>
 		virtual public string BuildCurrvalSelect(string sequence) => throw new NotImplementedException();
+
+        /// <summary>
+        /// Return the SQL fragment which retrieves the identity for the last inserted row
+        /// </summary>
 		virtual public string IdentityRetrievalFunction { get; protected set; }
 		#endregion
 
 		#region DbCommand
+        /// <summary>
+        /// Set any provider specific properties which are required to make this database perform as expected by Mighty.
+        /// </summary>
+        /// <param name="command"></param>
 		virtual public void SetProviderSpecificCommandProperties(DbCommand command) { }
-		#endregion
+        #endregion
 
-		#region Prefix/deprefix parameters
-		// Needs to know whether this is for use in DbParameter name (cmd=null) or for escaping within the SQL fragment itself,
-		// and if it is for a DbParameter whether it is used for a stored procedure or for a SQL fragment.
-		abstract public string PrefixParameterName(string rawName, DbCommand cmd = null);
+        #region Prefix/deprefix parameters
+        /// <summary>
+        /// Prefix a database parameter name.
+        /// </summary>
+        /// <param name="rawName">The unprefixed parameter name</param>
+        /// <param name="cmd">
+        /// The database command,
+        /// which is required because this method
+        /// needs to know whether this is for use in DbParameter name (cmd=null) or for escaping within the SQL fragment itself,
+        /// and if it is for a DbParameter whether it is used for a stored procedure or for an SQL fragment.
+        /// </param>
+        /// <returns></returns>
+        abstract public string PrefixParameterName(string rawName, DbCommand cmd = null);
 
-		// Will always be from a DbParameter, but needs to know whether it was used for
-		// a stored procedure or for a SQL fragment.
-		virtual public string DeprefixParameterName(string dbParamName, DbCommand cmd) { return dbParamName; }
-		#endregion
+        /// <summary>
+        /// Deprefix a database parameter name.
+        /// </summary>
+        /// <param name="dbParamName">The prefixed parameter name</param>
+        /// <param name="cmd">
+        /// The database command,
+        /// which is required because this although method
+        /// will always be from a DbParameter, it needs to know whether it was used for
+        /// a stored procedure or for an SQL fragment.
+        /// </param>
+        /// <returns></returns>
+        virtual public string DeprefixParameterName(string dbParamName, DbCommand cmd) { return dbParamName; }
+        #endregion
 
-		#region DbParameter
-		// Set Value (and implicitly DbType) for single parameter, adding support for provider unsupported types, etc.
-		virtual public void SetValue(DbParameter p, object value)
+        #region DbParameter
+        /// <summary>
+        /// Set the <see cref="DbParameter.Value"/> (and implicitly <see cref="DbParameter.DbType"/>) for single parameter, adding support for provider unsupported types, etc.
+        /// </summary>
+        /// <param name="p"></param>
+        /// <param name="value"></param>
+        virtual public void SetValue(DbParameter p, object value)
 		{
 			p.Value = value;
 			var valueAsString = value as string;
@@ -392,35 +440,75 @@ namespace Mighty.Plugins
 			}
 		}
 
-		// Get the output Value from single parameter, adding support for provider unsupported types, etc.
+        /// <summary>
+		/// Get the output Value from single parameter, adding support for provider unsupported types, etc.
+        /// </summary>
+        /// <param name="p">The parameter</param>
+        /// <returns></returns>
 		virtual public object GetValue(DbParameter p) { return p.Value; }
 
-		// Set ParameterDirection for single parameter, correcting for unexpected handling in specific ADO.NET providers.
+        /// <summary>
+		/// Set the ParameterDirection for single parameter, correcting for unexpected handling in specific ADO.NET providers.
+        /// </summary>
+        /// <param name="p">The parameter</param>
+        /// <param name="direction">The required parameter direction</param>
 		virtual public void SetDirection(DbParameter p, ParameterDirection direction) { p.Direction = direction; }
 
-		// Set the parameter to DB specific cursor type.
-		// Return false if not supported on this provider.
-		virtual public bool SetCursor(DbParameter p, object value) { return false; }
+        /// <summary>
+        /// Set the parameter to DB specific cursor type.
+        /// Return false if not supported on this provider.
+        /// </summary>
+        /// <param name="p">The parameter</param>
+        /// <param name="value">The value (a db-sepcific cursor reference; often a string containing a cursor id)</param>
+        /// <returns></returns>
+        virtual public bool SetCursor(DbParameter p, object value) { return false; }
 
-		// Return true iff this parameter is of DB specific cursor type.
+        /// <summary>
+		/// Return true iff this parameter is of the DB specific cursor type.
+        /// </summary>
+        /// <param name="p">The parameter</param>
+        /// <returns></returns>
 		virtual public bool IsCursor(DbParameter p) { return false; }
 
-		// Set anonymous DbParameter.
-		// Return false if not supported on this provider.
-		virtual public bool SetAnonymousParameter(DbParameter p) { return false; }
+        /// <summary>
+        /// Set an anonymous <see cref="DbParameter"/>.
+        /// Return false if not supported on this provider.
+        /// </summary>
+        /// <param name="p">The parameter</param>
+        /// <returns></returns>
+        virtual public bool SetAnonymousParameter(DbParameter p) { return false; }
 
-		// Return true iff this ADO.NET provider ignores output parameter types when generating output data types.
-		// (To avoid forcing the user to have to provide these types if they would not have had to do so when programming
-		// against this provider directly.)
-		virtual public bool IgnoresOutputTypes(DbParameter p) { return false; }
-		#endregion
+        /// <summary>
+        /// Return true iff this ADO.NET provider ignores output parameter types when generating output data types, for a given parameter.
+        /// (To avoid forcing the user to have to provide these types if they would not have had to do so when programming
+        /// against this provider directly.)
+        /// </summary>
+        /// <param name="p">The parameter</param>
+        /// <returns></returns>
+        virtual public bool IgnoresOutputTypes(DbParameter p) { return false; }
+        #endregion
 
-		#region Npgsql cursor dereferencing
-		virtual public DbDataReader ExecuteDereferencingReader(DbCommand cmd, CommandBehavior behavior, DbConnection conn)
+        #region Npgsql cursor dereferencing
+        /// <summary>
+        /// For non-Npgsql, this just does <see cref="DbCommand.ExecuteReader(CommandBehavior)"/>.
+        /// For Npgql this (optionally, depending on the value of<see cref="MightyOrm{T}.NpgsqlAutoDereferenceCursors"/>) returns a new <see cref="DbDataReader"/> which de-references
+        /// all cursors returned by the original reader, iteratively returning those results instead.
+        /// </summary>
+        /// <param name="cmd">The original command</param>
+        /// <param name="behavior">The command behaviour</param>
+        /// <param name="conn">The connection to use</param>
+        /// <returns></returns>
+        virtual public DbDataReader ExecuteDereferencingReader(DbCommand cmd, CommandBehavior behavior, DbConnection conn)
 		{
 			return cmd.ExecuteReader(behavior);
 		}
 
+        /// <summary>
+        /// Does this command require a wrapping transaction? This is required for come cursor-specific commands on some databases.
+        /// If required Mighty will only create a new transaction if a user transaction or <see cref="System.Transactions.TransactionScope"/> is not already in place.
+        /// </summary>
+        /// <param name="cmd">The command to check</param>
+        /// <returns></returns>
 		virtual public bool RequiresWrappingTransaction(DbCommand cmd)
 		{
 			return false;

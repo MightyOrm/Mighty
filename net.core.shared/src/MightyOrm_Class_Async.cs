@@ -25,6 +25,10 @@ using System.Threading.Tasks;
 
 namespace Mighty
 {
+    /// <summary>
+    /// Strongly typed MightyOrm instance.
+    /// </summary>
+    /// <typeparam name="T"></typeparam>
 	public partial class MightyOrm<T> : MightyOrmAbstractInterface<T> where T : class, new()
 	{
         // Only methods with a non-trivial implementation are here, the rest are in the MightyOrm_Redirects_Async file.
