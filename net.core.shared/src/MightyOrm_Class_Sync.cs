@@ -13,7 +13,7 @@ using System.Transactions;
 
 using Mighty.ConnectionProviders;
 using Mighty.Plugins;
-using Mighty.Mocking;
+using Mighty.Interfaces;
 using Mighty.Mapping;
 using Mighty.Parameters;
 using Mighty.Profiling;
@@ -110,16 +110,17 @@ namespace Mighty
             return retval.__rowcount;
 		}
 
-		/// <summary>
-		/// Delete rows from current table based on WHERE clause.
-		/// </summary>
-		/// <param name="where">
-		/// Non-optional WHERE clause.
-		/// Specify "1=1" if you are sure that you want to delete all rows.</param>
-		/// <param name="connection">The DbConnection to use</param>
-		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
-		/// <returns></returns>
-		override public int Delete(string where,
+        /// <summary>
+        /// Delete one or more items based on a WHERE clause.
+        /// </summary>
+        /// <param name="where">
+        /// Non-optional WHERE clause.
+        /// Specify "1=1" if you are sure that you want to delete all rows.
+        /// </param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="connection">The connection to use</param>
+        /// <returns>The number of items affected</returns>
+        override public int Delete(string where,
 			DbConnection connection,
 			params object[] args)
 		{
@@ -133,7 +134,7 @@ namespace Mighty
         /// For all others, the number of items affected is returned.
         /// </summary>
         /// <param name="action">The ORM action</param>
-        /// <param name="connection">The DbConnection</param>
+        /// <param name="connection">The connection to use</param>
         /// <param name="items">The item or items</param>
 		/// <param name="insertedItem">The final item that got inserted; null if not an <see cref="OrmAction.Insert"/> operation or no item was inserted</param>
         /// <returns></returns>
@@ -427,7 +428,7 @@ namespace Mighty
 		/// </summary>
 		/// <param name="action">Save, Insert, Update or Delete</param>
 		/// <param name="item">item</param>
-		/// <param name="connection">connection to use</param>
+		/// <param name="connection">The connection to use</param>
 		/// <param name="outerCount">when zero we are on the first item in the loop</param>
 		/// <returns>The PK of the inserted item, iff a new auto-generated PK value is available.</returns>
 		/// <remarks>

@@ -13,7 +13,7 @@ using System.Transactions;
 
 using Mighty.ConnectionProviders;
 using Mighty.Plugins;
-using Mighty.Mocking;
+using Mighty.Interfaces;
 using Mighty.Mapping;
 using Mighty.Parameters;
 using Mighty.Profiling;
@@ -641,7 +641,7 @@ namespace Mighty
 		/// <param name="items">The list of items. (Can be T, dynamic, or anything else with suitable name-value (and optional type) data in it.)</param>
 		virtual internal void ValidateAction(IEnumerable<object> items, OrmAction action)
 		{
-			if (Validator.Prevalidation == Prevalidation.Off)
+			if (Validator.Prevalidation == PrevalidationType.Off)
 			{
 				return;
 			}
@@ -655,7 +655,7 @@ namespace Mighty
 				if (Errors.Count > oldCount)
 				{
 					valid = false;
-					if (Validator.Prevalidation == Prevalidation.Lazy) break;
+					if (Validator.Prevalidation == PrevalidationType.Lazy) break;
 				}
 			}
 			if (valid == false || Errors.Count > 0)

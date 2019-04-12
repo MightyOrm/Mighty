@@ -1,9 +1,10 @@
-﻿using System.Collections.Generic;
+﻿using System.Collections;
+using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Linq;
 
-using Mighty.Mocking;
+using Mighty.Interfaces;
 using Mighty.Mapping;
 using Mighty.Plugins;
 using Mighty.Profiling;
@@ -571,7 +572,7 @@ namespace Mighty
         /// <param name="columns">Columns to return</param>
         /// <param name="pageSize">Page size</param>
         /// <param name="currentPage">Current page</param>
-        /// <param name="connection">Connection to use</param>
+        /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
         /// <returns>The result of the paged query. Result properties are Items, TotalPages, and TotalRecords.</returns>
         /// <remarks>
@@ -602,7 +603,7 @@ namespace Mighty
 		/// <summary>
 		/// Save one or more items using pre-specified DbConnection
 		/// </summary>
-		/// <param name="connection">The connection</param>
+		/// <param name="connection">The connection to use</param>
 		/// <param name="items">The items</param>
 		/// <returns></returns>
 		override public int Save(DbConnection connection, params object[] items)
@@ -623,7 +624,7 @@ namespace Mighty
 		/// <summary>
 		/// Save array or other IEnumerable of items using pre-specified DbConnection
 		/// </summary>
-		/// <param name="connection">The connection</param>
+		/// <param name="connection">The connection to use</param>
 		/// <param name="items">The items</param>
 		/// <returns></returns>
 		override public int Save(DbConnection connection, IEnumerable<object> items)
@@ -657,7 +658,7 @@ namespace Mighty
 		/// <summary>
 		/// Insert one or more items using pre-specified DbConnection
 		/// </summary>
-		/// <param name="connection">The connection</param>
+		/// <param name="connection">The connection to use</param>
 		/// <param name="items">The items</param>
 		/// <returns>The number of rows inserted</returns>
 		override public int Insert(DbConnection connection, params object[] items)
@@ -678,7 +679,7 @@ namespace Mighty
 		/// <summary>
 		/// Insert array or other IEnumerable of items using pre-specified DbConnection
 		/// </summary>
-		/// <param name="connection">The connection</param>
+		/// <param name="connection">The connection to use</param>
 		/// <param name="items">The items</param>
 		/// <returns>The number of rows inserted</returns>
 		override public int Insert(DbConnection connection, IEnumerable<object> items)
@@ -699,7 +700,7 @@ namespace Mighty
 		/// <summary>
 		/// Update one or more items using pre-specified DbConnection
 		/// </summary>
-		/// <param name="connection">The connection</param>
+		/// <param name="connection">The connection to use</param>
 		/// <param name="items">The items</param>
 		/// <returns></returns>
 		override public int Update(DbConnection connection, params object[] items)
@@ -720,7 +721,7 @@ namespace Mighty
 		/// <summary>
 		/// Update array or other IEnumerable of items using pre-specified DbConnection
 		/// </summary>
-		/// <param name="connection">The connection</param>
+		/// <param name="connection">The connection to use</param>
 		/// <param name="items">The items</param>
 		/// <returns></returns>
 		override public int Update(DbConnection connection, IEnumerable<object> items)
@@ -728,43 +729,59 @@ namespace Mighty
 			return ActionOnItems(OrmAction.Update, connection, items);
 		}
 
-		/// <summary>
-		/// Delete one or more items using params style arguments
-		/// </summary>
-		/// <param name="items">The items</param>
-		/// <returns></returns>
-		override public int Delete(params object[] items)
+        /// <summary>
+        /// Delete one or more items using params style arguments.
+        /// Each argument may be (or contain) a value (or values) only, in which case
+        /// it specifies the primary key value(s) of the item to delete, or it can be any object containing name-values pairs in which case
+        /// it should contain fields with names matching the primary key(s) whose values will specify the item to delete (but it may contain
+        /// other fields as well which will be ignored here).
+        /// </summary>
+        /// <param name="items">The items</param>
+        /// <returns>The number of items affected</returns>
+        override public int Delete(params object[] items)
 		{
 			return ActionOnItems(OrmAction.Delete, null, items);
 		}
 
-		/// <summary>
-		/// Delete one or more items using pre-specified DbConnection
-		/// </summary>
-		/// <param name="connection">The connection</param>
-		/// <param name="items">The items</param>
-		/// <returns></returns>
+        /// <summary>
+        /// Delete one or more items using params style arguments.
+        /// Each argument may be (or contain) a value (or values) only, in which case
+        /// it specifies the primary key value(s) of the item to delete, or it can be any object containing name-values pairs in which case
+        /// it should contain fields with names matching the primary key(s) whose values will specify the item to delete (but it may contain
+        /// other fields as well which will be ignored here).
+        /// </summary>
+        /// <param name="items">The items</param>
+        /// <param name="connection">The connection to use</param>
+        /// <returns>The number of items affected</returns>
 		override public int Delete(DbConnection connection, params object[] items)
 		{
 			return ActionOnItems(OrmAction.Delete, connection, items);
 		}
 
-		/// <summary>
-		/// Delete array or other IEnumerable of items
-		/// </summary>
-		/// <param name="items">The items</param>
-		/// <returns></returns>
+        /// <summary>
+        /// Delete an array or other <see cref="IEnumerable"/> of items.
+        /// Each argument may be (or contain) a value (or values) only, in which case
+        /// it specifies the primary key value(s) of the item to delete, or it can be any object containing name-values pairs in which case
+        /// it should contain fields with names matching the primary key(s) whose values will specify the item to delete (but it may contain
+        /// other fields as well which will be ignored here).
+        /// </summary>
+        /// <param name="items">The items</param>
+        /// <returns>The number of items affected</returns>
 		override public int Delete(IEnumerable<object> items)
 		{
 			return ActionOnItems(OrmAction.Delete, null, items);
 		}
 
-		/// <summary>
-		/// Delete array or other IEnumerable of items using pre-specified DbConnection
-		/// </summary>
-		/// <param name="connection">The connection</param>
-		/// <param name="items">The items</param>
-		/// <returns></returns>
+        /// <summary>
+        /// Delete an array or other <see cref="IEnumerable"/> of items.
+        /// Each argument may be (or contain) a value (or values) only, in which case
+        /// it specifies the primary key value(s) of the item to delete, or it can be any object containing name-values pairs in which case
+        /// it should contain fields with names matching the primary key(s) whose values will specify the item to delete (but it may contain
+        /// other fields as well which will be ignored here).
+        /// </summary>
+        /// <param name="items">The items</param>
+        /// <param name="connection">The connection to use</param>
+        /// <returns>The number of items affected</returns>
 		override public int Delete(DbConnection connection, IEnumerable<object> items)
 		{
 			return ActionOnItems(OrmAction.Delete, connection, items);
@@ -813,15 +830,16 @@ namespace Mighty
 			return UpdateUsing(partialItem, where, null, args);
 		}
 
-		/// <summary>
-		/// Delete rows from current table based on WHERE clause.
-		/// </summary>
-		/// <param name="where">
-		/// Non-optional WHERE clause.
-		/// Specify "1=1" if you are sure that you want to delete all rows.</param>
-		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
-		/// <returns></returns>
-		override public int Delete(string where,
+        /// <summary>
+        /// Delete one or more items based on a WHERE clause.
+        /// </summary>
+        /// <param name="where">
+        /// Non-optional WHERE clause.
+        /// Specify "1=1" if you are sure that you want to delete all rows.
+        /// </param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns>The number of items affected</returns>
+        override public int Delete(string where,
 			params object[] args)
 		{
 			return Delete(where, null, args);

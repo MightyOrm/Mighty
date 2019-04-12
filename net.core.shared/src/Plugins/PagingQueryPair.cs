@@ -6,9 +6,19 @@ using System.Threading.Tasks;
 
 namespace Mighty.Plugins
 {
-	internal class PagingQueryPair
+    /// <summary>
+    /// Class used to return the two queries necessary to do a paged select and a total count.
+    /// </summary>
+	public class PagingQueryPair
 	{
-		internal string CountQuery;
-		internal string PagingQuery;
+        /// <summary>
+        /// The query which will return the total count of paged items
+        /// </summary>
+		public string CountQuery;
+
+        /// <summary>
+        /// The query which will return the selected page of items
+        /// </summary>
+		public string PagingQuery;
 	}
 }

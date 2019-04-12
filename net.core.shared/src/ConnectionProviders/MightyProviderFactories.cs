@@ -50,16 +50,16 @@ namespace Mighty.ConnectionProviders
 		static private object GetProviderFactoryClassNameOrDatabasePluginType(string providerName, bool returnClassType)
 		{
 			string loweredProviderName = providerName.ToLowerInvariant();
-			foreach (var type in DatabasePluginManager.GetInstalledPluginTypes())
+			foreach (var type in PluginManager.InstalledPluginTypes)
 			{
 				// The DatabasePlugin subclass must implement this static GetProviderFactoryClassName method and will
 				// throw a reasonably meaningful exception here if not; unfortunately there is no syntax to enforce this
 				// at complile time.
 				var methodName = nameof(PluginBase.GetProviderFactoryClassName);
-				var method = type.GetMethod(methodName, BindingFlags.Static | BindingFlags.NonPublic);
+				var method = type.GetMethod(methodName, BindingFlags.Static | BindingFlags.Public);
 				if (method == null)
 				{
-					throw new Exception(type + " does not implement static internal " + methodName);
+					throw new Exception(type + " does not implement static public " + methodName);
 				}
 				string className = (string)method.Invoke(null, new object[] { loweredProviderName });
 				if (className != null)

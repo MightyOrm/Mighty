@@ -3,17 +3,11 @@ using System.Reflection;
 
 namespace Mighty.Mapping
 {
-	public class NullMapper : SqlNamingMapper
-	{
-
-	}
-
 	/// <summary>
-	/// Class to allow mapping between C# names and SQL names.
+	/// Implement this abstract class and pass it to the constructor of <see cref="MightyOrm"/> in order to get Mighty
+    /// to do mapping between C# field names and SQL column names.
+    /// All methods have sensible default implementations, so it is up to you what you override.
 	/// </summary>
-	/// <remarks>
-	/// Using class not interface to allow for later extensions; and not an abstract class because we can define a sensible default implementation.
-	/// </remarks>
 	abstract public class SqlNamingMapper
 	{
 		/// <summary>

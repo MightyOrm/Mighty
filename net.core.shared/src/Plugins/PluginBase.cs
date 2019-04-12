@@ -7,11 +7,14 @@ using System.Linq;
 
 namespace Mighty.Plugins
 {
-	/// <summary>
-	/// Abstract class for database plugins; we're trying to put as much shared code as possible in here, while
-	/// maintaining reasonable readability.
-	/// </summary>
-	abstract internal partial class PluginBase
+    /// <summary>
+    /// Implement this abstract class in order to add support for a new database type to Mighty.
+    /// </summary>
+    /// <remarks>
+    /// We're trying to put as much shared code as possible in here, while
+    /// maintaining reasonable readability.
+    /// </remarks>
+    abstract public partial class PluginBase
 	{
 		protected const string CRLF = "\r\n";
 
@@ -32,7 +35,7 @@ namespace Mighty.Plugins
         ///
         /// If you wan't to create a plugin for an unknown provider for a known database, subclass the existing plugin
         /// for that database and provide your own implementation of just this method. Then either call
-        /// <see cref="DatabasePluginManager.RegisterPlugin"/> to register the plugin for use with extended connection
+        /// <see cref="PluginManager.RegisterPlugin"/> to register the plugin for use with extended connection
         /// strings, or pass it to the MightyOrm constructor using your own sub-class of <see cref="ConnectionProviders.ConnectionProvider"/>.
         /// </summary>
         /// <param name="loweredProviderName"></param>
@@ -183,19 +186,19 @@ namespace Mighty.Plugins
 			};
 		}
 
-		/// <summary>
-		/// Utility method to provide the ROW_NUMBER() paging pattern; contrary to popular belief, *exactly* the same
-		/// pattern can be used on Oracle and SQL Server.
-		/// </summary>
-		/// <param name="columns"></param>
-		/// <param name="tableNameOrJoinSpec"></param>
-		/// <param name="where"></param>
-		/// <param name="orderBy">Order by is required</param>
-		/// <param name="limit"></param>
-		/// <param name="offset"></param>
-		/// <returns></returns>
-		/// <remarks>Unavoidably (without significant SQL parsing, which we do not do) adds column RowNumber to the results, which does not happen on LIMIT/OFFSET DBs</remarks>
-		protected PagingQueryPair BuildRowNumberPagingQueryPair(string columns, string tableNameOrJoinSpec, string orderBy, string where, int limit, int offset)
+        /// <summary>
+        /// Utility method to provide the ROW_NUMBER() paging pattern; contrary to popular belief, *exactly* the same
+        /// pattern can be used on Oracle and SQL Server.
+        /// </summary>
+        /// <param name="columns"></param>
+        /// <param name="tableNameOrJoinSpec"></param>
+        /// <param name="where"></param>
+        /// <param name="orderBy">Order by is required</param>
+        /// <param name="limit"></param>
+        /// <param name="offset"></param>
+        /// <returns></returns>
+        /// <remarks>Unavoidably (without significant SQL parsing, which we do not do) adds column RowNumber to the results, which does not happen on LIMIT/OFFSET DBs</remarks>
+        protected PagingQueryPair BuildRowNumberPagingQueryPair(string columns, string tableNameOrJoinSpec, string orderBy, string where, int limit, int offset)
 		{
 			tableNameOrJoinSpec = tableNameOrJoinSpec.Unthingify("FROM");
 			return new PagingQueryPair()

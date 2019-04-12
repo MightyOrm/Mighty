@@ -3,7 +3,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 
-using Mighty.Mocking;
+using Mighty.Interfaces;
 using Mighty.Mapping;
 using Mighty.Plugins;
 using Mighty.Profiling;

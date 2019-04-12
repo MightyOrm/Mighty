@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Mighty.Plugins
 {
-    abstract internal partial class PluginBase
+    abstract public partial class PluginBase
     {
         #region Npgsql cursor dereferencing
         virtual public async Task<DbDataReader> ExecuteDereferencingReaderAsync(DbCommand cmd, CommandBehavior behavior, DbConnection conn, CancellationToken cancellationToken)

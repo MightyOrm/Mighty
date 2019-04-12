@@ -3,28 +3,13 @@ using System.Collections.Generic;
 namespace Mighty.Validation
 {
     /// <summary>
-    /// Validator which passes all tests.
-    /// </summary>
-	public class NullValidator : Validator
-	{
-        /// <summary>
-        /// Passing validation (just don't change the error list)
-        /// </summary>
-        /// <param name="action"></param>
-        /// <param name="item"></param>
-        /// <param name="Errors"></param>
-        override public void Validate(OrmAction action, dynamic item, List<object> Errors) { }
-    }
-
-    /// <summary>
-    /// Override this class to make a validator for your table items.
+    /// Imlement this abstract class and pass it to the constructor of <see cref="MightyOrm"/> to provide validation for your table items.
     /// Note that because almost any type of item can be passed into most Mighty commands, this validator is NOT strongly typed.
     /// If you know you care only going to pass items of type T, you can just add a cast to your validation methods.
     /// </summary>
     /// <remarks>
     /// The objects passed to the validation callbacks are whatever was passed in to Save, Insert, Delete, etc., which can always be any reasonable object
-    /// or collection to contain the data needed for the task at hand,  even when used with the generically typed version of MightyOrm&lt;T&gt;.
-    /// (If you know you care only going to pass items of type T, you can just add a cast to your validation methods.)
+    /// or collection to contain the data needed for the task at hand,  even when used with the generically typed version of <see cref="MightyOrm{T}"/>.
     /// </remarks>
     abstract public class Validator
 	{
@@ -34,7 +19,7 @@ namespace Mighty.Validation
 		/// or to continue and collect all errors before stopping.
 		/// </summary>
 		/// <returns></returns>
-		virtual public Prevalidation Prevalidation { get; set; } = Prevalidation.Off;
+		virtual public PrevalidationType Prevalidation { get; set; } = PrevalidationType.Off;
 
         /// <summary>
         /// If <see cref="Prevalidation" /> is enabled <see cref="MightyOrm"/> calls this one item at a time before *any* real actions are done.

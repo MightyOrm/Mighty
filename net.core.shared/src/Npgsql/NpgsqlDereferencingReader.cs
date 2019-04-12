@@ -29,8 +29,8 @@ namespace Mighty.Npgsql
 		/// </summary>
 		/// <param name="reader">The original reader for the undereferenced query.</param>
 		/// <param name="behavior">The required <see cref="CommandBehavior"/></param>
-		/// <param name="connection">The connection to use.</param>
-		/// <param name="mighty">The owning Mighty instance.</param>
+		/// <param name="connection">The connection to use</param>
+		/// <param name="mighty">The owning Mighty instance</param>
 		/// <remarks>
 		/// FETCH ALL is genuinely useful in some situations (e.g. if using (abusing?) cursors to return small or medium sized multiple result
 		/// sets then we can and do save one round trip to the database overall: n cursors round trips, rather than n cursors plus one), but since

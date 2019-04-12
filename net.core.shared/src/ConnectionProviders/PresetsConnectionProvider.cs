@@ -3,7 +3,7 @@ using System.Data.Common;
 
 namespace Mighty.ConnectionProviders
 {
-	public class PresetsConnectionProvider : ConnectionProvider
+	internal class PresetsConnectionProvider : ConnectionProvider
 	{
 		public PresetsConnectionProvider(string connectionString, DbProviderFactory providerFactoryInstance, Type databasePluginType)
 		{

@@ -2,9 +2,6 @@ using System.Data.Common;
 
 namespace Mighty.Profiling
 {
-	public class NullProfiler : SqlProfiler
-	{
-	}
 
 	abstract public class SqlProfiler
 	{

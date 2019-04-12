@@ -7,7 +7,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 
-using Mighty.Mocking;
+using Mighty.Interfaces;
 using Mighty.Mapping;
 using Mighty.Plugins;
 using Mighty.Profiling;
@@ -1197,7 +1197,7 @@ namespace Mighty
 		/// <summary>
 		/// Save one or more items using pre-specified <see cref="DbConnection"/>
 		/// </summary>
-		/// <param name="connection">The connection</param>
+		/// <param name="connection">The connection to use</param>
 		/// <param name="items">The items</param>
 		/// <returns></returns>
 		override public async Task<int> SaveAsync(DbConnection connection, params object[] items)
@@ -1226,7 +1226,7 @@ namespace Mighty
 		/// <summary>
 		/// Save array or other <see cref="IEnumerable"/> of items using pre-specified <see cref="DbConnection"/>
 		/// </summary>
-		/// <param name="connection">The connection</param>
+		/// <param name="connection">The connection to use</param>
 		/// <param name="items">The items</param>
 		/// <returns></returns>
 		override public async Task<int> SaveAsync(DbConnection connection, IEnumerable<object> items)
@@ -1278,7 +1278,7 @@ namespace Mighty
 		/// <summary>
 		/// Insert one or more items using pre-specified <see cref="DbConnection"/>
 		/// </summary>
-		/// <param name="connection">The connection</param>
+		/// <param name="connection">The connection to use</param>
 		/// <param name="items">The items</param>
 		/// <returns>The number of rows inserted</returns>
 		override public async Task<int> InsertAsync(DbConnection connection, params object[] items)
@@ -1307,7 +1307,7 @@ namespace Mighty
 		/// <summary>
 		/// Insert array or other <see cref="IEnumerable"/> of items using pre-specified <see cref="DbConnection"/>
 		/// </summary>
-		/// <param name="connection">The connection</param>
+		/// <param name="connection">The connection to use</param>
 		/// <param name="items">The items</param>
 		/// <returns>The number of rows inserted</returns>
 		override public async Task<int> InsertAsync(DbConnection connection, IEnumerable<object> items)
@@ -1336,7 +1336,7 @@ namespace Mighty
 		/// <summary>
 		/// Update one or more items using pre-specified <see cref="DbConnection"/>
 		/// </summary>
-		/// <param name="connection">The connection</param>
+		/// <param name="connection">The connection to use</param>
 		/// <param name="items">The items</param>
 		/// <returns></returns>
 		override public async Task<int> UpdateAsync(DbConnection connection, params object[] items)
@@ -1365,7 +1365,7 @@ namespace Mighty
 		/// <summary>
 		/// Update array or other <see cref="IEnumerable"/> of items using pre-specified <see cref="DbConnection"/>
 		/// </summary>
-		/// <param name="connection">The connection</param>
+		/// <param name="connection">The connection to use</param>
 		/// <param name="items">The items</param>
 		/// <returns></returns>
 		override public async Task<int> UpdateAsync(DbConnection connection, IEnumerable<object> items)
@@ -1377,59 +1377,121 @@ namespace Mighty
 			return await ActionOnItemsAsync(OrmAction.Update, connection, items, cancellationToken).ConfigureAwait(false);
 		}
 
-		/// <summary>
-		/// Delete one or more items using params style arguments
-		/// </summary>
-		/// <param name="items">The items</param>
-		/// <returns></returns>
+        /// <summary>
+        /// Delete one or more items using params style arguments.
+        /// Each argument may be (or contain) a value (or values) only, in which case
+        /// it specifies the primary key value(s) of the item to delete, or it can be any object containing name-values pairs in which case
+        /// it should contain fields with names matching the primary key(s) whose values will specify the item to delete (but it may contain
+        /// other fields as well which will be ignored here).
+        /// </summary>
+        /// <param name="items">The items</param>
+        /// <returns>The number of items affected</returns>
 		override public async Task<int> DeleteAsync(params object[] items)
 		{
 			return await ActionOnItemsAsync(OrmAction.Delete, null, items).ConfigureAwait(false);
 		}
-		override public async Task<int> DeleteAsync(CancellationToken cancellationToken, params object[] items)
+
+        /// <summary>
+        /// Delete one or more items using params style arguments.
+        /// Each argument may be (or contain) a value (or values) only, in which case
+        /// it specifies the primary key value(s) of the item to delete, or it can be any object containing name-values pairs in which case
+        /// it should contain fields with names matching the primary key(s) whose values will specify the item to delete (but it may contain
+        /// other fields as well which will be ignored here).
+        /// </summary>
+        /// <param name="items">The items</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns>The number of items affected</returns>
+        override public async Task<int> DeleteAsync(CancellationToken cancellationToken, params object[] items)
 		{
 			return await ActionOnItemsAsync(OrmAction.Delete, null, items, cancellationToken).ConfigureAwait(false);
 		}
 
-		/// <summary>
-		/// Delete one or more items using pre-specified <see cref="DbConnection"/>
-		/// </summary>
-		/// <param name="connection">The connection</param>
-		/// <param name="items">The items</param>
-		/// <returns></returns>
+        /// <summary>
+        /// Delete one or more items using params style arguments.
+        /// Each argument may be (or contain) a value (or values) only, in which case
+        /// it specifies the primary key value(s) of the item to delete, or it can be any object containing name-values pairs in which case
+        /// it should contain fields with names matching the primary key(s) whose values will specify the item to delete (but it may contain
+        /// other fields as well which will be ignored here).
+        /// </summary>
+        /// <param name="items">The items</param>
+        /// <param name="connection">The connection to use</param>
+        /// <returns>The number of items affected</returns>
 		override public async Task<int> DeleteAsync(DbConnection connection, params object[] items)
 		{
 			return await ActionOnItemsAsync(OrmAction.Delete, connection, items).ConfigureAwait(false);
 		}
+
+        /// <summary>
+        /// Delete one or more items using params style arguments.
+        /// Each argument may be (or contain) a value (or values) only, in which case
+        /// it specifies the primary key value(s) of the item to delete, or it can be any object containing name-values pairs in which case
+        /// it should contain fields with names matching the primary key(s) whose values will specify the item to delete (but it may contain
+        /// other fields as well which will be ignored here).
+        /// </summary>
+        /// <param name="items">The items</param>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns>The number of items affected</returns>
 		override public async Task<int> DeleteAsync(DbConnection connection, CancellationToken cancellationToken, params object[] items)
 		{
 			return await ActionOnItemsAsync(OrmAction.Delete, connection, items, cancellationToken).ConfigureAwait(false);
 		}
 
-		/// <summary>
-		/// Delete array or other <see cref="IEnumerable"/> of items
-		/// </summary>
-		/// <param name="items">The items</param>
-		/// <returns></returns>
+        /// <summary>
+        /// Delete an array or other <see cref="IEnumerable"/> of items.
+        /// Each argument may be (or contain) a value (or values) only, in which case
+        /// it specifies the primary key value(s) of the item to delete, or it can be any object containing name-values pairs in which case
+        /// it should contain fields with names matching the primary key(s) whose values will specify the item to delete (but it may contain
+        /// other fields as well which will be ignored here).
+        /// </summary>
+        /// <param name="items">The items</param>
+        /// <returns>The number of items affected</returns>
 		override public async Task<int> DeleteAsync(IEnumerable<object> items)
 		{
 			return await ActionOnItemsAsync(OrmAction.Delete, null, items).ConfigureAwait(false);
 		}
-		override public async Task<int> DeleteAsync(IEnumerable<object> items, CancellationToken cancellationToken)
+
+        /// <summary>
+        /// Delete an array or other <see cref="IEnumerable"/> of items.
+        /// Each argument may be (or contain) a value (or values) only, in which case
+        /// it specifies the primary key value(s) of the item to delete, or it can be any object containing name-values pairs in which case
+        /// it should contain fields with names matching the primary key(s) whose values will specify the item to delete (but it may contain
+        /// other fields as well which will be ignored here).
+        /// </summary>
+        /// <param name="items">The items</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns>The number of items affected</returns>
+        override public async Task<int> DeleteAsync(IEnumerable<object> items, CancellationToken cancellationToken)
 		{
 			return await ActionOnItemsAsync(OrmAction.Delete, null, items, cancellationToken).ConfigureAwait(false);
 		}
 
-		/// <summary>
-		/// Delete array or other <see cref="IEnumerable"/> of items using pre-specified <see cref="DbConnection"/>
-		/// </summary>
-		/// <param name="connection">The connection</param>
-		/// <param name="items">The items</param>
-		/// <returns></returns>
+        /// <summary>
+        /// Delete an array or other <see cref="IEnumerable"/> of items.
+        /// Each argument may be (or contain) a value (or values) only, in which case
+        /// it specifies the primary key value(s) of the item to delete, or it can be any object containing name-values pairs in which case
+        /// it should contain fields with names matching the primary key(s) whose values will specify the item to delete (but it may contain
+        /// other fields as well which will be ignored here).
+        /// </summary>
+        /// <param name="items">The items</param>
+        /// <param name="connection">The connection to use</param>
+        /// <returns>The number of items affected</returns>
 		override public async Task<int> DeleteAsync(DbConnection connection, IEnumerable<object> items)
 		{
 			return await ActionOnItemsAsync(OrmAction.Delete, connection, items).ConfigureAwait(false);
 		}
+
+        /// <summary>
+        /// Delete an array or other <see cref="IEnumerable"/> of items.
+        /// Each argument may be (or contain) a value (or values) only, in which case
+        /// it specifies the primary key value(s) of the item to delete, or it can be any object containing name-values pairs in which case
+        /// it should contain fields with names matching the primary key(s) whose values will specify the item to delete (but it may contain
+        /// other fields as well which will be ignored here).
+        /// </summary>
+        /// <param name="items">The items</param>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns>The number of items affected</returns>
 		override public async Task<int> DeleteAsync(DbConnection connection, IEnumerable<object> items, CancellationToken cancellationToken)
 		{
 			return await ActionOnItemsAsync(OrmAction.Delete, connection, items, cancellationToken).ConfigureAwait(false);
@@ -1533,20 +1595,32 @@ namespace Mighty
                 args).ConfigureAwait(false);
 		}
 
-		/// <summary>
-		/// Delete rows from current table based on WHERE clause.
-		/// </summary>
-		/// <param name="where">
-		/// Non-optional WHERE clause.
-		/// Specify "1=1" if you are sure that you want to delete all rows.</param>
-		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
-		/// <returns></returns>
+        /// <summary>
+        /// Delete one or more items based on a WHERE clause.
+        /// </summary>
+        /// <param name="where">
+        /// Non-optional WHERE clause.
+        /// Specify "1=1" if you are sure that you want to delete all rows.
+        /// </param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns>The number of items affected</returns>
 		override public async Task<int> DeleteAsync(string where,
 			params object[] args)
 		{
 			return await DeleteAsync(where, null, args).ConfigureAwait(false);
 		}
-		override public async Task<int> DeleteAsync(string where,
+
+        /// <summary>
+        /// Delete one or more items based on a WHERE clause.
+        /// </summary>
+        /// <param name="where">
+        /// Non-optional WHERE clause.
+        /// Specify "1=1" if you are sure that you want to delete all rows.
+        /// </param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns>The number of items affected</returns>
+        override public async Task<int> DeleteAsync(string where,
 			CancellationToken cancellationToken,
 			params object[] args)
 		{

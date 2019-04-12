@@ -5,27 +5,44 @@ using System.Reflection;
 
 namespace Mighty.Plugins
 {
-	public class DatabasePluginManager
+    /// <summary>
+    /// Register new plugins and review the registered plugins which provide Mighty support for different databases.
+    /// </summary>
+	public class PluginManager
 	{
-		// I think this method doesn't need to be public, but it seems friendly/useful to make it be
-		static public List<Type> GetInstalledPluginTypes()
-		{
-			Initialize();
-			return _installedPluginTypes;
-		}
+        /// <summary>
+		/// Installed database plugin types.
+        /// </summary>
+        /// <remarks>
+		/// I think this property doesn't need to be public, but it seems friendly/useful to make it be.
+        /// </remarks>
+        /// <returns></returns>
+		static public List<Type> InstalledPluginTypes
+        {
+            get
+            {
+                Initialize();
+                return _installedPluginTypes;
+            }
+        }
 
-		// Register a new database plugin for use with PureConnectionStringProvider
-		// (If are going to pass the type of your own DatabasePlugin via your own subclass of
-		// ConnectionProvider you do not need to register here; this registers unknown plugins
-		// for use with the ProviderName in ConnectionString feature.)
-		// <remarks>This approach can be tested by registering an existing plugin with a silly name..!</remarks>
-		static public void RegisterPlugin(Type pluginType)
+        /// <summary>
+        /// Register a new database plugin for use with the <see cref="ConnectionProviders.PureConnectionStringProvider"/>.
+        /// (NB If are plan to pass the type of your own database plugin via your own subclass of
+        /// <see cref="ConnectionProviders.ConnectionProvider"/> then you do not need to register here;
+        /// this registers unknown plugins for use with Mighty's "ProviderName=..." in ConnectionString feature.)
+        /// <remarks>TO DO: This approach can be tested by registering an existing plugin with a silly name...</remarks>
+        /// </summary>
+        /// <param name="pluginType"></param>
+        static public void RegisterPlugin(Type pluginType)
 		{
 			// no incorrect type exception here - a perfectly meaningful exception will be thrown as soon as Mighty tries to use this
-			GetInstalledPluginTypes().Add(pluginType);
+			InstalledPluginTypes.Add(pluginType);
 		}
 
-		// Use reflection to find the plugins; only call this from inside the thread-safe initializer
+        /// <summary>
+		/// Use reflection to find the available plugins; only call this from inside the thread-safe initializer.
+        /// </summary>
 		static private void AssembleDefaultPlugins()
 		{
 			_installedPluginTypes = new List<Type>();
