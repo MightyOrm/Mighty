@@ -14,9 +14,9 @@ namespace Mighty.Validation
         /// <summary>
         /// Passing validation (i.e. just do not modify the error list)
         /// </summary>
-        /// <param name="action">The ORM action for which validation is being performed</param>
         /// <param name="item">The item to be validated</param>
-        /// <param name="Errors">A pre-existing list of errors, which should be added to in the case that any errors are detected</param>
-        override public void Validate(OrmAction action, dynamic item, List<object> Errors) { }
+        /// <param name="addError">Call <paramref name="addError"/>(object) to add errors to the error list. You may choose to add strings, or a more complex object if you wish.
+        /// NB Adding one or more errors indicates that the item fails, adding no errors indicates success.</param>
+        override public void Validate(dynamic item, Action<object> addError) { }
     }
 }

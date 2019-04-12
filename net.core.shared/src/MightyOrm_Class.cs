@@ -372,12 +372,12 @@ namespace Mighty
 		}
 
         /// <summary>
-        /// The reflected <see cref="PropertyInfo"/> from <typeparamref name="T" /> for all specified columns in the database table.
+        /// The reflected <see cref="PropertyInfo"/> from <typeparamref name="T"/> for all specified columns in the database table.
         /// </summary>
 		protected Dictionary<string, PropertyInfo> columnNameToPropertyInfo;
 
         /// <summary>
-        /// For a single primary key only, the reflected <see cref="PropertyInfo"/> corresponding the the primary key field in <typeparamref name="T" />.
+        /// For a single primary key only, the reflected <see cref="PropertyInfo"/> corresponding the the primary key field in <typeparamref name="T"/>.
         /// </summary>
 		protected PropertyInfo pkProperty;
 #endregion
@@ -663,13 +663,14 @@ namespace Mighty
 			return TableName;
 		}
 
-		/// <summary>
-		/// Checks that every item in the list is valid for the action to be undertaken.
-		/// Normally you should not need to override this, but override <see cref="Validator.Validate" /> instead.
-		/// </summary>
-		/// <param name="action">The ORM action</param>
-		/// <param name="items">The list of items. (Can be T, dynamic, or anything else with suitable name-value (and optional type) data in it.)</param>
-		virtual internal void ValidateAction(IEnumerable<object> items, OrmAction action)
+        /// <summary>
+        /// Checks that every item in the list is valid for the action to be undertaken.
+        /// Normally you should not need to override this, but override <see cref="Validator.ValidateForAction"/>
+        /// or <see cref="Validator.Validate"/> instead.
+        /// </summary>
+        /// <param name="action">The ORM action</param>
+        /// <param name="items">The list of items. (Can be T, dynamic, or anything else with suitable name-value (and optional type) data in it.)</param>
+        virtual internal void ValidateAction(IEnumerable<object> items, OrmAction action)
 		{
 			if (Validator.Prevalidation == PrevalidationType.Off)
 			{
@@ -681,7 +682,7 @@ namespace Mighty
 			foreach (var item in items)
 			{
 				int oldCount = Errors.Count;
-				Validator.Validate(action, item, Errors);
+				Validator.ValidateForAction(action, item, o => Errors.Add(o));
 				if (Errors.Count > oldCount)
 				{
 					valid = false;
@@ -705,7 +706,7 @@ namespace Mighty
 			List<object> Errors = new List<object>();
 			if (Validator != null)
 			{
-				Validator.Validate(action, item, Errors);
+				Validator.ValidateForAction(action, item, o => Errors.Add(o));
 			}
 			return Errors;
 		}

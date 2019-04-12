@@ -31,17 +31,17 @@ namespace Mighty.Generic.Tests.SqlServer.TableClasses
 		}
 
 
-		public class SalesOrderHeaderValidator : Validator
-		{
-			override public void Validate(OrmAction action, dynamic item, List<object> Errors)
-			{
-				// bogus validation: isn't valid if sales person is null. 
+        public class SalesOrderHeaderValidator : Validator
+        {
+            override public void Validate(dynamic item, Action<object> addError)
+            {
+                // bogus validation: isn't valid if sales person is null. 
 
-				if (item.SalesPersonID == null)
-				{
-					Errors.Add("SalesPersonID is null");
-				}
-			}
-		}
-	}
+                if (item.SalesPersonID == null)
+                {
+                    addError("SalesPersonID is null");
+                }
+            }
+        }
+    }
 }

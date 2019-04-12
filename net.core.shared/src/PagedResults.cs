@@ -8,7 +8,7 @@ namespace Mighty
     /// <summary>
     /// The results from a paging query
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">The generic type for items returned by this instance</typeparam>
 	public class PagedResults<T>
 	{
         /// <summary>

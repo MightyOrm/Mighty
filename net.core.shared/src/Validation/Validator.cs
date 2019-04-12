@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 
 namespace Mighty.Validation
@@ -22,22 +23,39 @@ namespace Mighty.Validation
 		virtual public PrevalidationType Prevalidation { get; set; } = PrevalidationType.Off;
 
         /// <summary>
-        /// If <see cref="Prevalidation" /> is enabled <see cref="MightyOrm"/> calls this one item at a time before *any* real actions are done.
+        /// If <see cref="Prevalidation"/> is enabled <see cref="MightyOrm"/> calls this one item at a time before *any* real actions are done.
         /// If any item fails, no actions are done for any item.
-        /// You might well just want to add strings as your error objects, but it is up to you.
-        /// Adding one or more errors counts as failing validation.
+        /// This default implementation directly calls <see cref="Validate(dynamic, Action{object})"/>, so ignores the <paramref name="action"/> parameter,
+        /// but non-abstract implementations can override this.
         /// </summary>
         /// <param name="action">You can choose to ignore this and do the same validation for every action.</param>
-        /// <param name="item">The item to validate. NB this can be whatever you pass in as input objects, it is not restricted to items of type T
-        /// even for the generically typed MightyOrm&lt;T&gt;.</param>
-        /// <param name="Errors">Append your errors to this list. You may choose to append strings, or a more complex object if you wish.
-        /// NB Adding one or more errors indicates that the item fails, adding nothing to the errors indicates success.</param>
+        /// <param name="item">The item to validate. NB this can be whatever you pass in as input objects, and therefore is NOT restricted to items of the generic type
+        /// even for generically typed <see cref="MightyOrm{T}"/>.</param>
+        /// <param name="addError">Call <paramref name="addError"/>(object) to add errors to the error list. You may choose to add strings, or a more complex object if you wish.
+        /// NB Adding one or more errors indicates that the item fails, adding no errors indicates success.</param>
         /// <returns></returns>
         /// <remarks>
         /// Item is not necessarily a representation of the item for action: for delete only, it might be a representation of just the PK depending on how .Delete was called.
         /// Despite this, you can write fairly stright-forward validators; have a look at the table classes in the generic tests in the source code.
         /// </remarks>
-        abstract public void Validate(OrmAction action, dynamic item, List<object> Errors);
+        virtual public void ValidateForAction(OrmAction action, dynamic item, Action<object> addError) { Validate(item, addError); }
+
+        /// <summary>
+        /// If <see cref="Prevalidation"/> is enabled <see cref="MightyOrm"/> calls this one item at a time before *any* real actions are done.
+        /// If any item fails, no actions are done for any item.
+        /// You might well just want to add strings as your error objects, but it is up to you.
+        /// Adding one or more errors counts as failing validation.
+        /// </summary>
+        /// <param name="item">The item to validate. NB this can be whatever you pass in as input objects, it is not restricted to items of type T
+        /// even for the generically typed MightyOrm&lt;T&gt;.</param>
+        /// <param name="addError">Call <paramref name="addError"/>(object) to add errors to the error list. You may choose to add strings, or a more complex object if you wish.
+        /// NB Adding one or more errors indicates that the item fails, adding no errors indicates success.</param>
+        /// <returns></returns>
+        /// <remarks>
+        /// Item is not necessarily a representation of the item for action: for delete only, it might be a representation of just the PK depending on how .Delete was called.
+        /// Despite this, you can write fairly stright-forward validators; have a look at the table classes in the generic tests in the source code.
+        /// </remarks>
+        abstract public void Validate(dynamic item, Action<object> addError);
 
         /// <summary>
         /// This is called one item at time, just before the processing for that specific item.

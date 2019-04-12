@@ -50,7 +50,7 @@ namespace Mighty.Interfaces
     /// <summary>
     /// Abstract interface for all features of <see cref="MightyOrm{T}"/>, provided for injection and mocking.
     /// </summary>
-    /// <typeparam name="T"></typeparam>
+    /// <typeparam name="T">The generic type for items returned by this instance</typeparam>
 	abstract public partial class MightyOrmAbstractInterface<T>
 	{
         // In C# (though not all languages, see discussion here https://stackoverflow.com/a/11271938/795690)
