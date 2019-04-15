@@ -17,7 +17,7 @@ namespace Mighty.Dynamic.Tests.MySql
 #endif
 	public class SPTests
 	{
-		private string ProviderName;
+		private readonly string ProviderName;
 
 		/// <summary>
 		/// Initialise tests for given provider

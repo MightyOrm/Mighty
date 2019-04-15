@@ -17,7 +17,7 @@ namespace Mighty.Generic.Tests.MySql
 #endif
 	public class WriteTests
 	{
-		private string ProviderName;
+		private readonly string ProviderName;
 
 		/// <summary>
 		/// Initialise tests for given provider

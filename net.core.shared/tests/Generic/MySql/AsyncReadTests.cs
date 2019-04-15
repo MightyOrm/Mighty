@@ -20,7 +20,7 @@ namespace Mighty.Generic.Tests.MySql
 #endif
 	public class AsyncReadTests
 	{
-		private string ProviderName;
+		private readonly string ProviderName;
 
 		/// <summary>
 		/// Initialise tests for given provider

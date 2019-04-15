@@ -15,7 +15,7 @@ namespace Mighty.Dynamic.Tests.MySql
 	[TestFixture]
 	public class DevartTests
 	{
-		private string ProviderName = "Devart.Data.MySql";
+		private readonly string ProviderName = "Devart.Data.MySql";
 
         // Massive style calls to some examples from https://www.devart.com/dotconnect/mysql/docs/Parameters.html#inoutparams
         #region Devart Examples

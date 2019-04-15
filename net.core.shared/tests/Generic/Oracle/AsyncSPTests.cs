@@ -22,7 +22,7 @@ namespace Mighty.Generic.Tests.Oracle
 	[TestFixture("Oracle.DataAccess.Client")]
 	public class AsyncSPTests
 	{
-		private string ProviderName;
+		private readonly string ProviderName;
 
 		/// <summary>
 		/// Initialise tests for given provider
