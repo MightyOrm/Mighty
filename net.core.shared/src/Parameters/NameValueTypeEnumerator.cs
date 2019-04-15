@@ -21,9 +21,9 @@ namespace Mighty.Parameters
 	/// </remarks>
 	internal class NameValueTypeEnumerator : IEnumerable<LazyNameValueTypeInfo>, IEnumerable
 	{
-		private object _o;
-		private ParameterDirection? _direction;
-		private OrmAction? _action;
+		private readonly object _o;
+		private readonly ParameterDirection? _direction;
+		private readonly OrmAction? _action;
 
         internal ParameterInfo Current { get; set; }
 
@@ -85,7 +85,7 @@ namespace Mighty.Parameters
             // a DB which doesn't support it; even on DBs which do support it, it only makes sense on input parameters).
             // NB This is not the same thing as the auto-named parameters added by AddParams(), which also use object[]
             // but with a different meaning (namely the values for the auto-named params @0, @1 or :0, :1 etc.).
-            // Value-only processing now also used to support value-only collections of PK values when performing ORMAction on an item.
+            // Value-only processing now also used to support value-only collections of PK values when performing <see cref="OrmAction"/> on an item.
             if (valueArray != null)
             {
                 return false;
@@ -149,7 +149,7 @@ namespace Mighty.Parameters
 			// a DB which doesn't support it; even on DBs which do support it, it only makes sense on input parameters).
 			// NB This is not the same thing as the auto-named parameters added by AddParams(), which also use object[]
 			// but with a different meaning (namely the values for the auto-named params @0, @1 or :0, :1 etc.).
-			// Value-only processing now also used to support value-only collections of PK values when performing ORMAction on an item.
+			// Value-only processing now also used to support value-only collections of PK values when performing <see cref="OrmAction"/> on an item.
 			if (valueArray != null)
 			{
 				string msg = null;

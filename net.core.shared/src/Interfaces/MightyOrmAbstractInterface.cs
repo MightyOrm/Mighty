@@ -232,11 +232,28 @@ namespace Mighty.Interfaces
 
 		abstract public object GetColumnDefault(string columnName);
 
-		abstract public List<object> IsValid(object item, OrmAction action = OrmAction.Save);
+        /// <summary>
+        /// Is the passed in item valid against the current validator?
+        /// </summary>
+        /// <param name="item">The item</param>
+        /// <param name="action">Optional action type (defaults to <see cref="OrmAction.Save"/>)</param>
+        /// <returns></returns>
+        abstract public List<object> IsValid(object item, OrmAction action = OrmAction.Save);
 
-		abstract public bool HasPrimaryKey(object item);
+        /// <summary>
+        /// True only if the passed in object contains (a) field(s) matching the named primary key(s) of the current table.
+        /// </summary>
+        /// <param name="item">Item to check</param>
+        /// <returns></returns>
+        abstract public bool HasPrimaryKey(object item);
 
-		abstract public object GetPrimaryKey(object item, bool alwaysArray = false);
+        /// <summary>
+        /// Return primary key for item, as a single object for simple PK, or as object[] for compound PK.
+        /// </summary>
+        /// <param name="item">The item</param>
+        /// <param name="alwaysArray">If true return object[] of 1 item, even for simple PK</param>
+        /// <returns></returns>
+        abstract public object GetPrimaryKey(object item, bool alwaysArray = false);
 #endregion
 	}
 }

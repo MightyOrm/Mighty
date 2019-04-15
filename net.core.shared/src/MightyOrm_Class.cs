@@ -696,10 +696,10 @@ namespace Mighty
 		}
 
 		/// <summary>
-		/// Is the passed in item valid against the current validator for the specified ORMAction?
+		/// Is the passed in item valid against the current validator?
 		/// </summary>
 		/// <param name="item">The item</param>
-		/// <param name="action">Optional action type (defaults to Save)</param>
+		/// <param name="action">Optional action type (defaults to <see cref="OrmAction.Save"/>)</param>
 		/// <returns></returns>
 		override public List<object> IsValid(object item, OrmAction action = OrmAction.Save)
 		{
@@ -712,7 +712,7 @@ namespace Mighty
 		}
 
 		/// <summary>
-		/// True iff input object has a named field matching the PK name (or PKs for compound primary keys)
+		/// True only if the passed in object contains (a) field(s) matching the named primary key(s) of the current table.
 		/// </summary>
 		/// <param name="item">Item to check</param>
 		/// <returns></returns>
@@ -727,7 +727,7 @@ namespace Mighty
 		}
 
 		/// <summary>
-		/// Return primary key for item, as simple object for simple PK, or as object[] for compound PK.
+		/// Return primary key for item, as a single object for simple PK, or as object[] for compound PK.
 		/// </summary>
 		/// <param name="item">The item</param>
 		/// <param name="alwaysArray">If true return object[] of 1 item, even for simple PK</param>

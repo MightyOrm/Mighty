@@ -59,7 +59,7 @@ namespace Mighty.Validation
 
         /// <summary>
         /// This is called one item at time, just before the processing for that specific item.
-        /// ORMAction is performed iff this returns true. If false is returned, no processing
+        /// <see cref="OrmAction"/> is performed iff this returns true. If false is returned, no processing
         /// is done for this item, but processing still continues for all remaining items.
         /// </summary>
         /// <param name="item">The item for which the action is about to be performed.
