@@ -25,14 +25,17 @@ namespace Mighty.Dynamic.Tests.Sqlite
 		{
 			var db = new MightyOrm(TestConstants.ReadWriteTestConnection);
 			var guid = Guid.NewGuid();
-			var command = db.CreateCommand("SELECT @0 AS val", null, guid);
+            dynamic item;
+            using (var command = db.CreateCommand("SELECT @0 AS val", null, guid))
+            {
 #if (NETCOREAPP || NETSTANDARD)
-			// For some reason .NET Core provider doesn't have DbType.Guid support even though .NET Framework provider does
-			Assert.AreEqual(DbType.String, command.Parameters[0].DbType);
+			    // For some reason .NET Core provider doesn't have DbType.Guid support even though .NET Framework provider does
+			    Assert.AreEqual(DbType.String, command.Parameters[0].DbType);
 #else
-			Assert.AreEqual(DbType.Guid, command.Parameters[0].DbType);
+                Assert.AreEqual(DbType.Guid, command.Parameters[0].DbType);
 #endif
-			var item = await db.SingleAsync(command);
+                item = await db.SingleAsync(command);
+            }
 			// The output from the provider is a bunch of bytes either way, so we stick with the provider
 			// default here (especially since it is the same in both cases).
 			Assert.AreEqual(typeof(byte[]), item.val.GetType());

@@ -16,14 +16,35 @@ namespace Mighty
 {
 	public partial class MightyOrm<T> : MightyOrmAbstractInterface<T> where T : class, new()
 	{
-		#region Non-table specific methods
-		override public DbCommand CreateCommand(string sql,
+        #region Non-table specific methods
+        /// <summary>
+        /// Create a <see cref="DbCommand"/> ready for use with Mighty.
+        /// Manually creating commands is an advanced use-case; standard Mighty methods create and dispose
+        /// of required <see cref="DbCommand"/> and <see cref="DbConnection"/> objects for you.
+        /// You should use one of the variants of <see cref="CreateCommand(string, object[])"/>
+        /// for all commands passed in to Mighty, since on some providers this sets provider specific properties which are needed to ensure expected behaviour with Mighty.
+        /// </summary>
+        /// <param name="sql">The command SQL, with optional numbered parameters</param>
+        /// <param name="args">Auto-numbered parameters for the SQL</param>
+        /// <returns></returns>
+        override public DbCommand CreateCommand(string sql,
 			params object[] args)
 		{
 			return CreateCommandWithParams(sql, args: args);
 		}
 
-		override public DbCommand CreateCommand(string sql,
+        /// <summary>
+        /// Create a <see cref="DbCommand"/> ready for use with Mighty.
+        /// Manually creating commands is an advanced use-case; standard Mighty methods create and dispose
+        /// of required <see cref="DbCommand"/> and <see cref="DbConnection"/> objects for you.
+        /// You should use one of the variants of <see cref="CreateCommand(string, object[])"/>
+        /// for all commands passed in to Mighty, since on some providers this sets provider specific properties which are needed to ensure expected behaviour with Mighty.
+        /// </summary>
+        /// <param name="sql">The command SQL, with optional numbered parameters</param>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="args">Auto-numbered parameters for the SQL</param>
+        /// <returns></returns>
+        override public DbCommand CreateCommand(string sql,
 			DbConnection connection,
 			params object[] args)
 		{

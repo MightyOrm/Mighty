@@ -23,9 +23,12 @@ namespace Mighty.Dynamic.Tests.SqlServer
 			// SQL Server has true Guid type support
 			var db = new MightyOrm(TestConstants.ReadTestConnection);
 			var guid = Guid.NewGuid();
-			var command = db.CreateCommand("SELECT @0 AS val", null, guid);
-			Assert.AreEqual(DbType.Guid, command.Parameters[0].DbType);
-			var item = await db.SingleAsync(command);
+            dynamic item;
+            using (var command = db.CreateCommand("SELECT @0 AS val", null, guid))
+            {
+                Assert.AreEqual(DbType.Guid, command.Parameters[0].DbType);
+                item = await db.SingleAsync(command);
+            }
 			Assert.AreEqual(guid, item.val);
 		}
 

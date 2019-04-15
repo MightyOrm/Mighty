@@ -104,30 +104,33 @@ namespace Mighty.Dynamic.Tests.MySql
 		{
 			var db = new SPTestsDatabase(ProviderName);
 
-			var command = db.CreateCommandWithParams("rewards_report_for_date",
-													 inParams: new
-													 {
-														 min_monthly_purchases = 3,
-														 min_dollar_amount_purchased = 20,
-														 report_date = new DateTime(2005, 5, 1)
-													 },
-													 outParams: new
-													 {
-														 count_rewardees = 0
-													 },
-													 isProcedure: true);
+            int count = 0;
+            dynamic results;
+            using (var command = db.CreateCommandWithParams("rewards_report_for_date",
+                                                     inParams: new
+                                                     {
+                                                         min_monthly_purchases = 3,
+                                                         min_dollar_amount_purchased = 20,
+                                                         report_date = new DateTime(2005, 5, 1)
+                                                     },
+                                                     outParams: new
+                                                     {
+                                                         count_rewardees = 0
+                                                     },
+                                                     isProcedure: true))
+            {
+                var resultset = await db.QueryAsync(command);
 
-			var resultset = await db.QueryAsync(command);
+                // read the result set
+                await resultset.ForEachAsync(item =>
+                {
+                    count++;
+                    Assert.AreEqual(typeof(string), item.last_name.GetType());
+                    Assert.AreEqual(typeof(DateTime), item.create_date.GetType());
+                });
 
-			// read the result set
-			int count = 0;
-			await resultset.ForEachAsync(item => {
-				count++;
-				Assert.AreEqual(typeof(string), item.last_name.GetType());
-				Assert.AreEqual(typeof(DateTime), item.create_date.GetType());
-			});
-
-			var results = db.ResultsAsExpando(command);
+                results = db.ResultsAsExpando(command);
+            }
 
 			Assert.Greater(results.count_rewardees, 0);
 			Assert.AreEqual(count, results.count_rewardees);

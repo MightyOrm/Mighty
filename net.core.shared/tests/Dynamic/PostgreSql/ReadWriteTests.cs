@@ -23,9 +23,12 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 			// PostgreSQL has true Guid type support
 			var db = new MightyOrm(TestConstants.ReadWriteTestConnection);
 			var guid = Guid.NewGuid();
-			var command = db.CreateCommand("SELECT @0 AS val", null, guid);
-			Assert.AreEqual(DbType.Guid, command.Parameters[0].DbType);
-			var item = db.Single(command);
+            dynamic item;
+            using (var command = db.CreateCommand("SELECT @0 AS val", null, guid))
+            {
+                Assert.AreEqual(DbType.Guid, command.Parameters[0].DbType);
+                item = db.Single(command);
+            }
 			Assert.AreEqual(guid, item.val);
 		}
 
