@@ -44,7 +44,7 @@ namespace Mighty
         /// <param name="ioParams">Named input-output parameters</param>
         /// <param name="returnParams">Named return parameters</param>
         /// <param name="connection">Optional connection to use</param>
-        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         /// <returns></returns>
         /// <remarks>
         /// This only lets you pass in the aggregate expressions of your SQL variant, but SUM, AVG, MIN, MAX are supported on all.
@@ -74,7 +74,7 @@ namespace Mighty
         /// <param name="ioParams">Named input-output parameters</param>
         /// <param name="returnParams">Named return parameters</param>
         /// <param name="connection">Optional connection to use</param>
-        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
         /// <remarks>
@@ -102,7 +102,7 @@ namespace Mighty
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="where">WHERE clause specifying which rows to update</param>
         /// <param name="connection">Optional connection to use</param>
-        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         override public async Task<int> UpdateUsingAsync(object partialItem, string where,
             DbConnection connection,
             params object[] args)
@@ -124,7 +124,7 @@ namespace Mighty
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="where">WHERE clause specifying which rows to update</param>
         /// <param name="connection">Optional connection to use</param>
-        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         override public async Task<int> UpdateUsingAsync(object partialItem, string where,
             DbConnection connection,
@@ -149,7 +149,7 @@ namespace Mighty
         /// <param name="where">WHERE clause specifying which rows to update</param>
         /// <param name="connection">Optional connection to use</param>
         /// <param name="inParams">Named input parameters</param>
-        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         protected async Task<int> UpdateUsingWithParamsAsync(
             object partialItem,
@@ -188,7 +188,7 @@ namespace Mighty
         /// Non-optional WHERE clause.
         /// Specify "1=1" if you are sure that you want to delete all rows.
         /// </param>
-        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         /// <param name="connection">The connection to use</param>
         /// <returns>The number of items affected</returns>
         override public async Task<int> DeleteAsync(string where,
@@ -208,7 +208,7 @@ namespace Mighty
         /// Non-optional WHERE clause.
         /// Specify "1=1" if you are sure that you want to delete all rows.
         /// </param>
-        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         /// <param name="connection">The connection to use</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns>The number of items affected</returns>
@@ -394,7 +394,7 @@ namespace Mighty
         /// <param name="pageSize">Page size</param>
         /// <param name="currentPage">Current page</param>
         /// <param name="connection">Optional connection to use</param>
-        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         /// <returns>The result of the paged query. Result properties are Items, TotalPages, and TotalRecords.</returns>
         /// <remarks>
         /// In this one instance, because of the connection to the underlying logic of these queries, the user
@@ -429,7 +429,7 @@ namespace Mighty
         /// <param name="pageSize">Page size</param>
         /// <param name="currentPage">Current page</param>
         /// <param name="connection">Optional connection to use</param>
-        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns>The result of the paged query. Result properties are Items, TotalPages, and TotalRecords.</returns>
         /// <remarks>
@@ -460,8 +460,19 @@ namespace Mighty
         }
 
         /// <summary>
-        /// Return all matching items.
+        /// Get <see cref="IEnumerable{T}"/> of items from the current table with WHERE and TOP/LIMIT specification and support for named parameters.
         /// </summary>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="orderBy">ORDER BY clause</param>
+        /// <param name="columns">Columns to return</param>
+        /// <param name="limit">Maximum number of items to return</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered input parameters</param>
+        /// <returns></returns>
         override public async Task<IAsyncEnumerable<T>> AllWithParamsAsync(
             string where = null, string orderBy = null, string columns = null, int limit = 0,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
@@ -475,6 +486,22 @@ namespace Mighty
                 connection,
                 args: args);
         }
+
+        /// <summary>
+        /// Get <see cref="IEnumerable{T}"/> of items from the current table with WHERE and TOP/LIMIT specification and support for named parameters.
+        /// </summary>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="orderBy">ORDER BY clause</param>
+        /// <param name="columns">Columns to return</param>
+        /// <param name="limit">Maximum number of items to return</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered input parameters</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns></returns>
         override public async Task<IAsyncEnumerable<T>> AllWithParamsAsync(
             CancellationToken cancellationToken,
             string where = null, string orderBy = null, string columns = null, int limit = 0,

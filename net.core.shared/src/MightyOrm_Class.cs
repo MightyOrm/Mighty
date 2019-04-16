@@ -1226,7 +1226,7 @@ namespace Mighty
         /// passed in to Mighty using C# parameter syntax)
         /// </summary>
         /// <param name="cmd">The command</param>
-        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         internal void AddParams(DbCommand cmd, params object[] args)
         {
             if (args == null)

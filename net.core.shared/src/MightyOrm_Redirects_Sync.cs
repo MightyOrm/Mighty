@@ -63,7 +63,7 @@ namespace Mighty
         /// Get single item from query.
         /// </summary>
         /// <param name="sql">The command SQL</param>
-        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         /// <returns></returns>
         /// <remarks>
         /// 'Easy-calling' version, optional args straight after SQL.
@@ -93,7 +93,7 @@ namespace Mighty
         /// </summary>
         /// <param name="sql">The command SQL</param>
         /// <param name="connection">The connection to use</param>
-        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         /// <returns></returns>
         override public T SingleFromQuery(string sql,
             DbConnection connection,
@@ -132,7 +132,7 @@ namespace Mighty
         /// <param name="outParams">Named output parameters</param>
         /// <param name="ioParams">Named input-output parameters</param>
         /// <param name="returnParams">Named return parameters</param>
-        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         /// <returns></returns>
         override public T SingleFromQueryWithParams(string sql,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
@@ -153,7 +153,7 @@ namespace Mighty
         /// <param name="outParams">Named output parameters</param>
         /// <param name="ioParams">Named input-output parameters</param>
         /// <param name="returnParams">Named return parameters</param>
-        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         /// <returns></returns>
         override public IEnumerable<T> QueryFromProcedure(string spName,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
@@ -175,7 +175,7 @@ namespace Mighty
         /// <param name="outParams">Named output parameters</param>
         /// <param name="ioParams">Named input-output parameters</param>
         /// <param name="returnParams">Named return parameters</param>
-        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         /// <returns></returns>
         override public T SingleFromProcedure(string spName,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
@@ -275,7 +275,7 @@ namespace Mighty
         /// <param name="ioParams">Named input-output parameters</param>
         /// <param name="returnParams">Named return parameters</param>
         /// <param name="connection">Optional connection to use</param>
-        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         /// <returns>A dynamic object containing the names and output values of all output, input-output and return parameters</returns>
         override public dynamic ExecuteWithParams(string sql,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
@@ -306,7 +306,7 @@ namespace Mighty
         /// <param name="ioParams">Named input-output parameters</param>
         /// <param name="returnParams">Named return parameters</param>
         /// <param name="connection">Optional connection to use</param>
-        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         /// <returns>A dynamic object containing the names and output values of all output, input-output and return parameters</returns>
         override public dynamic ExecuteProcedure(string spName,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
@@ -408,7 +408,7 @@ namespace Mighty
         /// <param name="where">WHERE clause</param>
         /// <param name="columns">Columns (defaults to *, but can be specified, e.g., to count non-nulls in a given field)</param>
         /// <param name="connection">Optional connection to use</param>
-        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         /// <returns></returns>
         override public object Count(
             string where = null,
@@ -440,7 +440,7 @@ namespace Mighty
         /// <param name="columns">Columns</param>
         /// <param name="where">WHERE clause</param>
         /// <param name="connection">Optional connection to use</param>
-        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         /// <returns></returns>
         override public object Max(
             string columns,
@@ -472,7 +472,7 @@ namespace Mighty
         /// <param name="columns">Columns</param>
         /// <param name="where">WHERE clause</param>
         /// <param name="connection">Optional connection to use</param>
-        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         /// <returns></returns>
         override public object Min(
             string columns,
@@ -504,7 +504,7 @@ namespace Mighty
         /// <param name="columns">Columns</param>
         /// <param name="where">WHERE clause</param>
         /// <param name="connection">Optional connection to use</param>
-        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         /// <returns></returns>
         override public object Sum(
             string columns,
@@ -536,7 +536,7 @@ namespace Mighty
         /// <param name="columns">Columns</param>
         /// <param name="where">WHERE clause</param>
         /// <param name="connection">Optional connection to use</param>
-        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         /// <returns></returns>
         override public object Avg(
             string columns,
@@ -569,7 +569,7 @@ namespace Mighty
         /// <param name="columns">Columns for aggregate function</param>
         /// <param name="where">WHERE clause</param>
         /// <param name="connection">Optional connection to use</param>
-        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         /// <returns></returns>
         override public object Aggregate(string function, string columns, string where = null,
             DbConnection connection = null,
@@ -617,7 +617,7 @@ namespace Mighty
         /// Get single item from the current table using WHERE specification.
         /// </summary>
         /// <param name="where">WHERE clause</param>
-        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         /// <returns></returns>
         /// <remarks>
         /// 'Easy-calling' version, optional args straight after where.
@@ -635,7 +635,7 @@ namespace Mighty
         /// <param name="connection">Optional connection to use</param>
         /// <param name="orderBy">ORDER BY clause</param>
         /// <param name="columns">Columns to return</param>
-        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         /// <returns></returns>
         /// <remarks>
         /// DbConnection coming early (not just before args) in this one case is really useful, as it avoids ambiguity between
@@ -661,7 +661,7 @@ namespace Mighty
         /// <param name="outParams">Named output parameters</param>
         /// <param name="ioParams">Named input-output parameters</param>
         /// <param name="returnParams">Named return parameters</param>
-        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         /// <returns></returns>
         override public T SingleWithParams(string where, string orderBy = null, string columns = null,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
@@ -675,7 +675,15 @@ namespace Mighty
                 args).FirstOrDefault();
         }
 
-        // ORM
+        /// <summary>
+        /// Get <see cref="IEnumerable{T}"/> of items from the current table with WHERE and TOP/LIMIT specification.
+        /// </summary>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="orderBy">ORDER BY clause</param>
+        /// <param name="columns">Columns to return</param>
+        /// <param name="limit">Maximum number of items to return</param>
+        /// <param name="args">Auto-numbered input parameters</param>
+        /// <returns></returns>
         override public IEnumerable<T> All(
             string where = null, string orderBy = null, string columns = null, int limit = 0,
             params object[] args)
@@ -683,6 +691,14 @@ namespace Mighty
             return AllWithParams(where, orderBy, columns, limit, args: args);
         }
 
+        /// <summary>
+        /// Get <see cref="IEnumerable{T}"/> of items from the current table with primary key or name-value where specification and TOP/LIMIT specification.
+        /// </summary>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
+        /// <param name="orderBy">ORDER BY clause</param>
+        /// <param name="columns">Columns to return</param>
+        /// <param name="limit">Maximum number of items to return</param>
+        /// <returns></returns>
         override public IEnumerable<T> All(
             object whereParams = null, string orderBy = null, string columns = null, int limit = 0)
         {
@@ -705,7 +721,7 @@ namespace Mighty
         /// <param name="pageSize">Page size</param>
         /// <param name="currentPage">Current page</param>
         /// <param name="connection">Optional connection to use</param>
-        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         /// <returns>The result of the paged query. Result properties are Items, TotalPages, and TotalRecords.</returns>
         /// <remarks>
         /// `columns` parameter is not placed first because it's an override to something we may have already provided in the constructor
@@ -965,7 +981,7 @@ namespace Mighty
         /// </summary>
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="where">WHERE clause specifying which rows to update</param>
-        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         override public int UpdateUsing(object partialItem, string where,
             params object[] args)
         {
@@ -979,7 +995,7 @@ namespace Mighty
         /// Non-optional WHERE clause.
         /// Specify "1=1" if you are sure that you want to delete all rows.
         /// </param>
-        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         /// <returns>The number of items affected</returns>
         override public int Delete(string where,
             params object[] args)
