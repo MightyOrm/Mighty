@@ -1398,9 +1398,9 @@ namespace Mighty.Interfaces
             params object[] args);
 
         /// <summary>
-        /// Save one or more items using params style arguments.
+        /// Save one or more items.
         /// 'Save' means
-        /// objects with missing (applies to dynamic only) or default primary keys are inserted
+        /// objects with missing or default primary keys are inserted
         /// and objects with non-default primary keys are updated.
         /// </summary>
         /// <param name="items">The items</param>
@@ -1408,9 +1408,9 @@ namespace Mighty.Interfaces
         abstract public Task<int> SaveAsync(params object[] items);
 
         /// <summary>
-        /// Save one or more items using params style arguments.
+        /// Save one or more items.
         /// 'Save' means
-        /// objects with missing (applies to dynamic only) or default primary keys are inserted
+        /// objects with missing or default primary keys are inserted
         /// and objects with non-default primary keys are updated.
         /// </summary>
         /// <param name="items">The items</param>
@@ -1419,9 +1419,9 @@ namespace Mighty.Interfaces
         abstract public Task<int> SaveAsync(CancellationToken cancellationToken, params object[] items);
 
         /// <summary>
-        /// Save one or more items using params style arguments.
+        /// Save one or more items.
         /// 'Save' means
-        /// objects with missing (applies to dynamic only) or default primary keys are inserted
+        /// objects with missing or default primary keys are inserted
         /// and objects with non-default primary keys are updated.
         /// </summary>
         /// <param name="connection">The connection to use</param>
@@ -1430,9 +1430,9 @@ namespace Mighty.Interfaces
         abstract public Task<int> SaveAsync(DbConnection connection, params object[] items);
 
         /// <summary>
-        /// Save one or more items using params style arguments.
+        /// Save one or more items.
         /// 'Save' means
-        /// objects with missing (applies to dynamic only) or default primary keys are inserted
+        /// objects with missing or default primary keys are inserted
         /// and objects with non-default primary keys are updated.
         /// </summary>
         /// <param name="connection">The connection to use</param>
@@ -1444,7 +1444,7 @@ namespace Mighty.Interfaces
         /// <summary>
         /// Save array or other <see cref="IEnumerable"/> of items.
         /// 'Save' means
-        /// objects with missing (applies to dynamic only) or default primary keys are inserted
+        /// objects with missing or default primary keys are inserted
         /// and objects with non-default primary keys are updated.
         /// </summary>
         /// <param name="items">The items</param>
@@ -1454,7 +1454,7 @@ namespace Mighty.Interfaces
         /// <summary>
         /// Save array or other <see cref="IEnumerable"/> of items.
         /// 'Save' means
-        /// objects with missing (applies to dynamic only) or default primary keys are inserted
+        /// objects with missing or default primary keys are inserted
         /// and objects with non-default primary keys are updated.
         /// </summary>
         /// <param name="items">The items</param>
@@ -1465,7 +1465,7 @@ namespace Mighty.Interfaces
         /// <summary>
         /// Save array or other <see cref="IEnumerable"/> of items.
         /// 'Save' means
-        /// objects with missing (applies to dynamic only) or default primary keys are inserted
+        /// objects with missing or default primary keys are inserted
         /// and objects with non-default primary keys are updated.
         /// </summary>
         /// <param name="connection">The connection to use</param>
@@ -1476,7 +1476,7 @@ namespace Mighty.Interfaces
         /// <summary>
         /// Save array or other <see cref="IEnumerable"/> of items.
         /// 'Save' means
-        /// objects with missing (applies to dynamic only) or default primary keys are inserted
+        /// objects with missing or default primary keys are inserted
         /// and objects with non-default primary keys are updated.
         /// </summary>
         /// <param name="connection">The connection to use</param>
@@ -1486,95 +1486,103 @@ namespace Mighty.Interfaces
         abstract public Task<int> SaveAsync(DbConnection connection, IEnumerable<object> items, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Insert single item, returning the item sent in but with PK populated.
-        /// If you need all fields populated (i.e. you want to get back DB default values for non-PK fields), please create the item using New() before inserting it.
+        /// Insert single item.
+        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column default values.
         /// </summary>
         /// <param name="item">The item to insert, in any reasonable format (for MightyOrm&lt;T&gt; this includes, but is not limited to, in instance of type T)</param>
-        /// <returns>The inserted item</returns>
+        /// <returns>The item sent in but with the primary key populated</returns>
         abstract public Task<T> InsertAsync(object item);
 
         /// <summary>
-        /// Insert single item, returning the item sent in but with PK populated.
-        /// If you need all fields populated (i.e. you want to get back DB default values for non-PK fields), please create the item using New() before inserting it.
+        /// Insert single item.
+        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column default values.
         /// </summary>
         /// <param name="item">The item to insert, in any reasonable format (for MightyOrm&lt;T&gt; this includes, but is not limited to, in instance of type T)</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
-        /// <returns>The inserted item</returns>
+        /// <returns>The item sent in but with the primary key populated</returns>
         abstract public Task<T> InsertAsync(object item, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Insert one or more items using params style arguments.
+        /// Insert one or more items.
+        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column default values.
         /// </summary>
         /// <param name="items">The items</param>
-        /// <returns>The number of rows inserted</returns>
+        /// <returns>The items sent in but with the primary keys populated</returns>
         abstract public Task<IEnumerable<T>> InsertAsync(params object[] items);
 
         /// <summary>
-        /// Insert one or more items using params style arguments.
+        /// Insert one or more items.
+        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column default values.
         /// </summary>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="items">The items</param>
-        /// <returns>The number of rows inserted</returns>
+        /// <returns>The items sent in but with the primary keys populated</returns>
         abstract public Task<IEnumerable<T>> InsertAsync(CancellationToken cancellationToken, params object[] items);
 
         /// <summary>
-        /// Insert one or more items using params style arguments.
+        /// Insert one or more items.
+        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column default values.
         /// </summary>
         /// <param name="connection">The connection to use</param>
         /// <param name="items">The items</param>
-        /// <returns>The number of rows inserted</returns>
+        /// <returns>The items sent in but with the primary keys populated</returns>
         abstract public Task<IEnumerable<T>> InsertAsync(DbConnection connection, params object[] items);
 
         /// <summary>
-        /// Insert one or more items using params style arguments.
+        /// Insert one or more items.
+        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column default values.
         /// </summary>
         /// <param name="connection">The connection to use</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="items">The items</param>
-        /// <returns>The number of rows inserted</returns>
+        /// <returns>The items sent in but with the primary keys populated</returns>
         abstract public Task<IEnumerable<T>> InsertAsync(DbConnection connection, CancellationToken cancellationToken, params object[] items);
 
         /// <summary>
         /// Insert array or other <see cref="IEnumerable"/> of items.
+        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column default values.
         /// </summary>
         /// <param name="items">The items</param>
-        /// <returns>The number of rows inserted</returns>
+        /// <returns>The items sent in but with the primary keys populated</returns>
         abstract public Task<IEnumerable<T>> InsertAsync(IEnumerable<object> items);
 
         /// <summary>
         /// Insert array or other <see cref="IEnumerable"/> of items.
+        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column default values.
         /// </summary>
         /// <param name="items">The items</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
-        /// <returns>The number of rows inserted</returns>
+        /// <returns>The items sent in but with the primary keys populated</returns>
         abstract public Task<IEnumerable<T>> InsertAsync(IEnumerable<object> items, CancellationToken cancellationToken);
 
         /// <summary>
         /// Insert array or other <see cref="IEnumerable"/> of items.
+        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column default values.
         /// </summary>
         /// <param name="connection">The connection to use</param>
         /// <param name="items">The items</param>
-        /// <returns>The number of rows inserted</returns>
+        /// <returns>The items sent in but with the primary keys populated</returns>
         abstract public Task<IEnumerable<T>> InsertAsync(DbConnection connection, IEnumerable<object> items);
 
         /// <summary>
         /// Insert array or other <see cref="IEnumerable"/> of items.
+        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column default values.
         /// </summary>
         /// <param name="connection">The connection to use</param>
         /// <param name="items">The items</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
-        /// <returns>The number of rows inserted</returns>
+        /// <returns>The items sent in but with the primary keys populated</returns>
         abstract public Task<IEnumerable<T>> InsertAsync(DbConnection connection, IEnumerable<object> items, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Update one or more items using params style arguments.
+        /// Update one or more items.
         /// </summary>
         /// <param name="items">The items</param>
         /// <returns></returns>
         abstract public Task<int> UpdateAsync(params object[] items);
 
         /// <summary>
-        /// Update one or more items using params style arguments.
+        /// Update one or more items.
         /// </summary>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="items">The items</param>
@@ -1582,7 +1590,7 @@ namespace Mighty.Interfaces
         abstract public Task<int> UpdateAsync(CancellationToken cancellationToken, params object[] items);
 
         /// <summary>
-        /// Update one or more items using params style arguments.
+        /// Update one or more items.
         /// </summary>
         /// <param name="connection">The connection to use</param>
         /// <param name="items">The items</param>
@@ -1590,7 +1598,7 @@ namespace Mighty.Interfaces
         abstract public Task<int> UpdateAsync(DbConnection connection, params object[] items);
 
         /// <summary>
-        /// Update one or more items using params style arguments.
+        /// Update one or more items.
         /// </summary>
         /// <param name="connection">The connection to use</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
@@ -1631,7 +1639,7 @@ namespace Mighty.Interfaces
         abstract public Task<int> UpdateAsync(DbConnection connection, IEnumerable<object> items, CancellationToken cancellationToken);
 
         /// <summary>
-        /// Delete one or more items using params style arguments.
+        /// Delete one or more items.
         /// Each argument may be (or contain) a value (or values) only, in which case
         /// it specifies the primary key value(s) of the item to delete, or it can be any object containing name-values pairs in which case
         /// it should contain fields with names matching the primary key(s) whose values will specify the item to delete (but it may contain
@@ -1642,7 +1650,7 @@ namespace Mighty.Interfaces
         abstract public Task<int> DeleteAsync(params object[] items);
 
         /// <summary>
-        /// Delete one or more items using params style arguments.
+        /// Delete one or more items.
         /// Delete an array or other <see cref="IEnumerable"/> of items.
         /// Each argument may be (or contain) a value (or values) only, in which case
         /// it specifies the primary key value(s) of the item to delete, or it can be any object containing name-values pairs in which case
@@ -1655,7 +1663,7 @@ namespace Mighty.Interfaces
         abstract public Task<int> DeleteAsync(CancellationToken cancellationToken, params object[] items);
 
         /// <summary>
-        /// Delete one or more items using params style arguments.
+        /// Delete one or more items.
         /// Each argument may be (or contain) a value (or values) only, in which case
         /// it specifies the primary key value(s) of the item to delete, or it can be any object containing name-values pairs in which case
         /// it should contain fields with names matching the primary key(s) whose values will specify the item to delete (but it may contain
@@ -1667,7 +1675,7 @@ namespace Mighty.Interfaces
         abstract public Task<int> DeleteAsync(DbConnection connection, params object[] items);
 
         /// <summary>
-        /// Delete one or more items using params style arguments.
+        /// Delete one or more items.
         /// Each argument may be (or contain) a value (or values) only, in which case
         /// it specifies the primary key value(s) of the item to delete, or it can be any object containing name-values pairs in which case
         /// it should contain fields with names matching the primary key(s) whose values will specify the item to delete (but it may contain

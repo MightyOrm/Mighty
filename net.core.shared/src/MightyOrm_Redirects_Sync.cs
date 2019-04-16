@@ -774,9 +774,9 @@ namespace Mighty
         }
 
         /// <summary>
-        /// Save one or more items using params style arguments.
+        /// Save one or more items.
         /// 'Save' means
-        /// objects with missing (applies to dynamic only) or default primary keys are inserted
+        /// objects with missing or default primary keys are inserted
         /// and objects with non-default primary keys are updated.
         /// </summary>
         /// <param name="items">The items</param>
@@ -787,9 +787,9 @@ namespace Mighty
         }
 
         /// <summary>
-        /// Save one or more items using params style arguments.
+        /// Save one or more items.
         /// 'Save' means
-        /// objects with missing (applies to dynamic only) or default primary keys are inserted
+        /// objects with missing or default primary keys are inserted
         /// and objects with non-default primary keys are updated.
         /// </summary>
         /// <param name="connection">The connection to use</param>
@@ -803,7 +803,7 @@ namespace Mighty
         /// <summary>
         /// Save array or other <see cref="IEnumerable"/> of items.
         /// 'Save' means
-        /// objects with missing (applies to dynamic only) or default primary keys are inserted
+        /// objects with missing or default primary keys are inserted
         /// and objects with non-default primary keys are updated.
         /// </summary>
         /// <param name="items">The items</param>
@@ -816,7 +816,7 @@ namespace Mighty
         /// <summary>
         /// Save array or other <see cref="IEnumerable"/> of items.
         /// 'Save' means
-        /// objects with missing (applies to dynamic only) or default primary keys are inserted
+        /// objects with missing or default primary keys are inserted
         /// and objects with non-default primary keys are updated.
         /// </summary>
         /// <param name="connection">The connection to use</param>
@@ -828,60 +828,64 @@ namespace Mighty
         }
 
         /// <summary>
-        /// Insert single item, returning the item sent in but with PK populated.
-        /// If you need all fields populated (i.e. you want to get back DB default values for non-PK fields), please create the item using New() before inserting it.
+        /// Insert single item.
+        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column default values.
         /// </summary>
         /// <param name="item">The item to insert, in any reasonable format (for MightyOrm&lt;T&gt; this includes, but is not limited to, in instance of type T)</param>
-        /// <returns>The inserted item</returns>
+        /// <returns>The item sent in but with the primary key populated</returns>
         override public T Insert(object item)
         {
             return ActionOnItems(OrmAction.Insert, null, new object[] { item }).FirstOrDefault();
         }
 
         /// <summary>
-        /// Insert one or more items using params style arguments.
+        /// Insert one or more items.
+        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column default values.
         /// </summary>
         /// <param name="items">The items</param>
-        /// <returns>The number of rows inserted</returns>
+        /// <returns>The items sent in but with the primary keys populated</returns>
         override public IEnumerable<T> Insert(params object[] items)
         {
             return ActionOnItems(OrmAction.Insert, null, items);
         }
 
         /// <summary>
-        /// Insert one or more items using pre-specified DbConnection
+        /// Insert one or more items.
+        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column default values.
         /// </summary>
         /// <param name="connection">The connection to use</param>
         /// <param name="items">The items</param>
-        /// <returns>The number of rows inserted</returns>
+        /// <returns>The items sent in but with the primary keys populated</returns>
         override public IEnumerable<T> Insert(DbConnection connection, params object[] items)
         {
             return ActionOnItems(OrmAction.Insert, connection, items);
         }
 
         /// <summary>
-        /// Insert array or other <see cref="IEnumerable"/> of items..
+        /// Insert array or other <see cref="IEnumerable"/> of items.
+        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column default values.
         /// </summary>
         /// <param name="items">The items</param>
-        /// <returns>The number of rows inserted</returns>
+        /// <returns>The items sent in but with the primary keys populated</returns>
         override public IEnumerable<T> Insert(IEnumerable<object> items)
         {
             return ActionOnItems(OrmAction.Insert, null, items);
         }
 
         /// <summary>
-        /// Insert array or other <see cref="IEnumerable"/> of items..
+        /// Insert array or other <see cref="IEnumerable"/> of items.
+        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column default values.
         /// </summary>
         /// <param name="connection">The connection to use</param>
         /// <param name="items">The items</param>
-        /// <returns>The number of rows inserted</returns>
+        /// <returns>The items sent in but with the primary keys populated</returns>
         override public IEnumerable<T> Insert(DbConnection connection, IEnumerable<object> items)
         {
             return ActionOnItems(OrmAction.Insert, connection, items);
         }
 
         /// <summary>
-        /// Update one or more items using params style arguments.
+        /// Update one or more items.
         /// </summary>
         /// <param name="items">The items</param>
         /// <returns></returns>
@@ -891,7 +895,7 @@ namespace Mighty
         }
 
         /// <summary>
-        /// Update one or more items using pre-specified DbConnection
+        /// Update one or more items.
         /// </summary>
         /// <param name="connection">The connection to use</param>
         /// <param name="items">The items</param>
@@ -902,7 +906,7 @@ namespace Mighty
         }
 
         /// <summary>
-        /// Update array or other <see cref="IEnumerable"/> of items..
+        /// Update array or other <see cref="IEnumerable"/> of items.
         /// </summary>
         /// <param name="items">The items</param>
         /// <returns></returns>
@@ -912,7 +916,7 @@ namespace Mighty
         }
 
         /// <summary>
-        /// Update array or other <see cref="IEnumerable"/> of items..
+        /// Update array or other <see cref="IEnumerable"/> of items.
         /// </summary>
         /// <param name="connection">The connection to use</param>
         /// <param name="items">The items</param>
@@ -923,7 +927,7 @@ namespace Mighty
         }
 
         /// <summary>
-        /// Delete one or more items using params style arguments.
+        /// Delete one or more items.
         /// Each argument may be (or contain) a value (or values) only, in which case
         /// it specifies the primary key value(s) of the item to delete, or it can be any object containing name-values pairs in which case
         /// it should contain fields with names matching the primary key(s) whose values will specify the item to delete (but it may contain
@@ -937,7 +941,7 @@ namespace Mighty
         }
 
         /// <summary>
-        /// Delete one or more items using params style arguments.
+        /// Delete one or more items.
         /// Each argument may be (or contain) a value (or values) only, in which case
         /// it specifies the primary key value(s) of the item to delete, or it can be any object containing name-values pairs in which case
         /// it should contain fields with names matching the primary key(s) whose values will specify the item to delete (but it may contain
