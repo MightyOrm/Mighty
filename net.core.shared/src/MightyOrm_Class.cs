@@ -113,6 +113,10 @@ namespace Mighty
 
     }
 
+    /// <summary>
+    /// Strongly typed MightyOrm instance.
+    /// </summary>
+    /// <typeparam name="T">The generic type for items returned by this instance</typeparam>
     public partial class MightyOrm<T> : MightyOrmAbstractInterface<T> where T : class, new()
     {
         #region Constructor
