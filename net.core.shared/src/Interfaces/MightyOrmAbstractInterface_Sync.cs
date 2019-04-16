@@ -179,21 +179,40 @@ namespace Mighty.Interfaces
             DbConnection connection = null,
             params object[] args);
 
+        /// <summary>
+        /// Execute database command.
+        /// </summary>
+        /// <param name="command">The command to execute</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <returns>The number of rows affected</returns>
         abstract public int Execute(DbCommand command,
             DbConnection connection = null);
 
+        /// <summary>
+        /// Execute database command.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="args">Auto-numbered parameters for the SQL</param>
+        /// <returns>The number of rows affected</returns>
         /// <remarks>
         /// 'Easy-calling' version, optional args straight after SQL.
         /// </remarks>
         abstract public int Execute(string sql,
             params object[] args);
 
+        /// <summary>
+        /// Execute database command.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameters for the SQL</param>
+        /// <returns>The number of rows affected</returns>
         abstract public int Execute(string sql,
             DbConnection connection,
             params object[] args);
 
         /// <summary>
-        /// Execute command with parameters
+        /// Execute command with support for named parameters.
         /// </summary>
         /// <param name="sql">The command SQL</param>
         /// <param name="inParams">Named input parameters</param>
@@ -202,14 +221,14 @@ namespace Mighty.Interfaces
         /// <param name="returnParams">Named return parameters</param>
         /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
-        /// <returns>The results of all non-input parameters</returns>
+        /// <returns>A dynamic object containing the names and output values of all output, input-output and return parameters</returns>
         abstract public dynamic ExecuteWithParams(string sql,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
             params object[] args);
 
         /// <summary>
-        /// Execute stored procedure with parameters
+        /// Execute stored procedure with support for named parameters.
         /// </summary>
         /// <param name="spName">Stored procedure name</param>
         /// <param name="inParams">Named input parameters</param>
@@ -218,7 +237,7 @@ namespace Mighty.Interfaces
         /// <param name="returnParams">Named return parameters</param>
         /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
-        /// <returns>The results of all non-input parameters</returns>
+        /// <returns>A dynamic object containing the names and output values of all output, input-output and return parameters</returns>
         abstract public dynamic ExecuteProcedure(string spName,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,

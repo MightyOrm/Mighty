@@ -223,11 +223,11 @@ namespace Mighty
         }
 
         /// <summary>
-        /// Execute DbCommand
+        /// Execute database command.
         /// </summary>
         /// <param name="command">The command to execute</param>
         /// <param name="connection">Optional connection to use</param>
-        /// <returns></returns>
+        /// <returns>The number of rows affected</returns>
         override public int Execute(DbCommand command,
             DbConnection connection = null)
         {

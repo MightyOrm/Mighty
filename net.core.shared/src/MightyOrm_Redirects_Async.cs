@@ -508,6 +508,12 @@ namespace Mighty
                 args: args);
         }
 
+        /// <summary>
+        /// Execute database command.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="args">Auto-numbered parameters for the SQL</param>
+        /// <returns>The number of rows affected</returns>
         /// <remarks>
         /// 'Easy-calling' version, optional args straight after SQL.
         /// </remarks>
@@ -520,6 +526,13 @@ namespace Mighty
             }
         }
 
+        /// <summary>
+        /// Execute database command.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <param name="args">Auto-numbered parameters for the SQL</param>
+        /// <returns>The number of rows affected</returns>
         /// <remarks>
         /// 'Easy-calling' version, optional args straight after SQL.
         /// </remarks>
@@ -533,6 +546,13 @@ namespace Mighty
             }
         }
 
+        /// <summary>
+        /// Execute database command.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameters for the SQL</param>
+        /// <returns>The number of rows affected</returns>
         override public async Task<int> ExecuteAsync(string sql,
             DbConnection connection,
             params object[] args)
@@ -542,6 +562,15 @@ namespace Mighty
                 return await ExecuteAsync(command, connection).ConfigureAwait(false);
             }
         }
+
+        /// <summary>
+        /// Execute database command.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <param name="args">Auto-numbered parameters for the SQL</param>
+        /// <returns>The number of rows affected</returns>
         override public async Task<int> ExecuteAsync(string sql,
             DbConnection connection,
             CancellationToken cancellationToken,
@@ -554,7 +583,7 @@ namespace Mighty
         }
 
         /// <summary>
-        /// Execute command with parameters
+        /// Execute command with support for named parameters.
         /// </summary>
         /// <param name="sql">The command SQL</param>
         /// <param name="inParams">Named input parameters</param>
@@ -563,7 +592,7 @@ namespace Mighty
         /// <param name="returnParams">Named return parameters</param>
         /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
-        /// <returns>The results of all non-input parameters</returns>
+        /// <returns>A dynamic object containing the names and output values of all output, input-output and return parameters</returns>
         override public async Task<dynamic> ExecuteWithParamsAsync(string sql,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
@@ -577,7 +606,7 @@ namespace Mighty
         }
 
         /// <summary>
-        /// Execute command with parameters
+        /// Execute command with support for named parameters.
         /// </summary>
         /// <param name="sql">The command SQL</param>
         /// <param name="inParams">Named input parameters</param>
@@ -587,7 +616,7 @@ namespace Mighty
         /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
-        /// <returns>The results of all non-input parameters</returns>
+        /// <returns>A dynamic object containing the names and output values of all output, input-output and return parameters</returns>
         override public async Task<dynamic> ExecuteWithParamsAsync(string sql,
             CancellationToken cancellationToken,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
@@ -610,7 +639,7 @@ namespace Mighty
         }
 
         /// <summary>
-        /// Execute stored procedure with parameters
+        /// Execute stored procedure with support for named parameters.
         /// </summary>
         /// <param name="spName">Stored procedure name</param>
         /// <param name="inParams">Named input parameters</param>
@@ -619,7 +648,7 @@ namespace Mighty
         /// <param name="returnParams">Named return parameters</param>
         /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
-        /// <returns>The results of all non-input parameters</returns>
+        /// <returns>A dynamic object containing the names and output values of all output, input-output and return parameters</returns>
         override public async Task<dynamic> ExecuteProcedureAsync(string spName,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
@@ -633,7 +662,7 @@ namespace Mighty
         }
 
         /// <summary>
-        /// Execute stored procedure with parameters
+        /// Execute stored procedure with support for named parameters.
         /// </summary>
         /// <param name="spName">Stored procedure name</param>
         /// <param name="inParams">Named input parameters</param>
@@ -643,7 +672,7 @@ namespace Mighty
         /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
-        /// <returns>The results of all non-input parameters</returns>
+        /// <returns>A dynamic object containing the names and output values of all output, input-output and return parameters</returns>
         override public async Task<dynamic> ExecuteProcedureAsync(string spName,
             CancellationToken cancellationToken,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,

@@ -331,16 +331,24 @@ namespace Mighty
         }
 
         /// <summary>
-        /// Execute DbCommand
+        /// Execute database command.
         /// </summary>
         /// <param name="command">The command to execute</param>
         /// <param name="connection">Optional connection to use</param>
-        /// <returns></returns>
+        /// <returns>The number of rows affected</returns>
         override public async Task<int> ExecuteAsync(DbCommand command,
             DbConnection connection = null)
         {
             return await ExecuteAsync(command, CancellationToken.None, connection);
         }
+
+        /// <summary>
+        /// Execute database command.
+        /// </summary>
+        /// <param name="command">The command to execute</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns>The number of rows affected</returns>
         override public async Task<int> ExecuteAsync(DbCommand command,
             CancellationToken cancellationToken,
             DbConnection connection = null)

@@ -404,18 +404,45 @@ namespace Mighty.Interfaces
             DbConnection connection = null,
             params object[] args);
 
+        /// <summary>
+        /// Execute database command.
+        /// </summary>
+        /// <param name="command">The command to execute</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <returns>The number of rows affected</returns>
         abstract public Task<int> ExecuteAsync(DbCommand command,
             DbConnection connection = null);
+
+        /// <summary>
+        /// Execute database command.
+        /// </summary>
+        /// <param name="command">The command to execute</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns>The number of rows affected</returns>
         abstract public Task<int> ExecuteAsync(DbCommand command,
             CancellationToken cancellationToken,
             DbConnection connection = null);
 
+        /// <summary>
+        /// Execute database command.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="args">Auto-numbered parameters for the SQL</param>
+        /// <returns>The number of rows affected</returns>
         /// <remarks>
         /// 'Easy-calling' version, optional args straight after SQL.
         /// </remarks>
         abstract public Task<int> ExecuteAsync(string sql,
             params object[] args);
 
+        /// <summary>
+        /// Execute database command.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <param name="args">Auto-numbered parameters for the SQL</param>
+        /// <returns>The number of rows affected</returns>
         /// <remarks>
         /// 'Easy-calling' version, optional args straight after SQL.
         /// </remarks>
@@ -423,16 +450,32 @@ namespace Mighty.Interfaces
             CancellationToken cancellationToken,
             params object[] args);
 
+        /// <summary>
+        /// Execute database command.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameters for the SQL</param>
+        /// <returns>The number of rows affected</returns>
         abstract public Task<int> ExecuteAsync(string sql,
             DbConnection connection,
             params object[] args);
+
+        /// <summary>
+        /// Execute database command.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <param name="args">Auto-numbered parameters for the SQL</param>
+        /// <returns>The number of rows affected</returns>
         abstract public Task<int> ExecuteAsync(string sql,
             DbConnection connection,
             CancellationToken cancellationToken,
             params object[] args);
 
         /// <summary>
-        /// Execute command with parameters
+        /// Execute command with support for named parameters.
         /// </summary>
         /// <param name="sql">The command SQL</param>
         /// <param name="inParams">Named input parameters</param>
@@ -441,11 +484,24 @@ namespace Mighty.Interfaces
         /// <param name="returnParams">Named return parameters</param>
         /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
-        /// <returns>The results of all non-input parameters</returns>
+        /// <returns>A dynamic object containing the names and output values of all output, input-output and return parameters</returns>
         abstract public Task<dynamic> ExecuteWithParamsAsync(string sql,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
             params object[] args);
+
+        /// <summary>
+        /// Execute command with support for named parameters.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns>A dynamic object containing the names and output values of all output, input-output and return parameters</returns>
         abstract public Task<dynamic> ExecuteWithParamsAsync(string sql,
             CancellationToken cancellationToken,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
@@ -453,7 +509,7 @@ namespace Mighty.Interfaces
             params object[] args);
 
         /// <summary>
-        /// Execute stored procedure with parameters
+        /// Execute stored procedure with support for named parameters.
         /// </summary>
         /// <param name="spName">Stored procedure name</param>
         /// <param name="inParams">Named input parameters</param>
@@ -462,11 +518,24 @@ namespace Mighty.Interfaces
         /// <param name="returnParams">Named return parameters</param>
         /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
-        /// <returns>The results of all non-input parameters</returns>
+        /// <returns>A dynamic object containing the names and output values of all output, input-output and return parameters</returns>
         abstract public Task<dynamic> ExecuteProcedureAsync(string spName,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
             params object[] args);
+
+        /// <summary>
+        /// Execute stored procedure with support for named parameters.
+        /// </summary>
+        /// <param name="spName">Stored procedure name</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns>A dynamic object containing the names and output values of all output, input-output and return parameters</returns>
         abstract public Task<dynamic> ExecuteProcedureAsync(string spName,
             CancellationToken cancellationToken,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
