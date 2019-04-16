@@ -362,7 +362,7 @@ namespace Mighty
         }
 
         /// <summary>
-        /// Return scalar from DbCommand
+        /// Return scalar result (value of first or only column from first or only row) from database command.
         /// </summary>
         /// <param name="command">The command to execute</param>
         /// <param name="connection">Optional connection to use</param>
@@ -372,6 +372,14 @@ namespace Mighty
         {
             return await ScalarAsync(command, CancellationToken.None, connection);
         }
+
+        /// <summary>
+        /// Return scalar result (value of first or only column from first or only row) from database command.
+        /// </summary>
+        /// <param name="command">The command to execute</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns></returns>
         override public async Task<object> ScalarAsync(DbCommand command,
             CancellationToken cancellationToken,
             DbConnection connection = null)

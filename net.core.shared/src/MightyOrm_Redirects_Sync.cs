@@ -329,6 +329,12 @@ namespace Mighty
             }
         }
 
+        /// <summary>
+        /// Return scalar result (value of first or only column from first or only row) from SQL query.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="args">Auto-numbered input parameters</param>
+        /// <returns></returns>
         /// <remarks>
         /// 'Easy-calling' version, optional args straight after SQL.
         /// </remarks>
@@ -341,6 +347,13 @@ namespace Mighty
             }
         }
 
+        /// <summary>
+        /// Return scalar result (value of first or only column from first or only row) from SQL query.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered input parameters</param>
+        /// <returns></returns>
         override public object Scalar(string sql,
             DbConnection connection,
             params object[] args)
@@ -351,6 +364,17 @@ namespace Mighty
             }
         }
 
+        /// <summary>
+        /// Return scalar result (value of first or only column from first or only row) from SQL query with support for named parameters.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered input parameters</param>
+        /// <returns></returns>
         override public object ScalarWithParams(string sql,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
@@ -364,6 +388,17 @@ namespace Mighty
             }
         }
 
+        /// <summary>
+        /// Return scalar result (value of first or only column from first or only row) from stored procedure with support for named parameters.
+        /// </summary>
+        /// <param name="spName">Stored procedure name</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered input parameters</param>
+        /// <returns></returns>
         override public object ScalarFromProcedure(string spName,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
