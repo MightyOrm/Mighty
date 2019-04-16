@@ -189,7 +189,7 @@ namespace Mighty.Interfaces
             DbConnection connection = null);
 
         /// <summary>
-        /// Execute database command.
+        /// Execute SQL query.
         /// </summary>
         /// <param name="sql">The command SQL</param>
         /// <param name="args">Auto-numbered parameters for the SQL</param>
@@ -201,7 +201,7 @@ namespace Mighty.Interfaces
             params object[] args);
 
         /// <summary>
-        /// Execute database command.
+        /// Execute SQL query.
         /// </summary>
         /// <param name="sql">The command SQL</param>
         /// <param name="connection">Optional connection to use</param>
@@ -212,7 +212,7 @@ namespace Mighty.Interfaces
             params object[] args);
 
         /// <summary>
-        /// Execute command with support for named parameters.
+        /// Execute SQL query with support for named parameters.
         /// </summary>
         /// <param name="sql">The command SQL</param>
         /// <param name="inParams">Named input parameters</param>
