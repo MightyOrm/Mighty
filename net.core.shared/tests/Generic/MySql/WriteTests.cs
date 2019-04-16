@@ -54,7 +54,9 @@ namespace Mighty.Generic.Tests.MySql
             var both = inserted.Zip(selected, (insertedItem, selectedItem) => new { insertedItem, selectedItem });
             foreach (var combined in both)
             {
-                Assert.AreEqual(combined.insertedItem, combined.selectedItem);
+                Assert.AreEqual(combined.insertedItem.CategoryID, combined.selectedItem.CategoryID);
+                Assert.AreEqual(combined.insertedItem.CategoryName, combined.selectedItem.CategoryName);
+                Assert.AreEqual(combined.insertedItem.Description, combined.selectedItem.Description);
             }
         }
 

@@ -10,17 +10,6 @@ namespace Mighty.Generic.Tests.SqlServer.TableClasses
         public int CategoryID { get; set; }
         public string CategoryName { get; set; }
         public string Description { get; set; }
-
-        public override bool Equals(object obj)
-        {
-            var c = obj as Category;
-            if (c == null) return false;
-            return (
-                CategoryID == c.CategoryID &&
-                CategoryName == c.CategoryName &&
-                Description == c.Description
-            );
-        }
     }
 
     public class Categories : MightyOrm<Category>
