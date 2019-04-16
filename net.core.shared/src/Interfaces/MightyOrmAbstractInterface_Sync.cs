@@ -28,42 +28,50 @@ namespace Mighty.Interfaces
         /// <returns></returns>
         abstract public DbConnection OpenConnection();
 
+        /// <summary>
+        /// Get <see cref="IEnumerable{T}"/> of items returned by database command.
+        /// </summary>
+        /// <param name="command">The command to execute</param>
+        /// <param name="connection">The connection to use</param>
+        /// <returns></returns>
         abstract public IEnumerable<T> Query(DbCommand command,
             DbConnection connection = null);
 
         /// <summary>
         /// Get single item returned by database command.
-        /// (To ensure consistent behaviour use <see cref="CreateCommand(string, object[])"/> or
-        /// <see cref="CreateCommand(string, DbConnection, object[])"/> to create commands passed in to Mighty.)
         /// </summary>
-        /// <param name="command">The command</param>
+        /// <param name="command">The command to execute</param>
         /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
         abstract public T Single(DbCommand command,
             DbConnection connection = null);
 
-        // no connection, easy args
-
         /// <summary>
-        /// Get <see cref="IEnumerable{T}"/> of items returned by SQL query
+        /// Get <see cref="IEnumerable{T}"/> of items returned by SQL query.
         /// </summary>
         /// <param name="sql">The command SQL</param>
         /// <param name="args">Auto-numbered parameter values for SQL</param>
         /// <returns></returns>
+        /// <remarks>
+        /// 'Easy-calling' version, optional args straight after SQL.
+        /// </remarks>
         abstract public IEnumerable<T> Query(string sql,
             params object[] args);
 
         /// <summary>
-        /// Get single item returned by SQL query
+        /// Get single item from query.
         /// </summary>
         /// <param name="sql">The command SQL</param>
-        /// <param name="args">Auto-numbered parameter values for SQL</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
         /// <returns></returns>
+        /// <remarks>
+        /// 'Easy-calling' version, optional args straight after SQL.
+        /// </remarks>
         abstract public T SingleFromQuery(string sql,
             params object[] args);
 
         /// <summary>
-        /// Get <see cref="IEnumerable{T}"/> of items returned by SQL query
+        /// Get <see cref="IEnumerable{T}"/> of items returned by SQL query.
         /// </summary>
         /// <param name="sql">The command SQL</param>
         /// <param name="connection">The connection to use</param>
@@ -74,31 +82,75 @@ namespace Mighty.Interfaces
             params object[] args);
 
         /// <summary>
-        /// Get single item returned by SQL query
+        /// Get single item from query.
         /// </summary>
         /// <param name="sql">The command SQL</param>
         /// <param name="connection">The connection to use</param>
-        /// <param name="args">Auto-numbered parameter values for SQL</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
         /// <returns></returns>
         abstract public T SingleFromQuery(string sql,
             DbConnection connection,
             params object[] args);
 
+        /// <summary>
+        /// Get <see cref="IEnumerable{T}"/> of items returned by SQL query with support for named parameters.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for SQL</param>
+        /// <returns></returns>
         abstract public IEnumerable<T> QueryWithParams(string sql,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
             params object[] args);
 
+        /// <summary>
+        /// Get single item from query with support for named parameters.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
         abstract public T SingleFromQueryWithParams(string sql,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
             params object[] args);
 
+        /// <summary>
+        /// Get <see cref="IEnumerable{T}"/> of items from stored procedure call with support for named parameters.
+        /// </summary>
+        /// <param name="spName">Stored procedure name</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
         abstract public IEnumerable<T> QueryFromProcedure(string spName,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
             params object[] args);
 
+        /// <summary>
+        /// Get single item from stored procedure call with support for named parameters.
+        /// </summary>
+        /// <param name="spName">Stored procedure name</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
         abstract public T SingleFromProcedure(string spName,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
@@ -107,7 +159,9 @@ namespace Mighty.Interfaces
         abstract public IEnumerable<IEnumerable<T>> QueryMultiple(DbCommand command,
             DbConnection connection = null);
 
-        // no connection, easy args
+        /// <remarks>
+        /// 'Easy-calling' version, optional args straight after SQL.
+        /// </remarks>
         abstract public IEnumerable<IEnumerable<T>> QueryMultiple(string sql,
             params object[] args);
 
@@ -128,7 +182,9 @@ namespace Mighty.Interfaces
         abstract public int Execute(DbCommand command,
             DbConnection connection = null);
 
-        // no connection, easy args
+        /// <remarks>
+        /// 'Easy-calling' version, optional args straight after SQL.
+        /// </remarks>
         abstract public int Execute(string sql,
             params object[] args);
 
@@ -171,7 +227,9 @@ namespace Mighty.Interfaces
         abstract public object Scalar(DbCommand command,
             DbConnection connection = null);
 
-        // no connection, easy args
+        /// <remarks>
+        /// 'Easy-calling' version, optional args straight after SQL.
+        /// </remarks>
         abstract public object Scalar(string sql,
             params object[] args);
 
@@ -417,7 +475,7 @@ namespace Mighty.Interfaces
             params object[] args);
 
         /// <summary>
-        /// Get single object from the current table using primary key or name-value specification.
+        /// Get single item from the current table using primary key or name-value where specification.
         /// </summary>
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="columns">List of columns to return</param>
@@ -427,7 +485,7 @@ namespace Mighty.Interfaces
             DbConnection connection = null);
 
         /// <summary>
-        /// Get a single object from the current table with where specification.
+        /// Get single item from the current table using WHERE specification.
         /// </summary>
         /// <param name="where">WHERE clause</param>
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
@@ -439,12 +497,12 @@ namespace Mighty.Interfaces
             params object[] args);
 
         /// <summary>
-        /// 
+        /// Get single item from the current table using WHERE specification.
         /// </summary>
         /// <param name="where">WHERE clause</param>
         /// <param name="connection">Optional connection to use</param>
         /// <param name="orderBy">ORDER BY clause</param>
-        /// <param name="columns">Comma separated list of columns to return or "*"</param>
+        /// <param name="columns">Columns to return</param>
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
         /// <returns></returns>
         /// <remarks>
@@ -457,7 +515,19 @@ namespace Mighty.Interfaces
             string columns = null,
             params object[] args);
 
-        // WithParams version just in case; allows transactions for a start
+        /// <summary>
+        /// Get single item from the current table using WHERE specification with support for named parameters.
+        /// </summary>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="orderBy">ORDER BY clause</param>
+        /// <param name="columns">Columns to return</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
         abstract public T SingleWithParams(string where, string orderBy = null, string columns = null,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,

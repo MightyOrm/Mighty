@@ -81,81 +81,276 @@ namespace Mighty.Interfaces
         abstract public Task<DbConnection> OpenConnectionAsync(CancellationToken cancellationToken);
 
 
+        /// <summary>
+        /// Get <see cref="IEnumerable{T}"/> of items returned by database command.
+        /// </summary>
+        /// <param name="command">The command to execute</param>
+        /// <param name="connection">The connection to use</param>
+        /// <returns></returns>
         abstract public Task<IAsyncEnumerable<T>> QueryAsync(DbCommand command,
             DbConnection connection = null);
+
+        /// <summary>
+        /// Get <see cref="IEnumerable{T}"/> of items returned by database command.
+        /// </summary>
+        /// <param name="command">The command to execute</param>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns></returns>
         abstract public Task<IAsyncEnumerable<T>> QueryAsync(DbCommand command,
             CancellationToken cancellationToken,
             DbConnection connection = null);
 
+        /// <summary>
+        /// Get single item returned by database command.
+        /// </summary>
+        /// <param name="command">The command to execute</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <returns></returns>
         abstract public Task<T> SingleAsync(DbCommand command,
             DbConnection connection = null);
+
+        /// <summary>
+        /// Get single item returned by database command.
+        /// </summary>
+        /// <param name="command">The command to execute</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns></returns>
         abstract public Task<T> SingleAsync(DbCommand command,
             CancellationToken cancellationToken,
             DbConnection connection = null);
 
-        // no connection, easy args
+        /// <summary>
+        /// Get <see cref="IEnumerable{T}"/> of items returned by SQL query.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="args">Auto-numbered parameter values for SQL</param>
+        /// <returns></returns>
+        /// <remarks>
+        /// 'Easy-calling' version, optional args straight after SQL.
+        /// </remarks>
         abstract public Task<IAsyncEnumerable<T>> QueryAsync(string sql,
             params object[] args);
+
+        /// <summary>
+        /// Get <see cref="IEnumerable{T}"/> of items returned by SQL query.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="args">Auto-numbered parameter values for SQL</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns></returns>
+        /// <remarks>
+        /// 'Easy-calling' version, optional args straight after SQL.
+        /// </remarks>
         abstract public Task<IAsyncEnumerable<T>> QueryAsync(string sql,
             CancellationToken cancellationToken,
             params object[] args);
 
+        /// <summary>
+        /// Get single item from query.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
+        /// <remarks>
+        /// 'Easy-calling' version, optional args straight after SQL.
+        /// </remarks>
         abstract public Task<T> SingleFromQueryAsync(string sql,
             params object[] args);
+
+        /// <summary>
+        /// Get single item from query.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns></returns>
+        /// <remarks>
+        /// 'Easy-calling' version, optional args straight after SQL.
+        /// </remarks>
         abstract public Task<T> SingleFromQueryAsync(string sql,
             CancellationToken cancellationToken,
             params object[] args);
 
+        /// <summary>
+        /// Get <see cref="IEnumerable{T}"/> of items returned by SQL query.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for SQL</param>
+        /// <returns></returns>
         abstract public Task<IAsyncEnumerable<T>> QueryAsync(string sql,
             DbConnection connection,
             params object[] args);
+
+        /// <summary>
+        /// Get <see cref="IEnumerable{T}"/> of items returned by SQL query.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for SQL</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns></returns>
         abstract public Task<IAsyncEnumerable<T>> QueryAsync(string sql,
             DbConnection connection,
             CancellationToken cancellationToken,
             params object[] args);
 
+        /// <summary>
+        /// Get single item from query.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
         abstract public Task<T> SingleFromQueryAsync(string sql,
             DbConnection connection,
             params object[] args);
+
+        /// <summary>
+        /// Get single item from query.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns></returns>
         abstract public Task<T> SingleFromQueryAsync(string sql,
             DbConnection connection,
             CancellationToken cancellationToken,
             params object[] args);
 
+        /// <summary>
+        /// Get <see cref="IEnumerable{T}"/> of items returned by SQL query with support for named parameters.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for SQL</param>
+        /// <returns></returns>
         abstract public Task<IAsyncEnumerable<T>> QueryWithParamsAsync(string sql,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
             params object[] args);
+
+        /// <summary>
+        /// Get <see cref="IEnumerable{T}"/> of items returned by SQL query with support for named parameters.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for SQL</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns></returns>
         abstract public Task<IAsyncEnumerable<T>> QueryWithParamsAsync(string sql,
             CancellationToken cancellationToken,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
             params object[] args);
 
+        /// <summary>
+        /// Get single item from query with support for named parameters.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
         abstract public Task<T> SingleFromQueryWithParamsAsync(string sql,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
             params object[] args);
+
+        /// <summary>
+        /// Get single item from query with support for named parameters.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns></returns>
         abstract public Task<T> SingleFromQueryWithParamsAsync(string sql,
             CancellationToken cancellationToken,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
             params object[] args);
 
+        /// <summary>
+        /// Get <see cref="IEnumerable{T}"/> of items from stored procedure call with support for named parameters.
+        /// </summary>
+        /// <param name="spName">Stored procedure name</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
         abstract public Task<IAsyncEnumerable<T>> QueryFromProcedureAsync(string spName,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
             params object[] args);
+
+        /// <summary>
+        /// Get <see cref="IEnumerable{T}"/> of items from stored procedure call with support for named parameters.
+        /// </summary>
+        /// <param name="spName">Stored procedure name</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns></returns>
         abstract public Task<IAsyncEnumerable<T>> QueryFromProcedureAsync(string spName,
             CancellationToken cancellationToken,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
             params object[] args);
 
+        /// <summary>
+        /// Get single item from stored procedure call with support for named parameters.
+        /// </summary>
+        /// <param name="spName">Stored procedure name</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
         abstract public Task<T> SingleFromProcedureAsync(string spName,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
             params object[] args);
+
+        /// <summary>
+        /// Get single item from stored procedure call with support for named parameters.
+        /// </summary>
+        /// <param name="spName">Stored procedure name</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns></returns>
         abstract public Task<T> SingleFromProcedureAsync(string spName,
             CancellationToken cancellationToken,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
@@ -168,9 +363,15 @@ namespace Mighty.Interfaces
             CancellationToken cancellationToken,
             DbConnection connection = null);
 
-        // no connection, easy args
+        /// <remarks>
+        /// 'Easy-calling' version, optional args straight after SQL.
+        /// </remarks>
         abstract public Task<IAsyncEnumerable<IAsyncEnumerable<T>>> QueryMultipleAsync(string sql,
             params object[] args);
+
+        /// <remarks>
+        /// 'Easy-calling' version, optional args straight after SQL.
+        /// </remarks>
         abstract public Task<IAsyncEnumerable<IAsyncEnumerable<T>>> QueryMultipleAsync(string sql,
             CancellationToken cancellationToken,
             params object[] args);
@@ -209,9 +410,15 @@ namespace Mighty.Interfaces
             CancellationToken cancellationToken,
             DbConnection connection = null);
 
-        // no connection, easy args
+        /// <remarks>
+        /// 'Easy-calling' version, optional args straight after SQL.
+        /// </remarks>
         abstract public Task<int> ExecuteAsync(string sql,
             params object[] args);
+
+        /// <remarks>
+        /// 'Easy-calling' version, optional args straight after SQL.
+        /// </remarks>
         abstract public Task<int> ExecuteAsync(string sql,
             CancellationToken cancellationToken,
             params object[] args);
@@ -272,9 +479,15 @@ namespace Mighty.Interfaces
             CancellationToken cancellationToken,
             DbConnection connection = null);
 
-        // no connection, easy args
+        /// <remarks>
+        /// 'Easy-calling' version, optional args straight after SQL.
+        /// </remarks>
         abstract public Task<object> ScalarAsync(string sql,
             params object[] args);
+
+        /// <remarks>
+        /// 'Easy-calling' version, optional args straight after SQL.
+        /// </remarks>
         abstract public Task<object> ScalarAsync(string sql,
             CancellationToken cancellationToken,
             params object[] args);
@@ -761,7 +974,7 @@ namespace Mighty.Interfaces
             params object[] args);
 
         /// <summary>
-        /// Get single object from the current table using primary key or name-value specification.
+        /// Get single item from the current table using primary key or name-value where specification.
         /// </summary>
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="columns">List of columns to return</param>
@@ -771,7 +984,7 @@ namespace Mighty.Interfaces
             DbConnection connection = null);
 
         /// <summary>
-        /// Get single object from the current table using primary key or name-value specification.
+        /// Get single item from the current table using primary key or name-value where specification.
         /// </summary>
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="columns">List of columns to return</param>
@@ -782,7 +995,7 @@ namespace Mighty.Interfaces
             DbConnection connection = null);
 
         /// <summary>
-        /// Get a single object from the current table with where specification.
+        /// Get single item from the current table using WHERE specification.
         /// </summary>
         /// <param name="where">WHERE clause</param>
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
@@ -792,12 +1005,23 @@ namespace Mighty.Interfaces
         /// </remarks>
         abstract public Task<T> SingleAsync(string where,
             params object[] args);
+
+        /// <summary>
+        /// Get single item from the current table using WHERE specification.
+        /// </summary>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns></returns>
+        /// <remarks>
+        /// 'Easy-calling' version, optional args straight after where.
+        /// </remarks>
         abstract public Task<T> SingleAsync(string where,
             CancellationToken cancellationToken,
             params object[] args);
 
         /// <summary>
-        /// 
+        /// Get single item from the current table using WHERE specification.
         /// </summary>
         /// <param name="where">WHERE clause</param>
         /// <param name="connection">Optional connection to use</param>
@@ -814,6 +1038,21 @@ namespace Mighty.Interfaces
             string orderBy = null,
             string columns = null,
             params object[] args);
+
+        /// <summary>
+        /// Get single item from the current table using WHERE specification.
+        /// </summary>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="orderBy">ORDER BY clause</param>
+        /// <param name="columns">Comma separated list of columns to return or "*"</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns></returns>
+        /// <remarks>
+        /// DbConnection coming early (not just before args) in this one case is really useful, as it avoids ambiguity between
+        /// the `columns` and `orderBy` strings and optional string args.
+        /// </remarks>
         abstract public Task<T> SingleAsync(string where,
             CancellationToken cancellationToken,
             DbConnection connection = null,
@@ -821,11 +1060,38 @@ namespace Mighty.Interfaces
             string columns = null,
             params object[] args);
 
-        // WithParams version just in case; allows transactions for a start
+        /// <summary>
+        /// Get single item from the current table using WHERE specification with support for named parameters.
+        /// </summary>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="orderBy">ORDER BY clause</param>
+        /// <param name="columns">Columns to return</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
         abstract public Task<T> SingleWithParamsAsync(string where, string orderBy = null, string columns = null,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
             params object[] args);
+
+        /// <summary>
+        /// Get single item from the current table using WHERE specification with support for named parameters.
+        /// </summary>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="orderBy">ORDER BY clause</param>
+        /// <param name="columns">Columns to return</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns></returns>
         abstract public Task<T> SingleWithParamsAsync(string where, CancellationToken cancellationToken, string orderBy = null, string columns = null,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,

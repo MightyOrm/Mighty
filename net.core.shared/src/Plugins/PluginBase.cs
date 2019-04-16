@@ -255,7 +255,7 @@ namespace Mighty.Plugins
         /// <summary>
         /// Required for Oracle only
         /// </summary>
-        /// <param name="command">The command</param>
+        /// <param name="command">The command to execute</param>
         virtual public void FixupInsertCommand(DbCommand command) { }
         #endregion
 
@@ -392,7 +392,7 @@ namespace Mighty.Plugins
         /// <summary>
         /// Set any provider specific properties which are required to make this database perform as expected by Mighty.
         /// </summary>
-        /// <param name="command"></param>
+        /// <param name="command">The command to execute</param>
         virtual public void SetProviderSpecificCommandProperties(DbCommand command) { }
         #endregion
 

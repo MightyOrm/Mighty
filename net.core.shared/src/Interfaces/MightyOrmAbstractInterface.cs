@@ -228,8 +228,23 @@ namespace Mighty.Interfaces
         /// <returns></returns>
         abstract public T NewFrom(object nameValues = null, bool addNonPresentAsDefaults = true);
 
+        /// <summary>
+        /// Get the meta-data for a single column
+        /// </summary>
+        /// <param name="column">Column name</param>
+        /// <param name="ExceptionOnAbsent">If true throw an exception if there is no such column, otherwise return null.</param>
+        /// <returns></returns>
         abstract public dynamic GetColumnInfo(string column, bool ExceptionOnAbsent = true);
 
+        /// <summary>
+        /// Get the default value for a column.
+        /// </summary>
+        /// <param name="columnName">The column name</param>
+        /// <returns></returns>
+        /// <remarks>
+        /// Although it might look more efficient, GetColumnDefault should not do buffering, as we don't
+        /// want to pass out the same actual object more than once.
+        /// </remarks>
         abstract public object GetColumnDefault(string columnName);
 
         /// <summary>

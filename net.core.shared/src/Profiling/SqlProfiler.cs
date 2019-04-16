@@ -31,7 +31,7 @@ namespace Mighty.Profiling
         /// <summary>
         /// Override here to wrap at the command level.
         /// </summary>
-        /// <param name="command">The command</param>
+        /// <param name="command">The command to execute</param>
         /// <returns></returns>
         virtual public DbCommand Wrap(DbCommand command)
         {

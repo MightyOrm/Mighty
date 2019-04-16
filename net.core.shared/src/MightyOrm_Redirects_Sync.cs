@@ -20,31 +20,67 @@ namespace Mighty
     public partial class MightyOrm<T> : MightyOrmAbstractInterface<T> where T : class, new()
     {
         #region Non-table specific methods
+        /// <summary>
+        /// Get <see cref="IEnumerable{T}"/> of items returned by database command.
+        /// </summary>
+        /// <param name="command">The command to execute</param>
+        /// <param name="connection">The connection to use</param>
+        /// <returns></returns>
         override public IEnumerable<T> Query(DbCommand command,
             DbConnection connection = null)
         {
             return QueryNWithParams<T>(command: command, connection: connection);
         }
 
+        /// <summary>
+        /// Get single item returned by database command.
+        /// </summary>
+        /// <param name="command">The command to execute</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <returns></returns>
         override public T Single(DbCommand command,
             DbConnection connection = null)
         {
             return QueryNWithParams<T>(command: command, connection: connection).FirstOrDefault();
         }
 
-        // no connection, easy args
+        /// <summary>
+        /// Get <see cref="IEnumerable{T}"/> of items returned by SQL query.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="args">Auto-numbered parameter values for SQL</param>
+        /// <returns></returns>
+        /// <remarks>
+        /// 'Easy-calling' version, optional args straight after SQL.
+        /// </remarks>
         override public IEnumerable<T> Query(string sql,
             params object[] args)
         {
             return QueryNWithParams<T>(sql, args: args);
         }
 
+        /// <summary>
+        /// Get single item from query.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
+        /// <remarks>
+        /// 'Easy-calling' version, optional args straight after SQL.
+        /// </remarks>
         override public T SingleFromQuery(string sql,
             params object[] args)
         {
             return QueryNWithParams<T>(sql, args: args).FirstOrDefault();
         }
 
+        /// <summary>
+        /// Get <see cref="IEnumerable{T}"/> of items returned by SQL query.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for SQL</param>
+        /// <returns></returns>
         override public IEnumerable<T> Query(string sql,
             DbConnection connection,
             params object[] args)
@@ -52,6 +88,13 @@ namespace Mighty
             return QueryNWithParams<T>(sql, connection: connection, args: args);
         }
 
+        /// <summary>
+        /// Get single item from query.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
         override public T SingleFromQuery(string sql,
             DbConnection connection,
             params object[] args)
@@ -59,6 +102,17 @@ namespace Mighty
             return QueryNWithParams<T>(sql, connection: connection, args: args).FirstOrDefault();
         }
 
+        /// <summary>
+        /// Get <see cref="IEnumerable{T}"/> of items returned by SQL query with support for named parameters.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for SQL</param>
+        /// <returns></returns>
         override public IEnumerable<T> QueryWithParams(string sql,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
@@ -69,6 +123,17 @@ namespace Mighty
                 connection: connection, args: args);
         }
 
+        /// <summary>
+        /// Get single item from query with support for named parameters.
+        /// </summary>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
         override public T SingleFromQueryWithParams(string sql,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
@@ -79,6 +144,17 @@ namespace Mighty
                 connection: connection, args: args).FirstOrDefault();
         }
 
+        /// <summary>
+        /// Get <see cref="IEnumerable{T}"/> of items from stored procedure call with support for named parameters.
+        /// </summary>
+        /// <param name="spName">Stored procedure name</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
         override public IEnumerable<T> QueryFromProcedure(string spName,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
@@ -90,6 +166,17 @@ namespace Mighty
                 connection: connection, args: args);
         }
 
+        /// <summary>
+        /// Get single item from stored procedure call with support for named parameters.
+        /// </summary>
+        /// <param name="spName">Stored procedure name</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
         override public T SingleFromProcedure(string spName,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
@@ -107,7 +194,9 @@ namespace Mighty
             return QueryNWithParams<IEnumerable<T>>(command: command, connection: connection);
         }
 
-        // no connection, easy args
+        /// <remarks>
+        /// 'Easy-calling' version, optional args straight after SQL.
+        /// </remarks>
         override public IEnumerable<IEnumerable<T>> QueryMultiple(string sql,
             params object[] args)
         {
@@ -142,7 +231,9 @@ namespace Mighty
                 connection: connection, args: args);
         }
 
-        // no connection, easy args
+        /// <remarks>
+        /// 'Easy-calling' version, optional args straight after SQL.
+        /// </remarks>
         override public int Execute(string sql,
             params object[] args)
         {
@@ -225,7 +316,9 @@ namespace Mighty
             }
         }
 
-        // no connection, easy args
+        /// <remarks>
+        /// 'Easy-calling' version, optional args straight after SQL.
+        /// </remarks>
         override public object Scalar(string sql,
             params object[] args)
         {
@@ -491,7 +584,7 @@ namespace Mighty
         }
 
         /// <summary>
-        /// Get single object from the current table using primary key or name-value specification.
+        /// Get single item from the current table using primary key or name-value where specification.
         /// </summary>
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="columns">List of columns to return</param>
@@ -508,7 +601,7 @@ namespace Mighty
         }
 
         /// <summary>
-        /// Get a single object from the current table with where specification.
+        /// Get single item from the current table using WHERE specification.
         /// </summary>
         /// <param name="where">WHERE clause</param>
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
@@ -523,7 +616,7 @@ namespace Mighty
         }
 
         /// <summary>
-        /// Get single item from current table
+        /// Get single item from the current table using WHERE specification.
         /// </summary>
         /// <param name="where">WHERE clause</param>
         /// <param name="connection">Optional connection to use</param>
@@ -544,7 +637,19 @@ namespace Mighty
             return SingleWithParams(where, orderBy, columns, connection: connection, args: args);
         }
 
-        // WithParams version just in case; allows transactions for a start
+        /// <summary>
+        /// Get single item from the current table using WHERE specification with support for named parameters.
+        /// </summary>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="orderBy">ORDER BY clause</param>
+        /// <param name="columns">Columns to return</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
         override public T SingleWithParams(string where, string orderBy = null, string columns = null,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,

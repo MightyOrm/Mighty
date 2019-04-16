@@ -333,7 +333,7 @@ namespace Mighty
         /// <summary>
         /// Execute DbCommand
         /// </summary>
-        /// <param name="command">The command</param>
+        /// <param name="command">The command to execute</param>
         /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
         override public async Task<int> ExecuteAsync(DbCommand command,
@@ -356,7 +356,7 @@ namespace Mighty
         /// <summary>
         /// Return scalar from DbCommand
         /// </summary>
-        /// <param name="command">The command</param>
+        /// <param name="command">The command to execute</param>
         /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
         override public async Task<object> ScalarAsync(DbCommand command,
