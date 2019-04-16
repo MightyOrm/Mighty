@@ -231,7 +231,7 @@ namespace Mighty
         /// <param name="items">The item or items</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns>The list of modified items</returns>
-        /// <remarks>Here and in <see cref="UpsertItemPK"/> we always return the modified original object, where possible</remarks>
+        /// <remarks>Here and in <see cref="UpsertItemPK"/> we always return the modified original object where possible</remarks>
         internal async Task<IEnumerable<T>> ActionOnItemsAsync(OrmAction action, DbConnection connection, IEnumerable<object> items, CancellationToken cancellationToken = default)
         {
             return (await ActionOnItemsWithOutputAsync(action, connection, items, cancellationToken).ConfigureAwait(false)).Item2;
@@ -247,7 +247,7 @@ namespace Mighty
         /// <param name="items">The item or items</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns>The list of modified items</returns>
-        /// <remarks>Here and in <see cref="UpsertItemPK"/> we always return the modified original object, where possible</remarks>
+        /// <remarks>Here and in <see cref="UpsertItemPK"/> we always return the modified original object where possible</remarks>
         internal async Task<Tuple<int, IEnumerable<T>>> ActionOnItemsWithOutputAsync(OrmAction action, DbConnection connection, IEnumerable<object> items, CancellationToken cancellationToken = default)
         {
             List<T> modifiedItems = null;
@@ -262,12 +262,7 @@ namespace Mighty
             {
                 if (Validator.ShouldPerformAction(item, action))
                 {
-                    var result = await ActionOnItemAsync(
-                        action, item, connection,
-#if CONDITIONAL_PK_UPSERT
-                        count,
-#endif
-                        cancellationToken).ConfigureAwait(false);
+                    var result = await ActionOnItemAsync(action, item, connection, cancellationToken).ConfigureAwait(false);
                     affected += result.Item1;
                     if (action == OrmAction.Insert)
                     {
@@ -630,9 +625,6 @@ namespace Mighty
         #endregion
 
         #region ORM actions
-#if CONDITIONAL_PK_UPSERT
-        /// <param name="outerCount">when zero we are on the first item in the loop</param>
-#endif
         /// <summary>
         /// Save, Insert, Update or Delete an item.
         /// Save means: update item if PK field or fields are present and at non-default values, insert otherwise.
@@ -641,39 +633,7 @@ namespace Mighty
         /// where this is possible (e.g. fields can't be created on POCOs, property values can't be set on immutable
         /// items such as anonymously typed objects).
         /// </summary>
-        /// <param name="action">Save, Insert, Update or Delete</param>
-        /// <param name="item">item</param>
-        /// <param name="connection">The connection to use</param>
-        /// <returns>The PK of the inserted item, iff a new auto-generated PK value is available.</returns>
-        /// <remarks>
-        /// It *is* technically possibly (by writing to private backing fields) to change the field value in anonymously
-        /// typed objects - http://stackoverflow.com/a/30242237/795690 - and bizarrely VB supports writing to fields in
-        /// anonymously typed objects natively even though C# doesn't - http://stackoverflow.com/a/9065678/795690 (which
-        /// sounds as if it means that if this part of the library was written in VB then doing this would be officially
-        /// supported? not quite sure, that assumes that the different implementations of anonymous types can co-exist)
-        /// </remarks>
-        private async Task<object> ActionOnItemAsync(OrmAction action, object item, DbConnection connection, int outerCount)
-        {
-            return await ActionOnItemAsync(
-                action, item, connection,
-#if CONDITIONAL_PK_UPSERT
-                outerCount,
-#endif
-                CancellationToken.None);
-        }
-
-#if CONDITIONAL_PK_UPSERT
-        /// <param name="outerCount">when zero we are on the first item in the loop</param>
-#endif
-        /// <summary>
-        /// Save, Insert, Update or Delete an item.
-        /// Save means: update item if PK field or fields are present and at non-default values, insert otherwise.
-        /// On inserting an item with a single PK and a sequence/identity 1) the PK of the new item is returned;
-        /// 2) the PK field of the item itself is a) created if not present and b) filled with the new PK value,
-        /// where this is possible (e.g. fields can't be created on POCOs, property values can't be set on immutable
-        /// items such as anonymously typed objects).
-        /// </summary>
-        /// <param name="action">Save, Insert, Update or Delete</param>
+        /// <param name="originalAction">Save, Insert, Update or Delete</param>
         /// <param name="item">item</param>
         /// <param name="connection">The connection to use</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
@@ -686,10 +646,7 @@ namespace Mighty
         /// supported? not quite sure, that assumes that the different implementations of anonymous types can co-exist)
         /// </remarks>
         private async Task<Tuple<int, object>> ActionOnItemAsync(OrmAction originalAction, object item, DbConnection connection,
-#if CONDITIONAL_PK_UPSERT
-            int outerCount,
-#endif
-            CancellationToken cancellationToken)
+            CancellationToken cancellationToken = default)
         {
             OrmAction revisedAction;
             DbCommand command = CreateActionCommand(originalAction, item, out revisedAction);
@@ -702,9 +659,6 @@ namespace Mighty
                     item, pk,
                     // No point creating clone items on Save as these will then be discarded
                     originalAction == OrmAction.Insert
-#if CONDITIONAL_PK_UPSERT
-                    && outerCount == 0
-#endif
                     );
                 return new Tuple<int, object>(1, result);
             }

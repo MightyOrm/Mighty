@@ -137,7 +137,7 @@ namespace Mighty
         /// <param name="connection">The connection to use</param>
         /// <param name="items">The item or items</param>
         /// <returns>The list of modified items</returns>
-        /// <remarks>Here and in <see cref="UpsertItemPK"/> we always return the modified original object, where possible</remarks>
+        /// <remarks>Here and in <see cref="UpsertItemPK"/> we always return the modified original object where possible</remarks>
         internal IEnumerable<T> ActionOnItems(OrmAction action, DbConnection connection, IEnumerable<object> items)
         {
             return ActionOnItemsWithOutput(action, connection, items).Item2;
@@ -152,7 +152,7 @@ namespace Mighty
         /// <param name="connection">The connection to use</param>
         /// <param name="items">The item or items</param>
         /// <returns>The list of modified items</returns>
-        /// <remarks>Here and in <see cref="UpsertItemPK"/> we always return the modified original object, where possible</remarks>
+        /// <remarks>Here and in <see cref="UpsertItemPK"/> we always return the modified original object where possible</remarks>
         internal Tuple<int, IEnumerable<T>> ActionOnItemsWithOutput(OrmAction action, DbConnection connection, IEnumerable<object> items)
         {
             List<T> modifiedItems = null;
@@ -167,12 +167,7 @@ namespace Mighty
             {
                 if (Validator.ShouldPerformAction(item, action))
                 {
-                    var result = ActionOnItem(
-                        action, item, connection
-#if CONDITIONAL_PK_UPSERT
-                        , count
-#endif
-                        );
+                    var result = ActionOnItem(action, item, connection);
                     affected += result.Item1;
                     if (action == OrmAction.Insert)
                     {
@@ -453,7 +448,6 @@ namespace Mighty
         /// <param name="originalAction">Save, Insert, Update or Delete</param>
         /// <param name="item">item</param>
         /// <param name="connection">The connection to use</param>
-        /// <param name="outerCount">when zero we are on the first item in the loop</param>
         /// <returns>The PK of the inserted item, iff a new auto-generated PK value is available.</returns>
         /// <remarks>
         /// It *is* technically possibly (by writing to private backing fields) to change the field value in anonymously
@@ -463,9 +457,6 @@ namespace Mighty
         /// supported? not quite sure, that assumes that the different implementations of anonymous types can co-exist)
         /// </remarks>
         private Tuple<int, object> ActionOnItem(OrmAction originalAction, object item, DbConnection connection
-#if CONDITIONAL_PK_UPSERT
-            , int outerCount
-#endif
             )
         {
             OrmAction revisedAction;
@@ -479,9 +470,6 @@ namespace Mighty
                     item, pk,
                     // No point creating clone items on Save as these will then be discarded
                     originalAction == OrmAction.Insert
-#if CONDITIONAL_PK_UPSERT
-                    && outerCount == 0
-#endif
                     );
                 return new Tuple<int, object>(1, result);
             }
