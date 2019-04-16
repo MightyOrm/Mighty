@@ -47,7 +47,7 @@ namespace Mighty.Interfaces
         /// <summary>
         /// Get <see cref="IEnumerable{T}"/> of items returned by SQL query
         /// </summary>
-        /// <param name="sql">The command SQL (with optional DB-native parameter placeholders)</param>
+        /// <param name="sql">The command SQL</param>
         /// <param name="args">Auto-numbered parameter values for SQL</param>
         /// <returns></returns>
         abstract public IEnumerable<T> Query(string sql,
@@ -56,7 +56,7 @@ namespace Mighty.Interfaces
         /// <summary>
         /// Get single item returned by SQL query
         /// </summary>
-        /// <param name="sql">The command SQL (with optional DB-native parameter placeholders)</param>
+        /// <param name="sql">The command SQL</param>
         /// <param name="args">Auto-numbered parameter values for SQL</param>
         /// <returns></returns>
         abstract public T SingleFromQuery(string sql,
@@ -65,7 +65,7 @@ namespace Mighty.Interfaces
         /// <summary>
         /// Get <see cref="IEnumerable{T}"/> of items returned by SQL query
         /// </summary>
-        /// <param name="sql">The command SQL (with optional DB-native parameter placeholders)</param>
+        /// <param name="sql">The command SQL</param>
         /// <param name="connection">The connection to use</param>
         /// <param name="args">Auto-numbered parameter values for SQL</param>
         /// <returns></returns>
@@ -76,7 +76,7 @@ namespace Mighty.Interfaces
         /// <summary>
         /// Get single item returned by SQL query
         /// </summary>
-        /// <param name="sql">The command SQL (with optional DB-native parameter placeholders)</param>
+        /// <param name="sql">The command SQL</param>
         /// <param name="connection">The connection to use</param>
         /// <param name="args">Auto-numbered parameter values for SQL</param>
         /// <returns></returns>
@@ -139,7 +139,7 @@ namespace Mighty.Interfaces
         /// <summary>
         /// Execute command with parameters
         /// </summary>
-        /// <param name="sql">The command SQL (with optional DB-native parameter placeholders)</param>
+        /// <param name="sql">The command SQL</param>
         /// <param name="inParams">Named input parameters</param>
         /// <param name="outParams">Named output parameters</param>
         /// <param name="ioParams">Named input-output parameters</param>
@@ -215,8 +215,31 @@ namespace Mighty.Interfaces
             DbConnection connection = null,
             params object[] args);
 
+        /// <summary>
+        /// Yield return values for single or multiple resultsets.
+        /// </summary>
+        /// <typeparam name="X">Use with <typeparamref name="T"/> for single or <see cref="IEnumerable{T}"/> for multiple</typeparam>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="isProcedure">Is the SQL a stored procedure name (with optional argument spec) only?</param>
+        /// <param name="behavior">The command behaviour</param>
+        /// <param name="connection">Optional conneciton to use</param>
+        /// <param name="args">Auto-numbered parameters for the SQL</param>
+        /// <returns></returns>
         abstract protected IEnumerable<X> QueryNWithParams<X>(string sql = null, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, params object[] args);
 
+        /// <summary>
+        /// Yield return values for single or multiple resultsets.
+        /// </summary>
+        /// <typeparam name="X">Use with <typeparamref name="T"/> for single or <see cref="IEnumerable{T}"/> for multiple</typeparam>
+        /// <param name="command">The command to execute</param>
+        /// <param name="behavior">The command behaviour</param>
+        /// <param name="connection">Optional conneciton to use</param>
+        /// <param name="outerReader">The outer reader when this is a call to the inner reader in QueryMultiple</param>
+        /// <returns></returns>
         abstract protected IEnumerable<X> QueryNWithParams<X>(DbCommand command, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, DbDataReader outerReader = null);
         #endregion
 

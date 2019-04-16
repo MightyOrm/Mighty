@@ -479,26 +479,23 @@ namespace Mighty
                 columns = Columns;
             }
             var sql = Plugin.BuildSelect(columns, CheckGetTableName(), where, orderBy, limit);
-            return await QueryNWithParamsAsync<T>(cancellationToken, sql,
+            return await QueryNWithParamsAsync<T>(sql,
                 inParams, outParams, ioParams, returnParams,
-                behavior: limit == 1 ? CommandBehavior.SingleRow : CommandBehavior.Default, connection: connection, args: args);
-        }
-
-        /// <summary>
-        /// Yield return values for Query or QueryMultiple.
-        /// Use with &lt;T&gt; for single or &lt;IEnumerable&lt;T&gt;&gt; for multiple.
-        /// </summary>
-        override protected async Task<IAsyncEnumerable<X>> QueryNWithParamsAsync<X>(DbCommand command, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, DbDataReader outerReader = null)
-        {
-            return await QueryNWithParamsAsync<X>(command, CancellationToken.None, behavior, connection, outerReader);
+                behavior: limit == 1 ? CommandBehavior.SingleRow : CommandBehavior.Default, connection: connection, cancellationToken: cancellationToken, args: args);
         }
 
 #pragma warning disable CS1998
         /// <summary>
-        /// Yield return values for Query or QueryMultiple.
-        /// Use with &lt;T&gt; for single or &lt;IEnumerable&lt;T&gt;&gt; for multiple.
+        /// Yield return values for single or multiple resultsets.
         /// </summary>
-        override protected async Task<IAsyncEnumerable<X>> QueryNWithParamsAsync<X>(DbCommand command, CancellationToken cancellationToken, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, DbDataReader outerReader = null)
+        /// <typeparam name="X">Use with <typeparamref name="T"/> for single or <see cref="IEnumerable{T}"/> for multiple</typeparam>
+        /// <param name="command">The command to execute</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <param name="behavior">The command behaviour</param>
+        /// <param name="connection">Optional conneciton to use</param>
+        /// <param name="outerReader">The outer reader when this is a call to the inner reader in QueryMultiple</param>
+        /// <returns></returns>
+        override protected async Task<IAsyncEnumerable<X>> QueryNWithParamsAsync<X>(DbCommand command, CancellationToken cancellationToken = default, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, DbDataReader outerReader = null)
         {
             return new AsyncEnumerable<X>(async yield => {
                 using (command)

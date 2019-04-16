@@ -66,7 +66,7 @@ namespace Mighty
             CancellationToken cancellationToken,
             params object[] args)
         {
-            return await QueryNWithParamsAsync<T>(cancellationToken, sql, args: args);
+            return await QueryNWithParamsAsync<T>(sql, cancellationToken: cancellationToken, args: args);
         }
 
         override public async Task<T> SingleFromQueryAsync(string sql,
@@ -81,7 +81,7 @@ namespace Mighty
             params object[] args)
         {
             return await
-                (await QueryNWithParamsAsync<T>(cancellationToken, sql, args: args).ConfigureAwait(false))
+                (await QueryNWithParamsAsync<T>(sql, cancellationToken: cancellationToken, args: args).ConfigureAwait(false))
                 .FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
         }
 
@@ -96,7 +96,7 @@ namespace Mighty
             CancellationToken cancellationToken,
             params object[] args)
         {
-            return await QueryNWithParamsAsync<T>(cancellationToken, sql, connection: connection, args: args);
+            return await QueryNWithParamsAsync<T>(sql, connection: connection, cancellationToken: cancellationToken, args: args);
         }
 
         override public async Task<T> SingleFromQueryAsync(string sql,
@@ -114,9 +114,9 @@ namespace Mighty
         {
             return await
                 (await QueryNWithParamsAsync<T>(
-                    cancellationToken,
                     sql,
                     connection: connection,
+                    cancellationToken: cancellationToken,
                     args: args).ConfigureAwait(false))
                 .FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -136,9 +136,11 @@ namespace Mighty
             DbConnection connection = null,
             params object[] args)
         {
-            return await QueryNWithParamsAsync<T>(cancellationToken, sql,
+            return await QueryNWithParamsAsync<T>(
+                sql,
                 inParams, outParams, ioParams, returnParams,
-                connection: connection, args: args);
+                connection: connection, cancellationToken: cancellationToken,
+                args: args);
         }
 
         override public async Task<T> SingleFromQueryWithParamsAsync(string sql,
@@ -160,9 +162,10 @@ namespace Mighty
         {
             return await
                 (await QueryNWithParamsAsync<T>(
-                    cancellationToken, sql,
+                    sql,
                     inParams, outParams, ioParams, returnParams,
-                    connection: connection, args: args).ConfigureAwait(false))
+                    connection: connection, cancellationToken: cancellationToken,
+                    args: args).ConfigureAwait(false))
                 .FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
         }
 
@@ -182,10 +185,12 @@ namespace Mighty
             DbConnection connection = null,
             params object[] args)
         {
-            return await QueryNWithParamsAsync<T>(cancellationToken, spName,
+            return await QueryNWithParamsAsync<T>(
+                spName,
                 inParams, outParams, ioParams, returnParams,
                 isProcedure: true,
-                connection: connection, args: args);
+                connection: connection, cancellationToken: cancellationToken,
+                args: args);
         }
 
         override public async Task<T> SingleFromProcedureAsync(string spName,
@@ -209,10 +214,11 @@ namespace Mighty
         {
             return await
                 (await QueryNWithParamsAsync<T>(
-                    cancellationToken, spName,
+                    spName,
                     inParams, outParams, ioParams, returnParams,
                     isProcedure: true,
-                    connection: connection, args: args).ConfigureAwait(false))
+                    connection: connection, cancellationToken: cancellationToken,
+                    args: args).ConfigureAwait(false))
                 .FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
         }
 
@@ -238,7 +244,7 @@ namespace Mighty
             CancellationToken cancellationToken,
             params object[] args)
         {
-            return await QueryNWithParamsAsync<IAsyncEnumerable<T>>(cancellationToken, sql, args: args);
+            return await QueryNWithParamsAsync<IAsyncEnumerable<T>>(sql, cancellationToken: cancellationToken, args: args);
         }
 
         override public async Task<IAsyncEnumerable<IAsyncEnumerable<T>>> QueryMultipleAsync(string sql,
@@ -252,7 +258,7 @@ namespace Mighty
             CancellationToken cancellationToken,
             params object[] args)
         {
-            return await QueryNWithParamsAsync<IAsyncEnumerable<T>>(cancellationToken, sql, connection: connection, args: args);
+            return await QueryNWithParamsAsync<IAsyncEnumerable<T>>(sql, connection: connection, cancellationToken: cancellationToken, args: args);
         }
 
         override public async Task<IAsyncEnumerable<IAsyncEnumerable<T>>> QueryMultipleWithParamsAsync(string sql,
@@ -270,9 +276,11 @@ namespace Mighty
             DbConnection connection = null,
             params object[] args)
         {
-            return await QueryNWithParamsAsync<IAsyncEnumerable<T>>(cancellationToken, sql,
+            return await QueryNWithParamsAsync<IAsyncEnumerable<T>>(
+                sql,
                 inParams, outParams, ioParams, returnParams,
-                connection: connection, args: args);
+                connection: connection, cancellationToken: cancellationToken,
+                args: args);
         }
 
         override public async Task<IAsyncEnumerable<IAsyncEnumerable<T>>> QueryMultipleFromProcedureAsync(string spName,
@@ -291,10 +299,12 @@ namespace Mighty
             DbConnection connection = null,
             params object[] args)
         {
-            return await QueryNWithParamsAsync<IAsyncEnumerable<T>>(cancellationToken, spName,
+            return await QueryNWithParamsAsync<IAsyncEnumerable<T>>(
+                spName,
                 inParams, outParams, ioParams, returnParams,
                 isProcedure: true,
-                connection: connection, args: args);
+                connection: connection, cancellationToken: cancellationToken,
+                args: args);
         }
 
         // no connection, easy args
@@ -339,7 +349,7 @@ namespace Mighty
         /// <summary>
         /// Execute command with parameters
         /// </summary>
-        /// <param name="sql">The command SQL (with optional DB-native parameter placeholders)</param>
+        /// <param name="sql">The command SQL</param>
         /// <param name="inParams">Named input parameters</param>
         /// <param name="outParams">Named output parameters</param>
         /// <param name="ioParams">Named input-output parameters</param>
@@ -362,7 +372,7 @@ namespace Mighty
         /// <summary>
         /// Execute command with parameters
         /// </summary>
-        /// <param name="sql">The command SQL (with optional DB-native parameter placeholders)</param>
+        /// <param name="sql">The command SQL</param>
         /// <param name="inParams">Named input parameters</param>
         /// <param name="outParams">Named output parameters</param>
         /// <param name="ioParams">Named input-output parameters</param>
@@ -542,12 +552,22 @@ namespace Mighty
             }
         }
 
-        override protected async Task<IAsyncEnumerable<X>> QueryNWithParamsAsync<X>(string sql = null, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, params object[] args)
-        {
-            var command = CreateCommandWithParams(sql, inParams, outParams, ioParams, returnParams, isProcedure, null, args);
-            return await QueryNWithParamsAsync<X>(command, behavior, connection);
-        }
-        override protected async Task<IAsyncEnumerable<X>> QueryNWithParamsAsync<X>(CancellationToken cancellationToken, string sql = null, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, params object[] args)
+        /// <summary>
+        /// Yield return values for single or multiple resultsets.
+        /// </summary>
+        /// <typeparam name="X">Use with <typeparamref name="T"/> for single or <see cref="IEnumerable{T}"/> for multiple</typeparam>
+        /// <param name="sql">The command SQL</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="isProcedure">Is the SQL a stored procedure name (with optional argument spec) only?</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <param name="behavior">The command behaviour</param>
+        /// <param name="connection">Optional conneciton to use</param>
+        /// <param name="args">Auto-numbered parameters for the SQL</param>
+        /// <returns></returns>
+        override protected async Task<IAsyncEnumerable<X>> QueryNWithParamsAsync<X>(string sql = null, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, CancellationToken cancellationToken = default, params object[] args)
         {
             var command = CreateCommandWithParams(sql, inParams, outParams, ioParams, returnParams, isProcedure, null, args);
             return await QueryNWithParamsAsync<X>(command, cancellationToken, behavior, connection);

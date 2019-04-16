@@ -158,7 +158,7 @@ namespace Mighty.Interfaces
         /// You should use one of the variants of <see cref="CreateCommand(string, object[])"/>
         /// for all commands passed in to Mighty, since on some providers this sets provider specific properties which are needed to ensure expected behaviour with Mighty.
         /// </summary>
-        /// <param name="sql">The command SQL, with optional numbered parameters</param>
+        /// <param name="sql">The command SQL</param>
         /// <param name="args">Auto-numbered parameters for the SQL</param>
         /// <returns></returns>
         abstract public DbCommand CreateCommand(string sql,
@@ -171,7 +171,7 @@ namespace Mighty.Interfaces
         /// You should use one of the variants of <see cref="CreateCommand(string, object[])"/>
         /// for all commands passed in to Mighty, since on some providers this sets provider specific properties which are needed to ensure expected behaviour with Mighty.
         /// </summary>
-        /// <param name="sql">The command SQL, with optional numbered parameters</param>
+        /// <param name="sql">The command SQL</param>
         /// <param name="connection">The connection to use</param>
         /// <param name="args">Auto-numbered parameters for the SQL</param>
         /// <returns></returns>
@@ -186,12 +186,12 @@ namespace Mighty.Interfaces
         /// You should use one of the variants of <see cref="CreateCommand(string, object[])"/>
         /// for all commands passed in to Mighty, since on some providers this sets provider specific properties which are needed to ensure expected behaviour with Mighty.
         /// </summary>
-        /// <param name="sql">The command SQL, with optional numbered parameters</param>
+        /// <param name="sql">The command SQL</param>
         /// <param name="inParams">Named input parameters</param>
         /// <param name="outParams">Named output parameters</param>
         /// <param name="ioParams">Named input-output parameters</param>
         /// <param name="returnParams">Named return parameters</param>
-        /// <param name="isProcedure">Is the command SQL just a stored procedure name (with optional arguments)?</param>
+        /// <param name="isProcedure">Is the SQL a stored procedure name (with optional argument spec) only?</param>
         /// <param name="connection">The connection to use</param>
         /// <param name="args">Auto-numbered parameters for the SQL</param>
         /// <returns></returns>
