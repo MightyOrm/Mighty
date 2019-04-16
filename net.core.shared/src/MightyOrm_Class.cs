@@ -332,9 +332,9 @@ namespace Mighty
         }
 
         /// <summary>
-        /// Store column names and their respective reflected <see cref="PropertyInfo"/> values as defined by the generic type.
+        /// Store column names and their respective reflected <see cref="PropertyInfo"/> values as defined by the generic type <typeparamref name="T"/>.
         /// </summary>
-        /// <param name="propertyBindingFlags"></param>
+        /// <param name="propertyBindingFlags">Which properties to access</param>
         protected void InitialiseTypeProperties(BindingFlags propertyBindingFlags)
         {
             columnNameToPropertyInfo = new Dictionary<string, PropertyInfo>(SqlMapper.UseCaseInsensitiveMapping ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);

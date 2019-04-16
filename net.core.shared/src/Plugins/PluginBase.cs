@@ -428,8 +428,8 @@ namespace Mighty.Plugins
         /// <summary>
         /// Set the <see cref="DbParameter.Value"/> (and implicitly <see cref="DbParameter.DbType"/>) for single parameter, adding support for provider unsupported types, etc.
         /// </summary>
-        /// <param name="p"></param>
-        /// <param name="value"></param>
+        /// <param name="p">The <see cref="DbParameter"/></param>
+        /// <param name="value">The value to set</param>
         virtual public void SetValue(DbParameter p, object value)
         {
             p.Value = value;
