@@ -1,13 +1,13 @@
 -- Types
 create or replace type       EMP_TAB_TYPE is object
 ("EMPNO" NUMBER(4,0), 
-	"ENAME" VARCHAR2(10 BYTE), 
-	"JOB" VARCHAR2(9 BYTE), 
-	"MGR" NUMBER(4,0), 
-	"HIREDATE" DATE, 
-	"SAL" NUMBER(7,2), 
-	"COMM" NUMBER(7,2), 
-	"DEPTNO" NUMBER(2,0));
+    "ENAME" VARCHAR2(10 BYTE), 
+    "JOB" VARCHAR2(9 BYTE), 
+    "MGR" NUMBER(4,0), 
+    "HIREDATE" DATE, 
+    "SAL" NUMBER(7,2), 
+    "COMM" NUMBER(7,2), 
+    "DEPTNO" NUMBER(2,0));
   
 create or replace type       EMP_TAB_TYPE_COLL is table of EMP_TAB_TYPE;
 
@@ -75,19 +75,19 @@ create or replace function get_dept_emps(p_deptno in number) return sys_refcurso
       open v_rc for 'select empno, ename, mgr, sal from emp where deptno = :deptno' using p_deptno;
       return v_rc;
     end;
-	
+    
 create or replace function       GET_EMP (p_EMPNO in number) 
 return SCOTT.EMP_TAB_TYPE_COLL pipelined is
 begin
   FOR i in (select * from SCOTT.EMP where EMPNO=p_EMPNO) loop
     pipe row(SCOTT.EMP_TAB_TYPE(i."EMPNO", 
-	i."ENAME", 
-	i."JOB", 
-	i."MGR", 
-	i."HIREDATE", 
-	i."SAL", 
-	i."COMM", 
-	i."DEPTNO"));
+    i."ENAME", 
+    i."JOB", 
+    i."MGR", 
+    i."HIREDATE", 
+    i."SAL", 
+    i."COMM", 
+    i."DEPTNO"));
   end loop;
   return;
 end;

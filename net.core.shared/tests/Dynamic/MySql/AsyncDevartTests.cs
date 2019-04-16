@@ -13,23 +13,23 @@ using NUnit.Framework;
 
 namespace Mighty.Dynamic.Tests.MySql
 {
-	[TestFixture]
-	public class AsyncDevartTests
-	{
-		private readonly string ProviderName = "Devart.Data.MySql";
+    [TestFixture]
+    public class AsyncDevartTests
+    {
+        private readonly string ProviderName = "Devart.Data.MySql";
 
-		// Massive style calls to some examples from https://www.devart.com/dotconnect/mysql/docs/Parameters.html#inoutparams
-		#region Devart Examples
-		
-		/// <remarks>
-		/// Demonstrates that this Devart-specific syntax is possible in Massive;
-		/// although it pretty much stops looking much like Massive when used like this,
+        // Massive style calls to some examples from https://www.devart.com/dotconnect/mysql/docs/Parameters.html#inoutparams
+        #region Devart Examples
+        
+        /// <remarks>
+        /// Demonstrates that this Devart-specific syntax is possible in Massive;
+        /// although it pretty much stops looking much like Massive when used like this,
         /// since you have to do so much manually.
-		/// </remarks>
-		[Test]
-		public async Task Devart_ParameterCheck()
-		{
-			var db = new SPTestsDatabase(ProviderName);
+        /// </remarks>
+        [Test]
+        public async Task Devart_ParameterCheck()
+        {
+            var db = new SPTestsDatabase(ProviderName);
             dynamic result;
             using (var connection = await db.OpenConnectionAsync())
             {
@@ -44,9 +44,9 @@ namespace Mighty.Dynamic.Tests.MySql
                     result = db.ResultsAsExpando(command);
                 }
             }
-			Assert.AreEqual(20, result.param2);
-		}
-		#endregion
-	}
+            Assert.AreEqual(20, result.param2);
+        }
+        #endregion
+    }
 }
 #endif

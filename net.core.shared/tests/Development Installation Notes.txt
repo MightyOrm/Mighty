@@ -5,9 +5,9 @@ SQL Server:
 -----------
 
 - The test database is Adventure Works (Adventure Works 2014 works fine; probably higher too, but not tested)
-	o Download and the restore from `AdventureWorks2014.bak`, from:
-	  https://docs.microsoft.com/en-us/sql/samples/adventureworks-install-configure
-	o Some additional SPs have been added (run `MightyTests\Sql\SqlServerSPTests.sql` to create)
+    o Download and the restore from `AdventureWorks2014.bak`, from:
+      https://docs.microsoft.com/en-us/sql/samples/adventureworks-install-configure
+    o Some additional SPs have been added (run `MightyTests\Sql\SqlServerSPTests.sql` to create)
 
 - There is also a separate test database for writes (run `MightyTests\Sql\WriteTestDB_Create.sql` to create)
 
@@ -15,30 +15,30 @@ Oracle:
 -------
 
 - Npgsql-3.2.0.msi
-	o This is for PostgreSQL
-	o "Installs Npgsql into the GAC and madds it to your machine.config. This is not the recommended way to use Npgsql (use nuget instead)."
-	o For now, I have done this.
+    o This is for PostgreSQL
+    o "Installs Npgsql into the GAC and madds it to your machine.config. This is not the recommended way to use Npgsql (use nuget instead)."
+    o For now, I have done this.
 
 - Unzip ODP.NET_Managed_ODAC12cR4.zip
-	o This is for Oracle managed data access client (oracle.manageddataaccess.client)
-	o Run as Administrator 'install_odpm.bat C:\Oracle both' (installs x86 and x64 - I may have only done x64 before, hence those tests failing?)
+    o This is for Oracle managed data access client (oracle.manageddataaccess.client)
+    o Run as Administrator 'install_odpm.bat C:\Oracle both' (installs x86 and x64 - I may have only done x64 before, hence those tests failing?)
 
 - Unzip OracleXE112_Win64.zip (Oracle Database 11g Express Edition)
-	o Run setup.exe to install 
-	o Choose a password for SYS and SYSTEM accounts (I chose the GRB db admin password)
-	o For now, add oravirtualnerd as an alias to 127.0.0.1 to C:\Windows\System32\drivers\etc\hosts
-	o You can already connect from a command prompt, use:
-		`SQLPLUS / AS SYSDBA` (see https://docs.oracle.com/cd/B25329_01/doc/admin.102/b25107/startup.htm)
-	o From here, you can install the SCOTT database (http://www.orafaq.com/wiki/SCOTT)
-		`@ ?/rdbms/admin/scott.sql`
-		`ALTER USER scott ACCOUNT UNLOCK;`
-	o To check, you can now connect to this DB from the command line:
-		`SQLPLUS SCOTT\TIGER`
-		And `SELECT * FROM emp;` should work
-	
+    o Run setup.exe to install 
+    o Choose a password for SYS and SYSTEM accounts (I chose the GRB db admin password)
+    o For now, add oravirtualnerd as an alias to 127.0.0.1 to C:\Windows\System32\drivers\etc\hosts
+    o You can already connect from a command prompt, use:
+        `SQLPLUS / AS SYSDBA` (see https://docs.oracle.com/cd/B25329_01/doc/admin.102/b25107/startup.htm)
+    o From here, you can install the SCOTT database (http://www.orafaq.com/wiki/SCOTT)
+        `@ ?/rdbms/admin/scott.sql`
+        `ALTER USER scott ACCOUNT UNLOCK;`
+    o To check, you can now connect to this DB from the command line:
+        `SQLPLUS SCOTT\TIGER`
+        And `SELECT * FROM emp;` should work
+    
 - Unzip sqldeveloper-4.1.5.21.78-x64.zip (Oracle SQL Developer)
-	o This is the program itself, it does not need further installation
-	o Connect to localhost as SYSTEM/<password>
+    o This is the program itself, it does not need further installation
+    o Connect to localhost as SYSTEM/<password>
 
 NB The Oracle tests WILL FAIL unless Test/Test Settings/Default Processor Architecture is set to X64
 

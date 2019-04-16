@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Mighty.Dynamic.Tests.PostgreSql.TableClasses
 {
-	public class SPTestsDatabase : MightyOrm
-	{
-		public SPTestsDatabase() : base(TestConstants.ReadWriteTestConnection)
-		{
-		}
-	}
+    public class SPTestsDatabase : MightyOrm
+    {
+        public SPTestsDatabase() : base(TestConstants.ReadWriteTestConnection)
+        {
+        }
+    }
 }

@@ -14,8 +14,8 @@ using Mighty.Validation;
 // </summary>
 namespace Mighty
 {
-	public partial class MightyOrm<T> : MightyOrmAbstractInterface<T> where T : class, new()
-	{
+    public partial class MightyOrm<T> : MightyOrmAbstractInterface<T> where T : class, new()
+    {
         #region Non-table specific methods
         /// <summary>
         /// Create a <see cref="DbCommand"/> ready for use with Mighty.
@@ -28,10 +28,10 @@ namespace Mighty
         /// <param name="args">Auto-numbered parameters for the SQL</param>
         /// <returns></returns>
         override public DbCommand CreateCommand(string sql,
-			params object[] args)
-		{
-			return CreateCommandWithParams(sql, args: args);
-		}
+            params object[] args)
+        {
+            return CreateCommandWithParams(sql, args: args);
+        }
 
         /// <summary>
         /// Create a <see cref="DbCommand"/> ready for use with Mighty.
@@ -45,22 +45,22 @@ namespace Mighty
         /// <param name="args">Auto-numbered parameters for the SQL</param>
         /// <returns></returns>
         override public DbCommand CreateCommand(string sql,
-			DbConnection connection,
-			params object[] args)
-		{
-			return CreateCommandWithParams(sql, args: args);
-		}
-		#endregion
+            DbConnection connection,
+            params object[] args)
+        {
+            return CreateCommandWithParams(sql, args: args);
+        }
+        #endregion
 
-		#region Table specific methods
+        #region Table specific methods
         /// <summary>
         /// Return a new item populated with defaults values which correctly reflect the defaults of the current database table, when these are present.
         /// </summary>
         /// <returns></returns>
-		override public T New()
-		{
-			return NewFrom();
-		}
-		#endregion
-	}
+        override public T New()
+        {
+            return NewFrom();
+        }
+        #endregion
+    }
 }

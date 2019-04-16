@@ -9,12 +9,12 @@ namespace Mighty.ConnectionProviders
     /// Implement this abstract class and then register the <see cref="Type"/> of your implementation with <see cref="PluginManager"/>
     /// in order to provide support for any currently unsupported database type in Mighty.
     /// </summary>
-	abstract public class ConnectionProvider
-	{
+    abstract public class ConnectionProvider
+    {
         /// <summary>
         /// Specify the <see cref="DbProviderFactory"/> which database access going via this connection provider should use.
         /// </summary>
-		public DbProviderFactory ProviderFactoryInstance { get; protected set; }
+        public DbProviderFactory ProviderFactoryInstance { get; protected set; }
 
         /// <summary>
         /// Specify which database plugin class to use, for all the various bits of Mighty which have been found to
@@ -26,7 +26,7 @@ namespace Mighty.ConnectionProviders
         /// Specify the connection string to use when instantiating a <see cref="DbConnection"/> via this connection provider;
         /// this might typically be (or be derived from) the connection string provided to the constructor of this class.
         /// </summary>
-		public string ConnectionString { get; protected set; }
+        public string ConnectionString { get; protected set; }
 
         /// <summary>
         /// Fluent API, must return `this` at the end. It should set all three public properties of this class.
@@ -40,5 +40,5 @@ namespace Mighty.ConnectionProviders
         /// </param>
         /// <returns></returns>
         abstract public ConnectionProvider Init(string connectionStringOrName);
-	}
+    }
 }

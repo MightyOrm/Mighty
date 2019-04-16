@@ -9,21 +9,21 @@ namespace Mighty
     /// The results from a paging query
     /// </summary>
     /// <typeparam name="T">The generic type for items returned by this instance</typeparam>
-	public class PagedResults<T>
-	{
+    public class PagedResults<T>
+    {
         /// <summary>
         /// The requested page of items
         /// </summary>
-		public IEnumerable<T> Items;
+        public IEnumerable<T> Items;
 
         /// <summary>
         /// The total number of pages available
         /// </summary>
-		public int TotalRecords;
+        public int TotalRecords;
 
         /// <summary>
         /// The total number of items available
         /// </summary>
-		public int TotalPages;
-	}
+        public int TotalPages;
+    }
 }

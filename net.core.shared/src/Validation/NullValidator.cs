@@ -9,7 +9,7 @@ namespace Mighty.Validation
     /// <summary>
     /// Validator which passes all tests.
     /// </summary>
-	internal class NullValidator : Validator
+    internal class NullValidator : Validator
     {
         /// <summary>
         /// Passing validation (i.e. just do not modify the error list)

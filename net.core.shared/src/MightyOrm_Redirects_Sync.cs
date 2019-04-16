@@ -17,167 +17,167 @@ using System.Dynamic;
 // </summary>
 namespace Mighty
 {
-	public partial class MightyOrm<T> : MightyOrmAbstractInterface<T> where T : class, new()
-	{
-		#region Non-table specific methods
-		override public IEnumerable<T> Query(DbCommand command,
-			DbConnection connection = null)
-		{
-			return QueryNWithParams<T>(command: command, connection: connection);
-		}
+    public partial class MightyOrm<T> : MightyOrmAbstractInterface<T> where T : class, new()
+    {
+        #region Non-table specific methods
+        override public IEnumerable<T> Query(DbCommand command,
+            DbConnection connection = null)
+        {
+            return QueryNWithParams<T>(command: command, connection: connection);
+        }
 
-		override public T Single(DbCommand command,
-			DbConnection connection = null)
-		{
-			return QueryNWithParams<T>(command: command, connection: connection).FirstOrDefault();
-		}
+        override public T Single(DbCommand command,
+            DbConnection connection = null)
+        {
+            return QueryNWithParams<T>(command: command, connection: connection).FirstOrDefault();
+        }
 
-		// no connection, easy args
-		override public IEnumerable<T> Query(string sql,
-			params object[] args)
-		{
-			return QueryNWithParams<T>(sql, args: args);
-		}
+        // no connection, easy args
+        override public IEnumerable<T> Query(string sql,
+            params object[] args)
+        {
+            return QueryNWithParams<T>(sql, args: args);
+        }
 
-		override public T SingleFromQuery(string sql,
-			params object[] args)
-		{
-			return QueryNWithParams<T>(sql, args: args).FirstOrDefault();
-		}
+        override public T SingleFromQuery(string sql,
+            params object[] args)
+        {
+            return QueryNWithParams<T>(sql, args: args).FirstOrDefault();
+        }
 
-		override public IEnumerable<T> Query(string sql,
-			DbConnection connection,
-			params object[] args)
-		{
-			return QueryNWithParams<T>(sql, connection: connection, args: args);
-		}
+        override public IEnumerable<T> Query(string sql,
+            DbConnection connection,
+            params object[] args)
+        {
+            return QueryNWithParams<T>(sql, connection: connection, args: args);
+        }
 
-		override public T SingleFromQuery(string sql,
-			DbConnection connection,
-			params object[] args)
-		{
-			return QueryNWithParams<T>(sql, connection: connection, args: args).FirstOrDefault();
-		}
+        override public T SingleFromQuery(string sql,
+            DbConnection connection,
+            params object[] args)
+        {
+            return QueryNWithParams<T>(sql, connection: connection, args: args).FirstOrDefault();
+        }
 
-		override public IEnumerable<T> QueryWithParams(string sql,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args)
-		{
-			return QueryNWithParams<T>(sql,
-				inParams, outParams, ioParams, returnParams,
-				connection: connection, args: args);
-		}
+        override public IEnumerable<T> QueryWithParams(string sql,
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            DbConnection connection = null,
+            params object[] args)
+        {
+            return QueryNWithParams<T>(sql,
+                inParams, outParams, ioParams, returnParams,
+                connection: connection, args: args);
+        }
 
-		override public T SingleFromQueryWithParams(string sql,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args)
-		{
-			return QueryNWithParams<T>(sql,
-				inParams, outParams, ioParams, returnParams,
-				connection: connection, args: args).FirstOrDefault();
-		}
+        override public T SingleFromQueryWithParams(string sql,
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            DbConnection connection = null,
+            params object[] args)
+        {
+            return QueryNWithParams<T>(sql,
+                inParams, outParams, ioParams, returnParams,
+                connection: connection, args: args).FirstOrDefault();
+        }
 
-		override public IEnumerable<T> QueryFromProcedure(string spName,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args)
-		{
-			return QueryNWithParams<T>(spName,
-				inParams, outParams, ioParams, returnParams,
-				isProcedure: true,
-				connection: connection, args: args);
-		}
+        override public IEnumerable<T> QueryFromProcedure(string spName,
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            DbConnection connection = null,
+            params object[] args)
+        {
+            return QueryNWithParams<T>(spName,
+                inParams, outParams, ioParams, returnParams,
+                isProcedure: true,
+                connection: connection, args: args);
+        }
 
-		override public T SingleFromProcedure(string spName,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args)
-		{
-			return QueryNWithParams<T>(spName,
-				inParams, outParams, ioParams, returnParams,
-				isProcedure: true,
-				connection: connection, args: args).FirstOrDefault();
-		}
+        override public T SingleFromProcedure(string spName,
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            DbConnection connection = null,
+            params object[] args)
+        {
+            return QueryNWithParams<T>(spName,
+                inParams, outParams, ioParams, returnParams,
+                isProcedure: true,
+                connection: connection, args: args).FirstOrDefault();
+        }
 
-		override public IEnumerable<IEnumerable<T>> QueryMultiple(DbCommand command,
-			DbConnection connection = null)
-		{
-			return QueryNWithParams<IEnumerable<T>>(command: command, connection: connection);
-		}
+        override public IEnumerable<IEnumerable<T>> QueryMultiple(DbCommand command,
+            DbConnection connection = null)
+        {
+            return QueryNWithParams<IEnumerable<T>>(command: command, connection: connection);
+        }
 
-		// no connection, easy args
-		override public IEnumerable<IEnumerable<T>> QueryMultiple(string sql,
-			params object[] args)
-		{
-			return QueryNWithParams<IEnumerable<T>>(sql, args: args);
-		}
+        // no connection, easy args
+        override public IEnumerable<IEnumerable<T>> QueryMultiple(string sql,
+            params object[] args)
+        {
+            return QueryNWithParams<IEnumerable<T>>(sql, args: args);
+        }
 
-		override public IEnumerable<IEnumerable<T>> QueryMultiple(string sql,
-			DbConnection connection,
-			params object[] args)
-		{
-			return QueryNWithParams<IEnumerable<T>>(sql, connection: connection, args: args);
-		}
+        override public IEnumerable<IEnumerable<T>> QueryMultiple(string sql,
+            DbConnection connection,
+            params object[] args)
+        {
+            return QueryNWithParams<IEnumerable<T>>(sql, connection: connection, args: args);
+        }
 
-		override public IEnumerable<IEnumerable<T>> QueryMultipleWithParams(string sql,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args)
-		{
-			return QueryNWithParams<IEnumerable<T>>(sql,
-				inParams, outParams, ioParams, returnParams,
-				connection: connection, args: args);
-		}
+        override public IEnumerable<IEnumerable<T>> QueryMultipleWithParams(string sql,
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            DbConnection connection = null,
+            params object[] args)
+        {
+            return QueryNWithParams<IEnumerable<T>>(sql,
+                inParams, outParams, ioParams, returnParams,
+                connection: connection, args: args);
+        }
 
-		override public IEnumerable<IEnumerable<T>> QueryMultipleFromProcedure(string spName,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args)
-		{
-			return QueryNWithParams<IEnumerable<T>>(spName,
-				inParams, outParams, ioParams, returnParams,
-				isProcedure: true,
-				connection: connection, args: args);
-		}
+        override public IEnumerable<IEnumerable<T>> QueryMultipleFromProcedure(string spName,
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            DbConnection connection = null,
+            params object[] args)
+        {
+            return QueryNWithParams<IEnumerable<T>>(spName,
+                inParams, outParams, ioParams, returnParams,
+                isProcedure: true,
+                connection: connection, args: args);
+        }
 
-		// no connection, easy args
-		override public int Execute(string sql,
-			params object[] args)
-		{
+        // no connection, easy args
+        override public int Execute(string sql,
+            params object[] args)
+        {
             using (var command = CreateCommandWithParams(sql, args: args))
             {
                 return Execute(command);
             }
-		}
+        }
 
-		override public int Execute(string sql,
-			DbConnection connection,
-			params object[] args)
-		{
+        override public int Execute(string sql,
+            DbConnection connection,
+            params object[] args)
+        {
             using (var command = CreateCommandWithParams(sql, args: args))
             {
                 return Execute(command, connection);
             }
-		}
+        }
 
-		/// <summary>
-		/// Execute command with parameters
-		/// </summary>
-		/// <param name="sql">The command SQL (with optional DB-native parameter placeholders)</param>
-		/// <param name="inParams">Named input parameters</param>
-		/// <param name="outParams">Named output parameters</param>
-		/// <param name="ioParams">Named input-output parameters</param>
-		/// <param name="returnParams">Named return parameters</param>
-		/// <param name="connection">Optional connection to use</param>
-		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
-		/// <returns>The results of all non-input parameters</returns>
-		override public dynamic ExecuteWithParams(string sql,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args)
-		{
+        /// <summary>
+        /// Execute command with parameters
+        /// </summary>
+        /// <param name="sql">The command SQL (with optional DB-native parameter placeholders)</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns>The results of all non-input parameters</returns>
+        override public dynamic ExecuteWithParams(string sql,
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            DbConnection connection = null,
+            params object[] args)
+        {
             var retval = CreateCommandWithParamsAndRowCountCheck(sql,
                 inParams, outParams, ioParams, returnParams,
                 args: args);
@@ -191,24 +191,24 @@ namespace Mighty
                 }
                 return results;
             }
-		}
+        }
 
-		/// <summary>
-		/// Execute stored procedure with parameters
-		/// </summary>
-		/// <param name="spName">Stored procedure name</param>
-		/// <param name="inParams">Named input parameters</param>
-		/// <param name="outParams">Named output parameters</param>
-		/// <param name="ioParams">Named input-output parameters</param>
-		/// <param name="returnParams">Named return parameters</param>
-		/// <param name="connection">Optional connection to use</param>
-		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
-		/// <returns>The results of all non-input parameters</returns>
-		override public dynamic ExecuteProcedure(string spName,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args)
-		{
+        /// <summary>
+        /// Execute stored procedure with parameters
+        /// </summary>
+        /// <param name="spName">Stored procedure name</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns>The results of all non-input parameters</returns>
+        override public dynamic ExecuteProcedure(string spName,
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            DbConnection connection = null,
+            params object[] args)
+        {
             var retval = CreateCommandWithParamsAndRowCountCheck(spName,
                 inParams, outParams, ioParams, returnParams,
                 isProcedure: true,
@@ -227,42 +227,42 @@ namespace Mighty
 
         // no connection, easy args
         override public object Scalar(string sql,
-			params object[] args)
-		{
+            params object[] args)
+        {
             using (var command = CreateCommand(sql, args))
             {
                 return Scalar(command);
             }
-		}
+        }
 
-		override public object Scalar(string sql,
-			DbConnection connection,
-			params object[] args)
-		{
+        override public object Scalar(string sql,
+            DbConnection connection,
+            params object[] args)
+        {
             using (var command = CreateCommand(sql, args))
             {
                 return Scalar(command, connection);
             }
-		}
+        }
 
-		override public object ScalarWithParams(string sql,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args)
-		{
+        override public object ScalarWithParams(string sql,
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            DbConnection connection = null,
+            params object[] args)
+        {
             using (var command = CreateCommandWithParams(sql,
             inParams, outParams, ioParams, returnParams,
             args: args))
             {
                 return Scalar(command, connection);
             }
-		}
+        }
 
-		override public object ScalarFromProcedure(string spName,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args)
-		{
+        override public object ScalarFromProcedure(string spName,
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            DbConnection connection = null,
+            params object[] args)
+        {
             using (var command = CreateCommandWithParams(spName,
             inParams, outParams, ioParams, returnParams,
             isProcedure: true,
@@ -270,13 +270,13 @@ namespace Mighty
             {
                 return Scalar(command, connection);
             }
-		}
+        }
 
-		override protected IEnumerable<X> QueryNWithParams<X>(string sql = null, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, params object[] args)
-		{
+        override protected IEnumerable<X> QueryNWithParams<X>(string sql = null, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, params object[] args)
+        {
             var command = CreateCommandWithParams(sql, inParams, outParams, ioParams, returnParams, isProcedure, null, args);
             return QueryNWithParams<X>(command, behavior, connection);
-		}
+        }
         #endregion
 
         #region Table specific methods
@@ -285,10 +285,10 @@ namespace Mighty
         /// <summary>
         /// Perform COUNT on current table.
         /// </summary>
-		/// <param name="where">WHERE clause</param>
+        /// <param name="where">WHERE clause</param>
         /// <param name="columns">Columns (defaults to *, but can be specified, e.g., to count non-nulls in a given field)</param>
-		/// <param name="connection">Optional connection to use</param>
-		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
         /// <returns></returns>
         override public object Count(
             string where = null,
@@ -318,9 +318,9 @@ namespace Mighty
         /// Get MAX of column on current table.
         /// </summary>
         /// <param name="columns">Columns</param>
-		/// <param name="where">WHERE clause</param>
-		/// <param name="connection">Optional connection to use</param>
-		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
         /// <returns></returns>
         override public object Max(
             string columns,
@@ -350,9 +350,9 @@ namespace Mighty
         /// Get MIN of column on current table.
         /// </summary>
         /// <param name="columns">Columns</param>
-		/// <param name="where">WHERE clause</param>
-		/// <param name="connection">Optional connection to use</param>
-		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
         /// <returns></returns>
         override public object Min(
             string columns,
@@ -382,9 +382,9 @@ namespace Mighty
         /// Get SUM of column on current table.
         /// </summary>
         /// <param name="columns">Columns</param>
-		/// <param name="where">WHERE clause</param>
-		/// <param name="connection">Optional connection to use</param>
-		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
         /// <returns></returns>
         override public object Sum(
             string columns,
@@ -414,9 +414,9 @@ namespace Mighty
         /// Get AVG of column on current table.
         /// </summary>
         /// <param name="columns">Columns</param>
-		/// <param name="where">WHERE clause</param>
-		/// <param name="connection">Optional connection to use</param>
-		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
         /// <returns></returns>
         override public object Avg(
             string columns,
@@ -452,11 +452,11 @@ namespace Mighty
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
         /// <returns></returns>
         override public object Aggregate(string function, string columns, string where = null,
-			DbConnection connection = null,
-			params object[] args)
-		{
-			return AggregateWithParams(function, columns, where, connection: connection, args: args);
-		}
+            DbConnection connection = null,
+            params object[] args)
+        {
+            return AggregateWithParams(function, columns, where, connection: connection, args: args);
+        }
 
         /// <summary>
         /// Perform aggregate operation on the current table (use for SUM, MAX, MIN, AVG, etc.)
@@ -503,45 +503,45 @@ namespace Mighty
         /// 'Easy-calling' version, optional args straight after where.
         /// </remarks>
         override public T Single(string where,
-			params object[] args)
-		{
-			return SingleWithParams(where, args: args);
-		}
+            params object[] args)
+        {
+            return SingleWithParams(where, args: args);
+        }
 
-		/// <summary>
-		/// Get single item from current table
-		/// </summary>
-		/// <param name="where">WHERE clause</param>
-		/// <param name="connection">Optional connection to use</param>
-		/// <param name="orderBy">ORDER BY clause</param>
-		/// <param name="columns">Columns to return</param>
-		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
-		/// <returns></returns>
-		/// <remarks>
-		/// DbConnection coming early (not just before args) in this one case is really useful, as it avoids ambiguity between
-		/// the `columns` and `orderBy` strings and optional string args.
-		/// </remarks>
-		override public T Single(string where,
-			DbConnection connection = null,
-			string orderBy = null,
-			string columns = null,
-			params object[] args)
-		{
-			return SingleWithParams(where, orderBy, columns, connection: connection, args: args);
-		}
+        /// <summary>
+        /// Get single item from current table
+        /// </summary>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="orderBy">ORDER BY clause</param>
+        /// <param name="columns">Columns to return</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
+        /// <remarks>
+        /// DbConnection coming early (not just before args) in this one case is really useful, as it avoids ambiguity between
+        /// the `columns` and `orderBy` strings and optional string args.
+        /// </remarks>
+        override public T Single(string where,
+            DbConnection connection = null,
+            string orderBy = null,
+            string columns = null,
+            params object[] args)
+        {
+            return SingleWithParams(where, orderBy, columns, connection: connection, args: args);
+        }
 
-		// WithParams version just in case; allows transactions for a start
-		override public T SingleWithParams(string where, string orderBy = null, string columns = null,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args)
-		{
-			return AllWithParams(
-				where, orderBy, columns, 1,
-				inParams, outParams, ioParams, returnParams,
-				connection,
-				args).FirstOrDefault();
-		}
+        // WithParams version just in case; allows transactions for a start
+        override public T SingleWithParams(string where, string orderBy = null, string columns = null,
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            DbConnection connection = null,
+            params object[] args)
+        {
+            return AllWithParams(
+                where, orderBy, columns, 1,
+                inParams, outParams, ioParams, returnParams,
+                connection,
+                args).FirstOrDefault();
+        }
 
         // ORM
         override public IEnumerable<T> All(
@@ -583,151 +583,161 @@ namespace Mighty
             string orderBy = null,
             string columns = null,
             string where = null,
-			int pageSize = 20, int currentPage = 1,
-			DbConnection connection = null,
-			params object[] args)
-		{
-			return PagedFromSelect(CheckGetTableName(), orderBy ?? CheckGetPrimaryKeyFields(), columns, where, pageSize, currentPage, connection, args);
-		}
+            int pageSize = 20, int currentPage = 1,
+            DbConnection connection = null,
+            params object[] args)
+        {
+            return PagedFromSelect(CheckGetTableName(), orderBy ?? CheckGetPrimaryKeyFields(), columns, where, pageSize, currentPage, connection, args);
+        }
 
-		/// <summary>
-		/// Save one or more items using params style arguments
-		/// </summary>
-		/// <param name="items">The items</param>
-		/// <returns></returns>
-		override public int Save(params object[] items)
-		{
-			return ActionOnItems(OrmAction.Save, null, items);
-		}
+        /// <summary>
+        /// Save one or more items using params style arguments.
+        /// 'Save' means
+        /// objects with missing (applies to dynamic only) or default primary keys are inserted
+        /// and objects with non-default primary keys are updated.
+        /// </summary>
+        /// <param name="items">The items</param>
+        /// <returns></returns>
+        override public int Save(params object[] items)
+        {
+            return ActionOnItemsWithOutput(OrmAction.Save, null, items).Item1;
+        }
 
-		/// <summary>
-		/// Save one or more items using pre-specified DbConnection
-		/// </summary>
-		/// <param name="connection">The connection to use</param>
-		/// <param name="items">The items</param>
-		/// <returns></returns>
-		override public int Save(DbConnection connection, params object[] items)
-		{
-			return ActionOnItems(OrmAction.Save, connection, items);
-		}
+        /// <summary>
+        /// Save one or more items using params style arguments.
+        /// 'Save' means
+        /// objects with missing (applies to dynamic only) or default primary keys are inserted
+        /// and objects with non-default primary keys are updated.
+        /// </summary>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="items">The items</param>
+        /// <returns></returns>
+        override public int Save(DbConnection connection, params object[] items)
+        {
+            return ActionOnItemsWithOutput(OrmAction.Save, connection, items).Item1;
+        }
 
-		/// <summary>
-		/// Save array or other IEnumerable of items
-		/// </summary>
-		/// <param name="items">The items</param>
-		/// <returns></returns>
-		override public int Save(IEnumerable<object> items)
-		{
-			return ActionOnItems(OrmAction.Save, null, items);
-		}
+        /// <summary>
+        /// Save array or other <see cref="IEnumerable"/> of items.
+        /// 'Save' means
+        /// objects with missing (applies to dynamic only) or default primary keys are inserted
+        /// and objects with non-default primary keys are updated.
+        /// </summary>
+        /// <param name="items">The items</param>
+        /// <returns></returns>
+        override public int Save(IEnumerable<object> items)
+        {
+            return ActionOnItemsWithOutput(OrmAction.Save, null, items).Item1;
+        }
 
-		/// <summary>
-		/// Save array or other IEnumerable of items using pre-specified DbConnection
-		/// </summary>
-		/// <param name="connection">The connection to use</param>
-		/// <param name="items">The items</param>
-		/// <returns></returns>
-		override public int Save(DbConnection connection, IEnumerable<object> items)
-		{
-			return ActionOnItems(OrmAction.Save, connection, items);
-		}
+        /// <summary>
+        /// Save array or other <see cref="IEnumerable"/> of items.
+        /// 'Save' means
+        /// objects with missing (applies to dynamic only) or default primary keys are inserted
+        /// and objects with non-default primary keys are updated.
+        /// </summary>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="items">The items</param>
+        /// <returns></returns>
+        override public int Save(DbConnection connection, IEnumerable<object> items)
+        {
+            return ActionOnItemsWithOutput(OrmAction.Save, connection, items).Item1;
+        }
 
-		/// <summary>
-		/// Insert single item, returning the item sent in but with PK populated.
-		/// If you need all fields populated (i.e. you want to get back DB default values for non-PK fields), please create the item using New() before inserting it.
-		/// </summary>
-		/// <param name="item">The item to insert, in any reasonable format (for MightyOrm&lt;T&gt; this includes, but is not limited to, in instance of type T)</param>
-		/// <returns>The inserted item</returns>
-		override public T Insert(object item)
-		{
-			T insertedItem;
-			ActionOnItems(OrmAction.Insert, null, new object[] { item }, out insertedItem);
-			return insertedItem;
-		}
+        /// <summary>
+        /// Insert single item, returning the item sent in but with PK populated.
+        /// If you need all fields populated (i.e. you want to get back DB default values for non-PK fields), please create the item using New() before inserting it.
+        /// </summary>
+        /// <param name="item">The item to insert, in any reasonable format (for MightyOrm&lt;T&gt; this includes, but is not limited to, in instance of type T)</param>
+        /// <returns>The inserted item</returns>
+        override public T Insert(object item)
+        {
+            return ActionOnItems(OrmAction.Insert, null, new object[] { item }).FirstOrDefault();
+        }
 
-		/// <summary>
-		/// Insert one or more items using params style arguments
-		/// </summary>
-		/// <param name="items">The items</param>
-		/// <returns>The number of rows inserted</returns>
-		override public int Insert(params object[] items)
-		{
-			return ActionOnItems(OrmAction.Insert, null, items);
-		}
+        /// <summary>
+        /// Insert one or more items using params style arguments.
+        /// </summary>
+        /// <param name="items">The items</param>
+        /// <returns>The number of rows inserted</returns>
+        override public IEnumerable<T> Insert(params object[] items)
+        {
+            return ActionOnItems(OrmAction.Insert, null, items);
+        }
 
-		/// <summary>
-		/// Insert one or more items using pre-specified DbConnection
-		/// </summary>
-		/// <param name="connection">The connection to use</param>
-		/// <param name="items">The items</param>
-		/// <returns>The number of rows inserted</returns>
-		override public int Insert(DbConnection connection, params object[] items)
-		{
-			return ActionOnItems(OrmAction.Insert, connection, items);
-		}
+        /// <summary>
+        /// Insert one or more items using pre-specified DbConnection
+        /// </summary>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="items">The items</param>
+        /// <returns>The number of rows inserted</returns>
+        override public IEnumerable<T> Insert(DbConnection connection, params object[] items)
+        {
+            return ActionOnItems(OrmAction.Insert, connection, items);
+        }
 
-		/// <summary>
-		/// Insert array or other IEnumerable of items
-		/// </summary>
-		/// <param name="items">The items</param>
-		/// <returns>The number of rows inserted</returns>
-		override public int Insert(IEnumerable<object> items)
-		{
-			return ActionOnItems(OrmAction.Insert, null, items);
-		}
+        /// <summary>
+        /// Insert array or other <see cref="IEnumerable"/> of items..
+        /// </summary>
+        /// <param name="items">The items</param>
+        /// <returns>The number of rows inserted</returns>
+        override public IEnumerable<T> Insert(IEnumerable<object> items)
+        {
+            return ActionOnItems(OrmAction.Insert, null, items);
+        }
 
-		/// <summary>
-		/// Insert array or other IEnumerable of items using pre-specified DbConnection
-		/// </summary>
-		/// <param name="connection">The connection to use</param>
-		/// <param name="items">The items</param>
-		/// <returns>The number of rows inserted</returns>
-		override public int Insert(DbConnection connection, IEnumerable<object> items)
-		{
-			return ActionOnItems(OrmAction.Insert, connection, items);
-		}
+        /// <summary>
+        /// Insert array or other <see cref="IEnumerable"/> of items..
+        /// </summary>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="items">The items</param>
+        /// <returns>The number of rows inserted</returns>
+        override public IEnumerable<T> Insert(DbConnection connection, IEnumerable<object> items)
+        {
+            return ActionOnItems(OrmAction.Insert, connection, items);
+        }
 
-		/// <summary>
-		/// Update one or more items using params style arguments
-		/// </summary>
-		/// <param name="items">The items</param>
-		/// <returns></returns>
-		override public int Update(params object[] items)
-		{
-			return ActionOnItems(OrmAction.Update, null, items);
-		}
+        /// <summary>
+        /// Update one or more items using params style arguments.
+        /// </summary>
+        /// <param name="items">The items</param>
+        /// <returns></returns>
+        override public int Update(params object[] items)
+        {
+            return ActionOnItemsWithOutput(OrmAction.Update, null, items).Item1;
+        }
 
-		/// <summary>
-		/// Update one or more items using pre-specified DbConnection
-		/// </summary>
-		/// <param name="connection">The connection to use</param>
-		/// <param name="items">The items</param>
-		/// <returns></returns>
-		override public int Update(DbConnection connection, params object[] items)
-		{
-			return ActionOnItems(OrmAction.Update, connection, items);
-		}
+        /// <summary>
+        /// Update one or more items using pre-specified DbConnection
+        /// </summary>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="items">The items</param>
+        /// <returns></returns>
+        override public int Update(DbConnection connection, params object[] items)
+        {
+            return ActionOnItemsWithOutput(OrmAction.Update, connection, items).Item1;
+        }
 
-		/// <summary>
-		/// Update array or other IEnumerable of items
-		/// </summary>
-		/// <param name="items">The items</param>
-		/// <returns></returns>
-		override public int Update(IEnumerable<object> items)
-		{
-			return ActionOnItems(OrmAction.Update, null, items);
-		}
+        /// <summary>
+        /// Update array or other <see cref="IEnumerable"/> of items..
+        /// </summary>
+        /// <param name="items">The items</param>
+        /// <returns></returns>
+        override public int Update(IEnumerable<object> items)
+        {
+            return ActionOnItemsWithOutput(OrmAction.Update, null, items).Item1;
+        }
 
-		/// <summary>
-		/// Update array or other IEnumerable of items using pre-specified DbConnection
-		/// </summary>
-		/// <param name="connection">The connection to use</param>
-		/// <param name="items">The items</param>
-		/// <returns></returns>
-		override public int Update(DbConnection connection, IEnumerable<object> items)
-		{
-			return ActionOnItems(OrmAction.Update, connection, items);
-		}
+        /// <summary>
+        /// Update array or other <see cref="IEnumerable"/> of items..
+        /// </summary>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="items">The items</param>
+        /// <returns></returns>
+        override public int Update(DbConnection connection, IEnumerable<object> items)
+        {
+            return ActionOnItemsWithOutput(OrmAction.Update, connection, items).Item1;
+        }
 
         /// <summary>
         /// Delete one or more items using params style arguments.
@@ -739,9 +749,9 @@ namespace Mighty
         /// <param name="items">The items</param>
         /// <returns>The number of items affected</returns>
         override public int Delete(params object[] items)
-		{
-			return ActionOnItems(OrmAction.Delete, null, items);
-		}
+        {
+            return ActionOnItemsWithOutput(OrmAction.Delete, null, items).Item1;
+        }
 
         /// <summary>
         /// Delete one or more items using params style arguments.
@@ -753,10 +763,10 @@ namespace Mighty
         /// <param name="items">The items</param>
         /// <param name="connection">The connection to use</param>
         /// <returns>The number of items affected</returns>
-		override public int Delete(DbConnection connection, params object[] items)
-		{
-			return ActionOnItems(OrmAction.Delete, connection, items);
-		}
+        override public int Delete(DbConnection connection, params object[] items)
+        {
+            return ActionOnItemsWithOutput(OrmAction.Delete, connection, items).Item1;
+        }
 
         /// <summary>
         /// Delete an array or other <see cref="IEnumerable"/> of items.
@@ -767,10 +777,10 @@ namespace Mighty
         /// </summary>
         /// <param name="items">The items</param>
         /// <returns>The number of items affected</returns>
-		override public int Delete(IEnumerable<object> items)
-		{
-			return ActionOnItems(OrmAction.Delete, null, items);
-		}
+        override public int Delete(IEnumerable<object> items)
+        {
+            return ActionOnItemsWithOutput(OrmAction.Delete, null, items).Item1;
+        }
 
         /// <summary>
         /// Delete an array or other <see cref="IEnumerable"/> of items.
@@ -782,10 +792,10 @@ namespace Mighty
         /// <param name="items">The items</param>
         /// <param name="connection">The connection to use</param>
         /// <returns>The number of items affected</returns>
-		override public int Delete(DbConnection connection, IEnumerable<object> items)
-		{
-			return ActionOnItems(OrmAction.Delete, connection, items);
-		}
+        override public int Delete(DbConnection connection, IEnumerable<object> items)
+        {
+            return ActionOnItemsWithOutput(OrmAction.Delete, connection, items).Item1;
+        }
 
         /// <summary>
         /// Update the row(s) specified by the primary key(s) or WHERE values sent in using the values from the item sent in.
@@ -794,10 +804,10 @@ namespace Mighty
         /// </summary>
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
-		override public int UpdateUsing(object partialItem, object whereParams)
-		{
-			return UpdateUsing(partialItem, whereParams, null);
-		}
+        override public int UpdateUsing(object partialItem, object whereParams)
+        {
+            return UpdateUsing(partialItem, whereParams, null);
+        }
 
         /// <summary>
         /// Update the row(s) specified by the primary key(s) or WHERE values sent in using the values from the item sent in.
@@ -807,14 +817,14 @@ namespace Mighty
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="connection">Optional connection to use</param>
-		override public int UpdateUsing(object partialItem, object whereParams,
-			DbConnection connection)
-		{
+        override public int UpdateUsing(object partialItem, object whereParams,
+            DbConnection connection)
+        {
             Tuple<string, object, object[]> retval = GetWhereSpecFromWhereParams(whereParams);
             return UpdateUsingWithParams(partialItem,
                 where: retval.Item1, inParams: retval.Item2, args: retval.Item3,
                 connection: connection);
-		}
+        }
 
         /// <summary>
         /// Update all items matching WHERE clause using fields from the item sent in.
@@ -824,11 +834,11 @@ namespace Mighty
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="where">WHERE clause specifying which rows to update</param>
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
-		override public int UpdateUsing(object partialItem, string where,
-			params object[] args)
-		{
-			return UpdateUsing(partialItem, where, null, args);
-		}
+        override public int UpdateUsing(object partialItem, string where,
+            params object[] args)
+        {
+            return UpdateUsing(partialItem, where, null, args);
+        }
 
         /// <summary>
         /// Delete one or more items based on a WHERE clause.
@@ -840,18 +850,10 @@ namespace Mighty
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
         /// <returns>The number of items affected</returns>
         override public int Delete(string where,
-			params object[] args)
-		{
-			return Delete(where, null, args);
-		}
-
-#pragma warning disable IDE0059 // Value assigned is never used
-        internal int ActionOnItems(OrmAction action, DbConnection connection, IEnumerable<object> items)
-		{
-			T insertedItem;
-			return ActionOnItems(action, connection, items, out insertedItem);
-		}
-#pragma warning restore IDE0059
+            params object[] args)
+        {
+            return Delete(where, null, args);
+        }
         #endregion
     }
 }

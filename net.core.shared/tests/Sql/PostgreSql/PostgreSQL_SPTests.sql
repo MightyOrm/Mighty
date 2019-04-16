@@ -218,9 +218,9 @@ CREATE OR REPLACE FUNCTION public.find_max(
 $BODY$
 BEGIN
 IF x < y THEN
-	RETURN y;
+    RETURN y;
 ELSE
-	RETURN x;
+    RETURN x;
 END IF;
 END;
 $BODY$
@@ -241,9 +241,9 @@ CREATE OR REPLACE FUNCTION public.find_min(
 $BODY$
 BEGIN
 IF x < y THEN
-	z := x;
+    z := x;
 ELSE
-	z := y;
+    z := y;
 END IF;
 END;
 $BODY$
@@ -320,7 +320,7 @@ CREATE OR REPLACE FUNCTION public.square_num(INOUT x integer)
   RETURNS integer AS
 $BODY$
 BEGIN
-	x := x * x;
+    x := x * x;
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE
@@ -357,11 +357,11 @@ CREATE OR REPLACE FUNCTION public.test_vars(
   RETURNS record AS
 $BODY$
 BEGIN
-	w := COALESCE(w, 0);
-	v := w + 1;
-	w := w + 2;
-	x := w + 1;
-	--return w + 2;
+    w := COALESCE(w, 0);
+    v := w + 1;
+    w := w + 2;
+    x := w + 1;
+    --return w + 2;
 END;
 $BODY$
   LANGUAGE plpgsql VOLATILE

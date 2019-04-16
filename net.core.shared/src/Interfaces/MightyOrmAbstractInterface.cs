@@ -13,46 +13,46 @@ using Mighty.Validation;
 // </summary>
 namespace Mighty.Interfaces
 {
-	// NEW new:
-	//	- Clean support for Single with columns
-	//	- Compound PKs
-	//	- Cleaner support for sequences (incl. one less DB round-trip on sequence-based insert)
-	//	- With the new inner loop this really might be faster than Massive too. 'Kinell.
-	//  - True support for ulong for those ADO.NET providers which use it (MySQL...) [CHECK THIS!!]
-	//  - Generics(!)
-	// To Add:
-	//  - Firebird(?)
-	// We:
-	//  - Solve the problem of default values (https://samsaffron.com/archive/2012/01/16/that-annoying-insert-problem-getting-data-into-the-db-using-dapper)
-	//	  by ignoring them at Insert(), but by populating them (in a slightly fake, but working, way) on New()
-	//	- Are genuinely cross DB, unlike Dapper Rainbow (and possibly unlike other bits of Dapper?)
-	//  - Have a true System.Data hiding interface - you just don't use it *at all* unless you need transactions,
-	//	  in which case you use exactly enough of it to manage your transactions, and no more.
-	//	- Have an (arguably) nicer/simpler interface to parameter directions and output values than Dapper.
+    // NEW new:
+    //    - Clean support for Single with columns
+    //    - Compound PKs
+    //    - Cleaner support for sequences (incl. one less DB round-trip on sequence-based insert)
+    //    - With the new inner loop this really might be faster than Massive too. 'Kinell.
+    //  - True support for ulong for those ADO.NET providers which use it (MySQL...) [CHECK THIS!!]
+    //  - Generics(!)
+    // To Add:
+    //  - Firebird(?)
+    // We:
+    //  - Solve the problem of default values (https://samsaffron.com/archive/2012/01/16/that-annoying-insert-problem-getting-data-into-the-db-using-dapper)
+    //      by ignoring them at Insert(), but by populating them (in a slightly fake, but working, way) on New()
+    //    - Are genuinely cross DB, unlike Dapper Rainbow (and possibly unlike other bits of Dapper?)
+    //  - Have a true System.Data hiding interface - you just don't use it *at all* unless you need transactions,
+    //      in which case you use exactly enough of it to manage your transactions, and no more.
+    //    - Have an (arguably) nicer/simpler interface to parameter directions and output values than Dapper.
 
-	// Abstract class 'interface' for the ORM and ADO.NET Data Access Wrapper methods.
-	// Uses abstract class, not interface, because the semantics of interface mean it can never have anything added to it!
-	// (See ... MS document about DB classes; SO post about intefaces)
-	//
-	// Notes:
-	//	- Any params type argument is always last (it has to be)
-	//	- DbConnection is always last (or last before a params argument, if any), except in the Single-with-columns overload, where it needs to be where
-	//	  it is to play the very useful dual role of also disambiguating calls to this overload from calls to the simpler overload without columns.
-	//	- All database parameters (i.e. everything sent to the DB via args, inParams or ioParams) are always passed in as true database
-	//	  parameters under all circumstances - they are never interpolated into SQL - so they can never be used for _direct_ SQL injection.
-	//	  So assuming you aren't building any SQL to execute yourself within the DB, from the values passed in, then strings etc. which are
-	//	  passed in will not need any escaping to be safe.
-	//
-	// NB Mighty is dynamic-focussed, so even when you are using MightyOrm<T> instead of MightyOrm (which is like MightyOrm<dynamic>), the
-	// T determines the output type, but not the input type (which can be of type T, but can also be any of the various arbitrary objects
-	// which the micro-ORM supports, with appropriately named fields).
+    // Abstract class 'interface' for the ORM and ADO.NET Data Access Wrapper methods.
+    // Uses abstract class, not interface, because the semantics of interface mean it can never have anything added to it!
+    // (See ... MS document about DB classes; SO post about intefaces)
+    //
+    // Notes:
+    //    - Any params type argument is always last (it has to be)
+    //    - DbConnection is always last (or last before a params argument, if any), except in the Single-with-columns overload, where it needs to be where
+    //      it is to play the very useful dual role of also disambiguating calls to this overload from calls to the simpler overload without columns.
+    //    - All database parameters (i.e. everything sent to the DB via args, inParams or ioParams) are always passed in as true database
+    //      parameters under all circumstances - they are never interpolated into SQL - so they can never be used for _direct_ SQL injection.
+    //      So assuming you aren't building any SQL to execute yourself within the DB, from the values passed in, then strings etc. which are
+    //      passed in will not need any escaping to be safe.
+    //
+    // NB Mighty is dynamic-focussed, so even when you are using MightyOrm<T> instead of MightyOrm (which is like MightyOrm<dynamic>), the
+    // T determines the output type, but not the input type (which can be of type T, but can also be any of the various arbitrary objects
+    // which the micro-ORM supports, with appropriately named fields).
 
     /// <summary>
     /// Abstract interface for all features of <see cref="MightyOrm{T}"/>, provided for injection and mocking.
     /// </summary>
     /// <typeparam name="T">The generic type for items returned by this instance</typeparam>
-	abstract public partial class MightyOrmAbstractInterface<T>
-	{
+    abstract public partial class MightyOrmAbstractInterface<T>
+    {
         // In C# (though not all languages, see discussion here https://stackoverflow.com/a/11271938/795690)
         // constructors cannot be overridden, and therefore cannot be defined in abstract classes.
 
@@ -67,84 +67,84 @@ namespace Mighty.Interfaces
         /// </summary>
         abstract public bool NpgsqlAutoDereferenceCursors { get; set; }
 
-		/// <summary>
-		/// How many rows at a time should we fetch if auto-dereferencing cursors on the Npgsql ADO.NET driver? (Default value 10,000.) (See Mighty documentation.)
-		/// </summary>
-		abstract public int NpgsqlAutoDereferenceFetchSize { get; set; }
-		#endregion
+        /// <summary>
+        /// How many rows at a time should we fetch if auto-dereferencing cursors on the Npgsql ADO.NET driver? (Default value 10,000.) (See Mighty documentation.)
+        /// </summary>
+        abstract public int NpgsqlAutoDereferenceFetchSize { get; set; }
+        #endregion
 
-		#region Properties
-		/// <summary>
-		/// Connection string
-		/// </summary>
-		abstract public string ConnectionString { get; protected set; }
+        #region Properties
+        /// <summary>
+        /// Connection string
+        /// </summary>
+        abstract public string ConnectionString { get; protected set; }
 
-		/// <summary>
-		/// Validator
-		/// </summary>
-		abstract public Validator Validator { get; protected set; }
+        /// <summary>
+        /// Validator
+        /// </summary>
+        abstract public Validator Validator { get; protected set; }
 
-		/// <summary>
-		/// C# &lt;=&gt; SQL mapper
-		/// </summary>
-		abstract public SqlNamingMapper SqlMapper { get; protected set; }
+        /// <summary>
+        /// C# &lt;=&gt; SQL mapper
+        /// </summary>
+        abstract public SqlNamingMapper SqlMapper { get; protected set; }
 
-		/// <summary>
-		/// Optional SQL profiler
-		/// </summary>
-		abstract public SqlProfiler SqlProfiler { get; protected set; }
+        /// <summary>
+        /// Optional SQL profiler
+        /// </summary>
+        abstract public SqlProfiler SqlProfiler { get; protected set; }
 
-		/// <summary>
-		/// Table name (null if non-table-specific instance)
-		/// </summary>
-		abstract public string TableName { get; protected set; }
+        /// <summary>
+        /// Table name (null if non-table-specific instance)
+        /// </summary>
+        abstract public string TableName { get; protected set; }
 
-		/// <summary>
-		/// Table owner/schema (null if not specified)
-		/// </summary>
-		abstract public string TableOwner { get; protected set; }
+        /// <summary>
+        /// Table owner/schema (null if not specified)
+        /// </summary>
+        abstract public string TableOwner { get; protected set; }
 
-		/// <summary>
-		/// Bare table name (without owner/schema part)
-		/// </summary>
-		abstract public string BareTableName { get; protected set; }
+        /// <summary>
+        /// Bare table name (without owner/schema part)
+        /// </summary>
+        abstract public string BareTableName { get; protected set; }
 
-		/// <summary>
-		/// Primary key field or fields (no mapping applied)
-		/// </summary>
-		abstract public string PrimaryKeyFields { get; protected set; }
+        /// <summary>
+        /// Primary key field or fields (no mapping applied)
+        /// </summary>
+        abstract public string PrimaryKeyFields { get; protected set; }
 
-		/// <summary>
-		/// Separated, lowered primary key fields (no mapping applied)
-		/// </summary>
-		abstract public List<string> PrimaryKeyList { get; protected set; }
+        /// <summary>
+        /// Separated, lowered primary key fields (no mapping applied)
+        /// </summary>
+        abstract public List<string> PrimaryKeyList { get; protected set; }
 
-		/// <summary>
-		/// All columns in one string, or "*" (mapping, if any, already applied)
-		/// </summary>
-		abstract public string Columns { get; protected set; }
+        /// <summary>
+        /// All columns in one string, or "*" (mapping, if any, already applied)
+        /// </summary>
+        abstract public string Columns { get; protected set; }
 
-		/// <summary>
-		/// Separated column names, in a list (mapping, if any, already applied)
-		/// </summary>
-		abstract public List<string> ColumnList { get; protected set; }
+        /// <summary>
+        /// Separated column names, in a list (mapping, if any, already applied)
+        /// </summary>
+        abstract public List<string> ColumnList { get; protected set; }
 
-		/// <summary>
-		/// Sequence name or identity retrieval function (always null for compound PK)
-		/// </summary>
-		abstract public string SequenceNameOrIdentityFunction { get; protected set; }
+        /// <summary>
+        /// Sequence name or identity retrieval function (always null for compound PK)
+        /// </summary>
+        abstract public string SequenceNameOrIdentityFunction { get; protected set; }
 
 #if KEY_VALUES
-		/// <summary>
-		/// Column from which value is retrieved by <see cref="KeyValues"/>
-		/// </summary>
-		abstract public string ValueColumn { get; protected set; }
+        /// <summary>
+        /// Column from which value is retrieved by <see cref="KeyValues"/>
+        /// </summary>
+        abstract public string ValueColumn { get; protected set; }
 #endif
 
-		/// <summary>
-		/// Table meta data (filtered to be only for columns specified by the generic type T, or by consturctor `columns`, if present)
-		/// </summary>
-		abstract public IEnumerable<dynamic> TableMetaData { get; }
+        /// <summary>
+        /// Table meta data (filtered to be only for columns specified by the generic type T, or by consturctor `columns`, if present)
+        /// </summary>
+        abstract public IEnumerable<dynamic> TableMetaData { get; }
         #endregion
 
         // 'Interface' for the general purpose data access wrapper methods (i.e. the ones which can be used
@@ -162,7 +162,7 @@ namespace Mighty.Interfaces
         /// <param name="args">Auto-numbered parameters for the SQL</param>
         /// <returns></returns>
         abstract public DbCommand CreateCommand(string sql,
-			params object[] args);
+            params object[] args);
 
         /// <summary>
         /// Create a <see cref="DbCommand"/> ready for use with Mighty.
@@ -176,8 +176,8 @@ namespace Mighty.Interfaces
         /// <param name="args">Auto-numbered parameters for the SQL</param>
         /// <returns></returns>
         abstract public DbCommand CreateCommand(string sql,
-			DbConnection connection,
-			params object[] args);
+            DbConnection connection,
+            params object[] args);
 
         /// <summary>
         /// Create a general-purpose <see cref="DbCommand"/> with named parameters ready for use with Mighty.
@@ -196,9 +196,9 @@ namespace Mighty.Interfaces
         /// <param name="args">Auto-numbered parameters for the SQL</param>
         /// <returns></returns>
         abstract public DbCommand CreateCommandWithParams(string sql,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false,
-			DbConnection connection = null,
-			params object[] args);
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false,
+            DbConnection connection = null,
+            params object[] args);
 
         /// <summary>
         /// Put all output and return parameter values into an expando.
@@ -206,7 +206,7 @@ namespace Mighty.Interfaces
         /// </summary>
         /// <param name="cmd">The command</param>
         /// <returns></returns>
-		abstract public dynamic ResultsAsExpando(DbCommand cmd);
+        abstract public dynamic ResultsAsExpando(DbCommand cmd);
         #endregion
 
         #region Table specific methods
@@ -226,11 +226,11 @@ namespace Mighty.Interfaces
         /// reflect the defaults of the current database table.
         /// </param>
         /// <returns></returns>
-		abstract public T NewFrom(object nameValues = null, bool addNonPresentAsDefaults = true);
+        abstract public T NewFrom(object nameValues = null, bool addNonPresentAsDefaults = true);
 
-		abstract public dynamic GetColumnInfo(string column, bool ExceptionOnAbsent = true);
+        abstract public dynamic GetColumnInfo(string column, bool ExceptionOnAbsent = true);
 
-		abstract public object GetColumnDefault(string columnName);
+        abstract public object GetColumnDefault(string columnName);
 
         /// <summary>
         /// Is the passed in item valid against the current validator?
@@ -255,5 +255,5 @@ namespace Mighty.Interfaces
         /// <returns></returns>
         abstract public object GetPrimaryKey(object item, bool alwaysArray = false);
 #endregion
-	}
+    }
 }

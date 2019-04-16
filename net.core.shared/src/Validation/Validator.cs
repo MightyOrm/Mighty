@@ -13,14 +13,14 @@ namespace Mighty.Validation
     /// or collection to contain the data needed for the task at hand,  even when used with the generically typed version of <see cref="MightyOrm{T}"/>.
     /// </remarks>
     abstract public class Validator
-	{
-		/// <summary>
-		/// Determine whether and how to pre-validate lists of items before performing any action.
-		/// Default is no pre-validation. Other options are to stop after the first item which gives any error,
-		/// or to continue and collect all errors before stopping.
-		/// </summary>
-		/// <returns></returns>
-		virtual public PrevalidationType Prevalidation { get; set; } = PrevalidationType.Off;
+    {
+        /// <summary>
+        /// Determine whether and how to pre-validate lists of items before performing any action.
+        /// Default is no pre-validation. Other options are to stop after the first item which gives any error,
+        /// or to continue and collect all errors before stopping.
+        /// </summary>
+        /// <returns></returns>
+        virtual public PrevalidationType Prevalidation { get; set; } = PrevalidationType.Off;
 
         /// <summary>
         /// If <see cref="Prevalidation"/> is enabled <see cref="MightyOrm"/> calls this one item at a time before *any* real actions are done.
@@ -76,5 +76,5 @@ namespace Mighty.Validation
         /// <param name="action">The ORM action</param>
         /// <returns></returns>
         virtual public void HasPerformedAction(dynamic item, OrmAction action) { }
-	}
+    }
 }

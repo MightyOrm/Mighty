@@ -5,6 +5,6 @@ namespace Mighty
     /// e.g. outParams: new { RowCount = new RowCount() }
     /// </summary>
     public class RowCount
-	{
-	}
+    {
+    }
 }

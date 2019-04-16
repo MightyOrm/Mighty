@@ -6,10 +6,10 @@ using System.Threading.Tasks;
 
 namespace Mighty.Dynamic.Tests.MySql.TableClasses
 {
-	public class SPTestsDatabase : MightyOrm
-	{
-		public SPTestsDatabase(string providerName) : base(string.Format(TestConstants.ReadTestConnection, providerName), tableName: "")
-		{
-		}
-	}
+    public class SPTestsDatabase : MightyOrm
+    {
+        public SPTestsDatabase(string providerName) : base(string.Format(TestConstants.ReadTestConnection, providerName), tableName: "")
+        {
+        }
+    }
 }

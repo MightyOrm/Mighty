@@ -14,8 +14,8 @@ using Mighty.Validation;
 // </summary>
 namespace Mighty.Interfaces
 {
-	abstract public partial class MightyOrmAbstractInterface<T>
-	{
+    abstract public partial class MightyOrmAbstractInterface<T>
+    {
         // 'Interface' for the general purpose data access wrapper methods (i.e. the ones which can be used
         // even if no table has been specified).
         // All versions which simply redirect to other versions are defined here, not in the main class.
@@ -28,8 +28,8 @@ namespace Mighty.Interfaces
         /// <returns></returns>
         abstract public DbConnection OpenConnection();
 
-		abstract public IEnumerable<T> Query(DbCommand command,
-			DbConnection connection = null);
+        abstract public IEnumerable<T> Query(DbCommand command,
+            DbConnection connection = null);
 
         /// <summary>
         /// Get single item returned by database command.
@@ -40,7 +40,7 @@ namespace Mighty.Interfaces
         /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
         abstract public T Single(DbCommand command,
-			DbConnection connection = null);
+            DbConnection connection = null);
 
         // no connection, easy args
 
@@ -48,146 +48,146 @@ namespace Mighty.Interfaces
         /// Get <see cref="IEnumerable{T}"/> of items returned by SQL query
         /// </summary>
         /// <param name="sql">The command SQL (with optional DB-native parameter placeholders)</param>
-		/// <param name="args">Auto-numbered parameter values for SQL</param>
+        /// <param name="args">Auto-numbered parameter values for SQL</param>
         /// <returns></returns>
         abstract public IEnumerable<T> Query(string sql,
-			params object[] args);
+            params object[] args);
 
         /// <summary>
         /// Get single item returned by SQL query
         /// </summary>
         /// <param name="sql">The command SQL (with optional DB-native parameter placeholders)</param>
-		/// <param name="args">Auto-numbered parameter values for SQL</param>
+        /// <param name="args">Auto-numbered parameter values for SQL</param>
         /// <returns></returns>
-		abstract public T SingleFromQuery(string sql,
-			params object[] args);
+        abstract public T SingleFromQuery(string sql,
+            params object[] args);
 
         /// <summary>
         /// Get <see cref="IEnumerable{T}"/> of items returned by SQL query
         /// </summary>
         /// <param name="sql">The command SQL (with optional DB-native parameter placeholders)</param>
         /// <param name="connection">The connection to use</param>
-		/// <param name="args">Auto-numbered parameter values for SQL</param>
+        /// <param name="args">Auto-numbered parameter values for SQL</param>
         /// <returns></returns>
-		abstract public IEnumerable<T> Query(string sql,
-			DbConnection connection,
-			params object[] args);
+        abstract public IEnumerable<T> Query(string sql,
+            DbConnection connection,
+            params object[] args);
 
         /// <summary>
         /// Get single item returned by SQL query
         /// </summary>
         /// <param name="sql">The command SQL (with optional DB-native parameter placeholders)</param>
         /// <param name="connection">The connection to use</param>
-		/// <param name="args">Auto-numbered parameter values for SQL</param>
+        /// <param name="args">Auto-numbered parameter values for SQL</param>
         /// <returns></returns>
-		abstract public T SingleFromQuery(string sql,
-			DbConnection connection,
-			params object[] args);
+        abstract public T SingleFromQuery(string sql,
+            DbConnection connection,
+            params object[] args);
 
-		abstract public IEnumerable<T> QueryWithParams(string sql,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args);
+        abstract public IEnumerable<T> QueryWithParams(string sql,
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            DbConnection connection = null,
+            params object[] args);
 
-		abstract public T SingleFromQueryWithParams(string sql,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args);
+        abstract public T SingleFromQueryWithParams(string sql,
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            DbConnection connection = null,
+            params object[] args);
 
-		abstract public IEnumerable<T> QueryFromProcedure(string spName,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args);
+        abstract public IEnumerable<T> QueryFromProcedure(string spName,
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            DbConnection connection = null,
+            params object[] args);
 
-		abstract public T SingleFromProcedure(string spName,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args);
+        abstract public T SingleFromProcedure(string spName,
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            DbConnection connection = null,
+            params object[] args);
 
-		abstract public IEnumerable<IEnumerable<T>> QueryMultiple(DbCommand command,
-			DbConnection connection = null);
+        abstract public IEnumerable<IEnumerable<T>> QueryMultiple(DbCommand command,
+            DbConnection connection = null);
 
-		// no connection, easy args
-		abstract public IEnumerable<IEnumerable<T>> QueryMultiple(string sql,
-			params object[] args);
+        // no connection, easy args
+        abstract public IEnumerable<IEnumerable<T>> QueryMultiple(string sql,
+            params object[] args);
 
-		abstract public IEnumerable<IEnumerable<T>> QueryMultiple(string sql,
-			DbConnection connection,
-			params object[] args);
+        abstract public IEnumerable<IEnumerable<T>> QueryMultiple(string sql,
+            DbConnection connection,
+            params object[] args);
 
-		abstract public IEnumerable<IEnumerable<T>> QueryMultipleWithParams(string sql,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args);
+        abstract public IEnumerable<IEnumerable<T>> QueryMultipleWithParams(string sql,
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            DbConnection connection = null,
+            params object[] args);
 
-		abstract public IEnumerable<IEnumerable<T>> QueryMultipleFromProcedure(string spName,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args);
+        abstract public IEnumerable<IEnumerable<T>> QueryMultipleFromProcedure(string spName,
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            DbConnection connection = null,
+            params object[] args);
 
-		abstract public int Execute(DbCommand command,
-			DbConnection connection = null);
+        abstract public int Execute(DbCommand command,
+            DbConnection connection = null);
 
-		// no connection, easy args
-		abstract public int Execute(string sql,
-			params object[] args);
+        // no connection, easy args
+        abstract public int Execute(string sql,
+            params object[] args);
 
-		abstract public int Execute(string sql,
-			DbConnection connection,
-			params object[] args);
+        abstract public int Execute(string sql,
+            DbConnection connection,
+            params object[] args);
 
-		/// <summary>
-		/// Execute command with parameters
-		/// </summary>
-		/// <param name="sql">The command SQL (with optional DB-native parameter placeholders)</param>
-		/// <param name="inParams">Named input parameters</param>
-		/// <param name="outParams">Named output parameters</param>
-		/// <param name="ioParams">Named input-output parameters</param>
-		/// <param name="returnParams">Named return parameters</param>
-		/// <param name="connection">Optional connection to use</param>
-		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
-		/// <returns>The results of all non-input parameters</returns>
-		abstract public dynamic ExecuteWithParams(string sql,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args);
+        /// <summary>
+        /// Execute command with parameters
+        /// </summary>
+        /// <param name="sql">The command SQL (with optional DB-native parameter placeholders)</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns>The results of all non-input parameters</returns>
+        abstract public dynamic ExecuteWithParams(string sql,
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            DbConnection connection = null,
+            params object[] args);
 
-		/// <summary>
-		/// Execute stored procedure with parameters
-		/// </summary>
-		/// <param name="spName">Stored procedure name</param>
-		/// <param name="inParams">Named input parameters</param>
-		/// <param name="outParams">Named output parameters</param>
-		/// <param name="ioParams">Named input-output parameters</param>
-		/// <param name="returnParams">Named return parameters</param>
-		/// <param name="connection">Optional connection to use</param>
-		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
-		/// <returns>The results of all non-input parameters</returns>
-		abstract public dynamic ExecuteProcedure(string spName,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args);
+        /// <summary>
+        /// Execute stored procedure with parameters
+        /// </summary>
+        /// <param name="spName">Stored procedure name</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns>The results of all non-input parameters</returns>
+        abstract public dynamic ExecuteProcedure(string spName,
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            DbConnection connection = null,
+            params object[] args);
 
-		abstract public object Scalar(DbCommand command,
-			DbConnection connection = null);
+        abstract public object Scalar(DbCommand command,
+            DbConnection connection = null);
 
-		// no connection, easy args
-		abstract public object Scalar(string sql,
-			params object[] args);
+        // no connection, easy args
+        abstract public object Scalar(string sql,
+            params object[] args);
 
-		abstract public object Scalar(string sql,
-			DbConnection connection,
-			params object[] args);
+        abstract public object Scalar(string sql,
+            DbConnection connection,
+            params object[] args);
 
-		abstract public object ScalarWithParams(string sql,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args);
+        abstract public object ScalarWithParams(string sql,
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            DbConnection connection = null,
+            params object[] args);
 
-		abstract public object ScalarFromProcedure(string spName,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args);
+        abstract public object ScalarFromProcedure(string spName,
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            DbConnection connection = null,
+            params object[] args);
 
         /// <summary>
         /// Return paged results from arbitrary select statement.
@@ -206,18 +206,18 @@ namespace Mighty.Interfaces
         /// can pass "SELECT columns" instead of columns.
         /// TO DO: Possibly cancel the above, it makes no sense from a UI pov!
         /// </remarks>
-		abstract public PagedResults<T> PagedFromSelect(
+        abstract public PagedResults<T> PagedFromSelect(
             string tableNameOrJoinSpec,
             string orderBy,
             string columns = null,
             string where = null,
             int pageSize = 20, int currentPage = 1,
-			DbConnection connection = null,
-			params object[] args);
+            DbConnection connection = null,
+            params object[] args);
 
-		abstract protected IEnumerable<X> QueryNWithParams<X>(string sql = null, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, params object[] args);
+        abstract protected IEnumerable<X> QueryNWithParams<X>(string sql = null, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, params object[] args);
 
-		abstract protected IEnumerable<X> QueryNWithParams<X>(DbCommand command, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, DbDataReader outerReader = null);
+        abstract protected IEnumerable<X> QueryNWithParams<X>(DbCommand command, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, DbDataReader outerReader = null);
         #endregion
 
         #region Table specific methods
@@ -232,8 +232,8 @@ namespace Mighty.Interfaces
         abstract public object Count(
             string where = null,
             string columns = "*",
-			DbConnection connection = null,
-			params object[] args);
+            DbConnection connection = null,
+            params object[] args);
 
         /// <summary>
         /// Perform COUNT on current table.
@@ -361,8 +361,8 @@ namespace Mighty.Interfaces
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
         /// <returns></returns>
         abstract public object Aggregate(string function, string columns, string where = null,
-			DbConnection connection = null,
-			params object[] args);
+            DbConnection connection = null,
+            params object[] args);
 
         /// <summary>
         /// Perform aggregate operation on the current table (use for SUM, MAX, MIN, AVG, etc.)
@@ -389,9 +389,9 @@ namespace Mighty.Interfaces
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
         /// <returns></returns>
         abstract public object AggregateWithParams(string function, string columns, string where = null,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args);
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            DbConnection connection = null,
+            params object[] args);
 
         /// <summary>
         /// Get single object from the current table using primary key or name-value specification.
@@ -413,32 +413,32 @@ namespace Mighty.Interfaces
         /// 'Easy-calling' version, optional args straight after where.
         /// </remarks>
         abstract public T Single(string where,
-			params object[] args);
+            params object[] args);
 
-		/// <summary>
-		/// 
-		/// </summary>
-		/// <param name="where">WHERE clause</param>
-		/// <param name="connection">Optional connection to use</param>
-		/// <param name="orderBy">ORDER BY clause</param>
-		/// <param name="columns">Comma separated list of columns to return or "*"</param>
-		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
-		/// <returns></returns>
-		/// <remarks>
-		/// DbConnection coming early (not just before args) in this one case is really useful, as it avoids ambiguity between
-		/// the `columns` and `orderBy` strings and optional string args.
-		/// </remarks>
-		abstract public T Single(string where,
-			DbConnection connection = null,
-			string orderBy = null,
-			string columns = null,
-			params object[] args);
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="orderBy">ORDER BY clause</param>
+        /// <param name="columns">Comma separated list of columns to return or "*"</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns></returns>
+        /// <remarks>
+        /// DbConnection coming early (not just before args) in this one case is really useful, as it avoids ambiguity between
+        /// the `columns` and `orderBy` strings and optional string args.
+        /// </remarks>
+        abstract public T Single(string where,
+            DbConnection connection = null,
+            string orderBy = null,
+            string columns = null,
+            params object[] args);
 
-		// WithParams version just in case; allows transactions for a start
-		abstract public T SingleWithParams(string where, string orderBy = null, string columns = null,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args);
+        // WithParams version just in case; allows transactions for a start
+        abstract public T SingleWithParams(string where, string orderBy = null, string columns = null,
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            DbConnection connection = null,
+            params object[] args);
 
         // ORM
         abstract public IEnumerable<T> All(
@@ -449,131 +449,143 @@ namespace Mighty.Interfaces
             object whereParams = null, string orderBy = null, string columns = null, int limit = 0);
 
         abstract public IEnumerable<T> AllWithParams(
-			string where = null, string orderBy = null, string columns = null, int limit = 0,
-			object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
-			DbConnection connection = null,
-			params object[] args);
+            string where = null, string orderBy = null, string columns = null, int limit = 0,
+            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            DbConnection connection = null,
+            params object[] args);
 
-		/// <summary>
-		/// Table-specific paging; there is also a data wrapper version of paging <see cref="PagedFromSelect"/>.
-		/// </summary>
-		/// <param name="orderBy">You may provide orderBy, if you don't it will try to order by PK and will produce an exception if there is no PK defined.</param>
-		/// <param name="where">WHERE clause</param>
-		/// <param name="columns">Columns to return</param>
-		/// <param name="pageSize">Page size</param>
-		/// <param name="currentPage">Current page</param>
-		/// <param name="connection">Optional connection to use</param>
-		/// <param name="args">Auto-numbered parameter values for WHERE clause</param>
-		/// <returns>The result of the paged query. Result properties are Items, TotalPages, and TotalRecords.</returns>
-		/// <remarks>
-		/// `columns` parameter is not placed first because it's an override to something we may have alread provided in the constructor,
-		/// so we don't want the user to have to non-fluently re-type it, or else type null, every time.
-		/// </remarks>
-		abstract public PagedResults<T> Paged(
+        /// <summary>
+        /// Table-specific paging; there is also a data wrapper version of paging <see cref="PagedFromSelect"/>.
+        /// </summary>
+        /// <param name="orderBy">You may provide orderBy, if you don't it will try to order by PK and will produce an exception if there is no PK defined.</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="columns">Columns to return</param>
+        /// <param name="pageSize">Page size</param>
+        /// <param name="currentPage">Current page</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
+        /// <returns>The result of the paged query. Result properties are Items, TotalPages, and TotalRecords.</returns>
+        /// <remarks>
+        /// `columns` parameter is not placed first because it's an override to something we may have alread provided in the constructor,
+        /// so we don't want the user to have to non-fluently re-type it, or else type null, every time.
+        /// </remarks>
+        abstract public PagedResults<T> Paged(
             string orderBy = null,
             string columns = null,
             string where = null,
-			int pageSize = 20, int currentPage = 1,
-			DbConnection connection = null,
-			params object[] args);
+            int pageSize = 20, int currentPage = 1,
+            DbConnection connection = null,
+            params object[] args);
 
-		/// <summary>
-		/// Save one or more items using params style arguments
-		/// </summary>
-		/// <param name="items">The items</param>
-		/// <returns></returns>
-		abstract public int Save(params object[] items);
+        /// <summary>
+        /// Save one or more items using params style arguments.
+        /// 'Save' means
+        /// objects with missing (applies to dynamic only) or default primary keys are inserted
+        /// and objects with non-default primary keys are updated.
+        /// </summary>
+        /// <param name="items">The items</param>
+        /// <returns></returns>
+        abstract public int Save(params object[] items);
 
-		/// <summary>
-		/// Save one or more items using pre-specified DbConnection
-		/// </summary>
-		/// <param name="connection">The connection to use</param>
-		/// <param name="items">The items</param>
-		/// <returns></returns>
-		abstract public int Save(DbConnection connection, params object[] items);
+        /// <summary>
+        /// Save one or more items using params style arguments.
+        /// 'Save' means
+        /// objects with missing (applies to dynamic only) or default primary keys are inserted
+        /// and objects with non-default primary keys are updated.
+        /// </summary>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="items">The items</param>
+        /// <returns></returns>
+        abstract public int Save(DbConnection connection, params object[] items);
 
-		/// <summary>
-		/// Save array or other IEnumerable of items
-		/// </summary>
-		/// <param name="items">The items</param>
-		/// <returns></returns>
-		abstract public int Save(IEnumerable<object> items);
+        /// <summary>
+        /// Save array or other <see cref="IEnumerable"/> of items.
+        /// 'Save' means
+        /// objects with missing (applies to dynamic only) or default primary keys are inserted
+        /// and objects with non-default primary keys are updated.
+        /// </summary>
+        /// <param name="items">The items</param>
+        /// <returns></returns>
+        abstract public int Save(IEnumerable<object> items);
 
-		/// <summary>
-		/// Save array or other IEnumerable of items using pre-specified DbConnection
-		/// </summary>
-		/// <param name="connection">The connection to use</param>
-		/// <param name="items">The items</param>
-		/// <returns></returns>
-		abstract public int Save(DbConnection connection, IEnumerable<object> items);
+        /// <summary>
+        /// Save array or other <see cref="IEnumerable"/> of items.
+        /// 'Save' means
+        /// objects with missing (applies to dynamic only) or default primary keys are inserted
+        /// and objects with non-default primary keys are updated.
+        /// </summary>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="items">The items</param>
+        /// <returns></returns>
+        abstract public int Save(DbConnection connection, IEnumerable<object> items);
 
-		/// <summary>
-		/// Insert single item, returning the item sent in but with PK populated.
-		/// If you need all fields populated (i.e. you want to get back DB default values for non-PK fields), please create the item using New() before inserting it.
-		/// </summary>
-		/// <param name="item">The item to insert, in any reasonable format (for MightyOrm&lt;T&gt; this includes, but is not limited to, in instance of type T)</param>
-		/// <returns>The inserted item</returns>
-		abstract public T Insert(object item);
+        /// <summary>
+        /// Insert single item, returning the item sent in but with PK populated.
+        /// If you need all fields populated (i.e. you want to get back DB default values for non-PK fields), please create the item using New() before inserting it.
+        /// </summary>
+        /// <param name="item">The item to insert, in any reasonable format (for MightyOrm&lt;T&gt; this includes, but is not limited to, in instance of type T)</param>
+        /// <returns>The inserted item</returns>
+        abstract public T Insert(object item);
 
-		/// <summary>
-		/// Insert one or more items using params style arguments
-		/// </summary>
-		/// <param name="items">The items</param>
-		/// <returns>The number of rows inserted</returns>
-		abstract public int Insert(params object[] items);
+        /// <summary>
+        /// Insert one or more items using params style arguments.
+        /// </summary>
+        /// <param name="items">The items</param>
+        /// <returns>The number of rows inserted</returns>
+        abstract public IEnumerable<T> Insert(params object[] items);
 
-		/// <summary>
-		/// Insert one or more items using pre-specified DbConnection
-		/// </summary>
-		/// <param name="connection">The connection to use</param>
-		/// <param name="items">The items</param>
-		/// <returns>The number of rows inserted</returns>
-		abstract public int Insert(DbConnection connection, params object[] items);
+        /// <summary>
+        /// Insert one or more items using pre-specified DbConnection
+        /// </summary>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="items">The items</param>
+        /// <returns>The number of rows inserted</returns>
+        abstract public IEnumerable<T> Insert(DbConnection connection, params object[] items);
 
-		/// <summary>
-		/// Insert array or other IEnumerable of items
-		/// </summary>
-		/// <param name="items">The items</param>
-		/// <returns>The number of rows inserted</returns>
-		abstract public int Insert(IEnumerable<object> items);
+        /// <summary>
+        /// Insert array or other <see cref="IEnumerable"/> of items..
+        /// </summary>
+        /// <param name="items">The items</param>
+        /// <returns>The number of rows inserted</returns>
+        abstract public IEnumerable<T> Insert(IEnumerable<object> items);
 
-		/// <summary>
-		/// Insert array or other IEnumerable of items using pre-specified DbConnection
-		/// </summary>
-		/// <param name="connection">The connection to use</param>
-		/// <param name="items">The items</param>
-		/// <returns>The number of rows inserted</returns>
-		abstract public int Insert(DbConnection connection, IEnumerable<object> items);
+        /// <summary>
+        /// Insert array or other <see cref="IEnumerable"/> of items..
+        /// </summary>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="items">The items</param>
+        /// <returns>The number of rows inserted</returns>
+        abstract public IEnumerable<T> Insert(DbConnection connection, IEnumerable<object> items);
 
-		/// <summary>
-		/// Update one or more items using params style arguments
-		/// </summary>
-		/// <param name="items">The items</param>
-		/// <returns></returns>
-		abstract public int Update(params object[] items);
+        /// <summary>
+        /// Update one or more items using params style arguments.
+        /// </summary>
+        /// <param name="items">The items</param>
+        /// <returns></returns>
+        abstract public int Update(params object[] items);
 
-		/// <summary>
-		/// Update one or more items using pre-specified DbConnection
-		/// </summary>
-		/// <param name="connection">The connection to use</param>
-		/// <param name="items">The items</param>
-		/// <returns></returns>
-		abstract public int Update(DbConnection connection, params object[] items);
+        /// <summary>
+        /// Update one or more items using pre-specified DbConnection
+        /// </summary>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="items">The items</param>
+        /// <returns></returns>
+        abstract public int Update(DbConnection connection, params object[] items);
 
-		/// <summary>
-		/// Update array or other IEnumerable of items
-		/// </summary>
-		/// <param name="items">The items</param>
-		/// <returns></returns>
-		abstract public int Update(IEnumerable<object> items);
+        /// <summary>
+        /// Update array or other <see cref="IEnumerable"/> of items..
+        /// </summary>
+        /// <param name="items">The items</param>
+        /// <returns></returns>
+        abstract public int Update(IEnumerable<object> items);
 
-		/// <summary>
-		/// Update array or other IEnumerable of items using pre-specified DbConnection
-		/// </summary>
-		/// <param name="connection">The connection to use</param>
-		/// <param name="items">The items</param>
-		/// <returns></returns>
-		abstract public int Update(DbConnection connection, IEnumerable<object> items);
+        /// <summary>
+        /// Update array or other <see cref="IEnumerable"/> of items..
+        /// </summary>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="items">The items</param>
+        /// <returns></returns>
+        abstract public int Update(DbConnection connection, IEnumerable<object> items);
 
         /// <summary>
         /// Delete one or more items using params style arguments.
@@ -584,7 +596,7 @@ namespace Mighty.Interfaces
         /// </summary>
         /// <param name="items">The items</param>
         /// <returns>The number of items affected</returns>
-		abstract public int Delete(params object[] items);
+        abstract public int Delete(params object[] items);
 
         /// <summary>
         /// Delete one or more items using params style arguments.
@@ -596,7 +608,7 @@ namespace Mighty.Interfaces
         /// <param name="items">The items</param>
         /// <param name="connection">The connection to use</param>
         /// <returns>The number of items affected</returns>
-		abstract public int Delete(DbConnection connection, params object[] items);
+        abstract public int Delete(DbConnection connection, params object[] items);
 
         /// <summary>
         /// Delete an array or other <see cref="IEnumerable"/> of items.
@@ -607,7 +619,7 @@ namespace Mighty.Interfaces
         /// </summary>
         /// <param name="items">The items</param>
         /// <returns>The number of items affected</returns>
-		abstract public int Delete(IEnumerable<object> items);
+        abstract public int Delete(IEnumerable<object> items);
 
         /// <summary>
         /// Delete an array or other <see cref="IEnumerable"/> of items.
@@ -619,7 +631,7 @@ namespace Mighty.Interfaces
         /// <param name="items">The items</param>
         /// <param name="connection">The connection to use</param>
         /// <returns>The number of items affected</returns>
-		abstract public int Delete(DbConnection connection, IEnumerable<object> items);
+        abstract public int Delete(DbConnection connection, IEnumerable<object> items);
 
         /// <summary>
         /// Update the row(s) specified by the primary key(s) or WHERE values sent in using the values from the item sent in.
@@ -628,7 +640,7 @@ namespace Mighty.Interfaces
         /// </summary>
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
-		abstract public int UpdateUsing(object partialItem, object whereParams);
+        abstract public int UpdateUsing(object partialItem, object whereParams);
 
         /// <summary>
         /// Update the row(s) specified by the primary key(s) or WHERE values sent in using the values from the item sent in.
@@ -638,8 +650,8 @@ namespace Mighty.Interfaces
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="connection">Optional connection to use</param>
-		abstract public int UpdateUsing(object partialItem, object whereParams,
-			DbConnection connection);
+        abstract public int UpdateUsing(object partialItem, object whereParams,
+            DbConnection connection);
 
         /// <summary>
         /// Update all items matching WHERE clause using fields from the item sent in.
@@ -649,8 +661,8 @@ namespace Mighty.Interfaces
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="where">WHERE clause specifying which rows to update</param>
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
-		abstract public int UpdateUsing(object partialItem, string where,
-			params object[] args);
+        abstract public int UpdateUsing(object partialItem, string where,
+            params object[] args);
 
         /// <summary>
         /// Update all items matching WHERE clause using fields from the item sent in.
@@ -662,8 +674,8 @@ namespace Mighty.Interfaces
         /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
         abstract public int UpdateUsing(object partialItem, string where,
-			DbConnection connection,
-			params object[] args);
+            DbConnection connection,
+            params object[] args);
 
         /// <summary>
         /// Delete one or more items based on a WHERE clause.
@@ -675,7 +687,7 @@ namespace Mighty.Interfaces
         /// <param name="args">Auto-numbered parameter values for WHERE clause</param>
         /// <returns>The number of items affected</returns>
         abstract public int Delete(string where,
-			params object[] args);
+            params object[] args);
 
         /// <summary>
         /// Delete one or more items based on a WHERE clause.
@@ -688,13 +700,13 @@ namespace Mighty.Interfaces
         /// <param name="connection">The connection to use</param>
         /// <returns>The number of items affected</returns>
         abstract public int Delete(string where,
-			DbConnection connection,
-			params object[] args);
+            DbConnection connection,
+            params object[] args);
 
 #if KEY_VALUES
-		// kv pair stuff for dropdowns - a method to convert IEnumerable<T> to kv pair
-		abstract public IDictionary<string, string> KeyValues(string orderBy = "");
+        // kv pair stuff for dropdowns - a method to convert IEnumerable<T> to kv pair
+        abstract public IDictionary<string, string> KeyValues(string orderBy = "");
 #endif
 #endregion
-	}
+    }
 }

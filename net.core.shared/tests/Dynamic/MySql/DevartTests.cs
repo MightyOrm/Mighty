@@ -12,10 +12,10 @@ using NUnit.Framework;
 
 namespace Mighty.Dynamic.Tests.MySql
 {
-	[TestFixture]
-	public class DevartTests
-	{
-		private readonly string ProviderName = "Devart.Data.MySql";
+    [TestFixture]
+    public class DevartTests
+    {
+        private readonly string ProviderName = "Devart.Data.MySql";
 
         // Massive style calls to some examples from https://www.devart.com/dotconnect/mysql/docs/Parameters.html#inoutparams
         #region Devart Examples
@@ -26,9 +26,9 @@ namespace Mighty.Dynamic.Tests.MySql
         /// since you have to do so much manually.
         /// </remarks>
         [Test]
-		public void Devart_ParameterCheck()
-		{
-			var db = new SPTestsDatabase(ProviderName);
+        public void Devart_ParameterCheck()
+        {
+            var db = new SPTestsDatabase(ProviderName);
             dynamic result;
             using (var connection = db.OpenConnection())
             {
@@ -43,9 +43,9 @@ namespace Mighty.Dynamic.Tests.MySql
                     result = db.ResultsAsExpando(command);
                 }
             }
-			Assert.AreEqual(20, result.param2);
-		}
-		#endregion
-	}
+            Assert.AreEqual(20, result.param2);
+        }
+        #endregion
+    }
 }
 #endif
