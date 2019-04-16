@@ -503,16 +503,25 @@ namespace Mighty.Plugins
             return cmd.ExecuteReader(behavior);
         }
 
+#if (NETCOREAPP || NETSTANDARD)
+        /// <summary>
+        /// Does this command require a wrapping transaction? This is required for come cursor-specific commands on some databases.
+        /// If required Mighty will only create a new transaction if a user transaction is not already in place.
+        /// </summary>
+        /// <param name="cmd">The command to check</param>
+        /// <returns></returns>
+#else
         /// <summary>
         /// Does this command require a wrapping transaction? This is required for come cursor-specific commands on some databases.
         /// If required Mighty will only create a new transaction if a user transaction or <see cref="System.Transactions.TransactionScope"/> is not already in place.
         /// </summary>
         /// <param name="cmd">The command to check</param>
         /// <returns></returns>
+#endif
         virtual public bool RequiresWrappingTransaction(DbCommand cmd)
         {
             return false;
         }
-        #endregion
+#endregion
     }
 }
