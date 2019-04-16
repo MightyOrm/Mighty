@@ -121,10 +121,18 @@ namespace Mighty.Dynamic.Tests.MySql
             var film = new Film(ProviderName);
             var allRows = await film.AllAsync();
             var count = 0;
+#if NETCOREAPP3_0
+            await foreach (var r in allRows )
+            {
+                count++;
+                Assert.AreEqual(13, ((IDictionary<string, object>)r).Count);        // # of fields fetched should be 13
+            }
+#else
             await allRows.ForEachAsync(r => {
                 count++;
                 Assert.AreEqual(13, ((IDictionary<string, object>)r).Count);        // # of fields fetched should be 13
             });
+#endif
             Assert.AreEqual(1000, count);
         }
 
