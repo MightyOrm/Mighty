@@ -31,6 +31,10 @@ Beta version.
     <DocumentationFile>Mighty.xml</DocumentationFile>
   </PropertyGroup>
 
+  <PropertyGroup>	
+    <PlatformTarget>AnyCPU</PlatformTarget>	
+  </PropertyGroup>	
+
   <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
     <DefineConstants>KEY_VALUES;NETFRAMEWORK;NET40</DefineConstants>
   </PropertyGroup>
