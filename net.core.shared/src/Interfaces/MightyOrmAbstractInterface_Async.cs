@@ -1578,7 +1578,7 @@ namespace Mighty.Interfaces
 
         /// <summary>
         /// Insert single item.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column default values.
+        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>
         /// <param name="item">The item to insert, in any reasonable format (for MightyOrm&lt;T&gt; this includes, but is not limited to, in instance of type T)</param>
         /// <returns>The item sent in but with the primary key populated</returns>
@@ -1586,7 +1586,7 @@ namespace Mighty.Interfaces
 
         /// <summary>
         /// Insert single item.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column default values.
+        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>
         /// <param name="item">The item to insert, in any reasonable format (for MightyOrm&lt;T&gt; this includes, but is not limited to, in instance of type T)</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
@@ -1595,7 +1595,7 @@ namespace Mighty.Interfaces
 
         /// <summary>
         /// Insert one or more items.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column default values.
+        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>
         /// <param name="items">The items</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
@@ -1603,7 +1603,7 @@ namespace Mighty.Interfaces
 
         /// <summary>
         /// Insert one or more items.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column default values.
+        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="items">The items</param>
@@ -1612,7 +1612,7 @@ namespace Mighty.Interfaces
 
         /// <summary>
         /// Insert one or more items.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column default values.
+        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>
         /// <param name="connection">The connection to use</param>
         /// <param name="items">The items</param>
@@ -1621,7 +1621,7 @@ namespace Mighty.Interfaces
 
         /// <summary>
         /// Insert one or more items.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column default values.
+        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>
         /// <param name="connection">The connection to use</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
@@ -1631,7 +1631,7 @@ namespace Mighty.Interfaces
 
         /// <summary>
         /// Insert array or other <see cref="IEnumerable"/> of items.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column default values.
+        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>
         /// <param name="items">The items</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
@@ -1639,7 +1639,7 @@ namespace Mighty.Interfaces
 
         /// <summary>
         /// Insert array or other <see cref="IEnumerable"/> of items.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column default values.
+        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>
         /// <param name="items">The items</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
@@ -1648,7 +1648,7 @@ namespace Mighty.Interfaces
 
         /// <summary>
         /// Insert array or other <see cref="IEnumerable"/> of items.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column default values.
+        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>
         /// <param name="connection">The connection to use</param>
         /// <param name="items">The items</param>
@@ -1657,7 +1657,7 @@ namespace Mighty.Interfaces
 
         /// <summary>
         /// Insert array or other <see cref="IEnumerable"/> of items.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column default values.
+        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>
         /// <param name="connection">The connection to use</param>
         /// <param name="items">The items</param>
