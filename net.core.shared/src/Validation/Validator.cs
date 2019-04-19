@@ -31,14 +31,14 @@ namespace Mighty.Validation
         /// <param name="action">You can choose to ignore this and do the same validation for every action.</param>
         /// <param name="item">The item to validate. NB this can be whatever you pass in as input objects, and therefore is NOT restricted to items of the generic type
         /// even for generically typed <see cref="MightyOrm{T}"/>.</param>
-        /// <param name="addError">Call <paramref name="addError"/>(object) to add errors to the error list. You may choose to add strings, or a more complex object if you wish.
+        /// <param name="reportError">Call <paramref name="reportError"/>(object) to add errors to the error list. You may choose to add strings, or a more complex object if you wish.
         /// NB Adding one or more errors indicates that the item fails, adding no errors indicates success.</param>
         /// <returns></returns>
         /// <remarks>
         /// Item is not necessarily a representation of the item for action: for delete only, it might be a representation of just the PK depending on how .Delete was called.
         /// Despite this, you can write fairly stright-forward validators; have a look at the table classes in the generic tests in the source code.
         /// </remarks>
-        virtual public void ValidateForAction(OrmAction action, dynamic item, Action<object> addError) { Validate(item, addError); }
+        virtual public void ValidateForAction(OrmAction action, dynamic item, Action<object> reportError) { Validate(item, reportError); }
 
         /// <summary>
         /// If <see cref="Prevalidation"/> is enabled <see cref="MightyOrm"/> calls this one item at a time before *any* real actions are done.
@@ -48,14 +48,14 @@ namespace Mighty.Validation
         /// </summary>
         /// <param name="item">The item to validate. NB this can be whatever you pass in as input objects, it is not restricted to items of type T
         /// even for the generically typed MightyOrm&lt;T&gt;.</param>
-        /// <param name="addError">Call <paramref name="addError"/>(object) to add errors to the error list. You may choose to add strings, or a more complex object if you wish.
+        /// <param name="reportError">Call <paramref name="reportError"/>(object) to add errors to the error list. You may choose to add strings, or a more complex object if you wish.
         /// NB Adding one or more errors indicates that the item fails, adding no errors indicates success.</param>
         /// <returns></returns>
         /// <remarks>
         /// Item is not necessarily a representation of the item for action: for delete only, it might be a representation of just the PK depending on how .Delete was called.
         /// Despite this, you can write fairly stright-forward validators; have a look at the table classes in the generic tests in the source code.
         /// </remarks>
-        abstract public void Validate(dynamic item, Action<object> addError);
+        abstract public void Validate(dynamic item, Action<object> reportError);
 
         /// <summary>
         /// This is called one item at time, just before the processing for that specific item.
