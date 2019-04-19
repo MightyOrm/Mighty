@@ -356,6 +356,7 @@ namespace Mighty.Plugins
                 else result = float.Parse(defaultValue);
             }
 #if DEBUG
+            // In live code we just want null rather then unrunnable if we encounter a default value which we cannot handle
             if (result == null) throw new Exception(string.Format("Unknown defaultValue={0}", defaultValue)); ////
 #endif
             return result;

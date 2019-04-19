@@ -932,8 +932,12 @@ namespace Mighty.Interfaces
             params object[] args);
 
 #if KEY_VALUES
-        // kv pair stuff for dropdowns - a method to convert IEnumerable<T> to kv pair
-        abstract public IDictionary<string, string> KeyValues(string orderBy = "");
+        /// <summary>
+        /// Returns a string-string dictionary which can be directly bound to ASP.NET dropdowns etc. (see https://stackoverflow.com/a/805610/795690).
+        /// </summary>
+        /// <param name="orderBy">Order by, defaults to primary key</param>
+        /// <returns></returns>
+        abstract public IDictionary<string, string> KeyValues(string orderBy = null);
 #endif
 #endregion
     }

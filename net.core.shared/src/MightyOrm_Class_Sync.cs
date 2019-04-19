@@ -192,15 +192,24 @@ namespace Mighty
 
 #if KEY_VALUES
         /// <summary>
-        /// Returns a string/string dictionary which can be bound directly to dropdowns etc http://stackoverflow.com/q/805595/
+        /// Returns a string-string dictionary which can be directly bound to ASP.NET dropdowns etc. (see https://stackoverflow.com/a/805610/795690).
         /// </summary>
-        override public IDictionary<string, string> KeyValues(string orderBy = "")
+        /// <param name="orderBy">Order by, defaults to primary key</param>
+        /// <returns></returns>
+        override public IDictionary<string, string> KeyValues(string orderBy = null)
         {
-            string foo = string.Format(" to call {0}, please provide one in your constructor", nameof(KeyValues));
-            string valueField = CheckGetValueColumn(string.Format("ValueField is required{0}", foo));
-            string primaryKeyFields = CheckGetKeyName(string.Format("A single primary key must be specified{0}", foo));
-            var results = All(orderBy: orderBy, columns: string.Format("{0}, {1}", primaryKeyFields, valueField)).Cast<IDictionary<string, object>>();
-            return results.ToDictionary(item => item[primaryKeyFields].ToString(), item => item[valueField].ToString());
+            if (!UseExpando)
+            {
+                // TO DO: Make sure this works even when there is mapping
+                var db = new MightyOrm(null, TableName, PrimaryKeyFields, ValueField, connectionProvider: new PresetsConnectionProvider(ConnectionString, Factory, Plugin.GetType()));
+                return db.KeyValues(orderBy);
+            }
+            string partialMessage = string.Format(" to call {0}, please provide one in your constructor", nameof(KeyValues));
+            string valueField = CheckGetValueField(string.Format("ValueField is required{0}", partialMessage));
+            string pkField = CheckGetKeyName(string.Format("A single primary key must be specified{0}", partialMessage));
+            // casts the IEnumerable of expando objects to an IEnumerable of string-object dictionaries
+            var results = All(orderBy: orderBy ?? pkField, columns: string.Format("{0}, {1}", pkField, valueField)).Cast<IDictionary<string, object>>();
+            return results.ToDictionary(item => item[pkField].ToString(), item => item[valueField].ToString());
         }
 #endif
 #endregion
@@ -472,8 +481,7 @@ namespace Mighty
         /// sounds as if it means that if this part of the library was written in VB then doing this would be officially
         /// supported? not quite sure, that assumes that the different implementations of anonymous types can co-exist)
         /// </remarks>
-        private Tuple<int, object> ActionOnItem(OrmAction originalAction, object item, DbConnection connection
-            )
+        private Tuple<int, object> ActionOnItem(OrmAction originalAction, object item, DbConnection connection)
         {
             OrmAction revisedAction;
             DbCommand command = CreateActionCommand(originalAction, item, out revisedAction);

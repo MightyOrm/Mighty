@@ -126,7 +126,7 @@ namespace Mighty
         /// <summary>
         /// Column from which value is retrieved by <see cref="KeyValues"/>
         /// </summary>
-        override public string ValueColumn { get; protected set; }
+        override public string ValueField { get; protected set; }
 #endif
 
         /// <summary>

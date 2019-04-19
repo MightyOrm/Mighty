@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using Mighty.Dynamic.Tests.Oracle.TableClasses;
 using NUnit.Framework;
+using System.Data.Common;
 
 namespace Mighty.Dynamic.Tests.Oracle
 {
@@ -183,6 +184,39 @@ namespace Mighty.Dynamic.Tests.Oracle
             Assert.AreEqual(1, result);
             Assert.IsTrue(toSave.DEPTNO > 0);
             Assert.AreEqual(1, depts.Delete(toSave.DEPTNO));
+        }
+
+
+        [Test]
+        public void Save_NoSequenceNoPk_ThrowsCannotInsertNull()
+        {
+            var depts = new MightyOrm(string.Format(TestConstants.ReadWriteTestConnection, ProviderName), "SCOTT.DEPT", "DEPTNO");
+            dynamic toSave = new { DNAME = "Massive Dep", LOC = "Beach" }.ToExpando();
+            var ex = Assert.Catch<DbException>(() => depts.Save(toSave));
+            Assert.True(ex.Message.Contains("cannot insert NULL"));
+        }
+
+
+        [Test]
+        public void Save_NoSequenceWithPk_CanInsert()
+        {
+            dynamic toSave = new { DNAME = "Massive Dep", LOC = "Beach" }.ToExpando();
+            {
+                var depts = new Department(ProviderName);
+                var result = depts.Save(toSave);
+                Assert.AreEqual(1, result);
+                Assert.IsTrue(toSave.DEPTNO > 0);
+                Assert.AreEqual(1, depts.Delete(toSave.DEPTNO));
+            }
+            {
+                // re-insert at the previous, deleted therefore valid, PK value but without using sequence to generate it;
+                // actually tests that Oracle can insert user-managed PKs with no sequence
+                var depts = new MightyOrm(string.Format(TestConstants.ReadWriteTestConnection, ProviderName), "SCOTT.DEPT", "DEPTNO");
+                int oldId = toSave.DEPTNO;
+                var result = depts.Insert(toSave);
+                Assert.AreEqual(oldId, result.DEPTNO);
+                Assert.AreEqual(1, depts.Delete(toSave.DEPTNO));
+            }
         }
 
 

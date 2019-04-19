@@ -444,5 +444,29 @@ namespace Mighty.Generic.Tests.SqlServer
             var pkValue = soh.GetPrimaryKey(toValidate);
             Assert.AreEqual(45816, pkValue);
         }
+
+
+#if KEY_VALUES
+        [Test]
+        public async Task KeyValues()
+        {
+            var contactTypes = new ContactTypes();
+            var keyValues = await contactTypes.KeyValuesAsync();
+            int count = 0;
+            int oldId = 0;
+            string oldName = null;
+            foreach (var keyValue in keyValues)
+            {
+                int id = int.Parse(keyValue.Key);
+                Assert.Greater(id, oldId);
+                oldId = id;
+                Assert.False(string.IsNullOrEmpty(keyValue.Value));
+                Assert.AreNotEqual(oldName, keyValue.Value);
+                oldName = keyValue.Value;
+                count++;
+            }
+            Assert.AreEqual(20, count);
+        }
+#endif
     }
 }

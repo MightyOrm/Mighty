@@ -8,6 +8,7 @@ using System.Text;
 using Mighty.Dynamic.Tests.Oracle.TableClasses;
 using NUnit.Framework;
 using System.Threading.Tasks;
+using System.Data.Common;
 
 namespace Mighty.Dynamic.Tests.Oracle
 {
@@ -188,6 +189,41 @@ namespace Mighty.Dynamic.Tests.Oracle
             Assert.AreEqual(1, await depts.SaveAsync(toSave));
             Assert.IsTrue(toSave.DEPTNO > 0);
             Assert.AreEqual(1, await depts.DeleteAsync(toSave.DEPTNO));
+        }
+
+
+        [Test]
+#pragma warning disable CS1998
+        public async Task Save_NoSequenceNoPk_ThrowsCannotInsertNull()
+        {
+            var depts = new MightyOrm(string.Format(TestConstants.ReadWriteTestConnection, ProviderName), "SCOTT.DEPT", "DEPTNO");
+            dynamic toSave = new { DNAME = "Massive Dep", LOC = "Beach" }.ToExpando();
+            var ex = Assert.CatchAsync<DbException>(async () => await depts.SaveAsync(toSave));
+            Assert.True(ex.Message.Contains("cannot insert NULL"));
+        }
+#pragma warning restore CS1998
+
+
+        [Test]
+        public async Task Save_NoSequenceWithPk_CanInsert()
+        {
+            dynamic toSave = new { DNAME = "Massive Dep", LOC = "Beach" }.ToExpando();
+            {
+                var depts = new Department(ProviderName);
+                var result = await depts.SaveAsync(toSave);
+                Assert.AreEqual(1, result);
+                Assert.IsTrue(toSave.DEPTNO > 0);
+                Assert.AreEqual(1, await depts.DeleteAsync(toSave.DEPTNO));
+            }
+            {
+                // re-insert at the previous, deleted therefore valid, PK value but without using sequence to generate it;
+                // actually tests that Oracle can insert user-managed PKs with no sequence
+                var depts = new MightyOrm(string.Format(TestConstants.ReadWriteTestConnection, ProviderName), "SCOTT.DEPT", "DEPTNO");
+                int oldId = toSave.DEPTNO;
+                var result = await depts.InsertAsync(toSave);
+                Assert.AreEqual(oldId, result.DEPTNO);
+                Assert.AreEqual(1, await depts.DeleteAsync(toSave.DEPTNO));
+            }
         }
 
 

@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard1.6;netstandard2.0;netcoreapp3.0;net40;net45</TargetFrameworks>
 	<PackageId>Mighty</PackageId>
-    <PackageVersion>3.0.0-beta-1</PackageVersion>
+    <PackageVersion>3.0.0-beta-3</PackageVersion>
     <Authors>Mike Beaton</Authors>
     <Owners>MightyOrm</Owners>
     <Description>A new small, happy, dynamic micro-ORM and general purpose .NET data access wrapper.
@@ -31,22 +31,12 @@ Beta version.
     <DocumentationFile>Mighty.xml</DocumentationFile>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DefineConstants>RELEASE</DefineConstants>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-  </PropertyGroup>
-
   <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
-    <DefineConstants>NETFRAMEWORK;NET40</DefineConstants>
+    <DefineConstants>KEY_VALUES;NETFRAMEWORK;NET40</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net45'">
-    <DefineConstants>NETFRAMEWORK;NET45</DefineConstants>
+    <DefineConstants>KEY_VALUES;NETFRAMEWORK;NET45</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp1.0'">
@@ -70,19 +60,19 @@ Beta version.
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp1.0'">
-    <PackageReference Include="AsyncEnumerator" Version="3.0.0-beta1" />
+    <PackageReference Include="AsyncEnumerator" Version="3.0.2-beta" />
     <PackageReference Include="System.Collections.Specialized" Version="4.3.0" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp1.1'">
-    <PackageReference Include="AsyncEnumerator" Version="3.0.0-beta1" />
+    <PackageReference Include="AsyncEnumerator" Version="3.0.2-beta" />
     <PackageReference Include="System.Collections.Specialized" Version="4.3.0" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.6'">
-    <PackageReference Include="AsyncEnumerator" Version="3.0.0-beta1" />
+    <PackageReference Include="AsyncEnumerator" Version="3.0.2-beta" />
     <PackageReference Include="Microsoft.CSharp" Version="4.3.0" />
     <PackageReference Include="System.Collections.Specialized" Version="4.3.0" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
@@ -90,13 +80,13 @@ Beta version.
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="AsyncEnumerator" Version="3.0.0-beta1" />
+    <PackageReference Include="AsyncEnumerator" Version="3.0.2-beta" />
     <PackageReference Include="Microsoft.CSharp" Version="4.3.0" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.2" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
-    <PackageReference Include="AsyncEnumerator" Version="3.0.0-beta1" />
+    <PackageReference Include="AsyncEnumerator" Version="3.0.2-beta" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net40'">
@@ -107,7 +97,7 @@ Beta version.
   
   <ItemGroup Condition="'$(TargetFramework)' == 'net45'">
     <PackageReference Include="AsyncEnumerator">
-      <Version>3.0.0-beta1</Version>
+      <Version>3.0.2-beta</Version>
     </PackageReference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Configuration" />

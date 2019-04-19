@@ -138,7 +138,7 @@ namespace Mighty.Interfaces
         /// <summary>
         /// Column from which value is retrieved by <see cref="KeyValues"/>
         /// </summary>
-        abstract public string ValueColumn { get; protected set; }
+        abstract public string ValueField { get; protected set; }
 #endif
 
         /// <summary>

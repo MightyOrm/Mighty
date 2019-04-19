@@ -27,9 +27,6 @@ namespace Mighty
     public class MightyOrm : MightyOrm<dynamic>
     {
         #region Constructor
-#if KEY_VALUES
-        /// <param name="valueColumn">Specify the value field, for lookup tables</param>
-#endif
         /// <summary>
         /// Constructor for pure dynamic version.
         /// </summary>
@@ -41,6 +38,7 @@ namespace Mighty
         /// </param>
         /// <param name="tableName">Table name</param>
         /// <param name="primaryKeyFields">Primary key field name; or comma separated list of names for compound PK</param>
+        /// <param name="valueField">Specify the value field, for lookup tables</param>
         /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
         /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
         /// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
@@ -57,7 +55,7 @@ namespace Mighty
                          string tableName = null,
                          string primaryKeyFields = null,
 #if KEY_VALUES
-                         string valueColumn = null,
+                         string valueField = null,
 #endif
                          string sequence = null,
                          string columns = null,
@@ -83,7 +81,7 @@ namespace Mighty
             }
             Init(connectionString, tableName, tableClassName, primaryKeyFields,
 #if KEY_VALUES
-                valueColumn,
+                valueField,
 #endif
                 sequence, columns, validator, mapper, profiler, 0, connectionProvider);
         }
@@ -120,9 +118,6 @@ namespace Mighty
     public partial class MightyOrm<T> : MightyOrmAbstractInterface<T> where T : class, new()
     {
         #region Constructor
-#if KEY_VALUES
-        /// <param name="valueColumn">Specify the value field, for lookup tables</param>
-#endif
         /// <summary>
         /// Strongly typed MightyOrm constructor
         /// </summary>
@@ -134,6 +129,7 @@ namespace Mighty
         /// </param>
         /// <param name="tableName">Override the table name (defaults to using T class name)</param>
         /// <param name="primaryKeyFields">Primary key field name; or comma separated list of names for compound PK</param>
+        /// <param name="valueField">Specify the value field, for lookup tables</param>
         /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
         /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
         /// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
@@ -147,7 +143,7 @@ namespace Mighty
                          string tableName = null,
                          string primaryKeyFields = null,
 #if KEY_VALUES
-                         string valueColumn = null,
+                         string valueField = null,
 #endif
                          string sequence = null,
                          string columns = null,
@@ -165,7 +161,7 @@ namespace Mighty
 
             Init(connectionString, tableName, tableClassName, primaryKeyFields,
 #if KEY_VALUES
-                valueColumn,
+                valueField,
 #endif
                 sequence, columns, validator, mapper, profiler, propertyBindingFlags, connectionProvider);
         }
@@ -201,7 +197,7 @@ namespace Mighty
                          string tableClassName,
                          string primaryKeyFields,
 #if KEY_VALUES
-                         string valueColumn,
+                         string valueField,
 #endif
                          string sequence,
                          string columns,
@@ -296,36 +292,43 @@ namespace Mighty
                 Columns = columns == null || columns == "*" ? "*" : string.Join(",", ColumnList);
             }
 #if KEY_VALUES
-            ValueColumn = string.IsNullOrEmpty(valueColumn) ? null : SqlMapper.GetColumnNameFromPropertyName(typeof(T), valueColumn);
+            ValueField = string.IsNullOrEmpty(valueField) ? null : SqlMapper.GetColumnNameFromPropertyName(typeof(T), valueField);
 #endif
-            // After all this, SequenceNameOrIdentityFunction is only non-null if we really are expecting to use it
-            // (which entails exactly one PK)
-            if (!Plugin.IsSequenceBased)
+            // At the end of this next block of code, SequenceNameOrIdentityFunction should only be non-null if we
+            // are actually expecting to use it later (which entails a simple (single column) PK).
+
+            // It makes no sense to attempt to retrieve an auto-generated value for a compund primary key.
+            if (PrimaryKeyList.Count != 1)
             {
-                if (PrimaryKeyList.Count != 1)
+                // No exception here if database is identity-based since we want to allow, e.g., an override
+                // of `sequence: "@@IDENTITY"` on all instances of Mighty, even if some instances are then
+                // used for tables with no or compound primary keys.
+                if (Plugin.IsSequenceBased && !string.IsNullOrEmpty(sequence))
                 {
+                    throw new InvalidOperationException($"It is not possible to specify a sequence name for a table with {(PrimaryKeyList.Count > 1 ? "a compound (multi-column)" : "no")} primary key");
+                }
+                SequenceNameOrIdentityFunction = null;
+            }
+            else
+            {
+                if (sequence == "")
+                {
+                    // Empty string always specifies that PK is manually controlled
                     SequenceNameOrIdentityFunction = null;
                 }
                 else
                 {
-                    // empty string on identity-based DB specifies that PK is manually controlled
-                    if (sequence == "") SequenceNameOrIdentityFunction = null;
-                    // other non-null value overrides default identity retrieval fn (e.g. use "@@IDENTITY" on SQL CE)
-                    else if (sequence != null) SequenceNameOrIdentityFunction = sequence;
-                    // default fn
-                    else SequenceNameOrIdentityFunction = Plugin.IdentityRetrievalFunction;
+                    if (Plugin.IsSequenceBased)
+                    {
+                        // Sequence-based, non-null, non-empty specifies sequence name
+                        SequenceNameOrIdentityFunction = sequence ?? SqlMapper.QuoteDatabaseIdentifier(sequence);
+                    }
+                    else
+                    {
+                        // Identity-based, non-null, non-empty specifies non-default identity retrieval function (e.g. use "@@IDENTITY" on SQL CE)
+                        SequenceNameOrIdentityFunction = sequence != null ? sequence : Plugin.IdentityRetrievalFunction;
+                    }
                 }
-            }
-            else if (sequence != null)
-            {
-                // NB on identity-based DBs using an identity on the PK is the default mode of operation (i.e. unless
-                // empty string is specified in 'sequence'; or unless there is > 1 primary key), whereas on sequence-based
-                // DBs NOT having a sequence is the default (i.e. unless a specific sequence is passed in).
-                if (PrimaryKeyList.Count != 1)
-                {
-                    throw new InvalidOperationException("Sequence may only be specified for tables with a single primary key");
-                }
-                SequenceNameOrIdentityFunction = SqlMapper.QuoteDatabaseIdentifier(sequence);
             }
 
 #if DYNAMIC_METHODS
@@ -615,13 +618,13 @@ namespace Mighty
         /// Return value column, raising an exception if not specified.
         /// </summary>
         /// <returns></returns>
-        string CheckGetValueColumn(string message)
+        string CheckGetValueField(string message)
         {
-            if (string.IsNullOrEmpty(ValueColumn))
+            if (string.IsNullOrEmpty(ValueField))
             {
                 throw new InvalidOperationException(message);
             }
-            return ValueColumn;
+            return ValueField;
         }
 #endif
 
@@ -906,7 +909,10 @@ namespace Mighty
             }
             var command = CreateCommand(sql);
             AddNamedParams(command, item, pkFilter: pkFilter);
-            Plugin.FixupInsertCommand(command);
+            if (SequenceNameOrIdentityFunction != null)
+            {
+                Plugin.FixupInsertCommand(command);
+            }
             return command;
         }
 

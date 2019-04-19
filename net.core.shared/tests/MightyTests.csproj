@@ -6,22 +6,12 @@
     <TargetFrameworks>net45</TargetFrameworks>
   </PropertyGroup>
 
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-    <DefineConstants>TRACE;DEBUG</DefineConstants>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-  </PropertyGroup>
-
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-    <DefineConstants>RELEASE</DefineConstants>
-    <PlatformTarget>AnyCPU</PlatformTarget>
-  </PropertyGroup>
-
   <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
-    <DefineConstants>NETFRAMEWORK;NET40</DefineConstants>
+    <DefineConstants>KEY_VALUES;NETFRAMEWORK;NET40</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net45'">
-    <DefineConstants>NETFRAMEWORK;NET45</DefineConstants>
+    <DefineConstants>KEY_VALUES;NETFRAMEWORK;NET45</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp1.0'">
@@ -30,6 +20,14 @@
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp1.1'">
     <DefineConstants>NETCOREAPP;NETCOREAPP1_1</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
+    <DefineConstants>NETCOREAPP;NETCOREAPP2_0</DefineConstants>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
+    <DefineConstants>NETCOREAPP;NETCOREAPP3_0</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp1.0'">
@@ -42,7 +40,7 @@
     <PackageReference Include="MySql.Data" Version="8.0.15" />
     <PackageReference Include="Microsoft.Data.SQLite" Version="1.1.0" />
     <PackageReference Include="System.Collections.Specialized" Version="4.3.0" />
-    <PackageReference Include="AsyncEnumerator" Version="3.0.0-beta1" />
+    <PackageReference Include="AsyncEnumerator" Version="3.0.2-beta" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp1.1'">
@@ -55,7 +53,7 @@
     <PackageReference Include="MySql.Data" Version="8.0.15" />
     <PackageReference Include="Microsoft.Data.SQLite" Version="1.1.0" />
     <PackageReference Include="System.Collections.Specialized" Version="4.3.0" />
-    <PackageReference Include="AsyncEnumerator" Version="3.0.0-beta1" />
+    <PackageReference Include="AsyncEnumerator" Version="3.0.2-beta" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
@@ -68,7 +66,7 @@
     <PackageReference Include="MySql.Data" Version="8.0.15" />
     <PackageReference Include="Microsoft.Data.SQLite" Version="1.1.0" />
     <PackageReference Include="System.Collections.Specialized" Version="4.3.0" />
-    <PackageReference Include="AsyncEnumerator" Version="3.0.0-beta1" />
+    <PackageReference Include="AsyncEnumerator" Version="3.0.2-beta" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
@@ -81,7 +79,7 @@
     <PackageReference Include="MySql.Data" Version="8.0.15" />
     <PackageReference Include="Microsoft.Data.SQLite" Version="1.1.0" />
     <PackageReference Include="System.Collections.Specialized" Version="4.3.0" />
-    <PackageReference Include="AsyncEnumerator" Version="3.0.0-beta1" />
+    <PackageReference Include="AsyncEnumerator" Version="3.0.2-beta" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net40'">
@@ -99,7 +97,7 @@
     <PackageReference Include="NUnit" Version="3.6.1" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.8.0-alpha1" />
     <PackageReference Include="System.Data.SQLite" version="1.0.105" />
-    <PackageReference Include="AsyncEnumerator" Version="3.0.0-beta1" />
+    <PackageReference Include="AsyncEnumerator" Version="3.0.2-beta" />
   </ItemGroup>
 
   <ItemGroup>

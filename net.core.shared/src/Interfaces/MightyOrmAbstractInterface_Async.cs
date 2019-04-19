@@ -1978,9 +1978,20 @@ namespace Mighty.Interfaces
 
         // TO DO: We should still be supporting this in async
 #if KEY_VALUES
-        // kv pair stuff for dropdowns - a method to convert IEnumerable<T> to kv pair
-        abstract public async Task<IDictionary<string, string>> KeyValuesAsync(string orderBy = "");
-        abstract public async Task<IDictionary<string, string>> KeyValuesAsync(CancellationToken cancellationToken, string orderBy = "");
+        /// <summary>
+        /// Returns a string-string dictionary which can be directly bound to ASP.NET dropdowns etc. (see https://stackoverflow.com/a/805610/795690).
+        /// </summary>
+        /// <param name="orderBy">Order by, defaults to primary key</param>
+        /// <returns></returns>
+        abstract public Task<IDictionary<string, string>> KeyValuesAsync(string orderBy = null);
+
+        /// <summary>
+        /// Returns a string-string dictionary which can be directly bound to ASP.NET dropdowns etc. (see https://stackoverflow.com/a/805610/795690).
+        /// </summary>
+        /// <param name="orderBy">Order by, defaults to primary key</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns></returns>
+        abstract public Task<IDictionary<string, string>> KeyValuesAsync(CancellationToken cancellationToken, string orderBy = null);
 #endif
         #endregion
     }

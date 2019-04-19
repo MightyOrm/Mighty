@@ -284,21 +284,46 @@ namespace Mighty
         // TO DO: We should still be supporting this
 #if KEY_VALUES
         /// <summary>
-        /// Returns a string/string dictionary which can be bound directly to dropdowns etc http://stackoverflow.com/q/805595/
+        /// Returns a string-string dictionary which can be directly bound to ASP.NET dropdowns etc. (see https://stackoverflow.com/a/805610/795690).
         /// </summary>
+        /// <param name="orderBy">Order by, defaults to primary key</param>
+        /// <returns></returns>
         override public async Task<IDictionary<string, string>> KeyValuesAsync(string orderBy = "")
         {
-            string foo = string.Format(" to call {0}, please provide one in your constructor", nameof(KeyValues));
-            string valueField = CheckGetValueColumn(string.Format("ValueField is required{0}", foo));
-            string primaryKeyFields = CheckGetKeyName(string.Format("A single primary key must be specified{0}", foo));
-            var results = (await AllAsync(orderBy: orderBy, columns: string.Format("{0}, {1}", primaryKeyFields, valueField)).ConfigureAwait(false)).Cast<IDictionary<string, object>>();
-            return results.ToDictionary(item => item[primaryKeyFields].ToString(), item => item[valueField].ToString());
+            return await KeyValuesAsync(CancellationToken.None, orderBy);
+        }
+
+        /// <summary>
+        /// Returns a string-string dictionary which can be directly bound to ASP.NET dropdowns etc. (see https://stackoverflow.com/a/805610/795690).
+        /// </summary>
+        /// <param name="orderBy">Order by, defaults to primary key</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns></returns>
+        override public async Task<IDictionary<string, string>> KeyValuesAsync(CancellationToken cancellationToken, string orderBy = "")
+        {
+            if (!UseExpando)
+            {
+                // TO DO: Make sure this works even when there is mapping
+                var db = new MightyOrm(null, TableName, PrimaryKeyFields, ValueField, connectionProvider: new PresetsConnectionProvider(ConnectionString, Factory, Plugin.GetType()));
+                return await db.KeyValuesAsync(cancellationToken, orderBy);
+            }
+            string partialMessage = string.Format(" to call {0}, please provide one in your constructor", nameof(KeyValuesAsync));
+            string valueField = CheckGetValueField(string.Format("ValueField is required{0}", partialMessage));
+            string pkField = CheckGetKeyName(string.Format("A single primary key must be specified{0}", partialMessage));
+            var results = await AllAsync(cancellationToken, orderBy: orderBy ?? pkField, columns: string.Format("{0}, {1}", pkField, valueField));
+            var retval = new Dictionary<string, string>();
+            await results.ForEachAsync(result => {
+                var expando = result as ExpandoObject;
+                var item = expando.ToDictionary();
+                retval.Add(item[pkField].ToString(), item[valueField].ToString());
+            });
+            return retval;
         }
 #endif
-#endregion
+        #endregion
 
         // Only methods with a non-trivial implementation are here, the rest are in the DataAccessWrapper abstract class.
-#region DataAccessWrapper interface
+        #region DataAccessWrapper interface
         /// <summary>
         /// Creates a new DbConnection. You do not normally need to call this! (MightyOrm normally manages its own
         /// connections. Create a connection here and pass it on to other MightyOrm commands only in non-standard use
