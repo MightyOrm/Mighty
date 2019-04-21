@@ -27,6 +27,7 @@ namespace Mighty
     public class MightyOrm : MightyOrm<dynamic>
     {
         #region Constructor
+#if KEY_VALUES
         /// <summary>
         /// Constructor for pure dynamic version.
         /// </summary>
@@ -54,15 +55,47 @@ namespace Mighty
         public MightyOrm(string connectionString = null,
                          string tableName = null,
                          string primaryKeyFields = null,
-#if KEY_VALUES
                          string valueField = null,
-#endif
                          string sequence = null,
                          string columns = null,
                          Validator validator = null,
                          SqlNamingMapper mapper = null,
                          SqlProfiler profiler = null,
                          ConnectionProvider connectionProvider = null)
+#else
+        /// <summary>
+        /// Constructor for pure dynamic version.
+        /// </summary>
+        /// <param name="connectionString">
+        /// Connection string, with additional Mighty-specific support for non-standard "ProviderName=" property
+        /// within the connection string itself.
+        /// On .NET Framework (but not .NET Core) this can instead be a connection string name, in which case the
+        /// connection string itself and provider name are looked up in the ConnectionStrings section of the .config file.
+        /// </param>
+        /// <param name="tableName">Table name</param>
+        /// <param name="primaryKeyFields">Primary key field name; or comma separated list of names for compound PK</param>
+        /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
+        /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
+        /// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
+        /// <param name="columns">Default column list</param>
+        /// <param name="validator">Optional validator</param>
+        /// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
+        /// <param name="profiler">Optional SQL profiler</param>
+        /// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyOrm)</param>
+        /// <remarks>
+        /// What about the SQL Profiler? Should this (really) go into here as a parameter?
+        /// ALL column names in the above are pre-mapped C# names, not post-mapped SQL names, where you have a mapper which makes them different.
+        /// </remarks>
+        public MightyOrm(string connectionString = null,
+                         string tableName = null,
+                         string primaryKeyFields = null,
+                         string sequence = null,
+                         string columns = null,
+                         Validator validator = null,
+                         SqlNamingMapper mapper = null,
+                         SqlProfiler profiler = null,
+                         ConnectionProvider connectionProvider = null)
+#endif
         {
             UseExpando = true;
 
@@ -118,6 +151,7 @@ namespace Mighty
     public partial class MightyOrm<T> : MightyOrmAbstractInterface<T> where T : class, new()
     {
         #region Constructor
+#if KEY_VALUES
         /// <summary>
         /// Strongly typed MightyOrm constructor
         /// </summary>
@@ -142,9 +176,7 @@ namespace Mighty
         public MightyOrm(string connectionString = null,
                          string tableName = null,
                          string primaryKeyFields = null,
-#if KEY_VALUES
                          string valueField = null,
-#endif
                          string sequence = null,
                          string columns = null,
                          Validator validator = null,
@@ -152,6 +184,38 @@ namespace Mighty
                          SqlProfiler profiler = null,
                          ConnectionProvider connectionProvider = null,
                          BindingFlags propertyBindingFlags = BindingFlags.Instance | BindingFlags.Public)
+#else
+        /// <summary>
+        /// Strongly typed MightyOrm constructor
+        /// </summary>
+        /// <param name="connectionString">
+        /// Connection string, with additional Mighty-specific support for non-standard "ProviderName=" property
+        /// within the connection string itself.
+        /// On .NET Framework (but not .NET Core) this can instead be a connection string name, in which case the
+        /// connection string itself and provider name are looked up in the ConnectionStrings section of the .config file.
+        /// </param>
+        /// <param name="tableName">Override the table name (defaults to using T class name)</param>
+        /// <param name="primaryKeyFields">Primary key field name; or comma separated list of names for compound PK</param>
+        /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
+        /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
+        /// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
+        /// <param name="columns">Default column list (specifies C# names rather than SQL names, if you have defined a mapper)</param>
+        /// <param name="validator">Optional validator</param>
+        /// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
+        /// <param name="profiler">Optional SQL profiler</param>
+        /// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyOrm)</param>
+        /// <param name="propertyBindingFlags">Specify which properties should be managed by the ORM</param>
+        public MightyOrm(string connectionString = null,
+                         string tableName = null,
+                         string primaryKeyFields = null,
+                         string sequence = null,
+                         string columns = null,
+                         Validator validator = null,
+                         SqlNamingMapper mapper = null,
+                         SqlProfiler profiler = null,
+                         ConnectionProvider connectionProvider = null,
+                         BindingFlags propertyBindingFlags = BindingFlags.Instance | BindingFlags.Public)
+#endif
         {
             // If this has been called as part of constructing MightyOrm (non-generic), then return immediately and let that constructor do all the work
             if (this is MightyOrm) return;
