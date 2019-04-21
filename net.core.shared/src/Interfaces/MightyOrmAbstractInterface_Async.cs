@@ -1829,7 +1829,7 @@ namespace Mighty.Interfaces
         /// <summary>
         /// Update the row(s) specified by the primary key(s) or WHERE values sent in using the values from the item sent in.
         /// If `primaryKeyFields` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
-        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="NewFrom"/> with first parameter `partialItem` and second parameter `false` first.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New"/> with first parameter `partialItem` and second parameter `false` first.
         /// </summary>
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
@@ -1838,7 +1838,7 @@ namespace Mighty.Interfaces
         /// <summary>
         /// Update the row(s) specified by the primary key(s) or WHERE values sent in using the values from the item sent in.
         /// If `primaryKeyFields` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
-        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="NewFrom"/> with first parameter `partialItem` and second parameter `false` first.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New"/> with first parameter `partialItem` and second parameter `false` first.
         /// </summary>
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
@@ -1848,7 +1848,7 @@ namespace Mighty.Interfaces
         /// <summary>
         /// Update the row(s) specified by the primary key(s) or WHERE values sent in using the values from the item sent in.
         /// If `primaryKeyFields` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
-        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="NewFrom"/> with first parameter `partialItem` and second parameter `false` first.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New"/> with first parameter `partialItem` and second parameter `false` first.
         /// </summary>
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
@@ -1859,7 +1859,7 @@ namespace Mighty.Interfaces
         /// <summary>
         /// Update the row(s) specified by the primary key(s) or WHERE values sent in using the values from the item sent in.
         /// If `primaryKeyFields` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
-        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="NewFrom"/> with first parameter `partialItem` and second parameter `false` first.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New"/> with first parameter `partialItem` and second parameter `false` first.
         /// </summary>
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
@@ -1871,7 +1871,7 @@ namespace Mighty.Interfaces
         /// <summary>
         /// Update all items matching WHERE clause using fields from the item sent in.
         /// If `primaryKeyFields` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
-        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="NewFrom"/> with first parameter `partialItem` and second parameter `false` first.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New"/> with first parameter `partialItem` and second parameter `false` first.
         /// </summary>
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="where">WHERE clause specifying which rows to update</param>
@@ -1882,7 +1882,7 @@ namespace Mighty.Interfaces
         /// <summary>
         /// Update all items matching WHERE clause using fields from the item sent in.
         /// If `primaryKeyFields` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
-        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="NewFrom"/> with first parameter `partialItem` and second parameter `false` first.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New"/> with first parameter `partialItem` and second parameter `false` first.
         /// </summary>
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="where">WHERE clause specifying which rows to update</param>
@@ -1895,7 +1895,7 @@ namespace Mighty.Interfaces
         /// <summary>
         /// Update all items matching WHERE clause using fields from the item sent in.
         /// If `primaryKeyFields` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
-        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="NewFrom"/> with first parameter `partialItem` and second parameter `false` first.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New"/> with first parameter `partialItem` and second parameter `false` first.
         /// </summary>
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="where">WHERE clause specifying which rows to update</param>
@@ -1908,7 +1908,7 @@ namespace Mighty.Interfaces
         /// <summary>
         /// Update all items matching WHERE clause using fields from the item sent in.
         /// If `primaryKeyFields` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
-        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="NewFrom"/> with first parameter `partialItem` and second parameter `false` first.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New"/> with first parameter `partialItem` and second parameter `false` first.
         /// </summary>
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="where">WHERE clause specifying which rows to update</param>

@@ -479,7 +479,7 @@ namespace Mighty
         /// reflect the defaults of the current database table.
         /// </param>
         /// <returns></returns>
-        override public T NewFrom(object nameValues = null, bool addNonPresentAsDefaults = true)
+        override public T New(object nameValues = null, bool addNonPresentAsDefaults = true)
         {
             var nvtEnumerator = new NameValueTypeEnumerator(nameValues);
             Dictionary<string, object> columnNameToValue = new Dictionary<string, object>();

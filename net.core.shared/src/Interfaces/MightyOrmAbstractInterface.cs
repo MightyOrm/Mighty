@@ -211,22 +211,15 @@ namespace Mighty.Interfaces
 
         #region Table specific methods
         /// <summary>
-        /// Return a new item populated with defaults values which correctly reflect the defaults of the current database table, when these are present.
+        /// Return a new item populated with defaults which correctly reflect the defaults of the current database table, if any.
         /// </summary>
-        /// <returns></returns>
-        abstract public T New();
-
-        /// <summary>
-        /// Make a new item from the passed-in name-value collection.
-        /// </summary>
-        /// <param name="nameValues">The name-value collection</param>
+        /// <param name="nameValues">Optional name-value collection from which to initialise some or all of the fields</param>
         /// <param name="addNonPresentAsDefaults">
-        /// If true also include default values for fields not present in the collection
-        /// but which exist in columns for the current table in Mighty, which correctly
-        /// reflect the defaults of the current database table.
+        /// When true also include default values for fields not present in <paramref name="nameValues"/>
+        /// but which exist in the defined list of columns for the current table in Mighty
         /// </param>
         /// <returns></returns>
-        abstract public T NewFrom(object nameValues = null, bool addNonPresentAsDefaults = true);
+        abstract public T New(object nameValues = null, bool addNonPresentAsDefaults = true);
 
         /// <summary>
         /// Get the meta-data for a single column
