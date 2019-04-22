@@ -136,7 +136,7 @@ namespace Mighty
         /// I think this requires new because of the conflict with the MightyOrm&lt;T&gt; version.
         /// TO DO: check.
         /// </remarks>
-        new static public MightyOrm DB(string connectionString = null)
+        new static public MightyOrm Open(string connectionString = null)
         {
             return new MightyOrm(connectionString);
         }
@@ -243,7 +243,7 @@ namespace Mighty
         /// </param>
         /// <returns></returns>
         /// <remarks>Static, so can't be defined anywhere but here.</remarks>
-        static public MightyOrm<T> DB(string connectionString = null)
+        static public MightyOrm<T> Open(string connectionString = null)
         {
             return new MightyOrm<T>(connectionString);
         }
