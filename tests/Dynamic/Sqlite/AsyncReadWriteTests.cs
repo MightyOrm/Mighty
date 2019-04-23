@@ -28,7 +28,7 @@ namespace Mighty.Dynamic.Tests.Sqlite
             dynamic item;
             using (var command = db.CreateCommand("SELECT @0 AS val", null, guid))
             {
-#if (NETCOREAPP || NETSTANDARD)
+#if NETCOREAPP
                 // For some reason .NET Core provider doesn't have DbType.Guid support even though .NET Framework provider does
                 Assert.AreEqual(DbType.String, command.Parameters[0].DbType);
 #else

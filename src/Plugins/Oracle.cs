@@ -13,19 +13,24 @@ namespace Mighty.Plugins
         {
             switch (loweredProviderName)
             {
+#if (NETCOREAPP || NETSTANDARD)
+                case "oracle.manageddataaccess.client":
+                    return "Oracle.ManagedDataAccess.Client.OracleClientFactory, Oracle.ManagedDataAccess";
+#else
                 case "oracle.manageddataaccess.client":
                     return "Oracle.ManagedDataAccess.Client.OracleClientFactory";
 
                 case "oracle.dataaccess.client":
                     return "Oracle.DataAccess.Client.OracleClientFactory";
+#endif
 
                 default:
                     return null;
             }
         }
-        #endregion
+#endregion
 
-        #region SQL
+#region SQL
         override public string BuildSelect(string columns, string tableName, string where, string orderBy = null, int limit = 0)
         {
             string sql = BuildTopSelect(columns, tableName, where, orderBy);
@@ -58,9 +63,9 @@ namespace Mighty.Plugins
             // Add cursor, which will be automatically dereferenced by the Oracle data access layer
             Mighty.AddNamedParams(command, new { pk___ = new Cursor() }, ParameterDirection.Output);
         }
-        #endregion
+#endregion
 
-        #region Table info
+#region Table info
         // owner is for owner/schema, will be null if none was specified
         // This really does vary per DB and can't be a standard virtual method which most things share.
         override public string BuildTableMetaDataQuery(string tableName, string tableOwner)
@@ -82,16 +87,16 @@ namespace Mighty.Plugins
             }
             return results;
         }
-        #endregion
+#endregion
 
-        #region Keys and sequences
+#region Keys and sequences
         override public bool IsSequenceBased { get; protected set; } = true;
         override public string BuildNextval(string sequence) { return string.Format("{0}.nextval", sequence); }
         // With cursor so that we can use Oracle built-in automatic dereferencing and make a single round trip to the DB
         override public string BuildCurrvalSelect(string sequence) { return string.Format("OPEN :pk___ FOR SELECT {0}.currval FROM DUAL", sequence); }
-        #endregion
+#endregion
 
-        #region DbCommand
+#region DbCommand
         override public void SetProviderSpecificCommandProperties(DbCommand command)
         {
             // these setting values and their comments are taken directly from Massive - see CREDITS file;
@@ -99,16 +104,16 @@ namespace Mighty.Plugins
             ((dynamic)command).BindByName = true;   // keep true as the default as otherwise ODP.NET won't bind the parameters by name but by location.
             ((dynamic)command).InitialLONGFetchSize = -1;   // this is the ideal value, it obtains the LONG value in one go.
         }
-        #endregion
+#endregion
 
-        #region Prefix/deprefix parameters
+#region Prefix/deprefix parameters
         override public string PrefixParameterName(string rawName, DbCommand cmd = null)
         {
             return (cmd != null) ? rawName : (":" + rawName);
         }
-        #endregion
+#endregion
 
-        #region DbParameter
+#region DbParameter
         override public void SetValue(DbParameter p, object value)
         {
             // Oracle exceptions on Guid parameter - set it via string
@@ -132,6 +137,6 @@ namespace Mighty.Plugins
         {
             return p.GetRuntimeEnumProperty("OracleDbType") == "RefCursor";
         }
-        #endregion
+#endregion
     }
 }

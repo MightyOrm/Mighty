@@ -1,4 +1,4 @@
-﻿#if !(NETCOREAPP || NETSTANDARD)
+﻿#if NETFRAMEWORK || (NETCOREAPP && !(NETCOREAPP1_0 || NETCOREAPP1_1))
 using System;
 using System.Data;
 using System.Collections.Generic;
@@ -17,7 +17,9 @@ namespace Mighty.Generic.Tests.Oracle
     /// in the project settings.<br/>
     /// These tests use the SCOTT test DB shipped by Oracle. Your values may vary though. </remarks>
     [TestFixture("Oracle.ManagedDataAccess.Client")]
+#if !NETCOREAPP
     [TestFixture("Oracle.DataAccess.Client")]
+#endif
     public class ReadWriteTests
     {
         private readonly string ProviderName;

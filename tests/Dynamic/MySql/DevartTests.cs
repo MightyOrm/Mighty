@@ -1,5 +1,4 @@
-﻿#if !(NETCOREAPP || NETSTANDARD)
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -48,4 +47,3 @@ namespace Mighty.Dynamic.Tests.MySql
         #endregion
     }
 }
-#endif

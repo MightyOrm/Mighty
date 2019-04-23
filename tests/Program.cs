@@ -1,4 +1,4 @@
-﻿#if NET40 //|| (NETCOREAPP || NETSTANDARD)
+﻿#if NET40 //|| NETCOREAPP
 using NUnit.Common;
 // NUnitLite (the console runner) isn't available for .NETCoreApp 1.1 (it should be for 1.0 and 2.0, via .NETStandard 1.3 and 1.6)
 using NUnitLite;
@@ -124,7 +124,7 @@ namespace Mighty.Generic.Tests.NUnit.ConsoleRunner
 #endif
 
             // Okay, this runs all the tests in the NUnit test runner.
-#if NET40 || (NETCOREAPP || NETSTANDARD)
+#if NET40 || NETCOREAPP
             return new AutoRun(
 #if NETFRAMEWORK
                 typeof(Program).Assembly

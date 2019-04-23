@@ -14,9 +14,7 @@ using NUnit.Framework;
 namespace Mighty.Generic.Tests.MySql
 {
     [TestFixture("MySql.Data.MySqlClient")]
-#if !(NETCOREAPP || NETSTANDARD)
     [TestFixture("Devart.Data.MySql")]
-#endif
     public class AsyncWriteTests
     {
         private readonly string ProviderName;

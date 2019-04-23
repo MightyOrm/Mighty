@@ -1,4 +1,4 @@
-﻿#if !(NETCOREAPP || NETSTANDARD)
+﻿#if NETFRAMEWORK || (NETCOREAPP && !(NETCOREAPP1_0 || NETCOREAPP1_1))
 using System;
 using System.Data;
 using System.Collections.Generic;
@@ -17,7 +17,9 @@ namespace Mighty.Dynamic.Tests.Oracle
     /// These objects do not conflict with anything in the SCOTT database, and can be added there.
     /// </remarks>
     [TestFixture("Oracle.ManagedDataAccess.Client")]
+#if !NETCOREAPP
     [TestFixture("Oracle.DataAccess.Client")]
+#endif
     public class SPTests
     {
         private readonly string ProviderName;
