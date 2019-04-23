@@ -1,0 +1,28 @@
+plugins:
+  - jekyll-remote-theme
+
+remote_theme: pmarsceill/just-the-docs
+
+# Site settings
+title: Mighty ORM
+description: A new small, happy, dynamic micro-ORM and general purpose .NET data access wrapper.
+favicon: true
+
+color_scheme: mighty
+
+# Initialize search data (creates search-data.json):
+# $ bundle exec just-the-docs rake search:init
+
+# Enable or disable the site search
+search_enabled: true
+
+# Aux links for the upper right navigation
+aux_links:
+    "Mighty on NuGet":
+      - "//www.nuget.org/packages/Mighty"
+    "Mighty on GitHub":
+      - "//github.com/MightyOrm/Mighty"
+
+# Google Analytics Tracking (optional)
+# e.g, UA-1234567-89
+##ga_tracking: UA-5555555-55

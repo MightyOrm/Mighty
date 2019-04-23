@@ -1,0 +1,47 @@
+---
+# this ensures Jekyll reads the file to be transformed into CSS later
+# only Main files contain this front matter, not partials.
+---
+
+.page-content a {
+    overflow: inherit;
+    text-overflow: inherit;
+    white-space: inherit;
+}
+
+blockquote {
+    position: relative;
+    border-left: .25em solid #dfe2e5;
+    padding: 0 16px;
+    background-color: #f5f6fa;
+    margin-inline-end: 10px;
+}
+
+blockquote:after {
+    content: '\00A0';
+    background-image: url({{ '/assets/images/lightbulb.svg' | absolute_url }});
+    background-size: 18px;
+    background-repeat: no-repeat;
+    width: 32px;
+    height: 32px;
+    position: absolute;
+	top: 4px;
+    left: -36px;
+}
+
+h1 {
+    position: relative;
+    padding: 0 40px;
+}
+
+h1:after {
+    content: '\00A0';
+    background-image: url({{ '/assets/realfavicon/favicon-32x32.png' | absolute_url }});
+    background-repeat: no-repeat;
+    width: 32px;
+    height: 32px;
+    position: absolute;
+	top: 4px;
+    left: -4px;
+}
+

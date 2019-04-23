@@ -1,6 +1,12 @@
+---
+title: Mighty
+layout: default
+nav_exclude: true 
+---
+
 # Mighty
 
-[GET STARTED](https://mightorm.github.io/mighty/docs/getting-started)
+[Get Started](docs/getting-started){: .btn .btn-primary }
 
 A new small, happy, dynamic micro-ORM and general purpose .NET data access wrapper.
 
