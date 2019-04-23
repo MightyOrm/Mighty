@@ -1,6 +1,6 @@
 # Mighty
 
-[GET STARTED](https://mightorm.github.io/mighty/docs/getting-started)
+[GET STARTED](https://mightyorm.github.io/Mighty/docs/getting-started)
 
 A new small, happy, dynamic micro-ORM and general purpose .NET data access wrapper.
 
