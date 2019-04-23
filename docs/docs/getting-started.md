@@ -85,7 +85,7 @@ foreach (var person in myPeople)
 }
 ```
 
-> The parameter prefix (`@` in `@0` and `@1` above) [depends on which database you are using]().
+> The parameter prefix (`@` in `@0` and `@1` above) [depends on which database you are using](supported-databases).
 
 ## Mighty Method Names
 
