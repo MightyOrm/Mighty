@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard1.6;netstandard2.0;netcoreapp3.0;net40;net45</TargetFrameworks>
 	<PackageId>Mighty</PackageId>
-    <PackageVersion>3.0.0-beta-3</PackageVersion>
+    <PackageVersion>3.0.3-beta</PackageVersion>
     <Authors>Mike Beaton</Authors>
     <Owners>MightyOrm</Owners>
     <Description>A new small, happy, dynamic micro-ORM and general purpose .NET data access wrapper.
@@ -24,7 +24,7 @@ Beta version.
     <Copyright>Copyright (c) 2017-2019 Mike Beaton</Copyright>
     <PackageProjectUrl>https://github.com/MightyOrm/MightyOrm</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/MightyOrm/MightyOrm/blob/master/LICENSE</PackageLicenseUrl>
-	<PackageTags>micro-ORM, microORM, ORM, SQL, data access, data access wrapper, Mighty, Massive, ADO.NET</PackageTags>
+	<PackageTags>micro-ORM, microORM, ORM, SQL, data access, data access wrapper, Mighty, MightyOrm, Massive, ADO.NET</PackageTags>
   </PropertyGroup>
 
   <PropertyGroup>
