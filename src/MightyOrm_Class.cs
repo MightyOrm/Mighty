@@ -220,8 +220,20 @@ namespace Mighty
             // If this has been called as part of constructing MightyOrm (non-generic), then return immediately and let that constructor do all the work
             if (this is MightyOrm) return;
 
-            // Table name for MightyOrm<T> is taken from type T not from a constructor argument; use SqlNamingMapper to override it.
-            string tableClassName = typeof(T).Name;
+            string tableClassName = null;
+
+            // save a little bit of work when we know we won't need the class name
+            // (but we still need two parameters to Init(), as only tableClassName should go through the mapper)
+            if (tableName == null)
+            {
+                // Class-based table name is taken from the user's subclass name if they have made a subclass
+                tableClassName = this.GetType().Name;
+                if (tableClassName == $"{nameof(MightyOrm<T>)}`1")
+                {
+                    // Or from the generic type T's type name if not
+                    tableClassName = typeof(T).Name;
+                }
+            }
 
             Init(connectionString, tableName, tableClassName, keys,
 #if KEY_VALUES
