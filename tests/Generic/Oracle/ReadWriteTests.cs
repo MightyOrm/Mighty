@@ -177,9 +177,41 @@ namespace Mighty.Generic.Tests.Oracle
             Assert.AreEqual(1, saveResult);
             Assert.IsTrue(toSave.DEPTNO > 0);
             var mightyDep = new { DNAME = "Mighty Dep" };
+
+            // Clean down
+            // TO DO: Copy to the others
+            depts.Delete("DNAME = :0", mightyDep.DNAME);
+
+            // The original test
             Assert.AreEqual(0, depts.All(mightyDep).ToList().Count);
             Assert.AreEqual(1, depts.UpdateUsing(mightyDep, toSave.DEPTNO));
+
+            // Some new tests
+
+            // For reasons unknown to science, this will not make this call
+            //Assert.AreEqual(1, depts.UpdateUsing(mightyDep, "DEPTNO = :0", args: Convert.ToInt32(toSave.DEPTNO)));
+
+            // works
+            string dn = $"{toSave.DEPTNO}"; // used later too
+            var thungy = Convert.ToInt32(dn);
+            Assert.AreEqual(1, depts.UpdateUsing(mightyDep, "DEPTNO = :0", args: thungy));
+
+            // This doesn't work either, it's because the conversion is from a field of a dynamic, so the var is an object not a basic type
+            //var thingy = Convert.ToInt32(toSave.DEPTNO);
+            //var type = $"{thingy.GetType()} {thungy.GetType()}";
+            //Assert.AreEqual(1, depts.UpdateUsing(mightyDep, "DEPTNO = :0", args: thingy));
+
+            // Check that these do work, also checks that the where args version is working
+            Assert.AreEqual(1, depts.UpdateUsing(mightyDep, "DEPTNO = :0", args: new object[] { Convert.ToInt32(toSave.DEPTNO) }));
+            Assert.AreEqual(1, depts.UpdateUsing(mightyDep, "DEPTNO = :0", Convert.ToInt32(toSave.DEPTNO)));
+
+            Assert.AreEqual(1, depts.UpdateUsing(mightyDep, where: "DEPTNO = :0", args: dn));
+            Assert.AreEqual(1, depts.UpdateUsing(mightyDep, "DEPTNO = :0", args: (int)toSave.DEPTNO));
+
+            // Check
             Assert.AreEqual(1, depts.All(mightyDep).ToList().Count);
+
+            // Clean up
             Assert.AreEqual(1, depts.Delete(toSave.DEPTNO));
             Assert.AreEqual(0, depts.All(mightyDep).ToList().Count);
         }
