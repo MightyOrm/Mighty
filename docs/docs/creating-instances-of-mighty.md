@@ -88,7 +88,7 @@ var db = new MightyOrm(connectionString);
 var db = new MightyOrm(connectionString, "Products", "ProductID");
 ```
 
-The connecting string you pass is any normal ADO.NET connection string, except that *it should additionally include the provider name in the connection string* using the non-standard (but convenient!) `ProviderName=` syntax. E.g. `ProviderName=Oracle.DataAccess.Client` or  `ProviderName=System.Data.SqlClient`.
+The connecting string you pass is any normal ADO.NET connection string, except that *it should additionally include the provider name in the connection string* using the non-standard (but convenient!) `ProviderName=` syntax. E.g. `ProviderName=Oracle.ManagedDataAccess.Client` or  `ProviderName=System.Data.SqlClient`.
 
 
 ### .NET Framework
