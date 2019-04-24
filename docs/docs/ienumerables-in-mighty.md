@@ -46,4 +46,4 @@ public IEnumerable<Department> GetDepartmentsByLocation(string Location)
 }
 ```
 
-> You often do *not* need to do this! For example, you can return an `IEnumerable` from Mighty directly as a result of a .NET API call, and you don't need to call `.ToList()` in this case as the API framework will enumerate the results before returning anyway.
+> You can apply this to return an `IEnumerable` from Mighty from a .NET API call. The API framework won't accept the `IEnumerable` directly from Mighty, but will accept the different `IEnumerable` produced after applying `.ToList()`.
