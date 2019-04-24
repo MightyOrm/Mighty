@@ -8,11 +8,11 @@ nav_order: 6
 
 Mighty fully supports async.
 
-In .NET Core 3.0+ and C# 8.0+ you can use `await foreach` to consume asynchronous multi-row results:
+In .NET Core 3.0+ and C# 8.0+ you can use `await foreach` to consume the Mighty's asynchronous multi-row results, which are of type `IAsyncEnumerable<T>`:
 
 ```c#
 MightyOrm people = new MightyOrm(connectionString, "People", "PersonID");
-IAsyncEnumerable<dynamic> myPeople = await people.AllAsync(
+var myPeople = await people.AllAsync(
     "DateOfBirth < @0 AND FamilyName = @1", new DateTime(2000, 1, 1), "Smith");
 await foreach (var person in myPeople)
 {
@@ -24,7 +24,7 @@ In earlier versions of C# `await async` does not exist, but we use the excellent
 
 ```c#
 MightyOrm people = new MightyOrm(connectionString, "People", "PersonID");
-IAsyncEnumerable<dynamic> myPeople = await people.AllAsync(
+var myPeople = await people.AllAsync(
     "DateOfBirth < @0 AND FamilyName = @1", new DateTime(2000, 1, 1), "Smith");
 await myPeople.ForEachAsync(person =>
 {
