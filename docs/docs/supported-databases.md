@@ -8,11 +8,11 @@ nav_order: 14
 
 Here are the currently supported ADO.NET database drivers in Mighty:
 
-|ADO.NET Provider Name|.NET Framework 4.0+|.NET Core|
+|ADO.NET Provider Name|.NET Framework 4.0+|.NET Core 1.0+|
 |:-----|:-----|:-----|:-----|
 |System.Data.SqlClient|YES|YES|
 |Oracle.ManagedDataAccess.Client|YES|2.0+|
-|Oracle.DataAccess.Client|YES|[NO](www.oracle.com/technetwork/topics/dotnet/tech-info/odpnet-dotnet-core-sod-3628981.pdf)|
+|Oracle.DataAccess.Client|YES|[NO](https://www.oracle.com/technetwork/topics/dotnet/tech-info/odpnet-dotnet-core-sod-3628981.pdf)|
 |Npgsql|YES|YES|
 |MySql.Data.MySqlClient|YES|YES|
 |Devart.Data.MySql|YES|YES|

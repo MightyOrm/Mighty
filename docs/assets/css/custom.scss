@@ -3,6 +3,14 @@
 # only Main files contain this front matter, not partials.
 ---
 
+table {
+    display: table; // overrides display: block in theme for small screens
+}
+
+th, td {
+    min-width: 80px;
+}
+
 .page-content a {
     overflow: inherit;
     text-overflow: inherit;
