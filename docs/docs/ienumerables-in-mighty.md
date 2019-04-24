@@ -17,7 +17,7 @@ depts.All(new { Location = "London" });
 // The actual database access starts here (i.e. when you start to use the contract you have been given)
 foreach (var dept in depts)
 {
-	Console.WriteLine(dept.Name);
+    Console.WriteLine(dept.Name);
 }
 ```
 
@@ -30,19 +30,19 @@ Here is a more complete example showing this. (This example also uses strong typ
 ```c#
 public class Department
 {
-	public string Name { get; set; }
-	public string Location { get; set; }
+    public string Name { get; set; }
+    public string Location { get; set; }
 }
 
 // There is no database access left to do once this has finished - what is returned is just a list!
 public IEnumerable<Department> GetDepartmentsByLocation(string Location)
 {
-	// No database access happens here
-	MightyOrm<Department> db = new MightyOrm<Department>();
-	
-	// Select all database rows where Location = @Location
-	// All of the database access has finished once .ToList() has completed
-	return db.All(new { Location }).ToList();
+    // No database access happens here
+    MightyOrm<Department> db = new MightyOrm<Department>();
+
+    // Select all database rows where Location = @Location
+    // All of the database access has finished once .ToList() has completed
+    return db.All(new { Location }).ToList();
 }
 ```
 

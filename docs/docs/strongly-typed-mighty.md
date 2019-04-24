@@ -13,10 +13,10 @@ Because Mighty (following Massive) was dynamic from the start, strong typing onl
 ```c#
 public class Person
 {
-	public int PersonID { get; set; }
-	public string GivenName { get; set; }
-	public string FamilyName { get; set; }
-	public bool LoyalCustomer { get; set; }
+    public int PersonID { get; set; }
+    public string GivenName { get; set; }
+    public string FamilyName { get; set; }
+    public bool LoyalCustomer { get; set; }
 }
 
 var db = new Mighty<Person>(connectionString, keys: "PersonID");
