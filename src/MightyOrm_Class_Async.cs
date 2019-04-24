@@ -281,7 +281,6 @@ namespace Mighty
             return new Tuple<int, IEnumerable<T>>(affected, modifiedItems);
         }
 
-        // TO DO: We should still be supporting this
 #if KEY_VALUES
         /// <summary>
         /// Returns a string-string dictionary which can be directly bound to ASP.NET dropdowns etc. (see https://stackoverflow.com/a/805610/795690).

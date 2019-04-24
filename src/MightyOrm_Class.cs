@@ -62,6 +62,26 @@ namespace Mighty
                          SqlNamingMapper mapper = null,
                          SqlProfiler profiler = null,
                          ConnectionProvider connectionProvider = null)
+        {
+            UseExpando = true;
+
+            // Subclass-based table name override for dynamic version of MightyOrm
+            string tableClassName = null;
+
+            var me = this.GetType();
+            // leave table name unset if we are not a true sub-class; this test enforces strict sub-class (i.e. does not pass for an instance of the class itself)
+            if (me
+#if !NETFRAMEWORK
+                .GetTypeInfo()
+#endif
+                .IsSubclassOf(typeof(MightyOrm)))
+            {
+                tableClassName = me.Name;
+            }
+            Init(connectionString, tableName, tableClassName, keys,
+                valueField,
+                sequence, columns, validator, mapper, profiler, 0, connectionProvider);
+        }
 #else
         /// <summary>
         /// Constructor for pure dynamic version.
@@ -95,7 +115,6 @@ namespace Mighty
                          SqlNamingMapper mapper = null,
                          SqlProfiler profiler = null,
                          ConnectionProvider connectionProvider = null)
-#endif
         {
             UseExpando = true;
 
@@ -113,11 +132,9 @@ namespace Mighty
                 tableClassName = me.Name;
             }
             Init(connectionString, tableName, tableClassName, keys,
-#if KEY_VALUES
-                valueField,
-#endif
                 sequence, columns, validator, mapper, profiler, 0, connectionProvider);
         }
+#endif
         #endregion
 
         #region Convenience factory
@@ -184,6 +201,29 @@ namespace Mighty
                          SqlProfiler profiler = null,
                          ConnectionProvider connectionProvider = null,
                          BindingFlags propertyBindingFlags = BindingFlags.Instance | BindingFlags.Public)
+        {
+            // If this has been called as part of constructing MightyOrm (non-generic), then return immediately and let that constructor do all the work
+            if (this is MightyOrm) return;
+
+            string tableClassName = null;
+
+            // save a little bit of work when we know we won't need the class name
+            // (but we still need two parameters to Init(), as only tableClassName should go through the mapper)
+            if (tableName == null)
+            {
+                // Class-based table name is taken from the user's subclass name if they have made a subclass
+                tableClassName = this.GetType().Name;
+                if (tableClassName == $"{nameof(MightyOrm<T>)}`1")
+                {
+                    // Or from the generic type T's type name if not
+                    tableClassName = typeof(T).Name;
+                }
+            }
+
+            Init(connectionString, tableName, tableClassName, keys,
+                valueField,
+                sequence, columns, validator, mapper, profiler, propertyBindingFlags, connectionProvider);
+        }
 #else
         /// <summary>
         /// Strongly typed MightyOrm constructor
@@ -215,7 +255,6 @@ namespace Mighty
                          SqlProfiler profiler = null,
                          ConnectionProvider connectionProvider = null,
                          BindingFlags propertyBindingFlags = BindingFlags.Instance | BindingFlags.Public)
-#endif
         {
             // If this has been called as part of constructing MightyOrm (non-generic), then return immediately and let that constructor do all the work
             if (this is MightyOrm) return;
@@ -236,11 +275,9 @@ namespace Mighty
             }
 
             Init(connectionString, tableName, tableClassName, keys,
-#if KEY_VALUES
-                valueField,
-#endif
                 sequence, columns, validator, mapper, profiler, propertyBindingFlags, connectionProvider);
         }
+#endif
         #endregion
 
         #region Convenience factory
