@@ -59,7 +59,7 @@ products.Update(product1);
 // etc.
 ```
 
-> In the strongly typed version, each returned product is of type `Product`. In the dynamically typed version each product is a `dynamic` object (actually of type `ExpandObject`) and the fields returned in it are whatever the database sends back. You can control the fields returned by using the `columns` parameter in the constructor:
+In the strongly typed version, each returned product is of type `Product`. In the dynamically typed version each product is a `dynamic` object (actually of type `ExpandObject`) and the fields returned in it are whatever the database sends back. You can control the fields returned by using the `columns` parameter in the constructor:
 
 ```c#
 public class Products : MightyOrm
@@ -107,7 +107,7 @@ var db = new MightyOrm("Northwind", "Products", "ProductID");
 
 Here what you have provided is the connection string name, to look up in the `<ConnectionStrings>` section of your `.Config` file.
 
-> If Mighty can't find a connection string of this name then it will try what you passed in directly as a connection string before failing. Meaning that on .NET Framework you can pass in either a connection string or a connection string name and both will work.
+> If Mighty can't find a connection string with this name then it will try to use what you passed in directly as a connection string before failing. This means that on .NET Framework you can pass in either a connection string or a connection string name and both will work.
 
 On .NET Framework you can even use:
 
@@ -115,7 +115,7 @@ On .NET Framework you can even use:
 var db = new MightyOrm();
 ```
 
-> This creates a non-table specific instance of Mighty using the first connection string in your `Web.Config` or `App.Config` file.
+This creates a non-table specific instance of Mighty using the first connection string in your `Web.Config` or `App.Config` file.
 
 ### Factory Method
 
