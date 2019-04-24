@@ -38,7 +38,7 @@ public class Person
     public DateTime dateOfBirth { get; set; }
 }
 
-MightyOrm people = new MightyOrm<Person>(connectionString, primaryKeys: "PersonID");
+MightyOrm people = new MightyOrm<Person>(connectionString, "People", "PersonID");
 Person person = people.Single(42);
 Console.WriteLine($"{person.GivenName} {person.FamilyName}");
 ```

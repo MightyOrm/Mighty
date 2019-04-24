@@ -30,7 +30,7 @@ db.Update(p);
 Or in a strongly-typed version (similar changes could be applied to any of the examples on this page):
 
 ```c#
-var db = new MightyOrm<Person>(connectionString, primaryKeys: "PersonID");
+var db = new MightyOrm<Person>(connectionString, keys: "PersonID");
 var p = db.Single(42);
 p.LoyalCustomer = true;
 db.Update(p);

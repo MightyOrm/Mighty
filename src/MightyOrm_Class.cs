@@ -38,7 +38,7 @@ namespace Mighty
         /// connection string itself and provider name are looked up in the ConnectionStrings section of the .config file.
         /// </param>
         /// <param name="tableName">Table name</param>
-        /// <param name="primaryKeyFields">Primary key field name; or comma separated list of names for compound PK</param>
+        /// <param name="keys">Primary key field name; or comma separated list of names for compound PK</param>
         /// <param name="valueField">Specify the value field, for lookup tables</param>
         /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
         /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
@@ -54,7 +54,7 @@ namespace Mighty
         /// </remarks>
         public MightyOrm(string connectionString = null,
                          string tableName = null,
-                         string primaryKeyFields = null,
+                         string keys = null,
                          string valueField = null,
                          string sequence = null,
                          string columns = null,
@@ -73,7 +73,7 @@ namespace Mighty
         /// connection string itself and provider name are looked up in the ConnectionStrings section of the .config file.
         /// </param>
         /// <param name="tableName">Table name</param>
-        /// <param name="primaryKeyFields">Primary key field name; or comma separated list of names for compound PK</param>
+        /// <param name="keys">Primary key field name; or comma separated list of names for compound PK</param>
         /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
         /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
         /// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
@@ -88,7 +88,7 @@ namespace Mighty
         /// </remarks>
         public MightyOrm(string connectionString = null,
                          string tableName = null,
-                         string primaryKeyFields = null,
+                         string keys = null,
                          string sequence = null,
                          string columns = null,
                          Validator validator = null,
@@ -112,7 +112,7 @@ namespace Mighty
             {
                 tableClassName = me.Name;
             }
-            Init(connectionString, tableName, tableClassName, primaryKeyFields,
+            Init(connectionString, tableName, tableClassName, keys,
 #if KEY_VALUES
                 valueField,
 #endif
@@ -162,7 +162,7 @@ namespace Mighty
         /// connection string itself and provider name are looked up in the ConnectionStrings section of the .config file.
         /// </param>
         /// <param name="tableName">Override the table name (defaults to using T class name)</param>
-        /// <param name="primaryKeyFields">Primary key field name; or comma separated list of names for compound PK</param>
+        /// <param name="keys">Primary key field name; or comma separated list of names for compound PK</param>
         /// <param name="valueField">Specify the value field, for lookup tables</param>
         /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
         /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
@@ -175,7 +175,7 @@ namespace Mighty
         /// <param name="propertyBindingFlags">Specify which properties should be managed by the ORM</param>
         public MightyOrm(string connectionString = null,
                          string tableName = null,
-                         string primaryKeyFields = null,
+                         string keys = null,
                          string valueField = null,
                          string sequence = null,
                          string columns = null,
@@ -195,7 +195,7 @@ namespace Mighty
         /// connection string itself and provider name are looked up in the ConnectionStrings section of the .config file.
         /// </param>
         /// <param name="tableName">Override the table name (defaults to using T class name)</param>
-        /// <param name="primaryKeyFields">Primary key field name; or comma separated list of names for compound PK</param>
+        /// <param name="keys">Primary key field name; or comma separated list of names for compound PK</param>
         /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
         /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
         /// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
@@ -207,7 +207,7 @@ namespace Mighty
         /// <param name="propertyBindingFlags">Specify which properties should be managed by the ORM</param>
         public MightyOrm(string connectionString = null,
                          string tableName = null,
-                         string primaryKeyFields = null,
+                         string keys = null,
                          string sequence = null,
                          string columns = null,
                          Validator validator = null,
@@ -223,7 +223,7 @@ namespace Mighty
             // Table name for MightyOrm<T> is taken from type T not from a constructor argument; use SqlNamingMapper to override it.
             string tableClassName = typeof(T).Name;
 
-            Init(connectionString, tableName, tableClassName, primaryKeyFields,
+            Init(connectionString, tableName, tableClassName, keys,
 #if KEY_VALUES
                 valueField,
 #endif
@@ -253,13 +253,13 @@ namespace Mighty
         // sequence is for sequence-based databases (Oracle, PostgreSQL); there is no default sequence, specify either null or empty string to disable and manually specify your PK values;
         // for non-sequence-based databases, in unusual cases, you may specify this to specify an alternative key retrieval function
         // (e.g. for example to use @@IDENTITY instead of SCOPE_IDENTITY(), in the case of SQL Server CE)
-        // primaryKeyFields is a comma separated list; if it has more than one column, you cannot specify sequence or keyRetrievalFunction
+        // keys is a comma separated list; if it has more than one column, you cannot specify sequence or keyRetrievalFunction
         // (if neither sequence nor keyRetrievalFunction are set (which is always the case for compound primary keys), you MUST specify non-null, non-default values for every column in your primary key
         // before saving an object)
         internal void Init(string connectionString,
                          string tableName,
                          string tableClassName,
-                         string primaryKeyFields,
+                         string keys,
 #if KEY_VALUES
                          string valueField,
 #endif
@@ -332,18 +332,18 @@ namespace Mighty
             Plugin = (PluginBase)Activator.CreateInstance(pluginType, false);
             Plugin.Mighty = this;
 
-            if (primaryKeyFields == null && TableName != null)
+            if (keys == null && TableName != null)
             {
-                primaryKeyFields = SqlMapper.GetPrimaryKeyFieldFromClassName(TableName);
+                keys = SqlMapper.GetPrimaryKeyFieldFromClassName(TableName);
             }
-            PrimaryKeyFields = primaryKeyFields;
-            if (primaryKeyFields == null)
+            PrimaryKeyFields = keys;
+            if (keys == null)
             {
                 PrimaryKeyList = new List<string>();
             }
             else
             {
-                PrimaryKeyList = primaryKeyFields.Split(',').Select(k => k.Trim()).ToList();
+                PrimaryKeyList = keys.Split(',').Select(k => k.Trim()).ToList();
             }
             if (columns == null || columns == "*")
             {
