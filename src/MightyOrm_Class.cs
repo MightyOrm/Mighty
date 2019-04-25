@@ -43,7 +43,7 @@ namespace Mighty
         /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
         /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
         /// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
-        /// <param name="columns">Default column list</param>
+        /// <param name="columns">Default column list (specifies C# names rather than SQL names, if you have defined a mapper)</param>
         /// <param name="validator">Optional validator</param>
         /// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
         /// <param name="profiler">Optional SQL profiler</param>
@@ -65,20 +65,7 @@ namespace Mighty
         {
             UseExpando = true;
 
-            // Subclass-based table name override for dynamic version of MightyOrm
-            string tableClassName = null;
-
-            var me = this.GetType();
-            // leave table name unset if we are not a true sub-class; this test enforces strict sub-class (i.e. does not pass for an instance of the class itself)
-            if (me
-#if !NETFRAMEWORK
-                .GetTypeInfo()
-#endif
-                .IsSubclassOf(typeof(MightyOrm)))
-            {
-                tableClassName = me.Name;
-            }
-            Init(connectionString, tableName, tableClassName, keys,
+            Init(connectionString, tableName, keys,
                 valueField,
                 sequence, columns, validator, mapper, profiler, 0, connectionProvider);
         }
@@ -97,7 +84,7 @@ namespace Mighty
         /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
         /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
         /// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
-        /// <param name="columns">Default column list</param>
+        /// <param name="columns">Default column list (specifies C# names rather than SQL names, if you have defined a mapper)</param>
         /// <param name="validator">Optional validator</param>
         /// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
         /// <param name="profiler">Optional SQL profiler</param>
@@ -118,20 +105,7 @@ namespace Mighty
         {
             UseExpando = true;
 
-            // Subclass-based table name override for dynamic version of MightyOrm
-            string tableClassName = null;
-
-            var me = this.GetType();
-            // leave table name unset if we are not a true sub-class; this test enforces strict sub-class (i.e. does not pass for an instance of the class itself)
-            if (me
-#if !NETFRAMEWORK
-                .GetTypeInfo()
-#endif
-                .IsSubclassOf(typeof(MightyOrm)))
-            {
-                tableClassName = me.Name;
-            }
-            Init(connectionString, tableName, tableClassName, keys,
+            Init(connectionString, tableName, keys,
                 sequence, columns, validator, mapper, profiler, 0, connectionProvider);
         }
 #endif
@@ -205,22 +179,7 @@ namespace Mighty
             // If this has been called as part of constructing MightyOrm (non-generic), then return immediately and let that constructor do all the work
             if (this is MightyOrm) return;
 
-            string tableClassName = null;
-
-            // save a little bit of work when we know we won't need the class name
-            // (but we still need two parameters to Init(), as only tableClassName should go through the mapper)
-            if (tableName == null)
-            {
-                // Class-based table name is taken from the user's subclass name if they have made a subclass
-                tableClassName = this.GetType().Name;
-                if (tableClassName == $"{nameof(MightyOrm<T>)}`1")
-                {
-                    // Or from the generic type T's type name if not
-                    tableClassName = typeof(T).Name;
-                }
-            }
-
-            Init(connectionString, tableName, tableClassName, keys,
+            Init(connectionString, tableName, keys,
                 valueField,
                 sequence, columns, validator, mapper, profiler, propertyBindingFlags, connectionProvider);
         }
@@ -259,22 +218,7 @@ namespace Mighty
             // If this has been called as part of constructing MightyOrm (non-generic), then return immediately and let that constructor do all the work
             if (this is MightyOrm) return;
 
-            string tableClassName = null;
-
-            // save a little bit of work when we know we won't need the class name
-            // (but we still need two parameters to Init(), as only tableClassName should go through the mapper)
-            if (tableName == null)
-            {
-                // Class-based table name is taken from the user's subclass name if they have made a subclass
-                tableClassName = this.GetType().Name;
-                if (tableClassName == $"{nameof(MightyOrm<T>)}`1")
-                {
-                    // Or from the generic type T's type name if not
-                    tableClassName = typeof(T).Name;
-                }
-            }
-
-            Init(connectionString, tableName, tableClassName, keys,
+            Init(connectionString, tableName, keys,
                 sequence, columns, validator, mapper, profiler, propertyBindingFlags, connectionProvider);
         }
 #endif
@@ -307,7 +251,6 @@ namespace Mighty
         // before saving an object)
         internal void Init(string connectionString,
                          string tableName,
-                         string tableClassName,
                          string keys,
 #if KEY_VALUES
                          string valueField,
@@ -329,19 +272,73 @@ namespace Mighty
             SqlProfiler = xprofiler ?? GlobalSqlProfiler ?? MightyOrm.GlobalSqlProfiler ?? new NullProfiler();
             SqlMapper = xmapper ?? GlobalSqlMapper ?? MightyOrm.GlobalSqlMapper ?? new NullMapper();
 
-            if (!UseExpando)
+            SetConnection(connectionString, connectionProvider);
+
+            Type tableClass = GetTableClass();
+
+            SetTableName(tableName, tableClass);
+
+            SetKeys(keys, tableClass);
+
+#if KEY_VALUES
+            SetValueField(valueField);
+#endif
+
+            SetSequence(sequence);
+
+            // Must be called after SetKeys
+            SetColumns(propertyBindingFlags, columns);
+
+#if DYNAMIC_METHODS
+            // Add dynamic method support (mainly for compatibility with Massive)
+            // TO DO: This line shouldn't be here, as it's so intimately tied to code in DynamicMethodProvider
+            DynamicObjectWrapper = new DynamicMethodProvider<T>(this);
+#endif
+        }
+
+        /// <summary>
+        /// Sort out the class to use (if any) for this instance of Mighty
+        /// </summary>
+        /// <returns></returns>
+        private Type GetTableClass()
+        {
+            Type tableClass = null;
+
+            if (UseExpando)
             {
-                InitialiseTypeProperties(propertyBindingFlags);
+                // Subclass-based name overrides for dynamic version of MightyOrm
+                tableClass = this.GetType();
+                // leave tableClass unset if we are not a true sub-class;
+                // this test enforces strict sub-class (i.e. does not pass for an instance of the class itself)
+                if (!tableClass
+#if !NETFRAMEWORK
+                .GetTypeInfo()
+#endif
+                .IsSubclassOf(typeof(MightyOrm)))
+                {
+                    tableClass = null;
+                }
+            }
+            else
+            {
+                // Always use generic class-based name overrides for generic version
+                // (We were using the class itself if it was a strict sub-class, but that doesn't make sense for the generic version)
+                tableClass = typeof(T);
             }
 
+            return tableClass;
+        }
+
+        private void SetTableName(string tableName, Type tableClass)
+        {
             if (tableName != null)
             {
                 // an empty string can be used to force not using the sub-class name
                 TableName = tableName == "" ? null : tableName;
             }
-            else if (tableClassName != null)
+            else if (tableClass != null)
             {
-                TableName = SqlMapper.GetTableNameFromClassName(tableClassName);
+                TableName = SqlMapper.GetTableNameFromClassType(tableClass);
             }
 
             if (TableName != null)
@@ -353,7 +350,10 @@ namespace Mighty
                 }
                 BareTableName = TableName.Substring(i + 1);
             }
+        }
 
+        private void SetConnection(string connectionString, ConnectionProvider connectionProvider)
+        {
             if (connectionProvider == null)
             {
 #if NETFRAMEWORK
@@ -380,10 +380,13 @@ namespace Mighty
             Type pluginType = connectionProvider.DatabasePluginType;
             Plugin = (PluginBase)Activator.CreateInstance(pluginType, false);
             Plugin.Mighty = this;
+        }
 
-            if (keys == null && TableName != null)
+        private void SetKeys(string keys, Type tableClass)
+        {
+            if (keys == null && tableClass != null)
             {
-                keys = SqlMapper.GetPrimaryKeyFieldFromClassName(TableName);
+                keys = SqlMapper.GetPrimaryKeysFromClassType(tableClass);
             }
             PrimaryKeyFields = keys;
             if (keys == null)
@@ -394,19 +397,17 @@ namespace Mighty
             {
                 PrimaryKeyList = keys.Split(',').Select(k => k.Trim()).ToList();
             }
-            if (columns == null || columns == "*")
-            {
-                // If generic, columns have been set to type columns already
-                if (UseExpando) Columns = "*";
-            }
-            else
-            {
-                ColumnList = columns.Split(',').Select(column => SqlMapper.GetColumnNameFromPropertyName(typeof(T), column)).ToList();
-                Columns = columns == null || columns == "*" ? "*" : string.Join(",", ColumnList);
-            }
+        }
+
 #if KEY_VALUES
-            ValueField = string.IsNullOrEmpty(valueField) ? null : SqlMapper.GetColumnNameFromPropertyName(typeof(T), valueField);
+        private void SetValueField(string valueField)
+        {
+            ValueField = string.IsNullOrEmpty(valueField) ? null : SqlMapper.GetColumnNameFromField(typeof(T), valueField);
+        }
 #endif
+
+        private void SetSequence(string sequence)
+        {
             // At the end of this next block of code, SequenceNameOrIdentityFunction should only be non-null if we
             // are actually expecting to use it later (which entails a simple (single column) PK).
 
@@ -443,34 +444,67 @@ namespace Mighty
                     }
                 }
             }
-
-#if DYNAMIC_METHODS
-            // Add dynamic method support (mainly for compatibility with Massive)
-            // TO DO: This line shouldn't be here, as it's so intimately tied to code in DynamicMethodProvider
-            DynamicObjectWrapper = new DynamicMethodProvider<T>(this);
-#endif
         }
 
         /// <summary>
-        /// Store column names and their respective reflected <see cref="PropertyInfo"/> values as defined by the generic type <typeparamref name="T"/>.
+        /// Store column names and their respective reflected <see cref="PropertyInfo"/> values as defined
+        /// by the generic type <typeparamref name="T"/> or the user's columns list.
         /// </summary>
         /// <param name="propertyBindingFlags">Which properties to access</param>
-        protected void InitialiseTypeProperties(BindingFlags propertyBindingFlags)
+        /// <param name="columns">The list of column field names</param>
+        protected void SetColumns(BindingFlags propertyBindingFlags, string columns)
         {
-            columnNameToPropertyInfo = new Dictionary<string, PropertyInfo>(SqlMapper.UseCaseInsensitiveMapping ? StringComparer.OrdinalIgnoreCase : StringComparer.Ordinal);
+            const string missingPropertyErrorMesssage = "Specified {0} should be an exact match (including case) for a public property in {1}";
+
+            columnNameToPropertyInfo = new Dictionary<string, PropertyInfo>(SqlMapper.UseCaseSensitiveMapping() ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
             ColumnList = new List<string>();
-            foreach (var prop in typeof(T).GetProperties(propertyBindingFlags))
+
+            if (columns == null || columns == "*")
             {
-                var columnName = SqlMapper.GetColumnNameFromPropertyName(typeof(T), prop.Name);
-                columnNameToPropertyInfo.Add(columnName, prop);
-                ColumnList.Add(columnName);
+                if (!UseExpando)
+                {
+                    foreach (var prop in typeof(T).GetProperties(propertyBindingFlags))
+                    {
+                        var sqlColumnName = SqlMapper.GetColumnNameFromField(typeof(T), prop.Name);
+                        columnNameToPropertyInfo.Add(sqlColumnName, prop);
+                        ColumnList.Add(sqlColumnName);
+                    }
+                }
             }
-            Columns = string.Join(",", ColumnList);
+            else
+            {
+                foreach (var column in columns.Split(',').Select(column => column.Trim()))
+                {
+                    var sqlColumnName = SqlMapper.GetColumnNameFromField(typeof(T), column);
+                    if (!UseExpando)
+                    {
+                        var prop = typeof(T).GetProperty(column, propertyBindingFlags);
+                        if (prop == null)
+                        {
+                            throw new InvalidOperationException(string.Format(missingPropertyErrorMesssage, $"column {column}", typeof(T).FullName));
+                        }
+                        columnNameToPropertyInfo.Add(sqlColumnName, prop);
+                    }
+                    ColumnList.Add(sqlColumnName);
+                }
+            }
+            if (ColumnList.Count == 0)
+            {
+                Columns = "*";
+                ColumnList = null;
+            }
+            else
+            {
+                Columns = string.Join(",", ColumnList);
+            }
 
             // SequenceNameOrIdentityFunction is only left at non-null when there is a single PK
-            if (SequenceNameOrIdentityFunction != null)
+            if (!UseExpando && SequenceNameOrIdentityFunction != null)
             {
-                pkProperty = columnNameToPropertyInfo[PrimaryKeyFields];
+                if (!columnNameToPropertyInfo.TryGetValue(PrimaryKeyFields, out pkProperty))
+                {
+                    throw new InvalidOperationException(string.Format(missingPropertyErrorMesssage, $"primary key field {PrimaryKeyFields}", typeof(T).FullName));
+                }
             }
         }
 #endregion
@@ -598,7 +632,7 @@ namespace Mighty
             Dictionary<string, object> columnNameToValue = new Dictionary<string, object>();
             foreach (var nvtInfo in nvtEnumerator)
             {
-                string columnName = SqlMapper.GetColumnNameFromPropertyName(typeof(T), nvtInfo.Name);
+                string columnName = SqlMapper.GetColumnNameFromField(typeof(T), nvtInfo.Name);
                 PropertyInfo columnInfo;
                 if (!columnNameToPropertyInfo.TryGetValue(columnName, out columnInfo)) continue;
                 columnNameToValue.Add(columnName, nvtInfo.Value);
@@ -1259,7 +1293,7 @@ namespace Mighty
             canonicalKeyName = null;
             foreach (var key in PrimaryKeyList)
             {
-                if (key.Equals(fieldName, SqlMapper.UseCaseInsensitiveMapping ? StringComparison.OrdinalIgnoreCase : StringComparison.Ordinal))
+                if (key.Equals(fieldName, SqlMapper.UseCaseSensitiveMapping() ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase))
                 {
                     canonicalKeyName = key;
                     return true;
@@ -1430,7 +1464,7 @@ namespace Mighty
             // Use (mapped) names as column names and values as values
             foreach (var paramInfo in enumerator)
             {
-                string name = SqlMapper.GetColumnNameFromPropertyName(typeof(T), paramInfo.Name);
+                string name = SqlMapper.GetColumnNameFromField(typeof(T), paramInfo.Name);
                 wherePredicates.Add(string.Format("{0} = {1}", name, Plugin.PrefixParameterName(name)));
                 nameValueDictionary.Add(name, paramInfo.Value);
             }
