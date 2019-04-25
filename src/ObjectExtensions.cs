@@ -31,7 +31,7 @@ namespace Mighty
             if (oAsExpando != null) return oAsExpando;
             var result = new ExpandoObject();
             var dict = result.ToDictionary();
-            foreach (var info in new NameValueTypeEnumerator(o))
+            foreach (var info in new NameValueTypeEnumerator(null, o))
             {
                 dict.Add(info.Name, info.Value);
             }

@@ -25,14 +25,16 @@ namespace Mighty.Parameters
         private readonly object _o;
         private readonly ParameterDirection? _direction;
         private readonly OrmAction? _action;
+        private readonly dynamic _mighty;
 
         internal ParameterInfo Current { get; set; }
 
-        internal NameValueTypeEnumerator(object o, ParameterDirection? direction = null, OrmAction? action = null)
+        internal NameValueTypeEnumerator(object mighty, object o, ParameterDirection? direction = null, OrmAction? action = null)
         {
             _o = o;
             _direction = direction;
             _action = action;
+            _mighty = mighty;
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -185,20 +187,35 @@ namespace Mighty.Parameters
                 yield break;
             }
 
-            // names, values and types from properties of anonymous object or POCOs
-            // TO DO: Needs bindingFlags support
-            foreach (var member in _o.GetType().GetMembers().Where(m => m is FieldInfo || m is PropertyInfo))
+            // Detect if the object type is T, and only if it is do a loop over T's stored set of members instead, which
+            // reflects columns and bindingFlags. (So everything except T will always use members public only - perfect!)
+            if (_mighty != null && _mighty.IsGenericT(_o)) // cannot coalesce to ?. because _mighty is dynamic
             {
-                var property = member as PropertyInfo;
-                if (property != null)
+                foreach (KeyValuePair<string, MemberInfo> kv in _mighty.columnNameToMemberInfo)
                 {
-                    yield return new LazyNameValueTypeInfo(property.Name, () => property.GetValue(_o), property.PropertyType);
+                    var member = kv.Value;
+                    var field = member as FieldInfo;
+                    if (field != null)
+                    {
+                        yield return new LazyNameValueTypeInfo(field.Name, () => field.GetValue(_o), field.FieldType);
+                    }
+                    var property = member as PropertyInfo;
+                    if (property != null)
+                    {
+                        yield return new LazyNameValueTypeInfo(property.Name, () => property.GetValue(_o), property.PropertyType);
+                    }
                 }
-                var field = member as FieldInfo;
-                if (field != null)
-                {
-                    yield return new LazyNameValueTypeInfo(field.Name, () => field.GetValue(_o), field.FieldType);
-                }
+                yield break;
+            }
+
+            // names, values and types from fields and properties of anonymous object or other POCO
+            foreach (var field in _o.GetType().GetFields())
+            {
+                 yield return new LazyNameValueTypeInfo(field.Name, () => field.GetValue(_o), field.FieldType);
+            }
+            foreach (var property in _o.GetType().GetProperties())
+            {
+                yield return new LazyNameValueTypeInfo(property.Name, () => property.GetValue(_o), property.PropertyType);
             }
         }
     }

@@ -531,12 +531,12 @@ namespace Mighty
         /// <summary>
         /// The reflected <see cref="MemberInfo"/> from <typeparamref name="T"/> for all specified columns in the database table.
         /// </summary>
-        protected Dictionary<string, MemberInfo> columnNameToMemberInfo;
+        protected internal Dictionary<string, MemberInfo> columnNameToMemberInfo;
 
         /// <summary>
         /// For a single primary key only, the reflected <see cref="MemberInfo"/> corresponding the the primary key field in <typeparamref name="T"/>.
         /// </summary>
-        protected MemberInfo pkMemberInfo;
+        protected internal MemberInfo pkMemberInfo;
 #endregion
 
 #region Thread-safe initializer for table meta-data
@@ -631,7 +631,7 @@ namespace Mighty
         /// <returns></returns>
         override public T New(object nameValues = null, bool addNonPresentAsDefaults = true)
         {
-            var nvtEnumerator = new NameValueTypeEnumerator(nameValues);
+            var nvtEnumerator = new NameValueTypeEnumerator(this, nameValues);
             Dictionary<string, object> columnNameToValue = new Dictionary<string, object>();
             foreach (var nvtInfo in nvtEnumerator)
             {
@@ -876,7 +876,7 @@ namespace Mighty
         override public bool HasPrimaryKey(object item)
         {
             int count = 0;
-            foreach (var info in new NameValueTypeEnumerator(item))
+            foreach (var info in new NameValueTypeEnumerator(this, item))
             {
                 if (IsKey(info.Name)) count++;
             }
@@ -893,7 +893,7 @@ namespace Mighty
         {
             var pks = new ExpandoObject();
             var pkDictionary = pks.ToDictionary();
-            foreach (var info in new NameValueTypeEnumerator(item))
+            foreach (var info in new NameValueTypeEnumerator(this, item))
             {
                 string canonicalKeyName;
                 if (IsKey(info.Name, out canonicalKeyName)) pkDictionary.Add(canonicalKeyName, info.Value);
@@ -1016,7 +1016,7 @@ namespace Mighty
         protected void AppendRowCountResults(int rowCount, object outParams, dynamic results)
         {
             var dictionary = ((ExpandoObject)results).ToDictionary();
-            foreach (var paramInfo in new NameValueTypeEnumerator(outParams, ParameterDirection.Input))
+            foreach (var paramInfo in new NameValueTypeEnumerator(this, outParams, ParameterDirection.Input))
             {
                 if (paramInfo.Value is RowCount)
                 {
@@ -1117,7 +1117,7 @@ namespace Mighty
             var argsItemDict = argsItem.ToDictionary();
             var count = 0;
 
-            foreach (var nvt in new NameValueTypeEnumerator(item, action: originalAction))
+            foreach (var nvt in new NameValueTypeEnumerator(this, item, action: originalAction))
             {
                 var name = nvt.Name;
                 if (name == string.Empty)
@@ -1268,7 +1268,7 @@ namespace Mighty
                 return item;
             }
             // Write field back to POCO of type T
-            if (!UseExpando && item is T && pkMemberInfo != null)
+            if (IsGenericT(item) && pkMemberInfo != null)
             {
                 pkMemberInfo.SetValue(item, pk);
                 return item;
@@ -1282,6 +1282,16 @@ namespace Mighty
                 return result;
             }
             return null;
+        }
+
+        /// <summary>
+        /// Returns true if this is an instance or sublass of <see cref="MightyOrm{T}"/> and <paramref name="item"/> is of type T.
+        /// </summary>
+        /// <param name="item">The object to check</param>
+        /// <returns></returns>
+        protected internal bool IsGenericT(object item)
+        {
+            return !UseExpando && item is T;
         }
 
         /// <summary>
@@ -1423,7 +1433,7 @@ namespace Mighty
                 return false;
             }
             bool containsRowCount = false;
-            foreach (var paramInfo in new NameValueTypeEnumerator(nameValuePairs, direction))
+            foreach (var paramInfo in new NameValueTypeEnumerator(this, nameValuePairs, direction))
             {
                 if (pkFilter == PkFilter.DoNotFilter || (IsKey(paramInfo.Name) == (pkFilter == PkFilter.KeysOnly)))
                 {
@@ -1455,7 +1465,7 @@ namespace Mighty
             var nameValueArgs = new ExpandoObject();
             var nameValueDictionary = nameValueArgs.ToDictionary();
 
-            var enumerator = new NameValueTypeEnumerator(whereParams);
+            var enumerator = new NameValueTypeEnumerator(this, whereParams);
 
             // If no value names in the whereParams, map the values to the primary key(s)
             if (!enumerator.HasNames())

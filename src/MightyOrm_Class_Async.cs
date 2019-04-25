@@ -156,7 +156,7 @@ namespace Mighty
             params object[] args)
         {
             var setValues = new StringBuilder();
-            var partialItemParameters = new NameValueTypeEnumerator(partialItem);
+            var partialItemParameters = new NameValueTypeEnumerator(this, partialItem);
             // TO DO: Test that this combinedInputParams approach works
             var combinedInputParams = inParams?.ToExpando() ?? new ExpandoObject();
             var toDict = combinedInputParams.ToDictionary();
