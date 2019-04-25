@@ -51,14 +51,16 @@ namespace Mighty
 #endif
 
         /// <summary>
-        /// Fixup for slightly weird way that runtime refuses to convert from t to t? (which should surely be trivial?)
+        /// This was added to fix up the slightly weird way that runtime refuses to convert from T to T? (which should surely be trivial?);
+        /// but it's now also a place where a useful exception message is thrown if incompatible types for a given field come back from the DB.
         /// </summary>
         /// <param name="value">The value</param>
         /// <param name="t">The type</param>
         /// <returns></returns>
         /// <remarks>http://stackoverflow.com/q/18015425/</remarks>
-        internal static object ChangeType(this object value, Type t)
+        internal static object ChangeType(this object value, PropertyInfo p)
         {
+            var t = p.PropertyType;
             if (t
 #if !NETFRAMEWORK
                 .GetTypeInfo()
@@ -71,7 +73,14 @@ namespace Mighty
                 }
                 t = Nullable.GetUnderlyingType(t);
             }
-            return Convert.ChangeType(value, t);
+            try
+            {
+                return Convert.ChangeType(value, t);
+            }
+            catch (FormatException)
+            {
+                throw new FormatException($"Cannot convert {value.GetType().Name} value for {p.DeclaringType.Name}.{p.Name} to {t.Name}");
+            }
         }
 
         /// <summary>

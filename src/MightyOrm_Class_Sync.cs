@@ -445,7 +445,7 @@ namespace Mighty
                                                 var v = rowValues[i];
                                                 if (propertyInfo[i] != null)
                                                 {
-                                                    propertyInfo[i].SetValue(t, v == DBNull.Value ? null : v.ChangeType(propertyInfo[i].PropertyType));
+                                                    propertyInfo[i].SetValue(t, v == DBNull.Value ? null : v.ChangeType(propertyInfo[i]));
                                                 }
                                             }
                                             yield return (X)(object)t;

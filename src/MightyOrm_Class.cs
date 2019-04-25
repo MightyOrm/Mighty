@@ -663,7 +663,7 @@ namespace Mighty
                 }
                 if (value != null)
                 {
-                    if (prop != null) prop.SetValue(item, value.ChangeType(prop.PropertyType));
+                    if (prop != null) prop.SetValue(item, value.ChangeType(prop));
                     else newItemDictionary.Add(columnName, value);
                 }
             }
