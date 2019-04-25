@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Data;
 using System.Dynamic;
+using System.Linq;
 using System.Reflection;
 
 using Mighty.Validation;
@@ -185,9 +186,19 @@ namespace Mighty.Parameters
             }
 
             // names, values and types from properties of anonymous object or POCOs
-            foreach (PropertyInfo property in _o.GetType().GetProperties())
+            // TO DO: Needs bindingFlags support
+            foreach (var member in _o.GetType().GetMembers().Where(m => m is FieldInfo || m is PropertyInfo))
             {
-                yield return new LazyNameValueTypeInfo(property.Name, () => property.GetValue(_o), property.PropertyType);
+                var property = member as PropertyInfo;
+                if (property != null)
+                {
+                    yield return new LazyNameValueTypeInfo(property.Name, () => property.GetValue(_o), property.PropertyType);
+                }
+                var field = member as FieldInfo;
+                if (field != null)
+                {
+                    yield return new LazyNameValueTypeInfo(field.Name, () => field.GetValue(_o), field.FieldType);
+                }
             }
         }
     }

@@ -7,14 +7,15 @@ using Mighty.Validation;
 
 namespace Mighty.Generic.Tests.MySql.TableClasses
 {
+    // Test fields
     public class Film
     {
 #pragma warning disable IDE1006
-        public int film_id { get; set; }
-        public int rental_duration { get; set; }
-        public DateTime last_update { get; set; }
-        public string description { get; set; }
-        public int language_id { get; set; }
+        public int film_id;
+        public int rental_duration;
+        public DateTime last_update;
+        public string description;
+        public int language_id;
 #pragma warning restore IDE1006
     }
 

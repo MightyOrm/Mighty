@@ -5,11 +5,12 @@ using System.Text;
 
 namespace Mighty.Generic.Tests.SqlServer.TableClasses
 {
+    // Test fields instead of properties
     public class Category
     {
-        public int CategoryID { get; set; }
-        public string CategoryName { get; set; }
-        public string Description { get; set; }
+        public int CategoryID;
+        public string CategoryName;
+        public string Description;
     }
 
     public class Categories : MightyOrm<Category>

@@ -397,10 +397,10 @@ namespace Mighty
                                     // this is for dynamic support
                                     string[] columnNames = null;
                                     // this is for generic<T> support
-                                    PropertyInfo[] propertyInfo = null;
+                                    MemberInfo[] memberInfo = null;
 
                                     if (UseExpando) columnNames = new string[fieldCount];
-                                    else propertyInfo = new PropertyInfo[fieldCount];
+                                    else memberInfo = new MemberInfo[fieldCount];
 
                                     // for generic, we need array of properties to set; we find this
                                     // from fieldNames array, using a look up from lowered name -> property
@@ -420,7 +420,7 @@ namespace Mighty
                                         else
                                         {
                                             // leaves as null if no match
-                                            columnNameToPropertyInfo.TryGetValue(columnName, out propertyInfo[i]);
+                                            columnNameToMemberInfo.TryGetValue(columnName, out memberInfo[i]);
                                         }
                                     }
                                     while (useReader.Read())
@@ -443,10 +443,7 @@ namespace Mighty
                                             for (int i = 0; i < fieldCount; i++)
                                             {
                                                 var v = rowValues[i];
-                                                if (propertyInfo[i] != null)
-                                                {
-                                                    propertyInfo[i].SetValue(t, v == DBNull.Value ? null : v.ChangeType(propertyInfo[i]));
-                                                }
+                                                memberInfo[i]?.SetValue(t, v == DBNull.Value ? null : v);
                                             }
                                             yield return (X)(object)t;
                                         }

@@ -163,7 +163,7 @@ namespace Mighty
         /// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
         /// <param name="profiler">Optional SQL profiler</param>
         /// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyOrm)</param>
-        /// <param name="propertyBindingFlags">Specify which properties should be managed by the ORM</param>
+        /// <param name="bindingFlags">Specify which properties should be managed by the ORM (BindingFlags.Instance is always added)</param>
         public MightyOrm(string connectionString = null,
                          string tableName = null,
                          string keys = null,
@@ -174,14 +174,14 @@ namespace Mighty
                          SqlNamingMapper mapper = null,
                          SqlProfiler profiler = null,
                          ConnectionProvider connectionProvider = null,
-                         BindingFlags propertyBindingFlags = BindingFlags.Instance | BindingFlags.Public)
+                         BindingFlags bindingFlags = BindingFlags.Public)
         {
             // If this has been called as part of constructing MightyOrm (non-generic), then return immediately and let that constructor do all the work
             if (this is MightyOrm) return;
 
             Init(connectionString, tableName, keys,
                 valueField,
-                sequence, columns, validator, mapper, profiler, propertyBindingFlags, connectionProvider);
+                sequence, columns, validator, mapper, profiler, bindingFlags, connectionProvider);
         }
 #else
         /// <summary>
@@ -203,7 +203,7 @@ namespace Mighty
         /// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
         /// <param name="profiler">Optional SQL profiler</param>
         /// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyOrm)</param>
-        /// <param name="propertyBindingFlags">Specify which properties should be managed by the ORM</param>
+        /// <param name="bindingFlags">Specify which properties should be managed by the ORM (BindingFlags.Instance is always added)</param>
         public MightyOrm(string connectionString = null,
                          string tableName = null,
                          string keys = null,
@@ -213,13 +213,13 @@ namespace Mighty
                          SqlNamingMapper mapper = null,
                          SqlProfiler profiler = null,
                          ConnectionProvider connectionProvider = null,
-                         BindingFlags propertyBindingFlags = BindingFlags.Instance | BindingFlags.Public)
+                         BindingFlags bindingFlags = BindingFlags.Public)
         {
             // If this has been called as part of constructing MightyOrm (non-generic), then return immediately and let that constructor do all the work
             if (this is MightyOrm) return;
 
             Init(connectionString, tableName, keys,
-                sequence, columns, validator, mapper, profiler, propertyBindingFlags, connectionProvider);
+                sequence, columns, validator, mapper, profiler, bindingFlags, connectionProvider);
         }
 #endif
         #endregion
@@ -260,7 +260,7 @@ namespace Mighty
                          Validator xvalidator,
                          SqlNamingMapper xmapper,
                          SqlProfiler xprofiler,
-                         BindingFlags propertyBindingFlags,
+                         BindingFlags bindingFlags,
                          ConnectionProvider connectionProvider)
         {
             // Slightly hacky, works round the fact that static items are not shared between differently typed classes of the same generic type:
@@ -287,7 +287,7 @@ namespace Mighty
             SetSequence(sequence);
 
             // Must be called after SetKeys
-            SetColumns(propertyBindingFlags, columns);
+            SetColumns(bindingFlags, columns);
 
 #if DYNAMIC_METHODS
             // Add dynamic method support (mainly for compatibility with Massive)
@@ -447,26 +447,28 @@ namespace Mighty
         }
 
         /// <summary>
-        /// Store column names and their respective reflected <see cref="PropertyInfo"/> values as defined
-        /// by the generic type <typeparamref name="T"/> or the user's columns list.
+        /// Store column names and their respective reflected <see cref="MemberInfo"/> as defined
+        /// by the generic type <typeparamref name="T"/> or by the user's columns list.
         /// </summary>
-        /// <param name="propertyBindingFlags">Which properties to access</param>
+        /// <param name="bindingFlags">Which properties to access</param>
         /// <param name="columns">The list of column field names</param>
-        protected void SetColumns(BindingFlags propertyBindingFlags, string columns)
+        protected void SetColumns(BindingFlags bindingFlags, string columns)
         {
             const string missingPropertyErrorMesssage = "Specified {0} should be an exact match (including case) for a public property in {1}";
 
-            columnNameToPropertyInfo = new Dictionary<string, PropertyInfo>(SqlMapper.UseCaseSensitiveMapping() ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
+            bindingFlags |= BindingFlags.Instance;
+
+            columnNameToMemberInfo = new Dictionary<string, MemberInfo>(SqlMapper.UseCaseSensitiveMapping() ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
             ColumnList = new List<string>();
 
             if (columns == null || columns == "*")
             {
                 if (!UseExpando)
                 {
-                    foreach (var prop in typeof(T).GetProperties(propertyBindingFlags))
+                    foreach (var member in typeof(T).GetMembers(bindingFlags).Where(m => m is FieldInfo || m is PropertyInfo))
                     {
-                        var sqlColumnName = SqlMapper.GetColumnNameFromField(typeof(T), prop.Name);
-                        columnNameToPropertyInfo.Add(sqlColumnName, prop);
+                        var sqlColumnName = SqlMapper.GetColumnNameFromField(typeof(T), member.Name);
+                        columnNameToMemberInfo.Add(sqlColumnName, member);
                         ColumnList.Add(sqlColumnName);
                     }
                 }
@@ -478,12 +480,12 @@ namespace Mighty
                     var sqlColumnName = SqlMapper.GetColumnNameFromField(typeof(T), column);
                     if (!UseExpando)
                     {
-                        var prop = typeof(T).GetProperty(column, propertyBindingFlags);
-                        if (prop == null)
+                        var member = typeof(T).GetMember(column, bindingFlags);
+                        if (member.Count() != 1)
                         {
                             throw new InvalidOperationException(string.Format(missingPropertyErrorMesssage, $"column {column}", typeof(T).FullName));
                         }
-                        columnNameToPropertyInfo.Add(sqlColumnName, prop);
+                        columnNameToMemberInfo.Add(sqlColumnName, member[0]);
                     }
                     ColumnList.Add(sqlColumnName);
                 }
@@ -498,10 +500,11 @@ namespace Mighty
                 Columns = string.Join(",", ColumnList);
             }
 
-            // SequenceNameOrIdentityFunction is only left at non-null when there is a single PK
+            // SequenceNameOrIdentityFunction is only left at non-null when there is a single PK,
+            // and we only want to write to the PK when there is a SequenceNameOrIdentityFunction
             if (!UseExpando && SequenceNameOrIdentityFunction != null)
             {
-                if (!columnNameToPropertyInfo.TryGetValue(PrimaryKeyFields, out pkProperty))
+                if (!columnNameToMemberInfo.TryGetValue(PrimaryKeyFields, out pkMemberInfo))
                 {
                     throw new InvalidOperationException(string.Format(missingPropertyErrorMesssage, $"primary key field {PrimaryKeyFields}", typeof(T).FullName));
                 }
@@ -526,14 +529,14 @@ namespace Mighty
         }
 
         /// <summary>
-        /// The reflected <see cref="PropertyInfo"/> from <typeparamref name="T"/> for all specified columns in the database table.
+        /// The reflected <see cref="MemberInfo"/> from <typeparamref name="T"/> for all specified columns in the database table.
         /// </summary>
-        protected Dictionary<string, PropertyInfo> columnNameToPropertyInfo;
+        protected Dictionary<string, MemberInfo> columnNameToMemberInfo;
 
         /// <summary>
-        /// For a single primary key only, the reflected <see cref="PropertyInfo"/> corresponding the the primary key field in <typeparamref name="T"/>.
+        /// For a single primary key only, the reflected <see cref="MemberInfo"/> corresponding the the primary key field in <typeparamref name="T"/>.
         /// </summary>
-        protected PropertyInfo pkProperty;
+        protected MemberInfo pkMemberInfo;
 #endregion
 
 #region Thread-safe initializer for table meta-data
@@ -633,8 +636,8 @@ namespace Mighty
             foreach (var nvtInfo in nvtEnumerator)
             {
                 string columnName = SqlMapper.GetColumnNameFromField(typeof(T), nvtInfo.Name);
-                PropertyInfo columnInfo;
-                if (!columnNameToPropertyInfo.TryGetValue(columnName, out columnInfo)) continue;
+                MemberInfo columnInfo;
+                if (!columnNameToMemberInfo.TryGetValue(columnName, out columnInfo)) continue;
                 columnNameToValue.Add(columnName, nvtInfo.Value);
             }
             object item;
@@ -653,8 +656,8 @@ namespace Mighty
             {
                 if (!columnInfo.IS_MIGHTY_COLUMN) continue;
                 string columnName = columnInfo.COLUMN_NAME;
-                PropertyInfo prop = null;
-                if (!UseExpando) prop = columnNameToPropertyInfo[columnName]; // meta-data already filtered to props only
+                MemberInfo member = null;
+                if (!UseExpando) member = columnNameToMemberInfo[columnName]; // meta-data already filtered to props only
                 object value;
                 if (!columnNameToValue.TryGetValue(columnName, out value))
                 {
@@ -663,7 +666,7 @@ namespace Mighty
                 }
                 if (value != null)
                 {
-                    if (prop != null) prop.SetValue(item, value.ChangeType(prop));
+                    if (member != null) member.SetValue(item, value);
                     else newItemDictionary.Add(columnName, value);
                 }
             }
@@ -1264,11 +1267,10 @@ namespace Mighty
                 nvc[PrimaryKeyFields] = pk.ToString();
                 return item;
             }
-            // Try to write back field to arbitrary POCO
-            var pkProp = item.GetType().GetProperty(PrimaryKeyFields);
-            if (pkProp != null && pkProp.CanWrite)
+            // Write field back to POCO of type T
+            if (!UseExpando && item is T && pkMemberInfo != null)
             {
-                pkProp.SetValue(item, pk);
+                pkMemberInfo.SetValue(item, pk);
                 return item;
             }
             if (createIfNeeded)

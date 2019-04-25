@@ -38,6 +38,19 @@ namespace Mighty.Generic.Tests.MySql
 
 
         [Test]
+        public void Insert_FromNew()
+        {
+            var categories = new Categories(ProviderName);
+            var toInsert = categories.New();
+            toInsert.CategoryName = "Cool stuff";
+            toInsert.Description = "You know... cool stuff! Cool. n. stuff.";
+            var inserted = categories.Insert(toInsert);
+            int insertedCategoryID = inserted.CategoryID;
+            Assert.IsTrue(insertedCategoryID > 0);
+        }
+
+
+        [Test]
         public void Insert_MultipleRows()
         {
             var categories = new Categories(ProviderName);

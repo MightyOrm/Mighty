@@ -18,7 +18,20 @@ namespace Mighty.Generic.Tests.SqlServer
         public void Insert_SingleRow()
         {
             var categories = new Categories();
-            var inserted = categories.Insert(new {CategoryName = "Cool stuff", Description = "You know... cool stuff! Cool. n. stuff."});
+            var inserted = categories.Insert(new { CategoryName = "Cool stuff", Description = "You know... cool stuff! Cool. n. stuff." });
+            int insertedCategoryID = inserted.CategoryID;
+            Assert.IsTrue(insertedCategoryID > 0);
+        }
+
+
+        [Test]
+        public void Insert_FromNew()
+        {
+            var categories = new Categories();
+            var toInsert = categories.New();
+            toInsert.CategoryName = "Cool stuff";
+            toInsert.Description = "You know... cool stuff! Cool. n. stuff.";
+            var inserted = categories.Insert(toInsert);
             int insertedCategoryID = inserted.CategoryID;
             Assert.IsTrue(insertedCategoryID > 0);
         }
