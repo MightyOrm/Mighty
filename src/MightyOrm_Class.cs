@@ -465,7 +465,9 @@ namespace Mighty
             {
                 if (!UseExpando)
                 {
-                    foreach (var member in typeof(T).GetMembers(bindingFlags).Where(m => m is FieldInfo || m is PropertyInfo))
+                    foreach (var member in typeof(T).GetMembers(bindingFlags)
+                        .Where(m => m is FieldInfo || m is PropertyInfo)
+                        .Where(m => !m.Name.StartsWith("<"))) // hack to remove backing fields
                     {
                         var sqlColumnName = SqlMapper.GetColumnNameFromField(typeof(T), member.Name);
                         columnNameToMemberInfo.Add(sqlColumnName, member);
