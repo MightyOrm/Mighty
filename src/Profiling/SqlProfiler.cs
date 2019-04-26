@@ -11,31 +11,22 @@ namespace Mighty.Profiling
         /// <summary>
         /// Override here to wrap at the factory level.
         /// </summary>
-        /// <param name="factory">The factory</param>
+        /// <param name="factory">The factory to wrap</param>
         /// <returns></returns>
-        virtual public DbProviderFactory Wrap(DbProviderFactory factory)
-        {
-            return factory;
-        }
+        abstract public DbProviderFactory Wrap(DbProviderFactory factory);
 
         /// <summary>
         /// Override here to wrap at the connection level.
         /// </summary>
-        /// <param name="connection">Optional connection to use</param>
+        /// <param name="connection">The connection to wrap</param>
         /// <returns></returns>
-        virtual public DbConnection Wrap(DbConnection connection)
-        {
-            return connection;
-        }
+        abstract public DbConnection Wrap(DbConnection connection);
 
         /// <summary>
         /// Override here to wrap at the command level.
         /// </summary>
-        /// <param name="command">The command to execute</param>
+        /// <param name="command">The command to wrap</param>
         /// <returns></returns>
-        virtual public DbCommand Wrap(DbCommand command)
-        {
-            return command;
-        }
+        abstract public DbCommand Wrap(DbCommand command);
     }
 }

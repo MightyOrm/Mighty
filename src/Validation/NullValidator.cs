@@ -7,9 +7,9 @@ using System.Threading.Tasks;
 namespace Mighty.Validation
 {
     /// <summary>
-    /// Validator which passes all tests.
+    /// Inject this if you need to inject something for no validation.
     /// </summary>
-    internal class NullValidator : Validator
+    public class NullValidator : Validator
     {
         /// <summary>
         /// Passing validation (i.e. just do not modify the error list)

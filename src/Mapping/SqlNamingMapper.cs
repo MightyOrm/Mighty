@@ -1,8 +1,29 @@
 using System;
+using System.Linq;
 using System.Reflection;
 
 namespace Mighty.Mapping
 {
+    /// <summary>
+    /// Extension methods for <see cref="SqlNamingMapper"/>.
+    /// </summary>
+    static public partial class ObjectExtensions
+    {
+        /// <summary>
+        /// Useful alias which maps one or more field names in a comma separated list
+        /// using <see cref="SqlNamingMapper.GetColumnNameFromField(Type, string)"/>.
+        /// This should be useful to help create SQL fragments to pass in to <see cref="MightyOrm{T}"/>.
+        /// </summary>
+        /// <param name="mapper">The <see cref="SqlNamingMapper"/></param>
+        /// <param name="classType">The class type</param>
+        /// <param name="fieldNames">The property name</param>
+        /// <returns></returns>
+        static public string Map(this SqlNamingMapper mapper, Type classType, string fieldNames)
+        {
+            return string.Join(", ", fieldNames.Split(',').Select(n => n.Trim()).Select(n => mapper.GetColumnNameFromField(classType, n)));
+        }
+    }
+
     /// <summary>
     /// Implement this abstract class and pass an instance of it to the constructor of <see cref="MightyOrm"/> in order to get Mighty
     /// to do mapping between C# field names and SQL column names.
