@@ -11,7 +11,7 @@ namespace Mighty.Mapping
     {
         /// <summary>
         /// Useful alias which maps one or more field names in a comma separated list
-        /// using <see cref="SqlNamingMapper.GetColumnNameFromField(Type, string)"/>.
+        /// using <see cref="SqlNamingMapper.GetColumnName(Type, string)"/>.
         /// This should be useful to help create SQL fragments to pass in to <see cref="MightyOrm{T}"/>.
         /// </summary>
         /// <param name="mapper">The <see cref="SqlNamingMapper"/></param>
@@ -20,7 +20,7 @@ namespace Mighty.Mapping
         /// <returns></returns>
         static public string Map(this SqlNamingMapper mapper, Type classType, string fieldNames)
         {
-            return string.Join(", ", fieldNames.Split(',').Select(n => n.Trim()).Select(n => mapper.GetColumnNameFromField(classType, n)));
+            return string.Join(", ", fieldNames.Split(',').Select(n => n.Trim()).Select(n => mapper.GetColumnName(classType, n)));
         }
     }
 
@@ -43,23 +43,24 @@ namespace Mighty.Mapping
         /// the generic type T from subclasses or instances of <see cref="MightyOrm{T}"/>,
         /// the subclass from strict subclasses of <see cref="MightyOrm"/>, and not called otherwise.
         /// </summary>
-        /// <param name="classType">The class type</param>
+        /// <param name="type">The class type</param>
         /// <returns></returns>
         /// <remarks>TO DO: should be sent type, so it can look at namespace, etc.</remarks>
-        abstract public string GetTableNameFromClassType(Type classType);
+        abstract public string GetTableName(Type type);
 
         /// <summary>
         /// Get database column name from C# field or property name.
-        /// Default is to return <paramref name="fieldName"/> unmodified.
+        /// Default is to return <paramref name="name"/> unmodified.
         /// This method is passed
         /// the generic type T from subclasses or instances of <see cref="MightyOrm{T}"/>,
         /// the subclass from strict subclasses of <see cref="MightyOrm"/>, and not called otherwise.
         /// </summary>
-        /// <param name="classType">The class type</param>
-        /// <param name="fieldName">The property name</param>
+        /// <param name="type">The class type</param>
+        /// <param name="member">The field or property</param>
+        /// <param name="name">The property name</param>
         /// <returns></returns>
         /// <remarks>The field can be from an ExpandoObject, so it might not have a PropertyInfo - which probably means we need typed and untyped mappers</remarks>
-        abstract public string GetColumnNameFromField(Type classType, string fieldName);
+        abstract public string GetColumnName(Type type, MemberInfo member, string name);
 
         /// <summary>
         /// Derive the primary key field name(s) from C# class type.
@@ -69,14 +70,22 @@ namespace Mighty.Mapping
         /// the generic type T from subclasses or instances of <see cref="MightyOrm{T}"/>,
         /// the subclass from strict subclasses of <see cref="MightyOrm"/>, and not called otherwise.
         /// </summary>
-        /// <param name="classType">The class type</param>
+        /// <param name="type">The class type</param>
         /// <returns></returns>
-        abstract public string GetPrimaryKeysFromClassType(Type classType);
+        abstract public string GetPrimaryKeysFromClassType(Type type);
+
+        /// <summary>
+        /// Get the sequence from the class type. Only applicable to sequence-based databases (Oracle and Postgres),
+        /// or if you need to override the default identity function (see Mighty documentation).
+        /// </summary>
+        /// <param name="type">The class type</param>
+        /// <returns></returns>
+        abstract public string GetSequenceFromClassType(Type type);
 
         /// <summary>
         /// Perform database specific quoting (such as "name" -> "[name]" or "name" -> "'name'").
         /// Default is to return <paramref name="id"/> unmodified.
-        /// You should handle quoting identifiers here only, or in <see cref="GetTableNameFromClassType(Type)"/> and <see cref="GetColumnNameFromField(Type, string)"/>, but not both.
+        /// You should handle quoting identifiers here only, or in <see cref="GetTableName(Type)"/> and <see cref="GetColumnName(Type, string)"/>, but not both.
         /// </summary>
         /// <param name="id">The name to be quoted</param>
         /// <returns></returns>

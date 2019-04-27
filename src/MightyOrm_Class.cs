@@ -249,7 +249,7 @@ namespace Mighty
         // keys is a comma separated list; if it has more than one column, you cannot specify sequence or keyRetrievalFunction
         // (if neither sequence nor keyRetrievalFunction are set (which is always the case for compound primary keys), you MUST specify non-null, non-default values for every column in your primary key
         // before saving an object)
-        internal void Init(string connectionString,
+        internal void Init(string xconnectionString,
                          string tableName,
                          string keys,
 #if KEY_VALUES
@@ -267,7 +267,7 @@ namespace Mighty
             // use passed-in item; followed by global item for this particular generic class (if specified); followed by global item for the dynamic class
             // (which is intended to be the place you should use, if specifying one of these globally), followed by null object.
             // (A null connectionString still makes sense in .NET Framework, where ConfigFileConnectionProvider will then use the first user connectionString from app.Config)
-            connectionString = connectionString ?? GlobalConnectionString ?? MightyOrm.GlobalConnectionString ?? null;
+            string connectionString = xconnectionString ?? GlobalConnectionString ?? MightyOrm.GlobalConnectionString ?? null;
             Validator = xvalidator ?? GlobalValidator ?? MightyOrm.GlobalValidator ?? new NullValidator();
             SqlProfiler = xprofiler ?? GlobalSqlProfiler ?? MightyOrm.GlobalSqlProfiler ?? new NullProfiler();
             SqlMapper = xmapper ?? GlobalSqlMapper ?? MightyOrm.GlobalSqlMapper ?? new NullMapper();
@@ -338,7 +338,7 @@ namespace Mighty
             }
             else if (tableClass != null)
             {
-                TableName = SqlMapper.GetTableNameFromClassType(tableClass);
+                TableName = SqlMapper.GetTableName(tableClass);
             }
 
             if (TableName != null)
@@ -402,7 +402,7 @@ namespace Mighty
 #if KEY_VALUES
         private void SetValueField(string valueField)
         {
-            ValueField = string.IsNullOrEmpty(valueField) ? null : SqlMapper.GetColumnNameFromField(typeof(T), valueField);
+            ValueField = string.IsNullOrEmpty(valueField) ? null : SqlMapper.GetColumnName(typeof(T), valueField);
         }
 #endif
 
@@ -469,7 +469,7 @@ namespace Mighty
                         .Where(m => m is FieldInfo || m is PropertyInfo)
                         .Where(m => !m.Name.StartsWith("<"))) // hack to remove backing fields
                     {
-                        var sqlColumnName = SqlMapper.GetColumnNameFromField(typeof(T), member.Name);
+                        var sqlColumnName = SqlMapper.GetColumnName(typeof(T), member.Name);
                         columnNameToMemberInfo.Add(sqlColumnName, member);
                         ColumnList.Add(sqlColumnName);
                     }
@@ -479,7 +479,7 @@ namespace Mighty
             {
                 foreach (var column in columns.Split(',').Select(column => column.Trim()))
                 {
-                    var sqlColumnName = SqlMapper.GetColumnNameFromField(typeof(T), column);
+                    var sqlColumnName = SqlMapper.GetColumnName(typeof(T), column);
                     if (!UseExpando)
                     {
                         var member = typeof(T).GetMember(column, bindingFlags);
@@ -637,7 +637,7 @@ namespace Mighty
             Dictionary<string, object> columnNameToValue = new Dictionary<string, object>();
             foreach (var nvtInfo in nvtEnumerator)
             {
-                string columnName = SqlMapper.GetColumnNameFromField(typeof(T), nvtInfo.Name);
+                string columnName = SqlMapper.GetColumnName(typeof(T), nvtInfo.Name);
                 MemberInfo columnInfo;
                 if (!columnNameToMemberInfo.TryGetValue(columnName, out columnInfo)) continue;
                 columnNameToValue.Add(columnName, nvtInfo.Value);
@@ -1478,7 +1478,7 @@ namespace Mighty
             // Use (mapped) names as column names and values as values
             foreach (var paramInfo in enumerator)
             {
-                string name = SqlMapper.GetColumnNameFromField(typeof(T), paramInfo.Name);
+                string name = SqlMapper.GetColumnName(typeof(T), paramInfo.Name);
                 wherePredicates.Add(string.Format("{0} = {1}", name, Plugin.PrefixParameterName(name)));
                 nameValueDictionary.Add(name, paramInfo.Value);
             }

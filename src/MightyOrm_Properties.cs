@@ -7,6 +7,7 @@ using Mighty.Interfaces;
 using Mighty.Mapping;
 using Mighty.Plugins;
 using Mighty.Profiling;
+using Mighty.Serialization;
 using Mighty.Validation;
 
 // <summary>
@@ -32,6 +33,11 @@ namespace Mighty
         #endregion
 
         #region Properties
+        /// <summary>
+        /// <see cref="MightyDataContract"/> store.
+        /// </summary>
+        static internal ContractStore contractStore = new ContractStore();
+
         /// <summary>
         /// Connection string
         /// </summary>
