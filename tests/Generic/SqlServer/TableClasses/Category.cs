@@ -8,8 +8,10 @@ namespace Mighty.Generic.Tests.SqlServer.TableClasses
     // Test fields instead of properties
     public class Category
     {
+#pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
         // test non-public field
         internal int CategoryID;
+#pragma warning restore CS0649
 
         // public field
         public string CategoryName;
