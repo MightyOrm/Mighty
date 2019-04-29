@@ -22,6 +22,8 @@ namespace Mighty.Dynamic.Tests.X
         [Test]
         public void CacheMisses()
         {
+            // all the dynamic tests were written in a way that only ever needing of the new
+            // cached contracts until I forced a couple of the tests to specify columns
             Assert.AreEqual(3, DataContractStore.Instance.CacheMisses);
         }
     }
@@ -49,6 +51,7 @@ namespace Mighty.Generic.Tests.X
         [Test]
         public void CacheHits()
         {
+            // This is upped by 300 - 3 by some forced cache hits in Insert_FromNew
             Assert.AreEqual(1151, DataContractStore.Instance.CacheHits);
         }
 
@@ -64,6 +67,7 @@ namespace Mighty.Generic.Tests.X
         [Test]
         public void CacheHits()
         {
+            // This is upped by 300 - 3 by some forced cache hits in Insert_FromNew
             Assert.AreEqual(364, MetaDataStore.Instance.CacheHits);
         }
 
