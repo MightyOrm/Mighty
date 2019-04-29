@@ -3,15 +3,16 @@ using System.Collections.Generic;
 using System.Data.Common;
 using System.Text;
 
+using Mighty.Mapping;
 using Mighty.Plugins;
 
-namespace Mighty.Mapping
+namespace Mighty.DataContracts
 {
     /// <summary>
     /// A data contract key (unique identifier);
     /// all of the values on which a <see cref="DataContract"/> depends.
     /// </summary>
-    public class DataContractStoreKey
+    public class MetaDataKey
     {
         /// <summary>
         /// Is this a dynamically typed instance of <see cref="MightyOrm"/>?
@@ -34,19 +35,19 @@ namespace Mighty.Mapping
         public string ConnectionString;
 
         /// <summary>
-        /// The data item type
+        /// BareTableName
         /// </summary>
-        public readonly Type type;
+        public string BareTableName;
 
         /// <summary>
-        /// The database columns to access
+        /// TableOwner
         /// </summary>
-        public readonly string columns;
+        public string TableOwner;
 
         /// <summary>
-        /// The mapper
+        /// DataContract
         /// </summary>
-        public readonly SqlNamingMapper mapper;
+        public DataContract DataContract;
 
         /// <summary>
         /// Constructor
@@ -55,36 +56,42 @@ namespace Mighty.Mapping
         /// <param name="Plugin"></param>
         /// <param name="Factory"></param>
         /// <param name="ConnectionString"></param>
-        /// <param name="type"></param>
-        /// <param name="columns"></param>
-        /// <param name="mapper"></param>
-        internal DataContractStoreKey(
+        /// <param name="BareTableName"></param>
+        /// <param name="TableOwner"></param>
+        /// <param name="DataContract"></param>
+        internal MetaDataKey(
             bool IsDynamic, PluginBase Plugin, DbProviderFactory Factory, string ConnectionString,
-            Type type, string columns, SqlNamingMapper mapper)
+            string BareTableName, string TableOwner, DataContract DataContract
+            )
         {
             this.IsDynamic = IsDynamic;
             this.Plugin = Plugin;
             this.Factory = Factory;
             this.ConnectionString = ConnectionString;
-            this.type = type;
-            this.columns = columns;
-            this.mapper = mapper;
+            this.BareTableName = BareTableName;
+            this.TableOwner = TableOwner;
+            this.DataContract = DataContract;
         }
 
         /// <summary>
         /// Get the hash code for this key
         /// </summary>
         /// <returns></returns>
+        /// <remarks>
+        /// Other plugins of the same type are the same plugin, but user data mappers of the
+        /// same type are not necessarily the same data mapper.
+        /// </remarks>
         public override int GetHashCode()
         {
-            return
+            var h =
                 (IsDynamic ? 1 : 0) ^
-                (Plugin?.GetHashCode() ?? 0) ^
+                (Plugin.GetType()?.GetHashCode() ?? 0) ^
                 (Factory?.GetHashCode() ?? 0) ^
                 (ConnectionString?.GetHashCode() ?? 0) ^
-                (type?.GetHashCode() ?? 0) ^
-                (columns?.GetHashCode() ?? 0) ^
-                (mapper?.GetHashCode() ?? 0);
+                (BareTableName?.GetHashCode() ?? 0) ^
+                (TableOwner?.GetHashCode() ?? 0) ^
+                (DataContract?.GetHashCode() ?? 0);
+            return h;
         }
 
         /// <summary>
@@ -92,18 +99,23 @@ namespace Mighty.Mapping
         /// </summary>
         /// <param name="obj"></param>
         /// <returns></returns>
+        /// <remarks>
+        /// Other plugins of the same type are the same plugin, but user data mappers of the
+        /// same type are not necessarily the same data mapper.
+        /// </remarks>
         public override bool Equals(object obj)
         {
-            var other = obj as DataContractStoreKey;
+            var other = obj as MetaDataKey;
             if (other == null) return false;
-            return
+            var y =
                 IsDynamic == other.IsDynamic &&
-                Plugin == other.Plugin &&
+                Plugin.GetType() == other.Plugin.GetType() &&
                 Factory == other.Factory &&
                 ConnectionString == other.ConnectionString &&
-                type == other.type &&
-                columns == other.columns &&
-                mapper == other.mapper;
+                BareTableName == other.BareTableName &&
+                TableOwner == other.TableOwner &&
+                DataContract == other.DataContract;
+            return y;
         }
     }
 }

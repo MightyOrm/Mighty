@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using System.Text;
 
-namespace Mighty.Mapping
+namespace Mighty.DataContracts
 {
     /// <summary>
     /// Store reflected field or property, with info about whether Mighty should be reading or writing it.

@@ -8,7 +8,7 @@ using System.Linq;
 using System.Reflection;
 
 using Mighty.Validation;
-using Mighty.Mapping;
+using Mighty.DataContracts;
 
 namespace Mighty.Parameters
 {

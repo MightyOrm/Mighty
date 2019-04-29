@@ -4,7 +4,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text;
 
-namespace Mighty.Mapping
+namespace Mighty.DataContracts
 {
     /// <summary>
     /// Holds the data serialization contract for a given type in Mighty.
@@ -17,7 +17,7 @@ namespace Mighty.Mapping
         /// <summary>
         /// The info about what this is a data contract for
         /// </summary>
-        public DataContractStoreKey Key { get; protected set; }
+        public DataContractKey Key { get; protected set; }
 
         /// <summary>
         /// All data read columns in one string, or "*" (mapping, if any, already applied)
@@ -33,7 +33,7 @@ namespace Mighty.Mapping
         /// Create a new data contract corresponding to the values in the key
         /// </summary>
         /// <param name="Key">All the items on which the contract depends</param>
-        public DataContract(DataContractStoreKey Key)
+        public DataContract(DataContractKey Key)
         {
             this.Key = Key;
             if (!Key.IsDynamic)
@@ -69,7 +69,7 @@ namespace Mighty.Mapping
         /// </summary>
         /// <param name="ReadColumnList"></param>
         /// <param name="key"></param>
-        protected void IncludeColumnsDrivenColumns(List<string> ReadColumnList, DataContractStoreKey key)
+        protected void IncludeColumnsDrivenColumns(List<string> ReadColumnList, DataContractKey key)
         {
             foreach (var column in key.columns.Split(',').Select(column => column.Trim()))
             {
@@ -103,7 +103,7 @@ namespace Mighty.Mapping
         /// <param name="ReadColumnList"></param>
         /// <param name="key"></param>
         /// <param name="bindingFlags"></param>
-        protected void IncludeReflectedColumns(List<string> ReadColumnList, DataContractStoreKey key, BindingFlags bindingFlags)
+        protected void IncludeReflectedColumns(List<string> ReadColumnList, DataContractKey key, BindingFlags bindingFlags)
         {
             foreach (var member in key.type.GetMembers(bindingFlags)
                 .Where(m => m is FieldInfo || m is PropertyInfo))
@@ -119,7 +119,7 @@ namespace Mighty.Mapping
         /// <param name="key"></param>
         /// <param name="member"></param>
         /// <param name="include">The initial default include status (depending on public, non-public or columns-driven)</param>
-        protected void IncludeReflectedColumn(List<string> ReadColumnList, DataContractStoreKey key, MemberInfo member, bool include)
+        protected void IncludeReflectedColumn(List<string> ReadColumnList, DataContractKey key, MemberInfo member, bool include)
         {
             string sqlColumnName = null;
             DataDirection dataDirection = 0;
@@ -181,6 +181,25 @@ namespace Mighty.Mapping
             if (!ColumnNameToMemberInfo.TryGetValue(columnName, out memberInfo)) return false;
             if (dataDirection != 0 && memberInfo.DataDirection != 0 && (memberInfo.DataDirection | dataDirection) == 0) memberInfo = null;
             return memberInfo != null;
+        }
+
+        /// <summary>
+        /// Equals if <see cref="DataContractKey"/> is equal
+        /// </summary>
+        /// <returns></returns>
+        public override int GetHashCode()
+        {
+            return Key.GetHashCode();
+        }
+
+        /// <summary>
+        /// Equals if <see cref="DataContractKey"/> is equal
+        /// </summary>
+        /// <returns></returns>
+        public override bool Equals(object other)
+        {
+            if (!(other is DataContract)) return false;
+            return Key == ((DataContract)other).Key;
         }
     }
 }

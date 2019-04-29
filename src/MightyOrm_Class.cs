@@ -12,6 +12,7 @@ using System.Transactions;
 #endif
 
 using Mighty.ConnectionProviders;
+using Mighty.DataContracts;
 using Mighty.Plugins;
 using Mighty.Interfaces;
 using Mighty.Mapping;
@@ -265,22 +266,25 @@ namespace Mighty
             string intialConnectionString = xconnectionString ?? GlobalConnectionString ?? MightyOrm.GlobalConnectionString ?? null;
             Validator = xvalidator ?? GlobalValidator ?? MightyOrm.GlobalValidator ?? new NullValidator();
             SqlProfiler = xprofiler ?? GlobalSqlProfiler ?? MightyOrm.GlobalSqlProfiler ?? new NullProfiler();
-            SqlMapper = xmapper ?? GlobalSqlMapper ?? MightyOrm.GlobalSqlMapper ?? new NullMapper();
+            SqlMapper = xmapper ?? GlobalSqlMapper ?? MightyOrm.GlobalSqlMapper ?? NullMapper.Instance; // must be the *same* mapper for the same data contract
 
-            SetConnection(intialConnectionString, connectionProvider);
+            SetupConnection(intialConnectionString, connectionProvider);
 
-            DataContract = DataContractStore.Get(
+            DataContract = DataContractStore.Instance.Get(
                 IsDynamic, Plugin, Factory, ConnectionString, 
                 typeof(T), columns, SqlMapper);
 
-            // typeof(T) if generic; type of user sub-class if dynamic and is sub-class; else null
+            // This is typeof(T) if generic, type of user sub-class if dynamic and sub-class, else null
             Type dataMappingType = GetDataMappingType();
+
             SetTableNameAndOwner(tableName, dataMappingType);
             PrimaryKeys = new Keys.PrimaryKeyInfo(IsDynamic, DataContract, Plugin, dataMappingType, SqlMapper, keys, sequence);
 
 #if KEY_VALUES
             SetValueField(valueField, dataMappingType);
 #endif
+
+            InitTableMetaDataLazyLoader();
 
 #if DYNAMIC_METHODS
             // Add dynamic method support (mainly for compatibility with Massive)
@@ -346,7 +350,7 @@ namespace Mighty
             }
         }
 
-        private void SetConnection(string connectionString, ConnectionProvider connectionProvider)
+        private void SetupConnection(string connectionString, ConnectionProvider connectionProvider)
         {
             if (connectionProvider == null)
             {
@@ -386,95 +390,22 @@ namespace Mighty
 
         // Only properties with a non-trivial implementation are here, the rest are in the MightyOrm_Properties file.
         #region Properties
-        private IEnumerable<dynamic> _TableMetaData;
+        /// <summary>
+        /// Lazy initialiser
+        /// </summary>
+        private Lazy<IEnumerable<dynamic>> _TableMetaDataLazy;
 
         /// <summary>
-        /// Table meta data (filtered to be only for columns specified by the generic type T, or by consturctor `columns`, if present)
+        /// Table meta data
         /// </summary>
-        override public IEnumerable<dynamic> TableMetaData
+        override public IEnumerable<dynamic> TableMetaData { get { return _TableMetaDataLazy.Value; } }
+
+        private void InitTableMetaDataLazyLoader()
         {
-            get
-            {
-                InitializeTableMetaData();
-                return _TableMetaData;
-            }
-        }
-#endregion
-
-#region Thread-safe initializer for table meta-data
-        // Thread-safe initialization based on Microsoft DbProviderFactories reference 
-        // https://referencesource.microsoft.com/#System.Data/System/Data/Common/DbProviderFactories.cs
-
-        // called within the lock
-        private void LoadTableMetaData()
-        {
-            var sql = Plugin.BuildTableMetaDataQuery(BareTableName, TableOwner);
-            IEnumerable<dynamic> unprocessedMetaData;
-            dynamic db = this;
-            if (!IsDynamic)
-            {
-                // we need a dynamic query, so on the generic version we create a new dynamic DB object with the same connection info
-                db = new MightyOrm(connectionProvider: new PresetsConnectionProvider(ConnectionString, Factory, Plugin.GetType()));
-            }
-            unprocessedMetaData = (IEnumerable<dynamic>)db.Query(sql, BareTableName, TableOwner);
-            var postProcessedMetaData = Plugin.PostProcessTableMetaData(unprocessedMetaData);
-            _TableMetaData = FilterTableMetaData(postProcessedMetaData);
-        }
-
-        /// <summary>
-        /// We drive creating new objects by the table meta-data list, but we only want to add columns which are actually
-        /// specified for this instance of Mighty
-        /// </summary>
-        /// <param name="tableMetaData">The table meta-data</param>
-        /// <returns></returns>
-        private IEnumerable<dynamic> FilterTableMetaData(IEnumerable<dynamic> tableMetaData)
-        {
-            foreach (var columnInfo in tableMetaData)
-            {
-                columnInfo.IS_MIGHTY_COLUMN = DataContract.IsMightyColumn(columnInfo.COLUMN_NAME);
-            }
-            return tableMetaData;
-        }
-
-        // fields for thread-safe initialization of TableMetaData
-        // (done once or less per instance of MightyOrm, so not static)
-        private ConnectionState _initState; // closed (default value), connecting, open
-        private readonly object _lockobj = new object();
-
-        private void InitializeTableMetaData()
-        {
-            // MS code (re-)uses database connection states
-            if (_initState != ConnectionState.Open)
-            {
-                lock (_lockobj)
-                {
-                    switch (_initState)
-                    {
-                        case ConnectionState.Closed:
-                            // 'Connecting' state only relevant if the thread which has the lock can recurse back into here
-                            // while we are initialising (any other thread can only see Closed or Open)
-                            _initState = ConnectionState.Connecting;
-                            try
-                            {
-                                LoadTableMetaData();
-                            }
-                            finally
-                            {
-                                // try-finally ensures that even after exception we register that Initialize has been called, and don't keep retrying
-                                // (the exception is of course still thrown after the finally code has happened)
-                                _initState = ConnectionState.Open;
-                            }
-                            break;
-
-                        case ConnectionState.Connecting:
-                        case ConnectionState.Open:
-                            break;
-
-                        default:
-                            throw new Exception("unexpected state");
-                    }
-                }
-            }
+            _TableMetaDataLazy = new Lazy<IEnumerable<dynamic>>(() => MetaDataStore.Instance.Get(
+                         IsDynamic, Plugin, Factory, ConnectionString,
+                         BareTableName, TableOwner, DataContract,
+                         this));
         }
         #endregion
 

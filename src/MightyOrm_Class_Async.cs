@@ -2,33 +2,31 @@
 using System;
 using System.Collections.Async;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Data;
 using System.Data.Common;
 using System.Dynamic;
-using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
 #if NETFRAMEWORK
 using System.Transactions;
 #endif
 
+#if KEY_VALUES
 using Mighty.ConnectionProviders;
-using Mighty.Plugins;
+#endif
+using Mighty.DataContracts;
 using Mighty.Interfaces;
-using Mighty.Mapping;
 using Mighty.Parameters;
 using Mighty.Profiling;
 using Mighty.Validation;
-using System.Threading.Tasks;
 
 namespace Mighty
 {
     public partial class MightyOrm<T> : MightyOrmAbstractInterface<T> where T : class, new()
     {
         // Only methods with a non-trivial implementation are here, the rest are in the MightyOrm_Redirects_Async file.
-        #region MircoORM interface
+#region MircoORM interface
         /// <summary>
         /// Perform aggregate operation on the current table (use for SUM, MAX, MIN, AVG, etc.), with support for named params.
         /// </summary>
@@ -315,10 +313,10 @@ namespace Mighty
             return retval;
         }
 #endif
-        #endregion
+#endregion
 
         // Only methods with a non-trivial implementation are here, the rest are in the DataAccessWrapper abstract class.
-        #region DataAccessWrapper interface
+#region DataAccessWrapper interface
         /// <summary>
         /// Creates a new DbConnection. You do not normally need to call this! (MightyOrm normally manages its own
         /// connections. Create a connection here and pass it on to other MightyOrm commands only in non-standard use
@@ -675,9 +673,9 @@ namespace Mighty
             });
         }
 #pragma warning restore CS1998
-        #endregion
+#endregion
 
-        #region ORM actions
+#region ORM actions
         /// <summary>
         /// Save, Insert, Update or Delete an item.
         /// Save means: update item if PK field or fields are present and at non-default values, insert otherwise.

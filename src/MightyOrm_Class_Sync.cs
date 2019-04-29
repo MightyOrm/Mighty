@@ -1,20 +1,17 @@
 using System;
 using System.Collections.Generic;
-using System.Collections.Specialized;
 using System.Data;
 using System.Data.Common;
 using System.Dynamic;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 #if NETFRAMEWORK
 using System.Transactions;
 #endif
 
 using Mighty.ConnectionProviders;
-using Mighty.Plugins;
+using Mighty.DataContracts;
 using Mighty.Interfaces;
-using Mighty.Mapping;
 using Mighty.Parameters;
 using Mighty.Profiling;
 using Mighty.Validation;

@@ -10,8 +10,25 @@ namespace Mighty.Mapping
     /// <summary>
     /// Inject this if you need to inject Mighty's default mapping behaviour.
     /// </summary>
-    public class NullMapper : SqlNamingMapper
+    public sealed class NullMapper : SqlNamingMapper
     {
+        // Singleton pattern: https://csharpindepth.com/Articles/Singleton#lazy
+
+        /// <summary>
+        /// Lazy initialiser
+        /// </summary>
+        private static readonly Lazy<NullMapper> lazy = new Lazy<NullMapper>(() => new NullMapper());
+
+        /// <summary>
+        /// Singleton instance
+        /// </summary>
+        public static NullMapper Instance { get { return lazy.Value; } }
+
+        /// <summary>
+        /// Private constructor
+        /// </summary>
+        private NullMapper() { }
+
         /// <summary>
         /// Returns false, equals not case sensitive.
         /// </summary>

@@ -3,6 +3,7 @@ using System.Data;
 using System.Data.Common;
 using System.Linq;
 
+using Mighty.DataContracts;
 using Mighty.Interfaces;
 using Mighty.Keys;
 using Mighty.Mapping;

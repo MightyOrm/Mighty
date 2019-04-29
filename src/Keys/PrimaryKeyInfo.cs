@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using Mighty.DataContracts;
 using Mighty.Mapping;
 using Mighty.Plugins;
 
