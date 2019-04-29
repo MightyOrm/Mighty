@@ -106,8 +106,9 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public async Task All_ColumnSpecification()
         {
-            var soh = new SalesOrderHeader();
-            var allRows = await (await soh.AllAsync(columns: "SalesOrderID as SOID, Status, SalesPersonID")).ToListAsync();
+            // specify columns a different way to cause a cache miss
+            var soh = new SalesOrderHeader(columns: "SalesOrderID as SOID, Status, SalesPersonID");
+            var allRows = await (await soh.AllAsync()).ToListAsync();
             Assert.AreEqual(31465, allRows.Count);
             var firstRow = (IDictionary<string, object>)allRows[0];
             Assert.AreEqual(3, firstRow.Count);

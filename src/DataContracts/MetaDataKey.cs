@@ -15,11 +15,6 @@ namespace Mighty.DataContracts
     public class MetaDataKey
     {
         /// <summary>
-        /// Is this a dynamically typed instance of <see cref="MightyOrm"/>?
-        /// </summary>
-        public readonly bool IsDynamic;
-
-        /// <summary>
         /// The database plugin in use
         /// </summary>
         public readonly PluginBase Plugin;
@@ -52,7 +47,6 @@ namespace Mighty.DataContracts
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="IsDynamic"></param>
         /// <param name="Plugin"></param>
         /// <param name="Factory"></param>
         /// <param name="ConnectionString"></param>
@@ -60,11 +54,10 @@ namespace Mighty.DataContracts
         /// <param name="TableOwner"></param>
         /// <param name="DataContract"></param>
         internal MetaDataKey(
-            bool IsDynamic, PluginBase Plugin, DbProviderFactory Factory, string ConnectionString,
+            PluginBase Plugin, DbProviderFactory Factory, string ConnectionString,
             string BareTableName, string TableOwner, DataContract DataContract
             )
         {
-            this.IsDynamic = IsDynamic;
             this.Plugin = Plugin;
             this.Factory = Factory;
             this.ConnectionString = ConnectionString;
@@ -84,7 +77,6 @@ namespace Mighty.DataContracts
         public override int GetHashCode()
         {
             var h =
-                (IsDynamic ? 1 : 0) ^
                 (Plugin.GetType()?.GetHashCode() ?? 0) ^
                 (Factory?.GetHashCode() ?? 0) ^
                 (ConnectionString?.GetHashCode() ?? 0) ^
@@ -108,7 +100,6 @@ namespace Mighty.DataContracts
             var other = obj as MetaDataKey;
             if (other == null) return false;
             var y =
-                IsDynamic == other.IsDynamic &&
                 Plugin.GetType() == other.Plugin.GetType() &&
                 Factory == other.Factory &&
                 ConnectionString == other.ConnectionString &&

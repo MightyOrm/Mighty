@@ -16,13 +16,13 @@ namespace Mighty.Dynamic.Tests.X
         [Test]
         public void CacheHits()
         {
-            Assert.AreEqual(508, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(516, DataContractStore.Instance.CacheHits);
         }
 
         [Test]
         public void CacheMisses()
         {
-            Assert.AreEqual(11, DataContractStore.Instance.CacheMisses);
+            Assert.AreEqual(3, DataContractStore.Instance.CacheMisses);
         }
     }
 
@@ -49,13 +49,13 @@ namespace Mighty.Generic.Tests.X
         [Test]
         public void CacheHits()
         {
-            Assert.AreEqual(1138, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(1151, DataContractStore.Instance.CacheHits);
         }
 
         [Test]
         public void CacheMisses()
         {
-            Assert.AreEqual(31, DataContractStore.Instance.CacheMisses);
+            Assert.AreEqual(18, DataContractStore.Instance.CacheMisses);
         }
     }
 

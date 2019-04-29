@@ -61,10 +61,12 @@ namespace Mighty.DataContracts
             string BareTableName, string TableOwner, DataContract DataContract, object Mighty
             )
         {
+            // IsDynamic does not need to be in the key, because it determines how the data is
+            // fetched (do we need to create a new, dynamic instance?), but not what is fetched.
             MetaDataKey key = new MetaDataKey(
-                IsDynamic, Plugin, Factory, ConnectionString,
+                Plugin, Factory, ConnectionString,
                 BareTableName, TableOwner, DataContract
-                );
+            );
             IEnumerable<dynamic> value;
             if (store.TryGetValue(key, out value))
             {
@@ -73,22 +75,18 @@ namespace Mighty.DataContracts
             else
             {
                 CacheMisses++;
-                value = LoadTableMetaData(key, Mighty);
+                value = LoadTableMetaData(IsDynamic, key, Mighty);
                 store.Add(key, value);
             }
             return value;
         }
 
-        // Thread-safe initialization based on Microsoft DbProviderFactories reference 
-        // https://referencesource.microsoft.com/#System.Data/System/Data/Common/DbProviderFactories.cs
-
-        // called within the lock
-        private IEnumerable<dynamic> LoadTableMetaData(MetaDataKey key, object Mighty)
+        private IEnumerable<dynamic> LoadTableMetaData(bool IsDynamic, MetaDataKey key, object Mighty)
         {
             var sql = key.Plugin.BuildTableMetaDataQuery(key.BareTableName, key.TableOwner);
             IEnumerable<dynamic> unprocessedMetaData;
             dynamic db = Mighty;
-            if (!key.IsDynamic)
+            if (!IsDynamic)
             {
                 // we need a dynamic query, so on the generic version we create a new dynamic DB object with the same connection info
                 db = new MightyOrm(connectionProvider: new PresetsConnectionProvider(key.ConnectionString, key.Factory, key.Plugin.GetType()));

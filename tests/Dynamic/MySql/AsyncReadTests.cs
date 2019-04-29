@@ -147,8 +147,9 @@ namespace Mighty.Dynamic.Tests.MySql
         [Test]
         public async Task All_ColumnSpecification()
         {
-            var film = new Film(ProviderName);
-            var allRows = await (await film.AllAsync(columns: "film_id as FILMID, description, language_id")).ToListAsync();
+            // specify columns a different way to cause a cache miss (but this does cache wrt sync version)
+            var film = new Film(ProviderName, columns: "film_id as FILMID, description, language_id");
+            var allRows = await (await film.AllAsync()).ToListAsync();
             Assert.AreEqual(1000, allRows.Count);
             var firstRow = (IDictionary<string, object>)allRows[0];
             Assert.AreEqual(3, firstRow.Count);

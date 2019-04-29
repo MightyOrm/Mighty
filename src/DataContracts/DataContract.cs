@@ -7,11 +7,9 @@ using System.Text;
 namespace Mighty.DataContracts
 {
     /// <summary>
-    /// Holds the data serialization contract for a given type in Mighty.
+    /// Holds the data persistence contract for a given type in Mighty.
     /// This contract depends on the item type, the columns paramater and the specified data mapping.
     /// </summary>
-    /// <remarks>TO DO: This needs to depend on the database type and connection string too</remarks>
-    /// <remarks>TO DO: This is really a data *columns* contract, only</remarks>
     public class DataContract
     {
         /// <summary>

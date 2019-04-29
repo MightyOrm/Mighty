@@ -61,9 +61,7 @@ namespace Mighty.DataContracts
             bool IsDynamic, PluginBase Plugin, DbProviderFactory Factory, string ConnectionString,
             Type type, string columns, SqlNamingMapper mapper)
         {
-            DataContractKey key = new DataContractKey(
-                IsDynamic, Plugin, Factory, ConnectionString,
-                type, columns, mapper);
+            DataContractKey key = new DataContractKey(IsDynamic, type, columns, mapper);
             DataContract value;
             if (store.TryGetValue(key, out value))
             {

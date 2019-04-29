@@ -270,20 +270,22 @@ namespace Mighty
 
             SetupConnection(intialConnectionString, connectionProvider);
 
+            // Get reflected column mapping info for this type + everything else which matters (from cache if possible)
             DataContract = DataContractStore.Instance.Get(
                 IsDynamic, Plugin, Factory, ConnectionString, 
-                typeof(T), columns, SqlMapper);
+                IsDynamic ? null : typeof(T), columns, SqlMapper);
 
             // This is typeof(T) if generic, type of user sub-class if dynamic and sub-class, else null
             Type dataMappingType = GetDataMappingType();
 
+            // This stuff is just recalculated, not cached
             SetTableNameAndOwner(tableName, dataMappingType);
             PrimaryKeys = new Keys.PrimaryKeyInfo(IsDynamic, DataContract, Plugin, dataMappingType, SqlMapper, keys, sequence);
-
 #if KEY_VALUES
             SetValueField(valueField, dataMappingType);
 #endif
 
+            // Init for lazy load of table meta-data (from cache if possible; only if needed)
             InitTableMetaDataLazyLoader();
 
 #if DYNAMIC_METHODS

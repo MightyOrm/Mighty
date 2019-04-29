@@ -9,13 +9,8 @@ namespace Mighty.Dynamic.Tests.SqlServer.TableClasses
 {
     public class SalesOrderHeader : MightyOrm
     {
-        public SalesOrderHeader() : this(true)
-        {
-        }
-
-
-        public SalesOrderHeader(bool includeSchema) :
-            base(TestConstants.ReadTestConnection, includeSchema ? "Sales.SalesOrderHeader" : "SalesOrderHeader", "SalesOrderID", validator: new SalesOrderHeaderValidator())
+        public SalesOrderHeader(bool includeSchema = true, string columns = null) :
+            base(TestConstants.ReadTestConnection, includeSchema ? "Sales.SalesOrderHeader" : "SalesOrderHeader", "SalesOrderID", columns: columns, validator: new SalesOrderHeaderValidator())
         {
         }
 

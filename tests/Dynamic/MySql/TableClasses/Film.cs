@@ -9,13 +9,8 @@ namespace Mighty.Dynamic.Tests.MySql.TableClasses
 {
     public class Film : MightyOrm
     {
-        public Film(string providerName) : this(providerName, true)
-        {
-        }
-
-
-        public Film(string providerName, bool includeSchema) :
-            base(string.Format(TestConstants.ReadTestConnection, providerName), includeSchema ? "sakila.film" : "film", "film_id", validator : new FilmValidator())
+        public Film(string providerName, bool includeSchema = true, string columns = null) :
+            base(string.Format(TestConstants.ReadTestConnection, providerName), includeSchema ? "sakila.film" : "film", "film_id", columns: columns, validator: new FilmValidator())
         {
         }
 
