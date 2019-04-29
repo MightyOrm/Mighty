@@ -485,9 +485,8 @@ namespace Mighty
                 var pk = Convert.ToInt32(Scalar(command));
                 modified = UpsertItemPK(
                     item, pk,
-                    // No point creating clone items on Save as these will then be discarded
-                    originalAction == OrmAction.Insert
-                    );
+                    // Don't create clone items on Save as these will then be discarded; but do still update the PK if clone not required
+                    originalAction == OrmAction.Insert);
                 return 1;
             }
             else
