@@ -49,7 +49,7 @@ namespace Mighty.Generic.Tests.X
         [Test]
         public void CacheHits()
         {
-            Assert.AreEqual(841, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(1138, DataContractStore.Instance.CacheHits);
         }
 
         [Test]
@@ -64,7 +64,7 @@ namespace Mighty.Generic.Tests.X
         [Test]
         public void CacheHits()
         {
-            Assert.AreEqual(67, MetaDataStore.Instance.CacheHits);
+            Assert.AreEqual(364, MetaDataStore.Instance.CacheHits);
         }
 
         [Test]
