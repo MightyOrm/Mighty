@@ -14,30 +14,30 @@ namespace Mighty.Dynamic.Tests.X
     public class DataContract
     {
         [Test]
-        public void CachingHits()
+        public void CacheHits()
         {
-            Assert.Greater(DataContractStore.Instance.CacheHits, 500);
+            Assert.AreEqual(508, DataContractStore.Instance.CacheHits);
         }
 
         [Test]
-        public void CachingMisses()
+        public void CacheMisses()
         {
-            Assert.Less(DataContractStore.Instance.CacheMisses, 20);
+            Assert.AreEqual(11, DataContractStore.Instance.CacheMisses);
         }
     }
 
     public class TableMetaData
     {
         [Test]
-        public void CachingHits()
+        public void CacheHits()
         {
-            Assert.Greater(MetaDataStore.Instance.CacheHits, 10);
+            Assert.AreEqual(12, MetaDataStore.Instance.CacheHits);
         }
 
         [Test]
-        public void CachingMisses()
+        public void CacheMisses()
         {
-            Assert.Less(MetaDataStore.Instance.CacheMisses,10);
+            Assert.AreEqual(6, MetaDataStore.Instance.CacheMisses);
         }
     }
 }
@@ -47,30 +47,30 @@ namespace Mighty.Generic.Tests.X
     public class DataContract
     {
         [Test]
-        public void CachingHits()
+        public void CacheHits()
         {
-            Assert.Greater(DataContractStore.Instance.CacheHits, 800);
+            Assert.AreEqual(841, DataContractStore.Instance.CacheHits);
         }
 
         [Test]
-        public void CachingMisses()
+        public void CacheMisses()
         {
-            Assert.Less(DataContractStore.Instance.CacheMisses, 40);
+            Assert.AreEqual(31, DataContractStore.Instance.CacheMisses);
         }
     }
 
     public class TableMetaData
     {
         [Test]
-        public void CachingHits()
+        public void CacheHits()
         {
-            Assert.Greater(MetaDataStore.Instance.CacheHits, 60);
+            Assert.AreEqual(67, MetaDataStore.Instance.CacheHits);
         }
 
         [Test]
-        public void CachingMisses()
+        public void CacheMisses()
         {
-            Assert.Less(MetaDataStore.Instance.CacheMisses, 30);
+            Assert.AreEqual(22, MetaDataStore.Instance.CacheMisses);
         }
     }
 }
