@@ -51,54 +51,6 @@ namespace Mighty
 #endif
 
         /// <summary>
-        /// This was added to fix up the slightly weird way that runtime refuses to convert from T to T? (which should surely be trivial?);
-        /// but it's now also:
-        ///  - What handles setting values on both fields and properties
-        ///  - A place where a reasonably useful exception message is thrown if incompatible types are set on a given field
-        ///    (e.g. if the field is the wrong type for the data coming back from the DB)
-        /// </summary>
-        /// <param name="m">The member whose value needs to be set</param>
-        /// <param name="obj">The object on which to set the value</param>
-        /// <param name="value">The value</param>
-        /// <returns></returns>
-        /// <remarks>http://stackoverflow.com/q/18015425/</remarks>
-        internal static void SetValue(this MemberInfo m, object obj, object value)
-        {
-            var p = m as PropertyInfo;
-            var f = m as FieldInfo;
-
-            Type t = p?.PropertyType ?? f?.FieldType;
-            if (t == null)
-            {
-                // this should not happen
-                throw new Exception($"Expected {m.DeclaringType.FullName}.{m.Name} to be a field or a property");
-            }
-
-            if (value != null)
-            {
-                if (t
-#if !NETFRAMEWORK
-                .GetTypeInfo()
-#endif
-                .IsGenericType && t.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
-                {
-                    t = Nullable.GetUnderlyingType(t);
-                }
-                try
-                {
-                    value = Convert.ChangeType(value, t);
-                }
-                catch (FormatException)
-                {
-                    throw new FormatException($"Cannot convert {value.GetType().Name} value for {m.DeclaringType.Name}.{m.Name} to {t.Name}");
-                }
-            }
-
-            p?.SetValue(obj, value);
-            f?.SetValue(obj, value);
-        }
-
-        /// <summary>
         /// Convert <see cref="ExpandoObject"/> to dictionary.
         /// </summary>
         /// <param name="o">The <see cref="ExpandoObject"/></param>

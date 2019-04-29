@@ -4,10 +4,10 @@ using System.Data.Common;
 using System.Linq;
 
 using Mighty.Interfaces;
+using Mighty.Keys;
 using Mighty.Mapping;
 using Mighty.Plugins;
 using Mighty.Profiling;
-using Mighty.Serialization;
 using Mighty.Validation;
 
 // <summary>
@@ -33,11 +33,6 @@ namespace Mighty
         #endregion
 
         #region Properties
-        /// <summary>
-        /// <see cref="MightyDataContract"/> store.
-        /// </summary>
-        static internal ContractStore contractStore = new ContractStore();
-
         /// <summary>
         /// Connection string
         /// </summary>
@@ -104,29 +99,9 @@ namespace Mighty
         override public string BareTableName { get; protected set; }
 
         /// <summary>
-        /// Primary key field or fields (no mapping applied)
+        /// Keys and sequence
         /// </summary>
-        override public string PrimaryKeyFields { get; protected set; }
-
-        /// <summary>
-        /// Separated, lowered primary key fields (no mapping applied)
-        /// </summary>
-        override public List<string> PrimaryKeyList { get; protected set; }
-
-        /// <summary>
-        /// All columns in one string, or "*" (mapping, if any, already applied)
-        /// </summary>
-        override public string Columns { get; protected set; }
-
-        /// <summary>
-        /// Separated column names, in a list (mapping, if any, already applied)
-        /// </summary>
-        override public List<string> ColumnList { get; protected set; }
-
-        /// <summary>
-        /// Sequence name or identity retrieval function (always null for compound PK)
-        /// </summary>
-        override public string SequenceNameOrIdentityFunction { get; protected set; }
+        override public PrimaryKeyInfo PrimaryKeys { get; protected set; }
 
 #if KEY_VALUES
         /// <summary>
@@ -136,9 +111,14 @@ namespace Mighty
 #endif
 
         /// <summary>
+        /// A data contract for the current item type, specified columns and case-sensitivity
+        /// </summary>
+        override public DataContract DataContract { get; protected set; }
+
+        /// <summary>
         /// true for dynamic instantiation; false if generically typed instantiation
         /// </summary>
-        internal bool UseExpando { get; set; }
+        protected bool IsDynamic { get; set; }
 #endregion
     }
 }

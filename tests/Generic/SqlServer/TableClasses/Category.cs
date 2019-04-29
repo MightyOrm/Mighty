@@ -10,6 +10,7 @@ namespace Mighty.Generic.Tests.SqlServer.TableClasses
     {
 #pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
         // test non-public field
+        [DatabaseColumn]
         internal int CategoryID;
 #pragma warning restore CS0649
 
@@ -28,7 +29,7 @@ namespace Mighty.Generic.Tests.SqlServer.TableClasses
 
 
         public Categories(bool includeSchema) :
-            base(TestConstants.WriteTestConnection, includeSchema ? "dbo.Categories" : "Categories", "CategoryID", bindingFlags: System.Reflection.BindingFlags.Public | System.Reflection.BindingFlags.NonPublic)
+            base(TestConstants.WriteTestConnection, includeSchema ? "dbo.Categories" : "Categories", "CategoryID")
         {
         }
     }

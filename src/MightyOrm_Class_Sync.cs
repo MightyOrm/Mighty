@@ -96,7 +96,7 @@ namespace Mighty
             int i = 0;
             foreach (var paramInfo in partialItemParameters)
             {
-                if (!IsKey(paramInfo.Name))
+                if (!PrimaryKeys.IsKey(paramInfo.Name))
                 {
                     if (i > 0) updateValues.Append(", ");
                     updateValues.Append(paramInfo.Name).Append(" = ").Append(Plugin.PrefixParameterName(paramInfo.Name));
@@ -167,19 +167,14 @@ namespace Mighty
             {
                 if (Validator.ShouldPerformAction(item, action))
                 {
-                    var result = ActionOnItem(action, item, connection);
-                    affected += result.Item1;
+                    object result;
+                    affected += ActionOnItem(out result, action, item, connection);
                     if (action == OrmAction.Insert)
                     {
-                        var modified = result.Item2 ?? item;
-                        if (!UseExpando)
+                        var modified = result ?? item;
+                        if (!IsDynamic && !(modified is T))
                         {
-                            var resultT = modified as T;
-                            if (resultT == null)
-                            {
-                                resultT = New(modified, false);
-                            }
-                            modified = resultT;
+                            modified = New(modified, false);
                         }
                         modifiedItems.Add((T)modified);
                     }
@@ -198,24 +193,24 @@ namespace Mighty
         /// <returns></returns>
         override public IDictionary<string, string> KeyValues(string orderBy = null)
         {
-            if (!UseExpando)
+            if (!IsDynamic)
             {
                 // TO DO: Make sure this works even when there is mapping
-                var db = new MightyOrm(null, TableName, PrimaryKeyFields, ValueField, connectionProvider: new PresetsConnectionProvider(ConnectionString, Factory, Plugin.GetType()));
+                var db = new MightyOrm(null, TableName, PrimaryKeys.FieldNames, ValueField, connectionProvider: new PresetsConnectionProvider(ConnectionString, Factory, Plugin.GetType()));
                 return db.KeyValues(orderBy);
             }
             string partialMessage = string.Format(" to call {0}, please provide one in your constructor", nameof(KeyValues));
             string valueField = CheckGetValueField(string.Format("ValueField is required{0}", partialMessage));
-            string pkField = CheckGetKeyName(string.Format("A single primary key must be specified{0}", partialMessage));
+            string pkField = PrimaryKeys.CheckGetKeyName(string.Format("A single primary key must be specified{0}", partialMessage));
             // casts the IEnumerable of expando objects to an IEnumerable of string-object dictionaries
             var results = All(orderBy: orderBy ?? pkField, columns: string.Format("{0}, {1}", pkField, valueField)).Cast<IDictionary<string, object>>();
             return results.ToDictionary(item => item[pkField].ToString(), item => item[valueField].ToString());
         }
 #endif
-#endregion
+        #endregion
 
         // Only methods with a non-trivial implementation are here, the rest are in the DataAccessWrapper abstract class.
-#region DataAccessWrapper interface
+        #region DataAccessWrapper interface
         /// <summary>
         /// Creates a new DbConnection. You do not normally need to call this! (MightyOrm normally manages its own
         /// connections. Create a connection here and pass it on to other MightyOrm commands only in non-standard use
@@ -293,7 +288,7 @@ namespace Mighty
         {
             int limit = pageSize;
             int offset = (currentPage - 1) * pageSize;
-            if (columns == null) columns = Columns;
+            if (columns == null) columns = DataContract.ReadColumns;
             var pagingQueryPair = Plugin.BuildPagingQueryPair(columns, tableNameOrJoinSpec, orderBy, where, limit, offset);
             var result = new PagedResults<T>();
             result.TotalRecords = Convert.ToInt32(Scalar(pagingQueryPair.CountQuery));
@@ -324,7 +319,7 @@ namespace Mighty
         {
             if (columns == null)
             {
-                columns = Columns;
+                columns = DataContract.ReadColumns;
             }
             var sql = Plugin.BuildSelect(columns, CheckGetTableName(), where, orderBy, limit);
             return QueryNWithParams<T>(sql,
@@ -397,10 +392,10 @@ namespace Mighty
                                     // this is for dynamic support
                                     string[] columnNames = null;
                                     // this is for generic<T> support
-                                    MemberInfo[] memberInfo = null;
+                                    DataContractMemberInfo[] memberInfo = null;
 
-                                    if (UseExpando) columnNames = new string[fieldCount];
-                                    else memberInfo = new MemberInfo[fieldCount];
+                                    if (IsDynamic) columnNames = new string[fieldCount];
+                                    else memberInfo = new DataContractMemberInfo[fieldCount];
 
                                     // for generic, we need array of properties to set; we find this
                                     // from fieldNames array, using a look up from lowered name -> property
@@ -411,7 +406,7 @@ namespace Mighty
                                         {
                                             throw new InvalidOperationException("Cannot autopopulate from anonymous column");
                                         }
-                                        if (UseExpando)
+                                        if (IsDynamic)
                                         {
                                             // For dynamics, create fields using the case that comes back from the database
                                             // TO DO: Test how this is working now in Oracle
@@ -420,13 +415,13 @@ namespace Mighty
                                         else
                                         {
                                             // leaves as null if no match
-                                            columnNameToMemberInfo.TryGetValue(columnName, out memberInfo[i]);
+                                            DataContract.TryGetDataMemberInfo(columnName, out memberInfo[i], DataDirection.Read);
                                         }
                                     }
                                     while (useReader.Read())
                                     {
                                         useReader.GetValues(rowValues);
-                                        if (UseExpando)
+                                        if (IsDynamic)
                                         {
                                             ExpandoObject e = new ExpandoObject();
                                             IDictionary<string, object> d = e.ToDictionary();
@@ -456,21 +451,22 @@ namespace Mighty
                 }
             }
         }
-#endregion
+        #endregion
 
-#region ORM actions
+        #region ORM actions
         /// <summary>
         /// Save, Insert, Update or Delete an item.
         /// Save means: update item if PK field or fields are present and at non-default values, insert otherwise.
-        /// On inserting an item with a single PK and a sequence/identity 1) the PK of the new item is returned;
-        /// 2) the PK field of the item itself is a) created if not present and b) filled with the new PK value,
-        /// where this is possible (e.g. fields can't be created on POCOs, property values can't be set on immutable
-        /// items such as anonymously typed objects).
+        /// On inserting an item with a single PK and a sequence/identity the PK field of the item itself is
+        /// a) created if not present and b) filled with the new PK value, where this is possible (examples of cases
+        /// where not possible are: fields can't be created on POCOs, property values can't be set on immutable items
+        /// such as anonymously typed objects).
         /// </summary>
+        /// <param name="modified">The modified item with PK added, if <see cref="OrmAction.Insert"/></param>
         /// <param name="originalAction">Save, Insert, Update or Delete</param>
         /// <param name="item">item</param>
         /// <param name="connection">The connection to use</param>
-        /// <returns>The PK of the inserted item, iff a new auto-generated PK value is available.</returns>
+        /// <returns>The number of items affected</returns>
         /// <remarks>
         /// It *is* technically possibly (by writing to private backing fields) to change the field value in anonymously
         /// typed objects - http://stackoverflow.com/a/30242237/795690 - and bizarrely VB supports writing to fields in
@@ -478,26 +474,26 @@ namespace Mighty
         /// sounds as if it means that if this part of the library was written in VB then doing this would be officially
         /// supported? not quite sure, that assumes that the different implementations of anonymous types can co-exist)
         /// </remarks>
-        private Tuple<int, object> ActionOnItem(OrmAction originalAction, object item, DbConnection connection)
+        private int ActionOnItem(out object modified, OrmAction originalAction, object item, DbConnection connection)
         {
             OrmAction revisedAction;
             DbCommand command = CreateActionCommand(originalAction, item, out revisedAction);
             command.Connection = connection;
-            if (revisedAction == OrmAction.Insert && SequenceNameOrIdentityFunction != null)
+            if (revisedAction == OrmAction.Insert && PrimaryKeys.SequenceNameOrIdentityFunction != null)
             {
                 // *All* DBs return a huge sized number for their identity by default, following Massive we are normalising to int
                 var pk = Convert.ToInt32(Scalar(command));
-                var result = UpsertItemPK(
+                modified = UpsertItemPK(
                     item, pk,
                     // No point creating clone items on Save as these will then be discarded
                     originalAction == OrmAction.Insert
                     );
-                return new Tuple<int, object>(1, result);
+                return 1;
             }
             else
             {
-                int n = Execute(command);
-                return new Tuple<int, object>(n, null);
+                modified = null;
+                return Execute(command);
             }
         }
         #endregion

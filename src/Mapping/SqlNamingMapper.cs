@@ -27,7 +27,14 @@ namespace Mighty.Mapping
     /// <summary>
     /// Implement this abstract class and pass an instance of it to the constructor of <see cref="MightyOrm"/> in order to get Mighty
     /// to do mapping between C# field names and SQL column names.
+    /// NB In order for Mighty to be able to cache mappings between data classes and the database, you should make
+    /// just one instance of each custom data contract which you define and then re-use it.
     /// </summary>
+    /// <remarks>
+    /// TO DO: If I make this use functions instead of being done by overriding, then we can make caching work
+    /// even if the user creates multiple instances, as long as they use the very same functions (by defining
+    /// hascode and equals for this class), which is much more likely to be done correctly, and much more correct.
+    /// </remarks>
     abstract public class SqlNamingMapper
     {
         /// <summary>
@@ -39,48 +46,48 @@ namespace Mighty.Mapping
         /// <summary>
         /// Get database table name from C# class type.
         /// Default is to return <see cref="Type"/>.Name unmodified.
-        /// This method is passed
-        /// the generic type T from subclasses or instances of <see cref="MightyOrm{T}"/>,
-        /// the subclass from strict subclasses of <see cref="MightyOrm"/>, and not called otherwise.
         /// </summary>
-        /// <param name="type">The class type</param>
+        /// <param name="type">The class type (for dynamic instances of Mighty this is the type of
+        /// the user sub-class of <see cref="MightyOrm"/>, if any, or else this won't be called;
+        /// for generic instances of <see cref="MightyOrm{T}"/> it is the generic type)</param>
         /// <returns></returns>
-        /// <remarks>TO DO: should be sent type, so it can look at namespace, etc.</remarks>
         abstract public string GetTableName(Type type);
 
         /// <summary>
         /// Get database column name from C# field or property name.
         /// Default is to return <paramref name="name"/> unmodified.
-        /// This method is passed
-        /// the generic type T from subclasses or instances of <see cref="MightyOrm{T}"/>,
-        /// the subclass from strict subclasses of <see cref="MightyOrm"/>, and not called otherwise.
+        /// Incoming data in Mighty can come from any name-value collection, so <see cref="MemberInfo"/>
+        /// cannot always be provided and is left out to ensure consistent mapping.
         /// </summary>
-        /// <param name="type">The class type</param>
-        /// <param name="member">The field or property</param>
+        /// <param name="type">The class type (for dynamic instances of Mighty, this is the type of
+        /// the user sub-class of <see cref="MightyOrm"/>, if any, or else null;
+        /// for generic instances of <see cref="MightyOrm{T}"/> it is the generic type)</param>
         /// <param name="name">The property name</param>
         /// <returns></returns>
-        /// <remarks>The field can be from an ExpandoObject, so it might not have a PropertyInfo - which probably means we need typed and untyped mappers</remarks>
-        abstract public string GetColumnName(Type type, MemberInfo member, string name);
+        abstract public string GetColumnName(Type type, string name);
 
         /// <summary>
-        /// Derive the primary key field name(s) from C# class type.
-        /// Note that C# field/property name(s) should be returned and not database column names (if these are different).
-        /// Default is to return <c>null</c>.
-        /// This method is passed
-        /// the generic type T from subclasses or instances of <see cref="MightyOrm{T}"/>,
-        /// the subclass from strict subclasses of <see cref="MightyOrm"/>, and not called otherwise.
+        /// Get primary key field name(s) from C# class type.
+        /// Note that exact C# field/property name(s) should be returned and not database column names (where these are different).
+        /// The default behaviour is to return <c>null</c> for no primary keys specified this way -
+        /// in which case they may still be specified in the `keys` constructor parameter.
         /// </summary>
-        /// <param name="type">The class type</param>
+        /// <param name="type">The class type (for dynamic instances of Mighty, this is the type of
+        /// the user sub-class of <see cref="MightyOrm"/>, if any, or else this won't be called;
+        /// for generic instances of <see cref="MightyOrm{T}"/> it is the generic type)</param>
         /// <returns></returns>
-        abstract public string GetPrimaryKeysFromClassType(Type type);
+        abstract public string GetPrimaryKeyFieldNames(Type type);
 
         /// <summary>
-        /// Get the sequence from the class type. Only applicable to sequence-based databases (Oracle and Postgres),
-        /// or if you need to override the default identity function (see Mighty documentation).
+        /// Get the sequence from the class type. Generally only applicable to sequence-based databases (Oracle and Postgres),
+        /// except in the rare case where you may need to override the default identity function on identity-based
+        /// databases (see Mighty documentation).
         /// </summary>
-        /// <param name="type">The class type</param>
+        /// <param name="type">The class type (for dynamic instances of Mighty, this is the type of
+        /// the user sub-class of <see cref="MightyOrm"/>, if any, or else this won't be called;
+        /// for generic instances of <see cref="MightyOrm{T}"/> it is the generic type)</param>
         /// <returns></returns>
-        abstract public string GetSequenceFromClassType(Type type);
+        abstract public string GetSequenceName(Type type);
 
         /// <summary>
         /// Perform database specific quoting (such as "name" -> "[name]" or "name" -> "'name'").

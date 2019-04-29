@@ -4,6 +4,7 @@ using System.Data.Common;
 using System.Linq;
 
 using Mighty.Plugins;
+using Mighty.Keys;
 using Mighty.Mapping;
 using Mighty.Profiling;
 using Mighty.Validation;
@@ -110,29 +111,9 @@ namespace Mighty.Interfaces
         abstract public string BareTableName { get; protected set; }
 
         /// <summary>
-        /// Primary key field or fields (no mapping applied)
+        /// Keys and sequence
         /// </summary>
-        abstract public string PrimaryKeyFields { get; protected set; }
-
-        /// <summary>
-        /// Separated, lowered primary key fields (no mapping applied)
-        /// </summary>
-        abstract public List<string> PrimaryKeyList { get; protected set; }
-
-        /// <summary>
-        /// All columns in one string, or "*" (mapping, if any, already applied)
-        /// </summary>
-        abstract public string Columns { get; protected set; }
-
-        /// <summary>
-        /// Separated column names, in a list (mapping, if any, already applied)
-        /// </summary>
-        abstract public List<string> ColumnList { get; protected set; }
-
-        /// <summary>
-        /// Sequence name or identity retrieval function (always null for compound PK)
-        /// </summary>
-        abstract public string SequenceNameOrIdentityFunction { get; protected set; }
+        abstract public PrimaryKeyInfo PrimaryKeys { get; protected set; }
 
 #if KEY_VALUES
         /// <summary>
@@ -142,15 +123,20 @@ namespace Mighty.Interfaces
 #endif
 
         /// <summary>
+        /// A data contract for the current item type, specified columns and case-sensitivity
+        /// </summary>
+        abstract public DataContract DataContract { get; protected set; }
+
+        /// <summary>
         /// Table meta data (filtered to be only for columns specified by the generic type T, or by consturctor `columns`, if present)
         /// </summary>
         abstract public IEnumerable<dynamic> TableMetaData { get; }
-        #endregion
+#endregion
 
         // 'Interface' for the general purpose data access wrapper methods (i.e. the ones which can be used
         // even if no table has been specified).
         // All versions which simply redirect to other versions are defined here, not in the main class.
-        #region Non-table specific methods
+#region Non-table specific methods
         /// <summary>
         /// Create a <see cref="DbCommand"/> ready for use with Mighty.
         /// Manually creating commands is an advanced use-case; standard Mighty methods create and dispose
@@ -207,9 +193,9 @@ namespace Mighty.Interfaces
         /// <param name="cmd">The command</param>
         /// <returns></returns>
         abstract public dynamic ResultsAsExpando(DbCommand cmd);
-        #endregion
+#endregion
 
-        #region Table specific methods
+#region Table specific methods
         /// <summary>
         /// Return a new item populated with defaults which correctly reflect the defaults of the current database table, if any.
         /// </summary>

@@ -8,6 +8,7 @@ using System.Linq;
 using System.Reflection;
 
 using Mighty.Validation;
+using Mighty.Mapping;
 
 namespace Mighty.Parameters
 {
@@ -189,21 +190,11 @@ namespace Mighty.Parameters
 
             // Detect if the object type is T, and only if it is do a loop over T's stored set of members instead, which
             // reflects columns and bindingFlags. (So everything except T will always use members public only - perfect!)
-            if (_mighty != null && _mighty.IsGenericT(_o)) // cannot coalesce to ?. because _mighty is dynamic
+            if (_mighty != null && _mighty.IsManagedGenericType(_o)) // cannot coalesce to ?. because _mighty is dynamic
             {
-                foreach (KeyValuePair<string, MemberInfo> kv in _mighty.columnNameToMemberInfo)
+                foreach (DataContractMemberInfo member in _mighty.DataContract.ColumnNameToMemberInfo.Values)
                 {
-                    var member = kv.Value;
-                    var field = member as FieldInfo;
-                    if (field != null)
-                    {
-                        yield return new LazyNameValueTypeInfo(field.Name, () => field.GetValue(_o), field.FieldType);
-                    }
-                    var property = member as PropertyInfo;
-                    if (property != null)
-                    {
-                        yield return new LazyNameValueTypeInfo(property.Name, () => property.GetValue(_o), property.PropertyType);
-                    }
+                    yield return new LazyNameValueTypeInfo(member.Name, () => member.GetValue(_o), member.MemberType);
                 }
                 yield break;
             }

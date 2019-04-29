@@ -163,7 +163,7 @@ namespace Mighty
             int i = 0;
             foreach (var paramInfo in partialItemParameters)
             {
-                if (!IsKey(paramInfo.Name))
+                if (!PrimaryKeys.IsKey(paramInfo.Name))
                 {
                     if (i > 0) setValues.Append(", ");
                     setValues.Append(paramInfo.Name).Append(" = ").Append(Plugin.PrefixParameterName(paramInfo.Name));
@@ -263,14 +263,10 @@ namespace Mighty
                     if (action == OrmAction.Insert)
                     {
                         var modified = result.Item2 ?? item;
-                        if (!UseExpando)
+                        if (!IsDynamic && !(modified is T))
                         {
-                            var resultT = modified as T;
-                            if (resultT == null)
-                            {
-                                resultT = New(modified, false);
-                            }
-                            modified = resultT;
+                            // create an item of type T from the modified item (e.g. a name-value dictionary/ExpandoObject)
+                            modified = New(modified, false);
                         }
                         modifiedItems.Add((T)modified);
                     }
@@ -300,15 +296,15 @@ namespace Mighty
         /// <returns></returns>
         override public async Task<IDictionary<string, string>> KeyValuesAsync(CancellationToken cancellationToken, string orderBy = "")
         {
-            if (!UseExpando)
+            if (!IsDynamic)
             {
                 // TO DO: Make sure this works even when there is mapping
-                var db = new MightyOrm(null, TableName, PrimaryKeyFields, ValueField, connectionProvider: new PresetsConnectionProvider(ConnectionString, Factory, Plugin.GetType()));
+                var db = new MightyOrm(null, TableName, PrimaryKeys.FieldNames, ValueField, connectionProvider: new PresetsConnectionProvider(ConnectionString, Factory, Plugin.GetType()));
                 return await db.KeyValuesAsync(cancellationToken, orderBy);
             }
             string partialMessage = string.Format(" to call {0}, please provide one in your constructor", nameof(KeyValuesAsync));
             string valueField = CheckGetValueField(string.Format("ValueField is required{0}", partialMessage));
-            string pkField = CheckGetKeyName(string.Format("A single primary key must be specified{0}", partialMessage));
+            string pkField = PrimaryKeys.CheckGetKeyName(string.Format("A single primary key must be specified{0}", partialMessage));
             var results = await AllAsync(cancellationToken, orderBy: orderBy ?? pkField, columns: string.Format("{0}, {1}", pkField, valueField));
             var retval = new Dictionary<string, string>();
             await results.ForEachAsync(result => {
@@ -477,7 +473,7 @@ namespace Mighty
         {
             int limit = pageSize;
             int offset = (currentPage - 1) * pageSize;
-            if (columns == null) columns = Columns;
+            if (columns == null) columns = DataContract.ReadColumns;
             var pagingQueryPair = Plugin.BuildPagingQueryPair(columns, tableNameOrJoinSpec, orderBy, where, limit, offset);
             var result = new PagedResults<T>();
             result.TotalRecords = Convert.ToInt32(await ScalarAsync(pagingQueryPair.CountQuery, cancellationToken).ConfigureAwait(false));
@@ -539,7 +535,7 @@ namespace Mighty
         {
             if (columns == null)
             {
-                columns = Columns;
+                columns = DataContract.ReadColumns;
             }
             var sql = Plugin.BuildSelect(columns, CheckGetTableName(), where, orderBy, limit);
             return await QueryNWithParamsAsync<T>(sql,
@@ -618,10 +614,10 @@ namespace Mighty
                                         // this is for dynamic support
                                         string[] columnNames = null;
                                         // this is for generic<T> support
-                                        MemberInfo[] memberInfo = null;
+                                        DataContractMemberInfo[] memberInfo = null;
 
-                                        if (UseExpando) columnNames = new string[fieldCount];
-                                        else memberInfo = new MemberInfo[fieldCount];
+                                        if (IsDynamic) columnNames = new string[fieldCount];
+                                        else memberInfo = new DataContractMemberInfo[fieldCount];
 
                                         // for generic, we need array of properties to set; we find this
                                         // from fieldNames array, using a look up from lowered name -> property
@@ -632,7 +628,7 @@ namespace Mighty
                                             {
                                                 throw new InvalidOperationException("Cannot autopopulate from anonymous column");
                                             }
-                                            if (UseExpando)
+                                            if (IsDynamic)
                                             {
                                                 // For dynamics, create fields using the case that comes back from the database
                                                 // TO DO: Test how this is working now in Oracle
@@ -641,13 +637,13 @@ namespace Mighty
                                             else
                                             {
                                                 // leaves as null if no match
-                                                columnNameToMemberInfo.TryGetValue(columnName, out memberInfo[i]);
+                                                DataContract.TryGetDataMemberInfo(columnName, out memberInfo[i], DataDirection.Read);
                                             }
                                         }
                                         while (await useReader.ReadAsync(cancellationToken).ConfigureAwait(false))
                                         {
                                             useReader.GetValues(rowValues);
-                                            if (UseExpando)
+                                            if (IsDynamic)
                                             {
                                                 ExpandoObject e = new ExpandoObject();
                                                 IDictionary<string, object> d = e.ToDictionary();
@@ -685,16 +681,16 @@ namespace Mighty
         /// <summary>
         /// Save, Insert, Update or Delete an item.
         /// Save means: update item if PK field or fields are present and at non-default values, insert otherwise.
-        /// On inserting an item with a single PK and a sequence/identity 1) the PK of the new item is returned;
-        /// 2) the PK field of the item itself is a) created if not present and b) filled with the new PK value,
-        /// where this is possible (e.g. fields can't be created on POCOs, property values can't be set on immutable
-        /// items such as anonymously typed objects).
+        /// On inserting an item with a single PK and a sequence/identity the PK field of the item itself is
+        /// a) created if not present and b) filled with the new PK value, where this is possible (examples of cases
+        /// where not possible are: fields can't be created on POCOs, property values can't be set on immutable items
+        /// such as anonymously typed objects).
         /// </summary>
         /// <param name="originalAction">Save, Insert, Update or Delete</param>
         /// <param name="item">item</param>
         /// <param name="connection">The connection to use</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
-        /// <returns>The PK of the inserted item, iff a new auto-generated PK value is available.</returns>
+        /// <returns>The number of items affected; the modified item with PK added, if <see cref="OrmAction.Insert"/></returns>
         /// <remarks>
         /// It *is* technically possibly (by writing to private backing fields) to change the field value in anonymously
         /// typed objects - http://stackoverflow.com/a/30242237/795690 - and bizarrely VB supports writing to fields in
@@ -708,16 +704,15 @@ namespace Mighty
             OrmAction revisedAction;
             DbCommand command = CreateActionCommand(originalAction, item, out revisedAction);
             command.Connection = connection;
-            if (revisedAction == OrmAction.Insert && SequenceNameOrIdentityFunction != null)
+            if (revisedAction == OrmAction.Insert && PrimaryKeys.SequenceNameOrIdentityFunction != null)
             {
                 // *All* DBs return a huge sized number for their identity by default, following Massive we are normalising to int
                 var pk = Convert.ToInt32(await ScalarAsync(command, cancellationToken).ConfigureAwait(false));
-                var result = UpsertItemPK(
+                var modified = UpsertItemPK(
                     item, pk,
-                    // No point creating clone items on Save as these will then be discarded
-                    originalAction == OrmAction.Insert
-                    );
-                return new Tuple<int, object>(1, result);
+                    // Don't create clone items on Save as these will then be discarded; but do still update the PK if clone not required
+                    originalAction == OrmAction.Insert);
+                return new Tuple<int, object>(1, modified);
             }
             else
             {
