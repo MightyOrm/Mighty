@@ -3,7 +3,7 @@
     /// <summary>
     /// Specifies the type of prevalidation (if any) to use in a <see cref="Validator"/>.
     /// </summary>
-    public enum PrevalidationType
+    public enum Prevalidation
     {
         /// <summary>
         /// No prevalidation

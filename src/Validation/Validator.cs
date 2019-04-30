@@ -20,10 +20,10 @@ namespace Mighty.Validation
         /// or to continue and collect all errors before stopping.
         /// </summary>
         /// <returns></returns>
-        virtual public PrevalidationType Prevalidation { get; set; } = PrevalidationType.Off;
+        virtual public Prevalidation PrevalidationType { get; set; } = Prevalidation.Off;
 
         /// <summary>
-        /// If <see cref="Prevalidation"/> is enabled <see cref="MightyOrm"/> calls this one item at a time before *any* real actions are done.
+        /// If <see cref="PrevalidationType"/> is enabled <see cref="MightyOrm"/> calls this one item at a time before *any* real actions are done.
         /// If any item fails, no actions are done for any item.
         /// This default implementation directly calls <see cref="Validate(dynamic, Action{object})"/>, so ignores the <paramref name="action"/> parameter,
         /// but non-abstract implementations can override this.
@@ -41,7 +41,7 @@ namespace Mighty.Validation
         virtual public void ValidateForAction(OrmAction action, dynamic item, Action<object> reportError) { Validate(item, reportError); }
 
         /// <summary>
-        /// If <see cref="Prevalidation"/> is enabled <see cref="MightyOrm"/> calls this one item at a time before *any* real actions are done.
+        /// If <see cref="PrevalidationType"/> is enabled <see cref="MightyOrm"/> calls this one item at a time before *any* real actions are done.
         /// If any item fails, no actions are done for any item.
         /// You might well just want to add strings as your error objects, but it is up to you.
         /// Adding one or more errors counts as failing validation.

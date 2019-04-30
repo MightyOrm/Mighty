@@ -535,7 +535,7 @@ namespace Mighty
         /// <param name="items">The list of items. (Can be T, dynamic, or anything else with suitable name-value (and optional type) data in it.)</param>
         virtual internal void ValidateAction(IEnumerable<object> items, OrmAction action)
         {
-            if (Validator.Prevalidation == PrevalidationType.Off)
+            if (Validator.PrevalidationType == Prevalidation.Off)
             {
                 return;
             }
@@ -549,7 +549,7 @@ namespace Mighty
                 if (Errors.Count > oldCount)
                 {
                     valid = false;
-                    if (Validator.Prevalidation == PrevalidationType.Lazy) break;
+                    if (Validator.PrevalidationType == Prevalidation.Lazy) break;
                 }
             }
             if (valid == false || Errors.Count > 0)
