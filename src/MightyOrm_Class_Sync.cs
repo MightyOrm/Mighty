@@ -193,15 +193,16 @@ namespace Mighty
             if (!IsDynamic)
             {
                 // TO DO: Make sure this works even when there is mapping
-                var db = new MightyOrm(null, TableName, PrimaryKeys.FieldNames, ValueField, connectionProvider: new PresetsConnectionProvider(ConnectionString, Factory, Plugin.GetType()));
+                var db = new MightyOrm(null, TableName, PrimaryKeys.FieldNames, ValueColumn, connectionProvider: new PresetsConnectionProvider(ConnectionString, Factory, Plugin.GetType()));
                 return db.KeyValues(orderBy);
             }
-            string partialMessage = string.Format(" to call {0}, please provide one in your constructor", nameof(KeyValues));
-            string valueField = CheckGetValueField(string.Format("ValueField is required{0}", partialMessage));
-            string pkField = PrimaryKeys.CheckGetKeyName(string.Format("A single primary key must be specified{0}", partialMessage));
-            // casts the IEnumerable of expando objects to an IEnumerable of string-object dictionaries
-            var results = All(orderBy: orderBy ?? pkField, columns: string.Format("{0}, {1}", pkField, valueField)).Cast<IDictionary<string, object>>();
-            return results.ToDictionary(item => item[pkField].ToString(), item => item[valueField].ToString());
+            string partialMessage = $" to call {nameof(KeyValues)}, please provide one in your constructor";
+            string valueColumn = CheckGetValueColumn(partialMessage);
+            string pkColumn = PrimaryKeys.CheckGetKeyColumn(partialMessage);
+            // this cast here casts the IEnumerable of ExpandoObject's to an IEnumerable of string-object dictionaries
+            // (since each ExpandoObject can be cast like that)
+            var results = All(orderBy: orderBy ?? pkColumn, columns: $"{pkColumn}, {valueColumn}").Cast<IDictionary<string, object>>();
+            return results.ToDictionary(item => item[pkColumn].ToString(), item => item[valueColumn].ToString());
         }
 #endif
         #endregion
@@ -217,7 +218,7 @@ namespace Mighty
         override public DbConnection OpenConnection()
         {
             var connection = Factory.CreateConnection();
-            connection = SqlProfiler.Wrap(connection);
+            connection = DataProfiler.ConnectionWrapping(connection);
             connection.ConnectionString = ConnectionString;
             connection.Open();
             return connection;
@@ -285,7 +286,7 @@ namespace Mighty
         {
             int limit = pageSize;
             int offset = (currentPage - 1) * pageSize;
-            if (columns == null) columns = DataContract.ReadColumns;
+            if (columns == null) columns = Columns;
             var pagingQueryPair = Plugin.BuildPagingQueryPair(columns, tableNameOrJoinSpec, orderBy, where, limit, offset);
             var result = new PagedResults<T>();
             result.TotalRecords = Convert.ToInt32(Scalar(pagingQueryPair.CountQuery));
@@ -314,10 +315,7 @@ namespace Mighty
             DbConnection connection = null,
             params object[] args)
         {
-            if (columns == null)
-            {
-                columns = DataContract.ReadColumns;
-            }
+            if (columns == null) columns = Columns;
             var sql = Plugin.BuildSelect(columns, CheckGetTableName(), where, orderBy, limit);
             return QueryNWithParams<T>(sql,
                 inParams, outParams, ioParams, returnParams,
@@ -389,10 +387,10 @@ namespace Mighty
                                     // this is for dynamic support
                                     string[] columnNames = null;
                                     // this is for generic<T> support
-                                    DataContractMemberInfo[] memberInfo = null;
+                                    ColumnsContractMemberInfo[] memberInfo = null;
 
                                     if (IsDynamic) columnNames = new string[fieldCount];
-                                    else memberInfo = new DataContractMemberInfo[fieldCount];
+                                    else memberInfo = new ColumnsContractMemberInfo[fieldCount];
 
                                     // for generic, we need array of properties to set; we find this
                                     // from fieldNames array, using a look up from lowered name -> property
@@ -412,7 +410,7 @@ namespace Mighty
                                         else
                                         {
                                             // leaves as null if no match
-                                            DataContract.TryGetDataMemberInfo(columnName, out memberInfo[i], DataDirection.Read);
+                                            ColumnsContract.TryGetDataMemberInfo(columnName, out memberInfo[i], DataDirection.Read);
                                         }
                                     }
                                     while (useReader.Read())

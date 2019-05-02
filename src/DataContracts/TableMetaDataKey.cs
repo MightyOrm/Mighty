@@ -10,9 +10,9 @@ namespace Mighty.DataContracts
 {
     /// <summary>
     /// A data contract key (unique identifier);
-    /// all of the values on which a <see cref="DataContract"/> depends.
+    /// all of the values on which a <see cref="ColumnsContract"/> depends.
     /// </summary>
-    public class MetaDataKey
+    public class TableMetaDataKey
     {
         /// <summary>
         /// The database plugin in use
@@ -40,9 +40,9 @@ namespace Mighty.DataContracts
         public string TableOwner;
 
         /// <summary>
-        /// DataContract
+        /// ColumnsContract
         /// </summary>
-        public DataContract DataContract;
+        public ColumnsContract ColumnsContract;
 
         /// <summary>
         /// Constructor
@@ -52,10 +52,10 @@ namespace Mighty.DataContracts
         /// <param name="ConnectionString"></param>
         /// <param name="BareTableName"></param>
         /// <param name="TableOwner"></param>
-        /// <param name="DataContract"></param>
-        internal MetaDataKey(
+        /// <param name="ColumnsContract"></param>
+        internal TableMetaDataKey(
             PluginBase Plugin, DbProviderFactory Factory, string ConnectionString,
-            string BareTableName, string TableOwner, DataContract DataContract
+            string BareTableName, string TableOwner, ColumnsContract ColumnsContract
             )
         {
             this.Plugin = Plugin;
@@ -63,7 +63,7 @@ namespace Mighty.DataContracts
             this.ConnectionString = ConnectionString;
             this.BareTableName = BareTableName;
             this.TableOwner = TableOwner;
-            this.DataContract = DataContract;
+            this.ColumnsContract = ColumnsContract;
         }
 
         /// <summary>
@@ -82,7 +82,7 @@ namespace Mighty.DataContracts
                 (ConnectionString?.GetHashCode() ?? 0) ^
                 (BareTableName?.GetHashCode() ?? 0) ^
                 (TableOwner?.GetHashCode() ?? 0) ^
-                (DataContract?.GetHashCode() ?? 0);
+                (ColumnsContract?.GetHashCode() ?? 0);
             return h;
         }
 
@@ -97,7 +97,7 @@ namespace Mighty.DataContracts
         /// </remarks>
         public override bool Equals(object obj)
         {
-            var other = obj as MetaDataKey;
+            var other = obj as TableMetaDataKey;
             if (other == null) return false;
             var y =
                 Plugin.GetType() == other.Plugin.GetType() &&
@@ -105,7 +105,7 @@ namespace Mighty.DataContracts
                 ConnectionString == other.ConnectionString &&
                 BareTableName == other.BareTableName &&
                 TableOwner == other.TableOwner &&
-                DataContract == other.DataContract;
+                ColumnsContract == other.ColumnsContract;
             return y;
         }
     }

@@ -11,24 +11,24 @@ namespace Mighty.DataContracts
     /// <summary>
     /// Cache table meta data so we don't do loads of unecessary lookups
     /// </summary>
-    public sealed class MetaDataStore
+    public sealed class TableMetaDataStore
     {
         // Singleton pattern: https://csharpindepth.com/Articles/Singleton#lazy
 
         /// <summary>
         /// Lazy initialiser
         /// </summary>
-        private static readonly Lazy<MetaDataStore> lazy = new Lazy<MetaDataStore>(() => new MetaDataStore());
+        private static readonly Lazy<TableMetaDataStore> lazy = new Lazy<TableMetaDataStore>(() => new TableMetaDataStore());
 
         /// <summary>
         /// Singleton instance
         /// </summary>
-        public static MetaDataStore Instance { get { return lazy.Value; } }
+        public static TableMetaDataStore Instance { get { return lazy.Value; } }
 
         /// <summary>
         /// Private constructor
         /// </summary>
-        private MetaDataStore()
+        private TableMetaDataStore()
         {
             Flush();
         }
@@ -36,7 +36,7 @@ namespace Mighty.DataContracts
         /// <summary>
         /// The store
         /// </summary>
-        private Dictionary<MetaDataKey, IEnumerable<dynamic>> store;
+        private Dictionary<TableMetaDataKey, IEnumerable<dynamic>> store;
 
         /// <summary>
         /// Cache hits
@@ -53,19 +53,19 @@ namespace Mighty.DataContracts
         /// </summary>
         public void Flush()
         {
-            store = new Dictionary<MetaDataKey, IEnumerable<dynamic>>();
+            store = new Dictionary<TableMetaDataKey, IEnumerable<dynamic>>();
         }
 
         internal IEnumerable<dynamic> Get(
             bool IsDynamic, PluginBase Plugin, DbProviderFactory Factory, string ConnectionString,
-            string BareTableName, string TableOwner, DataContract DataContract, object Mighty
+            string BareTableName, string TableOwner, ColumnsContract ColumnsContract, object Mighty
             )
         {
             // IsDynamic does not need to be in the key, because it determines how the data is
             // fetched (do we need to create a new, dynamic instance?), but not what is fetched.
-            MetaDataKey key = new MetaDataKey(
+            TableMetaDataKey key = new TableMetaDataKey(
                 Plugin, Factory, ConnectionString,
-                BareTableName, TableOwner, DataContract
+                BareTableName, TableOwner, ColumnsContract
             );
             IEnumerable<dynamic> value;
             if (store.TryGetValue(key, out value))
@@ -81,7 +81,7 @@ namespace Mighty.DataContracts
             return value;
         }
 
-        private IEnumerable<dynamic> LoadTableMetaData(bool IsDynamic, MetaDataKey key, object Mighty)
+        private IEnumerable<dynamic> LoadTableMetaData(bool IsDynamic, TableMetaDataKey key, object Mighty)
         {
             var sql = key.Plugin.BuildTableMetaDataQuery(key.BareTableName, key.TableOwner);
             IEnumerable<dynamic> unprocessedMetaData;
@@ -103,11 +103,11 @@ namespace Mighty.DataContracts
         /// <param name="key">The info needed to create the meta-data</param>
         /// <param name="tableMetaData">The table meta-data</param>
         /// <returns></returns>
-        private IEnumerable<dynamic> FilterTableMetaData(MetaDataKey key, IEnumerable<dynamic> tableMetaData)
+        private IEnumerable<dynamic> FilterTableMetaData(TableMetaDataKey key, IEnumerable<dynamic> tableMetaData)
         {
             foreach (var columnInfo in tableMetaData)
             {
-                columnInfo.IS_MIGHTY_COLUMN = key.DataContract.IsMightyColumn(columnInfo.COLUMN_NAME);
+                columnInfo.IS_MIGHTY_COLUMN = key.ColumnsContract.IsMightyColumn(columnInfo.COLUMN_NAME);
             }
             return tableMetaData;
         }

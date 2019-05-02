@@ -297,23 +297,24 @@ namespace Mighty
             if (!IsDynamic)
             {
                 // TO DO: Make sure this works even when there is mapping
-                var db = new MightyOrm(null, TableName, PrimaryKeys.FieldNames, ValueField, connectionProvider: new PresetsConnectionProvider(ConnectionString, Factory, Plugin.GetType()));
+                var db = new MightyOrm(null, TableName, PrimaryKeys.FieldNames, ValueColumn, connectionProvider: new PresetsConnectionProvider(ConnectionString, Factory, Plugin.GetType()));
                 return await db.KeyValuesAsync(cancellationToken, orderBy);
             }
-            string partialMessage = string.Format(" to call {0}, please provide one in your constructor", nameof(KeyValuesAsync));
-            string valueField = CheckGetValueField(string.Format("ValueField is required{0}", partialMessage));
-            string pkField = PrimaryKeys.CheckGetKeyName(string.Format("A single primary key must be specified{0}", partialMessage));
-            var results = await AllAsync(cancellationToken, orderBy: orderBy ?? pkField, columns: string.Format("{0}, {1}", pkField, valueField));
+            string partialMessage = $" to call {nameof(KeyValuesAsync)}, please provide one in your constructor";
+            string valueColumn = CheckGetValueColumn(partialMessage);
+            string pkColumn = PrimaryKeys.CheckGetKeyColumn(partialMessage);
+            var results = await AllAsync(cancellationToken, orderBy: orderBy ?? pkColumn, columns: $"{pkColumn}, {valueColumn}");
+            // Convert results to required format
             var retval = new Dictionary<string, string>();
             await results.ForEachAsync(result => {
                 var expando = result as ExpandoObject;
                 var item = expando.ToDictionary();
-                retval.Add(item[pkField].ToString(), item[valueField].ToString());
+                retval.Add(item[pkColumn].ToString(), item[valueColumn].ToString());
             });
             return retval;
         }
 #endif
-#endregion
+        #endregion
 
         // Only methods with a non-trivial implementation are here, the rest are in the DataAccessWrapper abstract class.
 #region DataAccessWrapper interface
@@ -338,7 +339,7 @@ namespace Mighty
         override public async Task<DbConnection> OpenConnectionAsync(CancellationToken cancellationToken)
         {
             var connection = Factory.CreateConnection();
-            connection = SqlProfiler.Wrap(connection);
+            connection = DataProfiler.ConnectionWrapping(connection);
             connection.ConnectionString = ConnectionString;
             await connection.OpenAsync(cancellationToken).ConfigureAwait(false);
             return connection;
@@ -471,7 +472,7 @@ namespace Mighty
         {
             int limit = pageSize;
             int offset = (currentPage - 1) * pageSize;
-            if (columns == null) columns = DataContract.ReadColumns;
+            if (columns == null) columns = Columns;
             var pagingQueryPair = Plugin.BuildPagingQueryPair(columns, tableNameOrJoinSpec, orderBy, where, limit, offset);
             var result = new PagedResults<T>();
             result.TotalRecords = Convert.ToInt32(await ScalarAsync(pagingQueryPair.CountQuery, cancellationToken).ConfigureAwait(false));
@@ -531,10 +532,7 @@ namespace Mighty
             DbConnection connection = null,
             params object[] args)
         {
-            if (columns == null)
-            {
-                columns = DataContract.ReadColumns;
-            }
+            if (columns == null) columns = Columns;
             var sql = Plugin.BuildSelect(columns, CheckGetTableName(), where, orderBy, limit);
             return await QueryNWithParamsAsync<T>(sql,
                 inParams, outParams, ioParams, returnParams,
@@ -612,10 +610,10 @@ namespace Mighty
                                         // this is for dynamic support
                                         string[] columnNames = null;
                                         // this is for generic<T> support
-                                        DataContractMemberInfo[] memberInfo = null;
+                                        ColumnsContractMemberInfo[] memberInfo = null;
 
                                         if (IsDynamic) columnNames = new string[fieldCount];
-                                        else memberInfo = new DataContractMemberInfo[fieldCount];
+                                        else memberInfo = new ColumnsContractMemberInfo[fieldCount];
 
                                         // for generic, we need array of properties to set; we find this
                                         // from fieldNames array, using a look up from lowered name -> property
@@ -635,7 +633,7 @@ namespace Mighty
                                             else
                                             {
                                                 // leaves as null if no match
-                                                DataContract.TryGetDataMemberInfo(columnName, out memberInfo[i], DataDirection.Read);
+                                                ColumnsContract.TryGetDataMemberInfo(columnName, out memberInfo[i], DataDirection.Read);
                                             }
                                         }
                                         while (await useReader.ReadAsync(cancellationToken).ConfigureAwait(false))

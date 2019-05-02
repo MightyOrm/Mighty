@@ -88,12 +88,12 @@ namespace Mighty.Interfaces
         /// <summary>
         /// C# &lt;=&gt; SQL mapper
         /// </summary>
-        abstract public SqlNamingMapper SqlMapper { get; protected set; }
+        abstract public SqlNamingMapper SqlNamingMapper { get; protected set; }
 
         /// <summary>
         /// Optional SQL profiler
         /// </summary>
-        abstract public SqlProfiler SqlProfiler { get; protected set; }
+        abstract public DataProfiler DataProfiler { get; protected set; }
 
         /// <summary>
         /// Table name (null if non-table-specific instance)
@@ -119,13 +119,18 @@ namespace Mighty.Interfaces
         /// <summary>
         /// Column from which value is retrieved by <see cref="KeyValues"/>
         /// </summary>
-        abstract public string ValueField { get; protected set; }
+        abstract public string ValueColumn { get; protected set; }
 #endif
 
         /// <summary>
         /// A data contract for the current item type, specified columns and case-sensitivity
         /// </summary>
-        abstract public DataContract DataContract { get; protected set; }
+        abstract public ColumnsContract ColumnsContract { get; protected set; }
+
+        /// <summary>
+        /// The default set of columns to use for queries
+        /// </summary>
+        abstract public string Columns { get; protected set; }
 
         /// <summary>
         /// Table meta data (filtered to be only for columns specified by the generic type T, or by consturctor `columns`, if present)

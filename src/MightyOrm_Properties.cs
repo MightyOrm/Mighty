@@ -67,22 +67,22 @@ namespace Mighty
         /// <summary>
         /// Allows setting a global sql mapper (used by default if nothing else set; set it on untyped <see cref="MightyOrm"/> to set it everywhere).
         /// </summary>
-        static public SqlNamingMapper GlobalSqlMapper { get; set; }
+        static public SqlNamingMapper GlobalSqlNamingMapper { get; set; }
 
         /// <summary>
         /// C# &lt;=&gt; SQL mapper
         /// </summary>
-        override public SqlNamingMapper SqlMapper { get; protected set; }
+        override public SqlNamingMapper SqlNamingMapper { get; protected set; }
 
         /// <summary>
         /// Allows setting a global SQL profiler (used by default if nothing else set; set it on untyped <see cref="MightyOrm"/> to set it everywhere).
         /// </summary>
-        static public SqlProfiler GlobalSqlProfiler { get; set; }
+        static public DataProfiler GlobalDataProfiler { get; set; }
 
         /// <summary>
         /// Optional SQL profiler
         /// </summary>
-        override public SqlProfiler SqlProfiler { get; protected set; }
+        override public DataProfiler DataProfiler { get; protected set; }
 
         /// <summary>
         /// Table name (null if non-table-specific instance)
@@ -108,13 +108,18 @@ namespace Mighty
         /// <summary>
         /// Column from which value is retrieved by <see cref="KeyValues"/>
         /// </summary>
-        override public string ValueField { get; protected set; }
+        override public string ValueColumn { get; protected set; }
 #endif
 
         /// <summary>
         /// A data contract for the current item type, specified columns and case-sensitivity
         /// </summary>
-        override public DataContract DataContract { get; protected set; }
+        override public ColumnsContract ColumnsContract { get; protected set; }
+
+        /// <summary>
+        /// The default set of columns to use for queries
+        /// </summary>
+        override public string Columns { get; protected set; }
 
         /// <summary>
         /// true for dynamic instantiation; false if generically typed instantiation

@@ -8,7 +8,7 @@ namespace Mighty.DataContracts
     /// <summary>
     /// Store reflected field or property, with info about whether Mighty should be reading or writing it.
     /// </summary>
-    public class DataContractMemberInfo
+    public class ColumnsContractMemberInfo
     {
         /// <summary>
         /// The data member's parent type
@@ -51,7 +51,7 @@ namespace Mighty.DataContracts
         /// <param name="DataMember"></param>
         /// <param name="Type"></param>
         /// <param name="DataDirection"></param>
-        public DataContractMemberInfo(Type Type, MemberInfo DataMember, DataDirection DataDirection)
+        public ColumnsContractMemberInfo(Type Type, MemberInfo DataMember, DataDirection DataDirection)
         {
             this.DeclaringType = Type;
             this.DataDirection = DataDirection;

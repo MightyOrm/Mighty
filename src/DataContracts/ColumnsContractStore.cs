@@ -9,32 +9,32 @@ using Mighty.Plugins;
 namespace Mighty.DataContracts
 {
     /// <summary>
-    /// <see cref="DataContract"/> store.
+    /// <see cref="ColumnsContract"/> store.
     /// Designed to be used as a singleton instance.
     /// </summary>
-    public sealed class DataContractStore
+    public sealed class ColumnsContractStore
     {
         // Singleton pattern: https://csharpindepth.com/Articles/Singleton#lazy
 
         /// <summary>
         /// Lazy initialiser
         /// </summary>
-        private static readonly Lazy<DataContractStore> lazy = new Lazy<DataContractStore>(() => new DataContractStore());
+        private static readonly Lazy<ColumnsContractStore> lazy = new Lazy<ColumnsContractStore>(() => new ColumnsContractStore());
 
         /// <summary>
         /// Singleton instance
         /// </summary>
-        public static DataContractStore Instance { get { return lazy.Value; } }
+        public static ColumnsContractStore Instance { get { return lazy.Value; } }
 
         /// <summary>
         /// Private constructor
         /// </summary>
-        private DataContractStore() { }
+        private ColumnsContractStore() { }
 
         /// <summary>
         /// The store
         /// </summary>
-        private readonly Dictionary<DataContractKey, DataContract> store = new Dictionary<DataContractKey, DataContract>();
+        private readonly Dictionary<ColumnsContractKey, ColumnsContract> store = new Dictionary<ColumnsContractKey, ColumnsContract>();
 
         /// <summary>
         /// Cache hits
@@ -54,15 +54,14 @@ namespace Mighty.DataContracts
         /// <param name="Factory"></param>
         /// <param name="ConnectionString"></param>
         /// <param name="type"></param>
-        /// <param name="columns"></param>
         /// <param name="mapper"></param>
         /// <returns></returns>
-        internal DataContract Get(
+        internal ColumnsContract Get(
             bool IsDynamic, PluginBase Plugin, DbProviderFactory Factory, string ConnectionString,
-            Type type, string columns, SqlNamingMapper mapper)
+            Type type, SqlNamingMapper mapper)
         {
-            DataContractKey key = new DataContractKey(IsDynamic, type, columns, mapper);
-            DataContract value;
+            ColumnsContractKey key = new ColumnsContractKey(IsDynamic, type, mapper);
+            ColumnsContract value;
             if (store.TryGetValue(key, out value))
             {
                 CacheHits++;
@@ -70,7 +69,7 @@ namespace Mighty.DataContracts
             else
             {
                 CacheMisses++;
-                value = new DataContract(key);
+                value = new ColumnsContract(key);
                 store.Add(key, value);
             }
             return value;

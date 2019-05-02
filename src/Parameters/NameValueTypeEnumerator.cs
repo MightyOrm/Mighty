@@ -192,7 +192,7 @@ namespace Mighty.Parameters
             // reflects columns and bindingFlags. (So everything except T will always use members public only - perfect!)
             if (_mighty != null && _mighty.IsManagedGenericType(_o)) // cannot coalesce to ?. because _mighty is dynamic
             {
-                foreach (DataContractMemberInfo member in _mighty.DataContract.ColumnNameToMemberInfo.Values)
+                foreach (ColumnsContractMemberInfo member in _mighty.ColumnsContract.ColumnNameToMemberInfo.Values)
                 {
                     yield return new LazyNameValueTypeInfo(member.Name, () => member.GetValue(_o), member.MemberType);
                 }

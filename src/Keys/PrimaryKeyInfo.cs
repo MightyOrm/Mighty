@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
+using System.Reflection;
 
 using Mighty.DataContracts;
 using Mighty.Mapping;
@@ -43,39 +43,46 @@ namespace Mighty.Keys
         public string SequenceNameOrIdentityFunction { get; private set; }
 
         /// <summary>
-        /// For a single primary key only, on generic versions of Mighty only, the reflected <see cref="DataContractMemberInfo"/> corresponding to the primary key field in the generic type.
+        /// For a single primary key only, on generic versions of Mighty only, the reflected
+        /// <see cref="MemberInfo"/> corresponding to the primary key field in the generic type.
         /// </summary>
-        internal DataContractMemberInfo PrimaryKeyDataMember { get; private set; }
+        internal MemberInfo PrimaryKeyMemberInfo { get; private set; }
+
+#if KEY_VALUES
+        internal string PrimaryKeyColumn { get; private set; }
+#endif
 
         private readonly PluginBase Plugin;
-        private readonly SqlNamingMapper SqlMapper;
+        private readonly SqlNamingMapper SqlNamingMapper;
+        private readonly Type DataItemType;
 
         /// <summary>
         /// Manage key(s) and sequence or identity.
         /// </summary>
         /// <param name="IsDynamic"></param>
-        /// <param name="DataContract"></param>
+        /// <param name="ColumnsContract"></param>
         /// <param name="xplugin"></param>
         /// <param name="dataMappingType"></param>
         /// <param name="xmapper"></param>
         /// <param name="keys"></param>
         /// <param name="sequence"></param>
         internal PrimaryKeyInfo(
-            bool IsDynamic, DataContract DataContract, PluginBase xplugin, Type dataMappingType, SqlNamingMapper xmapper,
+            bool IsDynamic, ColumnsContract ColumnsContract, PluginBase xplugin, Type dataMappingType, SqlNamingMapper xmapper,
             string keys, string sequence)
         {
             Plugin = xplugin;
-            SqlMapper = xmapper;
+            SqlNamingMapper = xmapper;
+            DataItemType = ColumnsContract.Key.DataItemType;
             SetKeys(keys, xmapper, dataMappingType);
             SetSequence(xplugin, xmapper, sequence);
-            SetPkProperty(IsDynamic, DataContract);
+            SetPkMemberInfo(IsDynamic, ColumnsContract);
         }
 
         private void SetKeys(string keys, SqlNamingMapper mapper, Type dataMappingType)
         {
             if (keys == null && dataMappingType != null)
             {
-                keys = mapper.GetPrimaryKeyFieldNames(dataMappingType);
+                keys = mapper.PrimaryKeyFieldNames(dataMappingType);
             }
             FieldNames = keys;
             if (keys == null)
@@ -117,7 +124,7 @@ namespace Mighty.Keys
                     if (plugin.IsSequenceBased)
                     {
                         // sequence-based, non-null, non-empty specifies sequence name
-                        SequenceNameOrIdentityFunction = sequence ?? mapper.QuoteDatabaseIdentifier(sequence);
+                        SequenceNameOrIdentityFunction = sequence ?? mapper.QuotedDatabaseIdentifier(sequence);
                     }
                     else
                     {
@@ -129,31 +136,46 @@ namespace Mighty.Keys
         }
 
         /// <summary>
-        /// Set the primary key property
+        /// Set the primary key member info
         /// </summary>
-        private void SetPkProperty(bool IsDynamic, DataContract DataContract)
+        private void SetPkMemberInfo(bool IsDynamic, ColumnsContract ColumnsContract)
         {
             // SequenceNameOrIdentityFunction is only left at non-null when there is a single PK,
             // and we only want to write to the PK when there is a SequenceNameOrIdentityFunction
-            if (!IsDynamic && SequenceNameOrIdentityFunction != null)
+            if (SequenceNameOrIdentityFunction != null)
             {
-                PrimaryKeyDataMember = DataContract.GetDataMemberInfo(FieldNames, "primary key");
+                if (IsDynamic)
+                {
+#if KEY_VALUES
+                    PrimaryKeyColumn = FieldNames;
+#endif
+                }
+                else
+                {
+                    PrimaryKeyMemberInfo = ColumnsContract.GetMember(FieldNames, "primary key");
+#if KEY_VALUES
+                    //// PrimaryKeyColumn is only ever used on dynamic version
+                    //PrimaryKeyColumn = ColumnsContract.Key.ColumnName(ColumnsContract.Key.DataItemType, FieldNames);
+#endif
+                }
             }
         }
 
+#if KEY_VALUES
         /// <summary>
         /// Return the single (non-compound) primary key name, or throw <see cref="InvalidOperationException"/> with the provided message if there isn't one.
         /// </summary>
-        /// <param name="message">Exception message to use on failure</param>
+        /// <param name="partialMessage">Exception message to use on failure</param>
         /// <returns></returns>
-        internal string CheckGetKeyName(string message)
+        internal string CheckGetKeyColumn(string partialMessage)
         {
-            if (PrimaryKeyList.Count != 1)
+            if (PrimaryKeyColumn == null)
             {
-                throw new InvalidOperationException(message);
+                throw new InvalidOperationException($"A single primary key must be specified{partialMessage}");
             }
-            return PrimaryKeyList[0];
+            return PrimaryKeyColumn;
         }
+#endif
 
         /// <summary>
         /// Return ith primary key name, with meaningful exception if too many requested.
@@ -257,7 +279,7 @@ namespace Mighty.Keys
             canonicalKeyName = null;
             foreach (var key in PrimaryKeyList)
             {
-                if (key.Equals(fieldName, SqlMapper.UseCaseSensitiveMapping() ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase))
+                if (key.Equals(fieldName, SqlNamingMapper.CaseSensitiveColumnMapping(DataItemType) ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase))
                 {
                     canonicalKeyName = key;
                     return true;
