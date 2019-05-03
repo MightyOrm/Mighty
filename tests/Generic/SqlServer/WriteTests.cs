@@ -27,14 +27,8 @@ namespace Mighty.Generic.Tests.SqlServer
         [Test]
         public void Insert_FromNew()
         {
-            // exercise meta-data cache (apologies!)
-            Categories categories = null;
-            Category toInsert = null;
-            for (int i = 0; i < 100; i++)
-            {
-                categories = new Categories();
-                toInsert = categories.New();
-            }
+            Categories categories = new Categories();
+            Category toInsert = categories.New();
             toInsert.CategoryName = "Cool stuff";
             toInsert.Description = "You know... cool stuff! Cool. n. stuff.";
             var inserted = categories.Insert(toInsert);

@@ -102,7 +102,7 @@ namespace Mighty
         /// <summary>
         /// Keys and sequence
         /// </summary>
-        override public PrimaryKeyInfo PrimaryKeys { get; protected set; }
+        override public PrimaryKeyInfo PrimaryKeyInfo { get; protected set; }
 
 #if KEY_VALUES
         /// <summary>
@@ -119,7 +119,7 @@ namespace Mighty
         /// <summary>
         /// The default set of columns to use for queries
         /// </summary>
-        override public string Columns { get; protected set; }
+        override public string DefaultColumns { get; protected set; }
 
         /// <summary>
         /// true for generic instantiation; false if dynamically typed instantiation

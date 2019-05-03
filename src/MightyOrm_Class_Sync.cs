@@ -86,14 +86,14 @@ namespace Mighty
             params object[] args)
         {
             var updateValues = new StringBuilder();
-            var partialItemParameters = new NameValueTypeEnumerator(this, partialItem);
+            var partialItemParameters = new NameValueTypeEnumerator(ColumnsContract, partialItem);
             // TO DO: Test that this combinedInputParams approach works
             var combinedInputParams = inParams?.ToExpando() ?? new ExpandoObject();
             var toDict = combinedInputParams.ToDictionary();
             int i = 0;
             foreach (var paramInfo in partialItemParameters)
             {
-                if (!PrimaryKeys.IsKey(paramInfo.Name))
+                if (!PrimaryKeyInfo.IsKey(paramInfo.Name))
                 {
                     if (i > 0) updateValues.Append(", ");
                     updateValues.Append(paramInfo.Name).Append(" = ").Append(Plugin.PrefixParameterName(paramInfo.Name));
@@ -193,12 +193,12 @@ namespace Mighty
             if (IsGeneric)
             {
                 // TO DO: Make sure this works even when there is mapping
-                var db = new MightyOrm(null, TableName, PrimaryKeys.KeyNames, ValueColumn, connectionProvider: new PresetsConnectionProvider(ConnectionString, Factory, Plugin.GetType()));
+                var db = new MightyOrm(null, TableName, PrimaryKeyInfo.PrimaryKeyColumns, ValueColumn, connectionProvider: new PresetsConnectionProvider(ConnectionString, Factory, Plugin.GetType()));
                 return db.KeyValues(orderBy);
             }
             string partialMessage = $" to call {nameof(KeyValues)}, please provide one in your constructor";
             string valueColumn = CheckGetValueColumn(partialMessage);
-            string pkColumn = PrimaryKeys.CheckGetKeyColumn(partialMessage);
+            string pkColumn = PrimaryKeyInfo.CheckGetKeyColumn(partialMessage);
             // this cast here casts the IEnumerable of ExpandoObject's to an IEnumerable of string-object dictionaries
             // (since each ExpandoObject can be cast like that)
             var results = All(orderBy: orderBy ?? pkColumn, columns: $"{pkColumn}, {valueColumn}").Cast<IDictionary<string, object>>();
@@ -286,7 +286,7 @@ namespace Mighty
         {
             int limit = pageSize;
             int offset = (currentPage - 1) * pageSize;
-            columns = ColumnsContract.Map(AutoMap.Columns, columns) ?? Columns;
+            columns = ColumnsContract.Map(AutoMap.Columns, columns) ?? DefaultColumns;
             orderBy = ColumnsContract.Map(AutoMap.OrderBy, orderBy);
             var pagingQueryPair = Plugin.BuildPagingQueryPair(columns, tableNameOrJoinSpec, orderBy, where, limit, offset);
             var result = new PagedResults<T>();
@@ -316,7 +316,7 @@ namespace Mighty
             DbConnection connection = null,
             params object[] args)
         {
-            columns = ColumnsContract.Map(AutoMap.Columns, columns) ?? Columns;
+            columns = ColumnsContract.Map(AutoMap.Columns, columns) ?? DefaultColumns;
             orderBy = ColumnsContract.Map(AutoMap.OrderBy, orderBy);
             var sql = Plugin.BuildSelect(columns, CheckGetTableName(), where, orderBy, limit);
             return QueryNWithParams<T>(sql,
@@ -407,7 +407,8 @@ namespace Mighty
                                         {
                                             // For dynamics, create fields using the case that comes back from the database
                                             // TO DO: Test how this is working now in Oracle
-                                            columnNames[i] = columnName;
+                                            // leaves as null if no match
+                                            ColumnsContract.TryGetDataMemberName(columnName, out columnNames[i], DataDirection.Read);
                                         }
                                         else
                                         {
@@ -476,7 +477,7 @@ namespace Mighty
             OrmAction revisedAction;
             DbCommand command = CreateActionCommand(originalAction, item, out revisedAction);
             command.Connection = connection;
-            if (revisedAction == OrmAction.Insert && PrimaryKeys.SequenceNameOrIdentityFunction != null)
+            if (revisedAction == OrmAction.Insert && PrimaryKeyInfo.SequenceNameOrIdentityFunction != null)
             {
                 // *All* DBs return a huge sized number for their identity by default, following Massive we are normalising to int
                 var pk = Convert.ToInt32(Scalar(command));

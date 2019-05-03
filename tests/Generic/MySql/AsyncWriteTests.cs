@@ -40,6 +40,19 @@ namespace Mighty.Generic.Tests.MySql
 
 
         [Test]
+        public async Task Insert_FromNew()
+        {
+            Categories categories = new Categories(ProviderName);
+            Category toInsert = categories.New();
+            toInsert.CategoryName = "Cool stuff";
+            toInsert.Description = "You know... cool stuff! Cool. n. stuff.";
+            var inserted = await categories.InsertAsync(toInsert);
+            int insertedCategoryID = inserted.CategoryID;
+            Assert.IsTrue(insertedCategoryID > 0);
+        }
+
+
+        [Test]
         public async Task Insert_MultipleRows()
         {
             var categories = new Categories(ProviderName);

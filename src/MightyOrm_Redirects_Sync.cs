@@ -811,7 +811,7 @@ namespace Mighty
             DbConnection connection = null,
             params object[] args)
         {
-            return PagedFromSelect(CheckGetTableName(), orderBy ?? PrimaryKeys.CheckGetPrimaryKeyFields(), columns, where, pageSize, currentPage, connection, args);
+            return PagedFromSelect(CheckGetTableName(), orderBy ?? PrimaryKeyInfo.CheckGetPrimaryKeyFields(), columns, where, pageSize, currentPage, connection, args);
         }
 
         /// <summary>

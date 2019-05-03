@@ -40,14 +40,8 @@ namespace Mighty.Generic.Tests.MySql
         [Test]
         public void Insert_FromNew()
         {
-            // exercise meta-data cache (apologies!)
-            Categories categories = null;
-            Category toInsert = null;
-            for (int i = 0; i < 100; i++)
-            {
-                categories = new Categories(ProviderName);
-                toInsert = categories.New();
-            }
+            Categories categories = new Categories(ProviderName);
+            Category toInsert = categories.New();
             toInsert.CategoryName = "Cool stuff";
             toInsert.Description = "You know... cool stuff! Cool. n. stuff.";
             var inserted = categories.Insert(toInsert);

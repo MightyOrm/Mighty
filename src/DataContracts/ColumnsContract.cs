@@ -49,7 +49,7 @@ namespace Mighty.DataContracts
         /// <summary>
         /// All primary key fields in one string, or null
         /// </summary>
-        public string KeyFields { get; protected set; }
+        public string KeyColumns { get; protected set; }
 
         /// <summary>
         /// The final auto-map setting, after taking into account whether any columns were in fact renamed.
@@ -78,7 +78,7 @@ namespace Mighty.DataContracts
             if (!Key.NullContract)
             {
                 var ReadColumnList = new List<string>();
-                var KeyFieldList = new List<string>();
+                var KeyColumnsList = new List<string>();
                 bool foundControlledColumn = false;
                 bool foundRenamedColumn = false;
 
@@ -87,8 +87,8 @@ namespace Mighty.DataContracts
 
                 if (Key.IsGeneric)
                 {
-                    AddReflectedColumns(out bool fc1, out bool fr1, ReadColumnList, KeyFieldList, Key, BindingFlags.Instance | BindingFlags.Public);
-                    AddReflectedColumns(out bool fc2, out bool fr2, ReadColumnList, KeyFieldList, Key, BindingFlags.Instance | BindingFlags.NonPublic);
+                    AddReflectedColumns(out bool fc1, out bool fr1, ReadColumnList, KeyColumnsList, Key, BindingFlags.Instance | BindingFlags.Public);
+                    AddReflectedColumns(out bool fc2, out bool fr2, ReadColumnList, KeyColumnsList, Key, BindingFlags.Instance | BindingFlags.NonPublic);
                     foundControlledColumn = fc1 || fc2;
                     foundRenamedColumn = fr1 || fr2;
                 }
@@ -96,7 +96,7 @@ namespace Mighty.DataContracts
                 {
                     foreach (var column in Key.DynamicColumnSpec.Split(','))
                     {
-                        AddReflectedColumn(out bool fc, out bool fr, ReadColumnList, KeyFieldList, Key, null, column, true);
+                        AddReflectedColumn(out bool fc, out bool fr, ReadColumnList, KeyColumnsList, Key, null, column, true);
                     }
                     foundControlledColumn = true;
                     foundRenamedColumn = true;
@@ -110,9 +110,9 @@ namespace Mighty.DataContracts
                 {
                     AutoMapSettings = Key.AutoMapAfterColumnRename;
                 }
-                if (KeyFieldList.Count > 0)
+                if (KeyColumnsList.Count > 0)
                 {
-                    KeyFields = string.Join(",", KeyFieldList);
+                    KeyColumns = string.Join(",", KeyColumnsList);
                 }
             }
         }
@@ -123,13 +123,13 @@ namespace Mighty.DataContracts
         /// <param name="foundControlledColumn"></param>
         /// <param name="foundRenamedColumn"></param>
         /// <param name="ReadColumnList"></param>
-        /// <param name="KeyFieldList"></param>
+        /// <param name="KeyColumnsList"></param>
         /// <param name="key"></param>
         /// <param name="bindingFlags"></param>
         /// <returns>Whether a controlled column (<see cref="DatabaseColumnAttribute"/> or <see cref="DatabaseIgnoreAttribute"/>) was found</returns>
         protected void AddReflectedColumns(
             out bool foundControlledColumn, out bool foundRenamedColumn,
-            List<string> ReadColumnList, List<string> KeyFieldList, ColumnsContractKey key, BindingFlags bindingFlags)
+            List<string> ReadColumnList, List<string> KeyColumnsList, ColumnsContractKey key, BindingFlags bindingFlags)
         {
             foundControlledColumn = false;
             foundRenamedColumn = false;
@@ -138,7 +138,7 @@ namespace Mighty.DataContracts
             {
                 AddReflectedColumn(
                     out bool fc, out bool fr,
-                    ReadColumnList, KeyFieldList, key, member, null, (bindingFlags & BindingFlags.Public) != 0);
+                    ReadColumnList, KeyColumnsList, key, member, null, (bindingFlags & BindingFlags.Public) != 0);
                 foundControlledColumn = fc || foundControlledColumn;
                 foundRenamedColumn = fr || foundRenamedColumn;
             }
@@ -150,7 +150,7 @@ namespace Mighty.DataContracts
         /// <param name="foundControlledColumn"></param>
         /// <param name="foundRenamedColumn"></param>
         /// <param name="ReadColumnList"></param>
-        /// <param name="KeyFieldList"></param>
+        /// <param name="KeyColumnsList"></param>
         /// <param name="key"></param>
         /// <param name="member"></param>
         /// <param name="name"></param>
@@ -158,7 +158,7 @@ namespace Mighty.DataContracts
         /// <returns>Whether a controlled column (<see cref="DatabaseColumnAttribute"/> or <see cref="DatabaseIgnoreAttribute"/>) was found</returns>
         protected void AddReflectedColumn(
             out bool foundControlledColumn, out bool foundRenamedColumn,
-            List<string> ReadColumnList, List<string> KeyFieldList, ColumnsContractKey key, MemberInfo member, string name, bool include)
+            List<string> ReadColumnList, List<string> KeyColumnsList, ColumnsContractKey key, MemberInfo member, string name, bool include)
         {
             foundControlledColumn = false;
             foundRenamedColumn = false;
@@ -227,7 +227,7 @@ namespace Mighty.DataContracts
                 ReadColumnList.Add($"{(transformSql != null ? $"{transformSql} AS " : "")}{sqlColumnName}");
                 if (isKey)
                 {
-                    KeyFieldList.Add(name);
+                    KeyColumnsList.Add(sqlColumnName);
                 }
             }
         }
@@ -270,6 +270,29 @@ namespace Mighty.DataContracts
         }
 
         /// <summary>
+        /// Try to get data member name for column name.
+        /// </summary>
+        /// <param name="columnName">The database column name</param>
+        /// <param name="memberName">The data member name</param>
+        /// <param name="dataDirection">The required data direction (only non-zero is tested)</param>
+        /// <returns></returns>
+        public bool TryGetDataMemberName(string columnName, out string memberName, DataDirection dataDirection = 0)
+        {
+            if (Key.NullContract)
+            {
+                memberName = columnName;
+                return true;
+            }
+            if (TryGetDataMemberInfo(columnName, out ColumnsContractMemberInfo memberInfo, dataDirection))
+            {
+                memberName = memberInfo.Name;
+                return true;
+            }
+            memberName = null;
+            return false;
+        }
+
+        /// <summary>
         /// Try to get data member info for column name.
         /// </summary>
         /// <param name="columnName">The database column name</param>
@@ -284,18 +307,13 @@ namespace Mighty.DataContracts
         }
 
         /// <summary>
-        /// Internal lookup with sanity check: should never be called on dynamic instances of <see cref="MightyOrm"/>
+        /// Look up <see cref="ColumnsContractMemberInfo"/> from database column name
         /// </summary>
         /// <param name="columnName">The database column name</param>
         /// <param name="memberInfo">The data member info</param>
         /// <returns></returns>
         private bool TryGetDataMemberInfo(string columnName, out ColumnsContractMemberInfo memberInfo)
         {
-            if (Key.DataItemType == null)
-            {
-                // should not happen
-                throw new Exception($"Trying to lookup {nameof(ColumnsContractMemberInfo)} on dynamic instance of {nameof(MightyOrm)}");
-            }
             return ColumnNameToMemberInfo.TryGetValue(columnName, out memberInfo);
         }
 
@@ -345,28 +363,29 @@ namespace Mighty.DataContracts
         /// <summary>
         /// Return database column name from field or property name
         /// </summary>
-        /// <param name="name">The field or property name</param>
+        /// <param name="fieldName">The field or property name</param>
         /// <returns>The database column name</returns>
-        public string Map(string name)
+        public string Map(string fieldName)
         {
             if (Key.NullContract)
             {
-                throw new InvalidOperationException($"It is not possible to map field or property names to column names in a non-auto-mapped dynamic instance {nameof(MightyOrm)} without a columns spec (specify the `columns` parameter in the constructor)");
+                return fieldName;
             }
             string mapped;
-            if (!MemberNameToColumnName.TryGetValue(name, out mapped))
+            if (!MemberNameToColumnName.TryGetValue(fieldName, out mapped))
             {
-                throw new InvalidOperationException($"Field or property name {name} does not exist in {Key.DataItemType.FullName}, or exists but has been excluded from database column mapping");
+                throw new InvalidOperationException($"Field or property name {fieldName} does not exist in {Key.DataItemType.FullName}, or exists but has been excluded from database column mapping");
             }
             return mapped;
         }
 
         /// <summary>
-        /// Conditionally auto-map a comma-separated list of field names to a comma-separated list of column names
+        /// Map a comma-separated list of field names to column names,
+        /// or leave alone if the mapping implies that they are already column names.
         /// </summary>
         /// <param name="which">Which type of thing is this? Checked against the current columns data contract
         /// to decide whether to actually map. Or send <see cref="AutoMap.On"/> to map unconditionally.</param>
-        /// <param name="fieldNames"></param>
+        /// <param name="fieldNames">The incoming field names</param>
         /// <returns></returns>
         public string Map(AutoMap which, string fieldNames)
         {
@@ -380,6 +399,7 @@ namespace Mighty.DataContracts
             }
             else
             {
+                // They are (or should be) already column names
                 return fieldNames;
             }
         }
@@ -387,43 +407,55 @@ namespace Mighty.DataContracts
         /// <summary>
         /// Return field or property name from database column name
         /// </summary>
-        /// <param name="name">The field or property name</param>
-        /// <returns>The database column name</returns>
-        public string ReverseMap(string name)
+        /// <param name="columnName">The database column name</param>
+        /// <returns>The field or property name</returns>
+        public string ReverseMap(string columnName)
         {
             if (Key.NullContract)
             {
-                throw new InvalidOperationException($"It is not possible to map column names to field or property names in a non-auto-mapped dynamic instance {nameof(MightyOrm)} without a columns spec (specify the `columns` parameter in the constructor)");
+                return columnName;
             }
             ColumnsContractMemberInfo member;
-            if (!ColumnNameToMemberInfo.TryGetValue(name, out member))
+            if (!ColumnNameToMemberInfo.TryGetValue(columnName, out member))
             {
-                throw new InvalidOperationException($"Cannot map database column name {name} to any field or property name");
+                throw new InvalidOperationException($"Cannot map database column name {columnName} to any field or property name");
             }
             return member.Name;
         }
 
         /// <summary>
-        /// Conditionally auto-map a comma-separated list of column names to a comma-separated list of field names
+        /// Map a comma-separated list of column names to field names,
+        /// or leave alone if the mapping implies that they are already field names.
         /// </summary>
         /// <param name="which">Which type of thing is this? Checked against the current columns data contract
         /// to decide whether to actually map. Or send <see cref="AutoMap.On"/> to map unconditionally.</param>
-        /// <param name="fieldNames"></param>
+        /// <param name="columnNames">The incoming column names</param>
         /// <returns></returns>
-        public string ReverseMap(AutoMap which, string fieldNames)
+        public string ReverseMap(AutoMap which, string columnNames)
         {
-            if (fieldNames == null)
+            if (columnNames == null)
             {
                 return null;
             }
-            if (which == AutoMap.On || (which & AutoMapSettings) != 0)
+            if (which == AutoMap.On || (which & AutoMapSettings) == 0)
             {
-                return string.Join(", ", fieldNames.Split(',').Select(n => n.Trim()).Select(n => ReverseMap(n)));
+                return string.Join(", ", columnNames.Split(',').Select(n => n.Trim()).Select(n => ReverseMap(n)));
             }
             else
             {
-                return fieldNames;
+                // They are (or should be) already field names
+                return columnNames;
             }
+        }
+
+        /// <summary>
+        /// Returns true if this is an instance or sublass of <see cref="MightyOrm{T}"/> and <paramref name="item"/> is of type T.
+        /// </summary>
+        /// <param name="item">The object to check</param>
+        /// <returns></returns>
+        public bool IsManagedGenericType(object item)
+        {
+            return Key.IsGeneric && item.GetType() == Key.DataItemType;
         }
     }
 }

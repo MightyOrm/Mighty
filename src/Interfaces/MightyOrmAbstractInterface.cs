@@ -113,7 +113,7 @@ namespace Mighty.Interfaces
         /// <summary>
         /// Keys and sequence
         /// </summary>
-        abstract public PrimaryKeyInfo PrimaryKeys { get; protected set; }
+        abstract public PrimaryKeyInfo PrimaryKeyInfo { get; protected set; }
 
 #if KEY_VALUES
         /// <summary>
@@ -130,7 +130,7 @@ namespace Mighty.Interfaces
         /// <summary>
         /// The default set of columns to use for queries
         /// </summary>
-        abstract public string Columns { get; protected set; }
+        abstract public string DefaultColumns { get; protected set; }
 
         /// <summary>
         /// true for generic instance; false if dynamically typed instance

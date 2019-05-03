@@ -23,7 +23,7 @@ namespace Mighty.Interfaces
         /// The type passed in is the class or subclass type for dynamic instances of <see cref="MightyOrm"/>
         /// and is the generic type T for generic instances of <see cref="MightyOrm{T}"/>.
         /// </summary>
-        abstract public Func<Type, string> TableName { get; protected set; }
+        abstract public Func<Type, string> TableNameMapping { get; protected set; }
 
         /// <summary>
         /// Function to get primary key field name(s) from the data item type and field or property name.
@@ -33,7 +33,7 @@ namespace Mighty.Interfaces
         /// The type passed in is the class or subclass type for dynamic instances of <see cref="MightyOrm"/>
         /// and is the generic type T for generic instances of <see cref="MightyOrm{T}"/>.
         /// </summary>
-        abstract public Func<Type, string> PrimaryKeyFieldNames { get; protected set; }
+        abstract public Func<Type, string> GetPrimaryKeyFieldNames { get; protected set; }
 
         /// <summary>
         /// Function to get the sequence from the data item type.
@@ -42,7 +42,7 @@ namespace Mighty.Interfaces
         /// The type passed in is the class or subclass type for dynamic instances of <see cref="MightyOrm"/>
         /// and is the generic type T for generic instances of <see cref="MightyOrm{T}"/>.
         /// </summary>
-        abstract public Func<Type, string> SequenceName { get; protected set; }
+        abstract public Func<Type, string> GetSequenceName { get; protected set; }
         #endregion
 
         #region Table-column features (needed in column mapping conract)
@@ -61,7 +61,7 @@ namespace Mighty.Interfaces
         /// The type passed in is the class or subclass type for dynamic instances of <see cref="MightyOrm"/>
         /// and is the generic type T for generic instances of <see cref="MightyOrm{T}"/>.
         /// </summary>
-        abstract public Func<Type, bool> CaseSensitiveColumnMapping { get; protected set; }
+        abstract public Func<Type, bool> CaseSensitiveColumns { get; protected set; }
         #endregion
 
         #region Column-level features
@@ -73,7 +73,7 @@ namespace Mighty.Interfaces
         /// The type passed in is the class or subclass type for dynamic instances of <see cref="MightyOrm"/>
         /// and is the generic type T for generic instances of <see cref="MightyOrm{T}"/>.
         /// </summary>
-        abstract public Func<Type, string, string> ColumnName { get; protected set; }
+        abstract public Func<Type, string, string> ColumnNameMapping { get; protected set; }
 
         /// <summary>
         /// Function to determine whether to ignore database column based on the data item type and field or property name.
@@ -100,12 +100,12 @@ namespace Mighty.Interfaces
         /// <summary>
         /// Function to perform database specific identifier quoting (such as "name" -> "[name]" or "name" -> "'name'").
         /// Default is to return the passed in string unmodified.
-        /// You should handle quoting identifiers here only, or in <see cref="TableName"/> and <see cref="ColumnName"/> only, but not both.
+        /// You should handle quoting identifiers here only, or in <see cref="TableNameMapping"/> and <see cref="ColumnNameMapping"/> only, but not both.
         /// </summary>
         /// <remarks>
         /// TO DO: Might be useful to provide additional method which splits the name at the dots then rejoins it, with single overrideable method to quote the individual parts
         /// </remarks>
-        abstract public Func<string, string> QuotedDatabaseIdentifier { get; protected set; }
+        abstract public Func<string, string> GetQuotedDatabaseIdentifier { get; protected set; }
         #endregion
 
         #region Mapping utility method

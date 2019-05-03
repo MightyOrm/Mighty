@@ -30,7 +30,7 @@ namespace Mighty
         #region Constructor
 #if KEY_VALUES
         /// <summary>
-        /// Constructor for pure dynamic version.
+        /// Constructor for dynamic instances of <see cref="MightyOrm"/>.
         /// </summary>
         /// <param name="connectionString">
         /// Connection string, with additional Mighty-specific support for non-standard "ProviderName=" property
@@ -39,12 +39,12 @@ namespace Mighty
         /// connection string itself and provider name are looked up in the ConnectionStrings section of the .config file.
         /// </param>
         /// <param name="tableName">Table name</param>
-        /// <param name="keyNames">Primary key field name; or comma separated list of names for compound PK</param>
-        /// <param name="valueName">Specify the value column, for lookup tables</param>
+        /// <param name="keyNames">Either single primary key column/field name, or comma separated list of names for compound PK</param>
+        /// <param name="valueName">Value column/field name, for lookup tables</param>
         /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
         /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
         /// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
-        /// <param name="columns">Default column list (NB specify SQL column names rather than C# field/property names if you have defined a mapper; see mapper.Map() for easy conversion)</param>
+        /// <param name="columns">Default column list</param>
         /// <param name="validator">Optional validator</param>
         /// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
         /// <param name="profiler">Optional SQL profiler</param>
@@ -70,7 +70,7 @@ namespace Mighty
         }
 #else
         /// <summary>
-        /// Constructor for pure dynamic version.
+        /// Constructor for dynamic instances of <see cref="MightyOrm"/>.
         /// </summary>
         /// <param name="connectionString">
         /// Connection string, with additional Mighty-specific support for non-standard "ProviderName=" property
@@ -79,11 +79,11 @@ namespace Mighty
         /// connection string itself and provider name are looked up in the ConnectionStrings section of the .config file.
         /// </param>
         /// <param name="tableName">Table name</param>
-        /// <param name="keyNames">Primary key field name; or comma separated list of names for compound PK</param>
+        /// <param name="keyNames">Either single primary key column/field name, or comma separated list of names for compound PK</param>
         /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
         /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
         /// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
-        /// <param name="columns">Default column list (NB specify SQL column names rather than C# field/property names if you have defined a mapper; see mapper.Map() for easy conversion)</param>
+        /// <param name="columns">Default column list</param>
         /// <param name="validator">Optional validator</param>
         /// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
         /// <param name="profiler">Optional SQL profiler</param>
@@ -141,7 +141,7 @@ namespace Mighty
         #region Constructor
 #if KEY_VALUES
         /// <summary>
-        /// Strongly typed MightyOrm constructor
+        /// Constructor for strongly typed instances of <see cref="MightyOrm{T}"/>.
         /// </summary>
         /// <param name="connectionString">
         /// Connection string, with additional Mighty-specific support for non-standard "ProviderName=" property
@@ -150,12 +150,12 @@ namespace Mighty
         /// connection string itself and provider name are looked up in the ConnectionStrings section of the .config file.
         /// </param>
         /// <param name="tableName">Override the table name (defaults to using T class name)</param>
-        /// <param name="keyNames">Primary key field name; or comma separated list of names for compound PK</param>
-        /// <param name="valueName">Specify the value column, for lookup tables</param>
+        /// <param name="keyNames">Either single primary key column/field name, or comma separated list of names for compound PK</param>
+        /// <param name="valueName">Value column/field name, for lookup tables</param>
         /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
         /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
         /// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
-        /// <param name="columns">Default column list (NB specify SQL column names rather than C# field/property names if you have defined a mapper; see mapper.Map() for easy conversion)</param>
+        /// <param name="columns">Default column list</param>
         /// <param name="validator">Optional validator</param>
         /// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
         /// <param name="profiler">Optional SQL profiler</param>
@@ -180,7 +180,7 @@ namespace Mighty
         }
 #else
         /// <summary>
-        /// Strongly typed MightyOrm constructor
+        /// Constructor for strongly typed instances of <see cref="MightyOrm{T}"/>.
         /// </summary>
         /// <param name="connectionString">
         /// Connection string, with additional Mighty-specific support for non-standard "ProviderName=" property
@@ -189,11 +189,11 @@ namespace Mighty
         /// connection string itself and provider name are looked up in the ConnectionStrings section of the .config file.
         /// </param>
         /// <param name="tableName">Override the table name (defaults to using T class name)</param>
-        /// <param name="keyNames">Primary key field name; or comma separated list of names for compound PK</param>
+        /// <param name="keyNames">Either single primary key column/field name, or comma separated list of names for compound PK</param>
         /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
         /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
         /// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
-        /// <param name="columns">Default column list (NB specify SQL column names rather than C# field/property names if you have defined a mapper; see mapper.Map() for easy conversion)</param>
+        /// <param name="columns">Default column list</param>
         /// <param name="validator">Optional validator</param>
         /// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
         /// <param name="profiler">Optional SQL profiler</param>
@@ -280,12 +280,11 @@ namespace Mighty
             // (columns passed in here are only ever used if the auto-mapping settings imply that they are field/prop names)
             ColumnsContract = ColumnsContractStore.Instance.Get(IsGeneric, mappingClass, columns, SqlNamingMapper);
 
-            Columns = ColumnsContract.Map(AutoMap.Columns, columns) ?? ColumnsContract.ReadColumns ?? "*";
-            keyNames = ColumnsContract.ReverseMap(AutoMap.Keys, keyNames) ?? ColumnsContract.KeyFields;
+            DefaultColumns = ColumnsContract.Map(AutoMap.Columns, columns) ?? ColumnsContract.ReadColumns ?? "*";
 
             // This stuff is just recalculated, not cached
             SetTableNameAndOwner(tableName, mappingClass);
-            PrimaryKeys = new Keys.PrimaryKeyInfo(IsGeneric, ColumnsContract, Plugin, mappingClass, SqlNamingMapper, keyNames, sequence);
+            PrimaryKeyInfo = new Keys.PrimaryKeyInfo(IsGeneric, ColumnsContract, Plugin, mappingClass, SqlNamingMapper, keyNames, sequence);
 #if KEY_VALUES
             ValueColumn = ColumnsContract.Map(AutoMap.Value, valueName);
 #endif
@@ -309,7 +308,7 @@ namespace Mighty
             }
             else if (dataMappingType != null)
             {
-                TableName = SqlNamingMapper.TableName(dataMappingType);
+                TableName = SqlNamingMapper.TableNameMapping(dataMappingType);
             }
 
             if (TableName != null)
@@ -390,11 +389,11 @@ namespace Mighty
         /// <returns></returns>
         override public T New(object nameValues = null, bool addNonPresentAsDefaults = true)
         {
-            var nvtEnumerator = new NameValueTypeEnumerator(this, nameValues);
+            var nvtEnumerator = new NameValueTypeEnumerator(ColumnsContract, nameValues);
             Dictionary<string, object> columnNameToValue = new Dictionary<string, object>();
             foreach (var nvtInfo in nvtEnumerator)
             {
-                string columnName = SqlNamingMapper.ColumnName(typeof(T), nvtInfo.Name);
+                string columnName = SqlNamingMapper.ColumnNameMapping(typeof(T), nvtInfo.Name);
                 ColumnsContractMemberInfo columnInfo;
                 if (!ColumnsContract.TryGetDataMemberInfo(columnName, out columnInfo)) continue;
                 columnNameToValue.Add(columnName, nvtInfo.Value);
@@ -538,18 +537,13 @@ namespace Mighty
         }
 
         /// <summary>
-        /// True only if the passed in object contains (a) field(s) matching the named primary key(s) of the current table.
+        /// True only if the passed in object contains field(s) matching the named primary key(s) of the current table.
         /// </summary>
         /// <param name="item">Item to check</param>
         /// <returns></returns>
         override public bool HasPrimaryKey(object item)
         {
-            int count = 0;
-            foreach (var info in new NameValueTypeEnumerator(this, item))
-            {
-                if (PrimaryKeys.IsKey(info.Name)) count++;
-            }
-            return count == PrimaryKeys.Count;
+            return PrimaryKeyInfo.HasPrimaryKey(item);
         }
 
         /// <summary>
@@ -560,29 +554,7 @@ namespace Mighty
         /// <returns></returns>
         override public object GetPrimaryKey(object item, bool alwaysArray = false)
         {
-            var pks = new ExpandoObject();
-            var pkDictionary = pks.ToDictionary();
-            foreach (var info in new NameValueTypeEnumerator(this, item))
-            {
-                string canonicalKeyName;
-                if (PrimaryKeys.IsKey(info.Name, out canonicalKeyName)) pkDictionary.Add(canonicalKeyName, info.Value);
-            }
-            if (pkDictionary.Count != PrimaryKeys.Count)
-            {
-                throw new InvalidOperationException("PK field(s) not present in object");
-            }
-            // re-arrange to specified order
-            var retval = new List<object>();
-            foreach (var key in PrimaryKeys.Keys)
-            {
-                retval.Add(pkDictionary[key]);
-            }
-            var array = retval.ToArray();
-            if (array.Length == 1 && !alwaysArray)
-            {
-                return array[0];
-            }
-            return array;
+            return PrimaryKeyInfo.GetPrimaryKey(item, alwaysArray);
         }
 #endregion
 
@@ -685,7 +657,7 @@ namespace Mighty
         protected void AppendRowCountResults(int rowCount, object outParams, dynamic results)
         {
             var dictionary = ((ExpandoObject)results).ToDictionary();
-            foreach (var paramInfo in new NameValueTypeEnumerator(this, outParams, ParameterDirection.Input))
+            foreach (var paramInfo in new NameValueTypeEnumerator(ColumnsContract, outParams, ParameterDirection.Input))
             {
                 if (paramInfo.Value is RowCount)
                 {
@@ -720,15 +692,15 @@ namespace Mighty
         private DbCommand CreateInsertCommand(object item, List<string> insertNames, List<string> insertValues, PkFilter pkFilter)
         {
             string sql = Plugin.BuildInsert(TableName, string.Join(", ", insertNames), string.Join(", ", insertValues));
-            if (PrimaryKeys.SequenceNameOrIdentityFunction != null)
+            if (PrimaryKeyInfo.SequenceNameOrIdentityFunction != null)
             {
                 sql += ";\r\n" +
-                       (Plugin.IsSequenceBased ? Plugin.BuildCurrvalSelect(PrimaryKeys.SequenceNameOrIdentityFunction) : string.Format("SELECT {0}", PrimaryKeys.SequenceNameOrIdentityFunction)) +
+                       (Plugin.IsSequenceBased ? Plugin.BuildCurrvalSelect(PrimaryKeyInfo.SequenceNameOrIdentityFunction) : string.Format("SELECT {0}", PrimaryKeyInfo.SequenceNameOrIdentityFunction)) +
                        ";";
             }
             var command = CreateCommand(sql);
             AddNamedParams(command, item, pkFilter: pkFilter);
-            if (PrimaryKeys.SequenceNameOrIdentityFunction != null)
+            if (PrimaryKeyInfo.SequenceNameOrIdentityFunction != null)
             {
                 Plugin.FixupInsertCommand(command);
             }
@@ -786,12 +758,16 @@ namespace Mighty
             var argsItemDict = argsItem.ToDictionary();
             var count = 0;
 
-            foreach (var nvt in new NameValueTypeEnumerator(this, item, action: originalAction))
+            foreach (var nvt in new NameValueTypeEnumerator(ColumnsContract, item, action: originalAction))
             {
                 var name = nvt.Name;
                 if (name == string.Empty)
                 {
-                    name = PrimaryKeys.CheckGetKeyName(count, "Too many values trying to map value-only object to primary key list");
+                    name = PrimaryKeyInfo.CheckGetKeyName(count, "Too many values trying to map value-only object to primary key list");
+                }
+                else
+                {
+                    name = ColumnsContract.Map(name);
                 }
                 var value = nvt.Value;
                 string paramName;
@@ -806,7 +782,7 @@ namespace Mighty
                     paramName = Plugin.PrefixParameterName(name);
                     argsItemDict.Add(name, value);
                 }
-                if (nvt.Name == null || PrimaryKeys.IsKey(name))
+                if (nvt.Name == null || PrimaryKeyInfo.IsKey(name))
                 {
                     nKeys++;
                     if (value == null || value == nvt.Type.GetDefaultValue())
@@ -816,7 +792,7 @@ namespace Mighty
 
                     if (originalAction == OrmAction.Insert || originalAction == OrmAction.Save)
                     {
-                        if (PrimaryKeys.SequenceNameOrIdentityFunction == null)
+                        if (PrimaryKeyInfo.SequenceNameOrIdentityFunction == null)
                         {
                             insertNames.Add(name);
                             insertValues.Add(paramName);
@@ -826,7 +802,7 @@ namespace Mighty
                             if (Plugin.IsSequenceBased)
                             {
                                 insertNames.Add(name);
-                                insertValues.Add(string.Format(Plugin.BuildNextval(PrimaryKeys.SequenceNameOrIdentityFunction)));
+                                insertValues.Add(string.Format(Plugin.BuildNextval(PrimaryKeyInfo.SequenceNameOrIdentityFunction)));
                             }
                         }
                     }
@@ -854,7 +830,7 @@ namespace Mighty
 
             if (nKeys > 0)
             {
-                if (nKeys != PrimaryKeys.Count)
+                if (nKeys != PrimaryKeyInfo.Count)
                 {
                     throw new InvalidOperationException("All or no primary key fields must be present in item for " + originalAction);
                 }
@@ -886,12 +862,12 @@ namespace Mighty
                     break;
 
                 case OrmAction.Insert:
-                    if (PrimaryKeys.SequenceNameOrIdentityFunction != null && Plugin.IsSequenceBased)
+                    if (PrimaryKeyInfo.SequenceNameOrIdentityFunction != null && Plugin.IsSequenceBased)
                     {
                         // our copy of SequenceNameOrIdentityFunction is only ever non-null when there is a non-compound PK
-                        insertNames.Add(PrimaryKeys.KeyNames);
+                        insertNames.Add(PrimaryKeyInfo.PrimaryKeyColumns);
                         // TO DO: Should there be two places for BuildNextval? (See above.) Why?
-                        insertValues.Add(Plugin.BuildNextval(PrimaryKeys.SequenceNameOrIdentityFunction));
+                        insertValues.Add(Plugin.BuildNextval(PrimaryKeyInfo.SequenceNameOrIdentityFunction));
                     }
                     // TO DO: Hang on, we've got a different check here from SequenceNameOrIdentityFunction != null;
                     // either one or other is right, or else some exceptions should be thrown if they come apart.
@@ -927,25 +903,25 @@ namespace Mighty
             if (item is ExpandoObject)
             {
                 var dict = ((ExpandoObject)item).ToDictionary();
-                dict[PrimaryKeys.KeyNames] = pk;
+                dict[PrimaryKeyInfo.PrimaryKeyColumns] = pk;
                 return item;
             }
             // Write PK back to NameValueCollection if we can
             if (item is NameValueCollection)
             {
-                ((NameValueCollection)item)[PrimaryKeys.KeyNames] = pk.ToString();
+                ((NameValueCollection)item)[PrimaryKeyInfo.PrimaryKeyColumns] = pk.ToString();
                 return item;
             }
             // Write PK back to POCO of type T if we can
-            if (IsManagedGenericType(item) && PrimaryKeys.PrimaryKeyMemberInfo != null)
+            if (ColumnsContract.IsManagedGenericType(item) && PrimaryKeyInfo.PrimaryKeyMemberInfo != null)
             {
-                if (PrimaryKeys.PrimaryKeyMemberInfo is FieldInfo)
+                if (PrimaryKeyInfo.PrimaryKeyMemberInfo is FieldInfo)
                 {
-                    ((FieldInfo)PrimaryKeys.PrimaryKeyMemberInfo).SetValue(item, pk);
+                    ((FieldInfo)PrimaryKeyInfo.PrimaryKeyMemberInfo).SetValue(item, pk);
                 }
                 else
                 {
-                    ((PropertyInfo)PrimaryKeys.PrimaryKeyMemberInfo).SetValue(item, pk);
+                    ((PropertyInfo)PrimaryKeyInfo.PrimaryKeyMemberInfo).SetValue(item, pk);
                 }
                 return item;
             }
@@ -954,20 +930,10 @@ namespace Mighty
                 // Convert POCO to expando
                 var result = item.ToExpando();
                 var dict = result.ToDictionary();
-                dict[PrimaryKeys.KeyNames] = pk;
+                dict[PrimaryKeyInfo.PrimaryKeyMemberName] = pk;
                 return result;
             }
             return null;
-        }
-
-        /// <summary>
-        /// Returns true if this is an instance or sublass of <see cref="MightyOrm{T}"/> and <paramref name="item"/> is of type T.
-        /// </summary>
-        /// <param name="item">The object to check</param>
-        /// <returns></returns>
-        protected internal bool IsManagedGenericType(object item)
-        {
-            return IsGeneric && item is T;
         }
         #endregion
 
@@ -1076,9 +1042,9 @@ namespace Mighty
                 return false;
             }
             bool containsRowCount = false;
-            foreach (var paramInfo in new NameValueTypeEnumerator(this, nameValuePairs, direction))
+            foreach (var paramInfo in new NameValueTypeEnumerator(ColumnsContract, nameValuePairs, direction))
             {
-                if (pkFilter == PkFilter.DoNotFilter || (PrimaryKeys.IsKey(paramInfo.Name) == (pkFilter == PkFilter.KeysOnly)))
+                if (pkFilter == PkFilter.DoNotFilter || (PrimaryKeyInfo.IsKey(paramInfo.Name) == (pkFilter == PkFilter.KeysOnly)))
                 {
                     if (paramInfo.Value is RowCount)
                     {
@@ -1108,18 +1074,18 @@ namespace Mighty
             var nameValueArgs = new ExpandoObject();
             var nameValueDictionary = nameValueArgs.ToDictionary();
 
-            var enumerator = new NameValueTypeEnumerator(this, whereParams);
+            var enumerator = new NameValueTypeEnumerator(ColumnsContract, whereParams);
 
             // If no value names in the whereParams, map the values to the primary key(s)
             if (!enumerator.HasNames())
             {
-                return new Tuple<string, object, object[]>(PrimaryKeys.WhereForKeys(), null, PrimaryKeys.KeyValuesFromKey(whereParams));
+                return new Tuple<string, object, object[]>(PrimaryKeyInfo.WhereForKeys(), null, PrimaryKeyInfo.KeyValuesFromKey(whereParams));
             }
 
             // Use (mapped) names as column names and values as values
             foreach (var paramInfo in enumerator)
             {
-                string name = SqlNamingMapper.ColumnName(typeof(T), paramInfo.Name);
+                string name = SqlNamingMapper.ColumnNameMapping(typeof(T), paramInfo.Name);
                 wherePredicates.Add(string.Format("{0} = {1}", name, Plugin.PrefixParameterName(name)));
                 nameValueDictionary.Add(name, paramInfo.Value);
             }

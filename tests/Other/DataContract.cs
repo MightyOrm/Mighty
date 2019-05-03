@@ -16,7 +16,7 @@ namespace Mighty.Dynamic.Tests.X
         [Test]
         public void CacheHits()
         {
-            Assert.AreEqual(518, ColumnsContractStore.Instance.CacheHits);
+            Assert.AreEqual(520, ColumnsContractStore.Instance.CacheHits);
         }
 
         [Test]
@@ -24,23 +24,30 @@ namespace Mighty.Dynamic.Tests.X
         {
             // all the dynamic tests should only ever need one contract now,
             // even though some of the dynamic tests specify columns
-            Assert.AreEqual(1, ColumnsContractStore.Instance.CacheMisses);
+            Assert.AreEqual(3, ColumnsContractStore.Instance.CacheMisses);
         }
 
         [Test]
-        public void IncorrectDynamicColumnMappingCausesException()
+        public void WithDefautMapper_CreatesOk()
         {
-            // okay to use the default mapper
-            var good = new MightyOrm(
-                mapper: new SqlNamingMapper(columnName: SqlNamingMapper.IdentityColumnMapping));
-            // now okay to use the non-default mapper with a columns spec
-            var good2 = new MightyOrm(
+            new MightyOrm(
+                mapper: new SqlNamingMapper(columnNameMapping: SqlNamingMapper.IdentityColumnMapping));
+        }
+
+        [Test]
+        public void WithNonDefautMapperAndColumns_CreatesOk()
+        {
+            new MightyOrm(
                 columns: "col1, col_33",
-                mapper: new SqlNamingMapper(columnName: (t, n) => n));
-            // not okay to override, even with 'the same' function
+                mapper: new SqlNamingMapper(columnNameMapping: (t, n) => n));
+        }
+
+        [Test]
+        public void WithNonDefautMapperNoColumns_ThrowsException()
+        {
             Assert.Throws<InvalidOperationException>(() =>
             {
-                var bad = new MightyOrm(mapper: new SqlNamingMapper(columnName: (t, n) => n));
+                new MightyOrm(mapper: new SqlNamingMapper(columnNameMapping: (t, n) => n));
             });
         }
     }
@@ -68,14 +75,13 @@ namespace Mighty.Generic.Tests.X
         [Test]
         public void CacheHits()
         {
-            // This is upped by 300 - 3 by some forced cache hits in Insert_FromNew
-            Assert.AreEqual(1154, ColumnsContractStore.Instance.CacheHits);
+            Assert.AreEqual(861, ColumnsContractStore.Instance.CacheHits);
         }
 
         [Test]
         public void CacheMisses()
         {
-            Assert.AreEqual(17, ColumnsContractStore.Instance.CacheMisses);
+            Assert.AreEqual(19, ColumnsContractStore.Instance.CacheMisses);
         }
     }
 
@@ -84,8 +90,7 @@ namespace Mighty.Generic.Tests.X
         [Test]
         public void CacheHits()
         {
-            // This is upped by 300 - 3 by some forced cache hits in Insert_FromNew
-            Assert.AreEqual(364, TableMetaDataStore.Instance.CacheHits);
+            Assert.AreEqual(69, TableMetaDataStore.Instance.CacheHits);
         }
 
         [Test]

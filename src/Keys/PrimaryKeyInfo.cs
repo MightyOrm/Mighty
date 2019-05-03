@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Dynamic;
 using System.Linq;
 using System.Reflection;
 
 using Mighty.DataContracts;
 using Mighty.Mapping;
+using Mighty.Parameters;
 using Mighty.Plugins;
 
 namespace Mighty.Keys
@@ -18,24 +20,19 @@ namespace Mighty.Keys
     public class PrimaryKeyInfo
     {
         /// <summary>
-        /// Primary key field or fields (exact C# names, no mapping applied) as a comma separated list
+        /// Primary key columns as a comma separated list
         /// </summary>
-        public string KeyNames { get; private set; }
+        public string PrimaryKeyColumns { get; private set; }
 
         /// <summary>
-        /// Number of primary key fields
+        /// Number of primary keys
         /// </summary>
-        public int Count { get { return PrimaryKeyList.Count; } }
+        public int Count { get { return PrimaryKeyColumnList.Count; } }
 
         /// <summary>
-        /// The primary keys as an <see cref="IEnumerable{T}"/>
+        /// Separated, primary key columns
         /// </summary>
-        public IEnumerable<string> Keys { get { return PrimaryKeyList; } }
-
-        /// <summary>
-        /// Separated, lowered primary key fields (exact C# names, no mapping applied)
-        /// </summary>
-        private List<string> PrimaryKeyList;
+        public List<string> PrimaryKeyColumnList;
 
         /// <summary>
         /// Sequence name or identity retrieval function (always null for compound PK)
@@ -48,9 +45,13 @@ namespace Mighty.Keys
         /// </summary>
         internal MemberInfo PrimaryKeyMemberInfo { get; private set; }
 
-#if KEY_VALUES
-        internal string PrimaryKeyColumn { get; private set; }
-#endif
+        /// <summary>
+        /// For a single primary key only, on dynamic versions of Mighty only, the reflected
+        /// member name corresponding to the primary key field in the dynamic type.
+        /// </summary>
+        internal string PrimaryKeyMemberName { get; private set; }
+
+        private readonly ColumnsContract ColumnsContract;
 
         private readonly PluginBase Plugin;
         private readonly SqlNamingMapper SqlNamingMapper;
@@ -60,39 +61,44 @@ namespace Mighty.Keys
         /// Manage key(s) and sequence or identity.
         /// </summary>
         /// <param name="IsGeneric"></param>
-        /// <param name="ColumnsContract"></param>
+        /// <param name="columnsContract"></param>
         /// <param name="xplugin"></param>
         /// <param name="dataMappingType"></param>
         /// <param name="xmapper"></param>
-        /// <param name="keys"></param>
+        /// <param name="keyNames"></param>
         /// <param name="sequence"></param>
         internal PrimaryKeyInfo(
-            bool IsGeneric, ColumnsContract ColumnsContract, PluginBase xplugin, Type dataMappingType, SqlNamingMapper xmapper,
-            string keys, string sequence)
+            bool IsGeneric, ColumnsContract columnsContract, PluginBase xplugin, Type dataMappingType, SqlNamingMapper xmapper,
+            string keyNames, string sequence)
         {
             Plugin = xplugin;
             SqlNamingMapper = xmapper;
-            DataItemType = ColumnsContract.Key.DataItemType;
-            SetKeys(keys, xmapper, dataMappingType);
+            DataItemType = columnsContract.Key.DataItemType;
+            ColumnsContract = columnsContract;
+            SetKeys(keyNames, xmapper, dataMappingType);
             SetSequence(xplugin, xmapper, sequence);
-            SetPkMemberInfo(IsGeneric, ColumnsContract);
+            SetPkMemberInfo(IsGeneric, columnsContract);
         }
 
         private void SetKeys(string keys, SqlNamingMapper mapper, Type dataMappingType)
         {
-            if (keys == null && dataMappingType != null)
+            if (keys != null)
             {
-                keys = mapper.PrimaryKeyFieldNames(dataMappingType);
+                // from constructor
+                keys = ColumnsContract.Map(AutoMap.Keys, keys);
             }
-            KeyNames = keys;
-            if (keys == null)
+            else if (ColumnsContract.KeyColumns != null)
             {
-                PrimaryKeyList = new List<string>();
+                // from attributes
+                keys = ColumnsContract.KeyColumns;
             }
             else
             {
-                PrimaryKeyList = keys.Split(',').Select(k => k.Trim()).ToList();
+                // from mapper
+                keys = ColumnsContract.Map(AutoMap.On, mapper.GetPrimaryKeyFieldNames(dataMappingType));
             }
+            PrimaryKeyColumns = keys; // we need null here if no keys
+            PrimaryKeyColumnList = keys?.Split(',').Select(k => k.Trim()).ToList() ?? new List<string>();
         }
 
         private void SetSequence(PluginBase plugin, SqlNamingMapper mapper, string sequence)
@@ -101,14 +107,14 @@ namespace Mighty.Keys
             // are actually expecting to use it later (which entails a simple (single column) PK).
 
             // It makes no sense to attempt to retrieve an auto-generated value for a compund primary key.
-            if (PrimaryKeyList.Count != 1)
+            if (PrimaryKeyColumnList.Count != 1)
             {
                 // No exception here if database is identity-based since we want to allow, e.g., an override
                 // of `sequence: "@@IDENTITY"` on all instances of Mighty, even if some instances are then
                 // used for tables with no or compound primary keys.
                 if (plugin.IsSequenceBased && !string.IsNullOrEmpty(sequence))
                 {
-                    throw new InvalidOperationException($"It is not possible to specify a sequence name for a table with {(PrimaryKeyList.Count > 1 ? "a compound (multi-column)" : "no")} primary key");
+                    throw new InvalidOperationException($"It is not possible to specify a sequence name for a table with {(PrimaryKeyColumnList.Count > 1 ? "a compound (multi-column)" : "no")} primary key");
                 }
                 SequenceNameOrIdentityFunction = null;
             }
@@ -124,7 +130,7 @@ namespace Mighty.Keys
                     if (plugin.IsSequenceBased)
                     {
                         // sequence-based, non-null, non-empty specifies sequence name
-                        SequenceNameOrIdentityFunction = sequence ?? mapper.QuotedDatabaseIdentifier(sequence);
+                        SequenceNameOrIdentityFunction = sequence ?? mapper.GetQuotedDatabaseIdentifier(sequence);
                     }
                     else
                     {
@@ -144,20 +150,11 @@ namespace Mighty.Keys
             // and we only want to write to the PK when there is a SequenceNameOrIdentityFunction
             if (SequenceNameOrIdentityFunction != null)
             {
-                if (!IsGeneric)
+                if (IsGeneric)
                 {
-#if KEY_VALUES
-                    PrimaryKeyColumn = KeyNames;
-#endif
+                    PrimaryKeyMemberInfo = ColumnsContract.GetMember(PrimaryKeyColumns, "primary key");
                 }
-                else
-                {
-                    PrimaryKeyMemberInfo = ColumnsContract.GetMember(KeyNames, "primary key");
-#if KEY_VALUES
-                    //// PrimaryKeyColumn is only ever used on dynamic version
-                    //PrimaryKeyColumn = ColumnsContract.Key.ColumnName(ColumnsContract.Key.DataItemType, FieldNames);
-#endif
-                }
+                PrimaryKeyMemberName = ColumnsContract.ReverseMap(PrimaryKeyColumns);
             }
         }
 
@@ -169,11 +166,11 @@ namespace Mighty.Keys
         /// <returns></returns>
         internal string CheckGetKeyColumn(string partialMessage)
         {
-            if (PrimaryKeyColumn == null)
+            if (PrimaryKeyColumnList.Count != 1)
             {
                 throw new InvalidOperationException($"A single primary key must be specified{partialMessage}");
             }
-            return PrimaryKeyColumn;
+            return PrimaryKeyColumns;
         }
 #endif
 
@@ -185,11 +182,11 @@ namespace Mighty.Keys
         /// <returns></returns>
         internal string CheckGetKeyName(int i, string message)
         {
-            if (i >= PrimaryKeyList.Count)
+            if (i >= PrimaryKeyColumnList.Count)
             {
                 throw new InvalidOperationException(message);
             }
-            return PrimaryKeyList[i];
+            return PrimaryKeyColumnList[i];
         }
 
         /// <summary>
@@ -232,12 +229,12 @@ namespace Mighty.Keys
         {
             if (_whereForKeys == null)
             {
-                if (PrimaryKeyList == null || PrimaryKeyList.Count == 0)
+                if (PrimaryKeyColumnList == null || PrimaryKeyColumnList.Count == 0)
                 {
                     throw new InvalidOperationException("No primary key field(s) have been specified");
                 }
                 int i = 0;
-                _whereForKeys = string.Join(" AND ", PrimaryKeyList.Select(k => $"{k}  = {Plugin.PrefixParameterName(i++.ToString())}"));
+                _whereForKeys = string.Join(" AND ", PrimaryKeyColumnList.Select(k => $"{k}  = {Plugin.PrefixParameterName(i++.ToString())}"));
             }
             return _whereForKeys;
         }
@@ -248,11 +245,11 @@ namespace Mighty.Keys
         /// <returns></returns>
         internal string CheckGetPrimaryKeyFields()
         {
-            if (string.IsNullOrEmpty(KeyNames))
+            if (string.IsNullOrEmpty(PrimaryKeyColumns))
             {
                 throw new InvalidOperationException("No primary key field(s) have been specified");
             }
-            return KeyNames;
+            return PrimaryKeyColumns;
         }
 
 #pragma warning disable IDE0059 // Value assigned is never used
@@ -277,15 +274,52 @@ namespace Mighty.Keys
         internal bool IsKey(string fieldName, out string canonicalKeyName)
         {
             canonicalKeyName = null;
-            foreach (var key in PrimaryKeyList)
+            foreach (var key in PrimaryKeyColumnList)
             {
-                if (key.Equals(fieldName, SqlNamingMapper.CaseSensitiveColumnMapping(DataItemType) ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase))
+                if (key.Equals(fieldName, SqlNamingMapper.CaseSensitiveColumns(DataItemType) ? StringComparison.Ordinal : StringComparison.OrdinalIgnoreCase))
                 {
                     canonicalKeyName = key;
                     return true;
                 }
             }
             return false;
+        }
+
+        internal bool HasPrimaryKey(object item)
+        {
+            int count = 0;
+            foreach (var info in new NameValueTypeEnumerator(ColumnsContract, item))
+            {
+                if (IsKey(info.Name)) count++;
+            }
+            return count == Count;
+        }
+
+        internal object GetPrimaryKey(object item, bool alwaysArray = false)
+        {
+            var pks = new ExpandoObject();
+            var pkDictionary = pks.ToDictionary();
+            foreach (var info in new NameValueTypeEnumerator(ColumnsContract, item))
+            {
+                string canonicalKeyName;
+                if (IsKey(info.Name, out canonicalKeyName)) pkDictionary.Add(canonicalKeyName, info.Value);
+            }
+            if (pkDictionary.Count != Count)
+            {
+                throw new InvalidOperationException("PK field(s) not present in object");
+            }
+            // re-arrange to specified order
+            var retval = new List<object>();
+            foreach (var key in PrimaryKeyColumnList)
+            {
+                retval.Add(pkDictionary[key]);
+            }
+            var array = retval.ToArray();
+            if (array.Length == 1 && !alwaysArray)
+            {
+                return array[0];
+            }
+            return array;
         }
     }
 }

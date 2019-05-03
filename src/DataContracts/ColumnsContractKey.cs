@@ -84,7 +84,7 @@ namespace Mighty.DataContracts
             IsGeneric = isGeneric;
 
             AutoMapAfterColumnRename = mapper.AutoMapAfterColumnRename(type);
-            CaseSensitiveColumnMapping = mapper.CaseSensitiveColumnMapping(type);
+            CaseSensitiveColumnMapping = mapper.CaseSensitiveColumns(type);
             foreach (var attr in type
 #if !NETFRAMEWORK
                 .GetTypeInfo()
@@ -99,7 +99,7 @@ namespace Mighty.DataContracts
             }
 
             HasColumnMapping =
-                mapper.ColumnName != SqlNamingMapper.IdentityColumnMapping ||
+                mapper.ColumnNameMapping != SqlNamingMapper.IdentityColumnMapping ||
                 mapper.ColumnDataDirection != SqlNamingMapper.ColumnDataDirectionUnspecified ||
                 mapper.IgnoreColumn != SqlNamingMapper.NeverIgnoreColumn;
 
@@ -119,7 +119,7 @@ namespace Mighty.DataContracts
                 DynamicColumnSpec = NormaliseColumns(columns);
             }
 
-            ColumnName = mapper.ColumnName;
+            ColumnName = mapper.ColumnNameMapping;
             ColumnDataDirection = mapper.ColumnDataDirection;
             IgnoreColumn = mapper.IgnoreColumn;
 

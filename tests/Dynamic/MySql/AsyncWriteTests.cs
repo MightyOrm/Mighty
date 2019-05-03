@@ -11,6 +11,8 @@ using System.Threading.Tasks;
 using Mighty.Dynamic.Tests.MySql.TableClasses;
 using NUnit.Framework;
 
+using Mighty.Mapping;
+
 namespace Mighty.Dynamic.Tests.MySql
 {
     [TestFixture("MySql.Data.MySqlClient")]
@@ -83,6 +85,42 @@ namespace Mighty.Dynamic.Tests.MySql
             Assert.IsNotNull(newUpdatedRow);
             Assert.AreEqual(updatedRow.CategoryID, newUpdatedRow.CategoryID);
             Assert.AreEqual(updatedRow.Description, newUpdatedRow.Description);
+        }
+
+
+        [Test]
+        public async Task Update_SingleRow_MappedExpando()
+        {
+            // Apply some quick crazy-ass mapping... to an ExpandoObject :-)
+            // Remember, we're mapping from crazy fake 'class' names to the sensible underlying column names
+            var categories = new MightyOrm(
+                string.Format(TestConstants.WriteTestConnection, ProviderName),
+                "MassiveWriteTests.Categories",
+                keyNames: "MYCATEGORYID",
+                columns: "MYCATEGORYID, TheName, ItsADescription",
+                mapper: new SqlNamingMapper(columnNameMapping: (t, c) => c
+                    // 'class' names come first
+                    .Map("MYCATEGORYID", "CategoryID")
+                    .Map("TheName", "CategoryName")
+                    .Map("ItsADescription", "Description")));
+            // insert something to update first. 
+            var inserted = await categories.InsertAsync(new { TheName = "Cool stuff", ItsADescription = "You know... cool stuff! Cool. n. stuff." });
+            int insertedCategoryID = inserted.MYCATEGORYID;
+            Assert.IsTrue(insertedCategoryID > 0);
+            // update it, with a better description
+            inserted.ItsADescription = "This is all jolly marvellous";
+            Assert.AreEqual(1, await categories.UpdateAsync(inserted), "Update should have affected 1 row");
+            var updatedRow = await categories.SingleAsync(new { inserted.MYCATEGORYID });
+            Assert.IsNotNull(updatedRow);
+            Assert.AreEqual(inserted.MYCATEGORYID, Convert.ToInt32(updatedRow.MYCATEGORYID)); // convert from uint
+            Assert.AreEqual(inserted.ItsADescription, updatedRow.ItsADescription);
+            // reset description to NULL
+            updatedRow.ItsADescription = null;
+            Assert.AreEqual(1, await categories.UpdateAsync(updatedRow), "Update should have affected 1 row");
+            var newUpdatedRow = await categories.SingleAsync(new { updatedRow.MYCATEGORYID });
+            Assert.IsNotNull(newUpdatedRow);
+            Assert.AreEqual(updatedRow.MYCATEGORYID, newUpdatedRow.MYCATEGORYID);
+            Assert.AreEqual(updatedRow.ItsADescription, newUpdatedRow.ItsADescription);
         }
 
 

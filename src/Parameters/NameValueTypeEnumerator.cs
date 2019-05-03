@@ -26,16 +26,16 @@ namespace Mighty.Parameters
         private readonly object _o;
         private readonly ParameterDirection? _direction;
         private readonly OrmAction? _action;
-        private readonly dynamic _mighty;
+        private readonly ColumnsContract _columnsContract;
 
         internal ParameterInfo Current { get; set; }
 
-        internal NameValueTypeEnumerator(object mighty, object o, ParameterDirection? direction = null, OrmAction? action = null)
+        internal NameValueTypeEnumerator(ColumnsContract columnsContract, object o, ParameterDirection? direction = null, OrmAction? action = null)
         {
             _o = o;
             _direction = direction;
             _action = action;
-            _mighty = mighty;
+            _columnsContract = columnsContract;
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -188,11 +188,12 @@ namespace Mighty.Parameters
                 yield break;
             }
 
-            // Detect if the object type is T, and only if it is do a loop over T's stored set of members instead, which
-            // reflects columns and bindingFlags. (So everything except T will always use members public only - perfect!)
-            if (_mighty != null && _mighty.IsManagedGenericType(_o)) // cannot coalesce to ?. because _mighty is dynamic
+            // Detect if the object type is T and only if it is do a loop over T's stored set of members instead, which
+            // reflects columns and bindingFlags. So values obtained from any POCO type except T will always use public
+            // members only, but values obtained from T will use whatever members are managed by Mighty - perfect!
+            if (_columnsContract != null && _columnsContract.IsManagedGenericType(_o))
             {
-                foreach (ColumnsContractMemberInfo member in _mighty.ColumnsContract.ColumnNameToMemberInfo.Values)
+                foreach (ColumnsContractMemberInfo member in _columnsContract.ColumnNameToMemberInfo.Values)
                 {
                     yield return new LazyNameValueTypeInfo(member.Name, () => member.GetValue(_o), member.MemberType);
                 }

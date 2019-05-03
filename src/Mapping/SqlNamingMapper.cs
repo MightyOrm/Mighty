@@ -14,15 +14,15 @@ namespace Mighty.Mapping
     static public partial class ObjectExtensions
     {
         /// <summary>
-        /// Utility method to map one string to another, chainable in fluent syntax.
+        /// Utility method to create <see cref="SqlNamingMapper"/> naming maps, chainable in fluent syntax.
         /// </summary>
         /// <param name="from"></param>
-        /// <param name="match"></param>
-        /// <param name="to"></param>
+        /// <param name="memberName"></param>
+        /// <param name="columnName"></param>
         /// <returns></returns>
-        static public string Map(this string from, string match, string to)
+        static public string Map(this string from, string memberName, string columnName)
         {
-            if (string.Equals(from, match, StringComparison.OrdinalIgnoreCase)) return to;
+            if (string.Equals(from, memberName, StringComparison.OrdinalIgnoreCase)) return columnName;
             else return from;
         }
     }
@@ -44,7 +44,7 @@ namespace Mighty.Mapping
         /// The type passed in is the class or subclass type for dynamic instances of <see cref="MightyOrm"/>
         /// and is the generic type T for generic instances of <see cref="MightyOrm{T}"/>.
         /// </summary>
-        override public Func<Type, string> TableName { get; protected set; } = (t) => t.Name;
+        override public Func<Type, string> TableNameMapping { get; protected set; } = (t) => t.Name;
 
         /// <summary>
         /// Function to get primary key field name(s) from the data item type and field or property name.
@@ -54,7 +54,7 @@ namespace Mighty.Mapping
         /// The type passed in is the class or subclass type for dynamic instances of <see cref="MightyOrm"/>
         /// and is the generic type T for generic instances of <see cref="MightyOrm{T}"/>.
         /// </summary>
-        override public Func<Type, string> PrimaryKeyFieldNames { get; protected set; } = (t) => null;
+        override public Func<Type, string> GetPrimaryKeyFieldNames { get; protected set; } = (t) => null;
 
         /// <summary>
         /// Function to get the sequence from the data item type.
@@ -63,7 +63,7 @@ namespace Mighty.Mapping
         /// The type passed in is the class or subclass type for dynamic instances of <see cref="MightyOrm"/>
         /// and is the generic type T for generic instances of <see cref="MightyOrm{T}"/>.
         /// </summary>
-        override public Func<Type, string> SequenceName { get; protected set; } = (t) => null;
+        override public Func<Type, string> GetSequenceName { get; protected set; } = (t) => null;
         #endregion
 
         #region Table-column features (needed in column mapping conract)
@@ -98,7 +98,7 @@ namespace Mighty.Mapping
         /// The type passed in is the class or subclass type for dynamic instances of <see cref="MightyOrm"/>
         /// and is the generic type T for generic instances of <see cref="MightyOrm{T}"/>.
         /// </summary>
-        override public Func<Type, bool> CaseSensitiveColumnMapping { get; protected set; } = UseCaseInsensitiveColumnMapping;
+        override public Func<Type, bool> CaseSensitiveColumns { get; protected set; } = UseCaseInsensitiveColumnMapping;
         #endregion
 
         #region Column-level features
@@ -119,7 +119,7 @@ namespace Mighty.Mapping
         /// The type passed in is the class or subclass type for dynamic instances of <see cref="MightyOrm"/>
         /// and is the generic type T for generic instances of <see cref="MightyOrm{T}"/>.
         /// </summary>
-        override public Func<Type, string, string> ColumnName { get; protected set; } = IdentityColumnMapping;
+        override public Func<Type, string, string> ColumnNameMapping { get; protected set; } = IdentityColumnMapping;
 
         /// <summary>
         /// Never ignore column.
@@ -164,12 +164,12 @@ namespace Mighty.Mapping
         /// <summary>
         /// Function to perform database specific identifier quoting (such as "name" -> "[name]" or "name" -> "'name'").
         /// Default is to return the passed in string unmodified.
-        /// You should handle quoting identifiers here only, or in <see cref="TableName"/> and <see cref="ColumnName"/> only, but not both.
+        /// You should handle quoting identifiers here only, or in <see cref="TableNameMapping"/> and <see cref="ColumnNameMapping"/> only, but not both.
         /// </summary>
         /// <remarks>
         /// TO DO: Might be useful to provide additional method which splits the name at the dots then rejoins it, with single overrideable method to quote the individual parts
         /// </remarks>
-        override public Func<string, string> QuotedDatabaseIdentifier { get; protected set; } = (id) => id;
+        override public Func<string, string> GetQuotedDatabaseIdentifier { get; protected set; } = (id) => id;
         #endregion
 
         #region Mapping utility method
@@ -240,19 +240,19 @@ namespace Mighty.Mapping
         /// Constructor
         /// </summary>
         public SqlNamingMapper(
-            Func<Type, bool> caseSensitiveColumnMapping = null,
-            Func<Type, string> tableName = null,
-            Func<Type, string, string> columnName = null,
-            Func<Type, string> primaryKeyFieldNames = null,
-            Func<Type, string> sequenceName = null,
-            Func<string, string> quotedDatabaseIdentifier = null)
+            Func<Type, bool> caseSensitiveColumns = null,
+            Func<Type, string> tableNameMapping = null,
+            Func<Type, string, string> columnNameMapping = null,
+            Func<Type, string> getPrimaryKeyFieldNames = null,
+            Func<Type, string> getSequenceName = null,
+            Func<string, string> getQuotedDatabaseIdentifier = null)
         {
-            if (caseSensitiveColumnMapping != null) CaseSensitiveColumnMapping = caseSensitiveColumnMapping;
-            if (tableName != null) TableName = tableName;
-            if (columnName != null) ColumnName = columnName;
-            if (primaryKeyFieldNames != null) PrimaryKeyFieldNames = primaryKeyFieldNames;
-            if (sequenceName != null) SequenceName = sequenceName;
-            if (quotedDatabaseIdentifier != null) QuotedDatabaseIdentifier = quotedDatabaseIdentifier;
+            if (caseSensitiveColumns != null) CaseSensitiveColumns = caseSensitiveColumns;
+            if (tableNameMapping != null) TableNameMapping = tableNameMapping;
+            if (columnNameMapping != null) ColumnNameMapping = columnNameMapping;
+            if (getPrimaryKeyFieldNames != null) GetPrimaryKeyFieldNames = getPrimaryKeyFieldNames;
+            if (getSequenceName != null) GetSequenceName = getSequenceName;
+            if (getQuotedDatabaseIdentifier != null) GetQuotedDatabaseIdentifier = getQuotedDatabaseIdentifier;
         }
         #endregion
     }
