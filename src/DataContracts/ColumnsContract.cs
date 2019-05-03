@@ -52,9 +52,14 @@ namespace Mighty.DataContracts
         public string KeyFields { get; protected set; }
 
         /// <summary>
-        /// The reflected <see cref="MemberInfo"/> corresponding to all specified columns in the database table (null in data contracts for dynamic type)
+        /// The reflected <see cref="MemberInfo"/> corresponding to all specified columns in the database table
         /// </summary>
         public Dictionary<string, ColumnsContractMemberInfo> ColumnNameToMemberInfo;
+
+        /// <summary>
+        /// The reverse mapping for all specified columns in the database table
+        /// </summary>
+        public Dictionary<string, string> MemberNameToColumnName;
 
         /// <summary>
         /// Create a new data contract corresponding to the values in the key
@@ -63,23 +68,38 @@ namespace Mighty.DataContracts
         public ColumnsContract(ColumnsContractKey Key)
         {
             this.Key = Key;
-            var ReadColumnList = new List<string>();
-            var KeyFieldList = new List<string>();
-            bool foundControlledColumn = false;
-            if (Key.DataItemType != null)
+            if (!Key.NullContract)
             {
-                ColumnNameToMemberInfo = new Dictionary<string, ColumnsContractMemberInfo>(Key.CaseSensitiveColumnMapping(Key.DataItemType) ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
-                var fc1 = AddReflectedColumns(ReadColumnList, KeyFieldList, Key, BindingFlags.Instance | BindingFlags.Public);
-                var fc2 = AddReflectedColumns(ReadColumnList, KeyFieldList, Key, BindingFlags.Instance | BindingFlags.NonPublic);
-                foundControlledColumn = fc1 || fc2;
-            }
-            if (foundControlledColumn)
-            {
-                ReadColumns = string.Join(",", ReadColumnList);
-            }
-            if (KeyFieldList.Count > 0)
-            {
-                KeyFields = string.Join(",", KeyFieldList);
+                var ReadColumnList = new List<string>();
+                var KeyFieldList = new List<string>();
+                bool foundControlledColumn = false;
+
+                ColumnNameToMemberInfo = new Dictionary<string, ColumnsContractMemberInfo>(Key.CaseSensitiveColumnMapping ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
+                MemberNameToColumnName = new Dictionary<string, string>(Key.CaseSensitiveColumnMapping ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
+
+                if (Key.IsGeneric)
+                {
+                    var fc1 = AddReflectedColumns(ReadColumnList, KeyFieldList, Key, BindingFlags.Instance | BindingFlags.Public);
+                    var fc2 = AddReflectedColumns(ReadColumnList, KeyFieldList, Key, BindingFlags.Instance | BindingFlags.NonPublic);
+                    foundControlledColumn = fc1 || fc2;
+                }
+                else
+                {
+                    foreach (var column in Key.DynamicColumnSpec.Split(','))
+                    {
+                        AddReflectedColumn(ReadColumnList, KeyFieldList, Key, null, column, true);
+                    }
+                    foundControlledColumn = true;
+                }
+
+                if (foundControlledColumn)
+                {
+                    ReadColumns = string.Join(",", ReadColumnList);
+                }
+                if (KeyFieldList.Count > 0)
+                {
+                    KeyFields = string.Join(",", KeyFieldList);
+                }
             }
         }
 
@@ -97,7 +117,7 @@ namespace Mighty.DataContracts
             foreach (var member in key.DataItemType.GetMembers(bindingFlags)
                 .Where(m => m is FieldInfo || m is PropertyInfo))
             {
-                var fc = AddReflectedColumn(ReadColumnList, KeyFieldList, key, member, (bindingFlags & BindingFlags.Public) != 0);
+                var fc = AddReflectedColumn(ReadColumnList, KeyFieldList, key, member, null, (bindingFlags & BindingFlags.Public) != 0);
                 foundControlledColumn = foundControlledColumn || fc;
             }
             return foundControlledColumn;
@@ -110,51 +130,59 @@ namespace Mighty.DataContracts
         /// <param name="KeyFieldList"></param>
         /// <param name="key"></param>
         /// <param name="member"></param>
+        /// <param name="name"></param>
         /// <param name="include">The initial default include status (depending on public, non-public or columns-driven)</param>
         /// <returns>Whether a controlled column (<see cref="DatabaseColumnAttribute"/> or <see cref="DatabaseIgnoreAttribute"/>) was found</returns>
-        protected bool AddReflectedColumn(List<string> ReadColumnList, List<string> KeyFieldList, ColumnsContractKey key, MemberInfo member, bool include)
+        protected bool AddReflectedColumn(List<string> ReadColumnList, List<string> KeyFieldList, ColumnsContractKey key, MemberInfo member, string name, bool include)
         {
             bool foundControlledColumn = false;
             bool isKey = false;
             string sqlColumnName = null;
             DataDirection dataDirection = 0;
+            string transformSql = null;
 
             // Control things by attributes
-            foreach (var attr in member.GetCustomAttributes(false))
+            if (member != null)
             {
-                if (attr is DatabaseColumnAttribute)
+                foreach (var attr in member.GetCustomAttributes(false))
                 {
-                    var colAttr = (DatabaseColumnAttribute)attr;
-                    include = true;
-                    sqlColumnName = colAttr.ColumnName;
-                    dataDirection = colAttr.DataDirection;
-                    foundControlledColumn = true;
-                }
-                if (attr is DatabaseIgnoreAttribute)
-                {
-                    include = false;
-                    foundControlledColumn = true;
-                }
-                if (attr is DatabaseKeyAttribute)
-                {
-                    isKey = true;
+                    if (attr is DatabaseColumnAttribute)
+                    {
+                        var colAttr = (DatabaseColumnAttribute)attr;
+                        include = true;
+                        sqlColumnName = colAttr.Name;
+                        dataDirection = colAttr.Direction;
+                        transformSql = colAttr.Transform;
+                        foundControlledColumn = true;
+                    }
+                    if (attr is DatabaseIgnoreAttribute)
+                    {
+                        include = false;
+                        foundControlledColumn = true;
+                    }
+                    if (attr is DatabaseKeyAttribute)
+                    {
+                        isKey = true;
+                    }
                 }
             }
 
+            name = name ?? member.Name;
+
             // Also control things by the mapper
-            DataDirection mapperDirection = key.ColumnDataDirection(key.DataItemType, member.Name);
+            DataDirection mapperDirection = key.ColumnDataDirection(key.DataItemType, name);
             if (mapperDirection != 0)
             {
                 // We could do one of several things, but to make it like the ignore setting, we're
                 // OR-ing the direction settings
                 dataDirection |= mapperDirection;
 
-                //// Not sure about this, but since having a column name in the mapper doesn't amount to
-                //// have certain controlled columns, then probably this doesn't either?
+                //// Not sure about this, but since having a column name in the mapper doesn't
+                //// switch this on, then probably this shouldn't either?
                 //foundcontrolledcolumn = true;
             }
             // The column will be ignored if the mapper or the attribute say so
-            if (key.IgnoreColumn(key.DataItemType, member.Name))
+            if (key.IgnoreColumn(key.DataItemType, name))
             {
                 include = false;
                 foundControlledColumn = true;
@@ -163,12 +191,13 @@ namespace Mighty.DataContracts
             if (include)
             {
                 // the column name from the attribute has precedence
-                sqlColumnName = sqlColumnName ?? key.ColumnName(key.DataItemType, member.Name);
-                ColumnNameToMemberInfo.Add(sqlColumnName, new ColumnsContractMemberInfo(key.DataItemType, member, dataDirection));
-                ReadColumnList.Add(sqlColumnName);
+                sqlColumnName = sqlColumnName ?? key.ColumnName(key.DataItemType, name);
+                ColumnNameToMemberInfo.Add(sqlColumnName, new ColumnsContractMemberInfo(key.DataItemType, member, name, dataDirection));
+                MemberNameToColumnName.Add(name, sqlColumnName);
+                ReadColumnList.Add($"{(transformSql != null ? $"{transformSql} AS " : "")}{sqlColumnName}");
                 if (isKey)
                 {
-                    KeyFieldList.Add(member.Name);
+                    KeyFieldList.Add(name);
                 }
             }
 
@@ -183,7 +212,7 @@ namespace Mighty.DataContracts
         /// <returns></returns>
         public bool IsMightyColumn(string columnName)
         {
-            return (Key.DataItemType == null) || ColumnNameToMemberInfo.ContainsKey(columnName);
+            return Key.NullContract || ColumnNameToMemberInfo.ContainsKey(columnName);
         }
 
         /// <summary>
@@ -283,6 +312,25 @@ namespace Mighty.DataContracts
                         Key.DataItemType.FullName));
             }
             return member.Member;
+        }
+
+        /// <summary>
+        /// Return database column name from field or property name
+        /// </summary>
+        /// <param name="name">The field or property name</param>
+        /// <returns>The database column name</returns>
+        public string Map(string name)
+        {
+            if (Key.NullContract)
+            {
+                throw new InvalidOperationException($"It is not possible to map field names to column names in a non-auto-mapped dynamic instance {nameof(MightyOrm)} without a columns spec (specify the `columns` parameter in the constructor)");
+            }
+            string mapped;
+            if (!MemberNameToColumnName.TryGetValue(name, out mapped))
+            {
+                throw new InvalidOperationException($"Cannot map field or property name {name} to any database column name");
+            }
+            return mapped;
         }
     }
 }

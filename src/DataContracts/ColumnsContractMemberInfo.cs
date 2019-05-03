@@ -43,20 +43,27 @@ namespace Mighty.DataContracts
         /// <summary>
         /// The data member name
         /// </summary>
-        public string Name { get { return Field?.Name ?? Property?.Name; } }
+        public string Name { get { return _Name ?? Field?.Name ?? Property?.Name; } }
+
+        /// <summary>
+        /// The 'field' name for a columns driven dynamic object
+        /// </summary>
+        private readonly string _Name;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="DataMember"></param>
         /// <param name="Type"></param>
+        /// <param name="DataMember"></param>
+        /// <param name="Name"></param>
         /// <param name="DataDirection"></param>
-        public ColumnsContractMemberInfo(Type Type, MemberInfo DataMember, DataDirection DataDirection)
+        public ColumnsContractMemberInfo(Type Type, MemberInfo DataMember, string Name, DataDirection DataDirection)
         {
             this.DeclaringType = Type;
             this.DataDirection = DataDirection;
 
             Member = DataMember;
+            _Name = Name;
             Field = DataMember as FieldInfo;
             Property = DataMember as PropertyInfo;
         }

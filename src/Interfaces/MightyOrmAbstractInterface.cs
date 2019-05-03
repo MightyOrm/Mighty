@@ -133,6 +133,11 @@ namespace Mighty.Interfaces
         abstract public string Columns { get; protected set; }
 
         /// <summary>
+        /// true for generic instance; false if dynamically typed instance
+        /// </summary>
+        abstract public bool IsGeneric { get; protected set; }
+
+        /// <summary>
         /// Table meta data (filtered to be only for columns specified by the generic type T, or by consturctor `columns`, if present)
         /// </summary>
         abstract public IEnumerable<dynamic> TableMetaData { get; }

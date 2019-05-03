@@ -59,7 +59,7 @@ namespace Mighty.Keys
         /// <summary>
         /// Manage key(s) and sequence or identity.
         /// </summary>
-        /// <param name="IsDynamic"></param>
+        /// <param name="IsGeneric"></param>
         /// <param name="ColumnsContract"></param>
         /// <param name="xplugin"></param>
         /// <param name="dataMappingType"></param>
@@ -67,7 +67,7 @@ namespace Mighty.Keys
         /// <param name="keys"></param>
         /// <param name="sequence"></param>
         internal PrimaryKeyInfo(
-            bool IsDynamic, ColumnsContract ColumnsContract, PluginBase xplugin, Type dataMappingType, SqlNamingMapper xmapper,
+            bool IsGeneric, ColumnsContract ColumnsContract, PluginBase xplugin, Type dataMappingType, SqlNamingMapper xmapper,
             string keys, string sequence)
         {
             Plugin = xplugin;
@@ -75,7 +75,7 @@ namespace Mighty.Keys
             DataItemType = ColumnsContract.Key.DataItemType;
             SetKeys(keys, xmapper, dataMappingType);
             SetSequence(xplugin, xmapper, sequence);
-            SetPkMemberInfo(IsDynamic, ColumnsContract);
+            SetPkMemberInfo(IsGeneric, ColumnsContract);
         }
 
         private void SetKeys(string keys, SqlNamingMapper mapper, Type dataMappingType)
@@ -138,13 +138,13 @@ namespace Mighty.Keys
         /// <summary>
         /// Set the primary key member info
         /// </summary>
-        private void SetPkMemberInfo(bool IsDynamic, ColumnsContract ColumnsContract)
+        private void SetPkMemberInfo(bool IsGeneric, ColumnsContract ColumnsContract)
         {
             // SequenceNameOrIdentityFunction is only left at non-null when there is a single PK,
             // and we only want to write to the PK when there is a SequenceNameOrIdentityFunction
             if (SequenceNameOrIdentityFunction != null)
             {
-                if (IsDynamic)
+                if (!IsGeneric)
                 {
 #if KEY_VALUES
                     PrimaryKeyColumn = FieldNames;

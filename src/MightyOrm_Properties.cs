@@ -122,9 +122,9 @@ namespace Mighty
         override public string Columns { get; protected set; }
 
         /// <summary>
-        /// true for dynamic instantiation; false if generically typed instantiation
+        /// true for generic instantiation; false if dynamically typed instantiation
         /// </summary>
-        protected bool IsDynamic { get; set; }
+        override public bool IsGeneric { get; protected set; }
 #endregion
     }
 }

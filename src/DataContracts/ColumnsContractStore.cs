@@ -49,18 +49,21 @@ namespace Mighty.DataContracts
         /// <summary>
         /// Get (from store, or creating the first time it is needed) data contract for the type, columns spec and data mapper.
         /// </summary>
-        /// <param name="IsDynamic"></param>
-        /// <param name="Plugin"></param>
-        /// <param name="Factory"></param>
-        /// <param name="ConnectionString"></param>
+        /// <param name="IsGeneric"></param>
         /// <param name="type"></param>
+        /// <param name="columns"></param>
         /// <param name="mapper"></param>
         /// <returns></returns>
-        internal ColumnsContract Get(
-            bool IsDynamic, PluginBase Plugin, DbProviderFactory Factory, string ConnectionString,
-            Type type, SqlNamingMapper mapper)
+        /// <remarks>
+        /// In theory, mapping depends on "PluginBase Plugin, DbProviderFactory Factory, string ConnectionString," as well - 
+        /// in practice, including those would make it much harder (or impossible?) to provide the very useful
+        /// <see cref="SqlNamingMapper.Map(string, Type, string)"/> feature.
+        /// I think it does seem (more or less?) reasonable to suppose that any one class will only be written to one database at a time?
+        /// So, TO DO:, at least we can *document* that caching works like this.
+        /// </remarks>
+        internal ColumnsContract Get(bool IsGeneric, Type type, string columns, SqlNamingMapper mapper)
         {
-            ColumnsContractKey key = new ColumnsContractKey(IsDynamic, type, mapper);
+            ColumnsContractKey key = new ColumnsContractKey(IsGeneric, type, columns, mapper);
             ColumnsContract value;
             if (store.TryGetValue(key, out value))
             {

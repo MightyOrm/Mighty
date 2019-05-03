@@ -1,15 +1,12 @@
-using System;
-using System.Dynamic;
-using System.Linq;
+﻿using System;
 using System.Reflection;
 
-using Mighty.DataContracts;
-using Mighty.Interfaces;
+using Mighty.Mapping;
 
-namespace Mighty.Mapping
+namespace Mighty.Interfaces
 {
     /// <summary>
-    /// Pass an instance of this class to the constructor of <see cref="MightyOrm"/> in order to
+    /// Pass an instance of this interface to the constructor of <see cref="MightyOrm"/> in order to
     /// map between C# field names and SQL column names.
     /// If you're not (yet) used to <see cref="Action"/>/<see cref="Func{T, TResult}"/> syntax in C#, you may find
     /// slightly harder to set up this mapper than if it had just been a class with methods you can override (see
@@ -17,7 +14,7 @@ namespace Mighty.Mapping
     /// aggressive and successful caching of its data contracts, by checking whether the mapping functions (not just
     /// the whole mapper) are the same.
     /// </summary>
-    public class SqlNamingMapper : SqlNamingMapperAbstractInterface
+    abstract public class SqlNamingMapperAbstractInterface
     {
         #region Table-only features (not needed in column mapping conract)
         /// <summary>
@@ -26,7 +23,7 @@ namespace Mighty.Mapping
         /// The type passed in is the class or subclass type for dynamic instances of <see cref="MightyOrm"/>
         /// and is the generic type T for generic instances of <see cref="MightyOrm{T}"/>.
         /// </summary>
-        override public Func<Type, string> TableName { get; protected set; } = (t) => t.Name;
+        abstract public Func<Type, string> TableName { get; protected set; }
 
         /// <summary>
         /// Function to get primary key field name(s) from the data item type and field or property name.
@@ -36,7 +33,7 @@ namespace Mighty.Mapping
         /// The type passed in is the class or subclass type for dynamic instances of <see cref="MightyOrm"/>
         /// and is the generic type T for generic instances of <see cref="MightyOrm{T}"/>.
         /// </summary>
-        override public Func<Type, string> PrimaryKeyFieldNames { get; protected set; } = (t) => null;
+        abstract public Func<Type, string> PrimaryKeyFieldNames { get; protected set; }
 
         /// <summary>
         /// Function to get the sequence from the data item type.
@@ -45,33 +42,17 @@ namespace Mighty.Mapping
         /// The type passed in is the class or subclass type for dynamic instances of <see cref="MightyOrm"/>
         /// and is the generic type T for generic instances of <see cref="MightyOrm{T}"/>.
         /// </summary>
-        override public Func<Type, string> SequenceName { get; protected set; } = (t) => null;
+        abstract public Func<Type, string> SequenceName { get; protected set; }
         #endregion
 
         #region Table-column features (needed in column mapping conract)
-        /// <summary>
-        /// Return <see cref="AutoMap.On"/> whatever type is sent in.
-        /// </summary>
-        /// <remarks>
-        /// We may need to be able to identify this one and see if it has changed?
-        /// </remarks>
-        public static readonly Func<Type, AutoMap> AlwaysAutoMap = (t) => AutoMap.On;
-
         /// <summary>
         /// Specify whether Mighty should automatically remap any `keys`, `columns` and `orderBy` inputs it receives if one or more column names have been remapped.
         /// Default is to return <see cref="AutoMap.On"/>.
         /// The type passed in is the class or subclass type for dynamic instances of <see cref="MightyOrm"/>
         /// and is the generic type T for generic instances of <see cref="MightyOrm{T}"/>.
         /// </summary>
-        override public Func<Type, AutoMap> AutoMapAfterColumnRename { get; protected set; } = AlwaysAutoMap;
-
-        /// <summary>
-        /// Return <c>false</c> whatever type is sent in.
-        /// </summary>
-        /// <remarks>
-        /// We need to be able to identify this one and tell users that they should not change it for dynamic <see cref="MightyOrm"/>.
-        /// </remarks>
-        public static readonly Func<Type, bool> UseCaseInsensitiveColumnMapping = (t) => false;
+        abstract public Func<Type, AutoMap> AutoMapAfterColumnRename { get; protected set; }
 
         /// <summary>
         /// Should <see cref="MightyOrm{T}"/> be case sensitive when matching returned data to class properties?
@@ -80,19 +61,10 @@ namespace Mighty.Mapping
         /// The type passed in is the class or subclass type for dynamic instances of <see cref="MightyOrm"/>
         /// and is the generic type T for generic instances of <see cref="MightyOrm{T}"/>.
         /// </summary>
-        override public Func<Type, bool> CaseSensitiveColumnMapping { get; protected set; } = UseCaseInsensitiveColumnMapping;
+        abstract public Func<Type, bool> CaseSensitiveColumnMapping { get; protected set; }
         #endregion
 
         #region Column-level features
-        /// <summary>
-        /// Identity column mapping.
-        /// Takes data item type and field or property name, and returns field or property name unmodified.
-        /// </summary>
-        /// <remarks>
-        /// We need to be able to identify this one and tell users that they should not change it for dynamic <see cref="MightyOrm"/>.
-        /// </remarks>
-        public static readonly Func<Type, string, string> IdentityColumnMapping = (t, n) => n;
-
         /// <summary>
         /// Function to get database column name from the data item type and field or property name.
         /// Default is to return name unmodified.
@@ -101,16 +73,7 @@ namespace Mighty.Mapping
         /// The type passed in is the class or subclass type for dynamic instances of <see cref="MightyOrm"/>
         /// and is the generic type T for generic instances of <see cref="MightyOrm{T}"/>.
         /// </summary>
-        override public Func<Type, string, string> ColumnName { get; protected set; } = IdentityColumnMapping;
-
-        /// <summary>
-        /// Never ignore column.
-        /// Takes data item type and field or property name, and always returns <c>false</c>.
-        /// </summary>
-        /// <remarks>
-        /// We need to be able to identify this one and tell users that they should not change it for dynamic <see cref="MightyOrm"/>.
-        /// </remarks>
-        public static readonly Func<Type, string, bool> NeverIgnoreColumn = (t, n) => false;
+        abstract public Func<Type, string, string> ColumnName { get; protected set; }
 
         /// <summary>
         /// Function to determine whether to ignore database column based on the data item type and field or property name.
@@ -120,16 +83,7 @@ namespace Mighty.Mapping
         /// The type passed in is the class or subclass type for dynamic instances of <see cref="MightyOrm"/>
         /// and is the generic type T for generic instances of <see cref="MightyOrm{T}"/>.
         /// </summary>
-        override public Func<Type, string, bool> IgnoreColumn { get; protected set; } = NeverIgnoreColumn;
-
-        /// <summary>
-        /// Leave column data direction unspecified.
-        /// Takes data item type and field or property name, and always returns <c>0</c>.
-        /// </summary>
-        /// <remarks>
-        /// We need to be able to identify this one and tell users that they should not change it for dynamic <see cref="MightyOrm"/>.
-        /// </remarks>
-        public static readonly Func<Type, string, DataDirection> ColumnDataDirectionUnspecified = (t, n) => 0;
+        abstract public Func<Type, string, bool> IgnoreColumn { get; protected set; }
 
         /// <summary>
         /// Function to determine column data direction based on the data item type and field or property name.
@@ -139,7 +93,7 @@ namespace Mighty.Mapping
         /// The type passed in is the class or subclass type for dynamic instances of <see cref="MightyOrm"/>
         /// and is the generic type T for generic instances of <see cref="MightyOrm{T}"/>.
         /// </summary>
-        override public Func<Type, string, DataDirection> ColumnDataDirection { get; protected set; } = ColumnDataDirectionUnspecified;
+        abstract public Func<Type, string, DataDirection> ColumnDataDirection { get; protected set; }
         #endregion
 
         #region Id mapping
@@ -151,7 +105,7 @@ namespace Mighty.Mapping
         /// <remarks>
         /// TO DO: Might be useful to provide additional method which splits the name at the dots then rejoins it, with single overrideable method to quote the individual parts
         /// </remarks>
-        override public Func<string, string> QuotedDatabaseIdentifier { get; protected set; } = (id) => id;
+        abstract public Func<string, string> QuotedDatabaseIdentifier { get; protected set; }
         #endregion
 
         #region Mapping utility method
@@ -167,70 +121,9 @@ namespace Mighty.Mapping
         /// <param name="classType">The item class type for the instance of Mighty (pass generic type T for generic instances of <see cref="MightyOrm{T}"/>;
         /// pass type of class or sub-class of <see cref="MightyOrm"/> itself for dynamic instances)</param>
         /// <param name="fieldNames">A comma-separated list of field names to be mapped to database column names</param>
-        /// <param name="columns">This parameter is only required for auto-mapped dynamic instances of Mighty; in that case pass in the same `columns` value here which is passed to the constructor of <see cref="MightyOrm"/></param>
+        /// <param name="columns">This parameter should only be supplied for auto-mapped dynamic instances of Mighty; in that case pass in the same `columns` value here which is passed to the constructor of <see cref="MightyOrm"/></param>
         /// <returns></returns>
-        /// <remarks>
-        /// It would be incorrect to throw an exception here even if the contract says that all auto-mapping is already being applied:
-        ///   - It's true that it would be wrong for the user to apply this method to anything which will also be auto-mapped
-        ///   - But here and there Mighty takes in SQL fragments other than `keys`, `columns` and `orderBy`, and the user
-        ///     may still validly need this method then
-        /// </remarks>
-        override public string Map(string fieldNames, Type classType, string columns = null)
-        {
-            if (classType == null)
-            {
-                // we cannot do the mapping without this
-                throw new ArgumentNullException(nameof(classType));
-            }
-
-            if (classType == typeof(object) ||
-                classType == typeof(ExpandoObject))
-            {
-                throw new InvalidOperationException(
-                    $"To use {nameof(SqlNamingMapper)}.{nameof(SqlNamingMapper.Map)} with dyanamic instances of {nameof(MightyOrm)} pass the type of the class or user subclass of {nameof(MightyOrm)} that you are using, do not pass typeof(object) or typeof(ExpandoObject)");
-            }
-
-            if (fieldNames == null)
-            {
-                return null;
-            }
-
-            bool IsGeneric = (classType == typeof(MightyOrm) ||
-                              classType
-#if !NETFRAMEWORK
-                              .GetTypeInfo()
-#endif
-                              .IsSubclassOf(typeof(MightyOrm)));
-
-            ColumnsContract columnsContract = ColumnsContractStore.Instance.Get(IsGeneric, classType, columns, this);
-            return string.Join(", ", fieldNames.Split(',').Select(n => n.Trim()).Select(n => columnsContract.Map(n)));
-        }
-        #endregion
-
-        #region Constructors
-        /// <summary>
-        /// Parameterless constructor (overriding class can use protected setters)
-        /// </summary>
-        protected SqlNamingMapper() { }
-
-        /// <summary>
-        /// Constructor
-        /// </summary>
-        public SqlNamingMapper(
-            Func<Type, bool> caseSensitiveColumnMapping = null,
-            Func<Type, string> tableName = null,
-            Func<Type, string, string> columnName = null,
-            Func<Type, string> primaryKeyFieldNames = null,
-            Func<Type, string> sequenceName = null,
-            Func<string, string> quotedDatabaseIdentifier = null)
-        {
-            if (caseSensitiveColumnMapping != null) CaseSensitiveColumnMapping = caseSensitiveColumnMapping;
-            if (tableName != null) TableName = tableName;
-            if (columnName != null) ColumnName = columnName;
-            if (primaryKeyFieldNames != null) PrimaryKeyFieldNames = primaryKeyFieldNames;
-            if (sequenceName != null) SequenceName = sequenceName;
-            if (quotedDatabaseIdentifier != null) QuotedDatabaseIdentifier = quotedDatabaseIdentifier;
-        }
+        abstract public string Map(string fieldNames, Type classType, string columns = null);
         #endregion
     }
 }

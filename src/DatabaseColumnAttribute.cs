@@ -16,7 +16,7 @@ namespace Mighty
         /// <summary>
         /// The database column name
         /// </summary>
-        public readonly string ColumnName;
+        public readonly string Name;
 
         /// <summary>
         /// Whether data should be read from or writtten to the database for this column
@@ -24,17 +24,24 @@ namespace Mighty
         /// <remarks>
         /// Zero means no checks and only any restrictions on the underlying data member will apply
         /// </remarks>
-        public readonly DataDirection DataDirection;
+        public readonly DataDirection Direction;
+
+        /// <summary>
+        /// The transform SQL
+        /// </summary>
+        public readonly string Transform;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="ColumnName">The database column name</param>
-        /// <param name="DataDirection">The database column name</param>
-        public DatabaseColumnAttribute(string ColumnName = null, DataDirection DataDirection = default)
+        /// <param name="name">The database column name</param>
+        /// <param name="direction">The database column name</param>
+        /// <param name="sqlTransform">Experimental: column will selected as "{<paramref name="sqlTransform"/>} AS {<paramref name="name"/>}"</param>
+        public DatabaseColumnAttribute(string name = null, DataDirection direction = default, string sqlTransform = null)
         {
-            this.ColumnName = ColumnName;
-            this.DataDirection = DataDirection;
+            this.Name = name;
+            this.Direction = direction;
+            this.Transform = sqlTransform;
         }
     }
 }

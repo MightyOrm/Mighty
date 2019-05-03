@@ -28,28 +28,19 @@ namespace Mighty.Dynamic.Tests.X
         }
 
         [Test]
-        public void DynamicColumnMappingCausesException()
+        public void IncorrectDynamicColumnMappingCausesException()
         {
             // okay to use the default mapper
             var good = new MightyOrm(
                 mapper: new SqlNamingMapper(columnName: SqlNamingMapper.IdentityColumnMapping));
+            // now okay to use the non-default mapper with a columns spec
+            var good2 = new MightyOrm(
+                columns: "col1, col_33",
+                mapper: new SqlNamingMapper(columnName: (t, n) => n));
             // not okay to override, even with 'the same' function
             Assert.Throws<InvalidOperationException>(() =>
             {
                 var bad = new MightyOrm(mapper: new SqlNamingMapper(columnName: (t, n) => n));
-            });
-        }
-
-        [Test]
-        public void DynamicColumnCaseSensitivityCausesException()
-        {
-            // okay to use the default mapper
-            var good = new MightyOrm(
-                mapper: new SqlNamingMapper(caseSensitiveColumnMapping: SqlNamingMapper.CaseInsensitiveColumnMapping));
-            // not okay to override, even with 'the same' function
-            Assert.Throws<InvalidOperationException>(() =>
-            {
-                var bad = new MightyOrm(mapper: new SqlNamingMapper(caseSensitiveColumnMapping: (t) => false));
             });
         }
     }
@@ -78,13 +69,13 @@ namespace Mighty.Generic.Tests.X
         public void CacheHits()
         {
             // This is upped by 300 - 3 by some forced cache hits in Insert_FromNew
-            Assert.AreEqual(1155, ColumnsContractStore.Instance.CacheHits);
+            Assert.AreEqual(1154, ColumnsContractStore.Instance.CacheHits);
         }
 
         [Test]
         public void CacheMisses()
         {
-            Assert.AreEqual(16, ColumnsContractStore.Instance.CacheMisses);
+            Assert.AreEqual(17, ColumnsContractStore.Instance.CacheMisses);
         }
     }
 

@@ -39,8 +39,8 @@ namespace Mighty
         /// connection string itself and provider name are looked up in the ConnectionStrings section of the .config file.
         /// </param>
         /// <param name="tableName">Table name</param>
-        /// <param name="keys">Primary key field name; or comma separated list of names for compound PK</param>
-        /// <param name="valueColumn">Specify the value field, for lookup tables</param>
+        /// <param name="keyNames">Primary key field name; or comma separated list of names for compound PK</param>
+        /// <param name="valueName">Specify the value column, for lookup tables</param>
         /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
         /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
         /// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
@@ -55,8 +55,8 @@ namespace Mighty
         /// </remarks>
         public MightyOrm(string connectionString = null,
                          string tableName = null,
-                         string keys = null,
-                         string valueColumn = null,
+                         string keyNames = null,
+                         string valueName = null,
                          string sequence = null,
                          string columns = null,
                          Validator validator = null,
@@ -64,10 +64,8 @@ namespace Mighty
                          DataProfiler profiler = null,
                          ConnectionProvider connectionProvider = null)
         {
-            IsDynamic = true;
-
-            Init(connectionString, tableName, keys,
-                valueColumn,
+            Init(connectionString, tableName, keyNames,
+                valueName,
                 sequence, columns, validator, mapper, profiler, connectionProvider);
         }
 #else
@@ -81,7 +79,7 @@ namespace Mighty
         /// connection string itself and provider name are looked up in the ConnectionStrings section of the .config file.
         /// </param>
         /// <param name="tableName">Table name</param>
-        /// <param name="keys">Primary key field name; or comma separated list of names for compound PK</param>
+        /// <param name="keyNames">Primary key field name; or comma separated list of names for compound PK</param>
         /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
         /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
         /// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
@@ -96,7 +94,7 @@ namespace Mighty
         /// </remarks>
         public MightyOrm(string connectionString = null,
                          string tableName = null,
-                         string keys = null,
+                         string keyNames = null,
                          string sequence = null,
                          string columns = null,
                          Validator validator = null,
@@ -104,9 +102,7 @@ namespace Mighty
                          DataProfiler profiler = null,
                          ConnectionProvider connectionProvider = null)
         {
-            IsDynamic = true;
-
-            Init(connectionString, tableName, keys,
+            Init(connectionString, tableName, keyNames,
                 sequence, columns, validator, mapper, profiler, connectionProvider);
         }
 #endif
@@ -154,8 +150,8 @@ namespace Mighty
         /// connection string itself and provider name are looked up in the ConnectionStrings section of the .config file.
         /// </param>
         /// <param name="tableName">Override the table name (defaults to using T class name)</param>
-        /// <param name="keys">Primary key field name; or comma separated list of names for compound PK</param>
-        /// <param name="valueColumn">Specify the value field, for lookup tables</param>
+        /// <param name="keyNames">Primary key field name; or comma separated list of names for compound PK</param>
+        /// <param name="valueName">Specify the value column, for lookup tables</param>
         /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
         /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
         /// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
@@ -166,8 +162,8 @@ namespace Mighty
         /// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyOrm)</param>
         public MightyOrm(string connectionString = null,
                          string tableName = null,
-                         string keys = null,
-                         string valueColumn = null,
+                         string keyNames = null,
+                         string valueName = null,
                          string sequence = null,
                          string columns = null,
                          Validator validator = null,
@@ -177,9 +173,9 @@ namespace Mighty
         {
             // If this has been called as part of constructing MightyOrm (non-generic), then return immediately and let that constructor do all the work
             if (this is MightyOrm) return;
-
-            Init(connectionString, tableName, keys,
-                valueColumn,
+            IsGeneric = true;
+            Init(connectionString, tableName, keyNames,
+                valueName,
                 sequence, columns, validator, mapper, profiler, connectionProvider);
         }
 #else
@@ -193,7 +189,7 @@ namespace Mighty
         /// connection string itself and provider name are looked up in the ConnectionStrings section of the .config file.
         /// </param>
         /// <param name="tableName">Override the table name (defaults to using T class name)</param>
-        /// <param name="keys">Primary key field name; or comma separated list of names for compound PK</param>
+        /// <param name="keyNames">Primary key field name; or comma separated list of names for compound PK</param>
         /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
         /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
         /// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
@@ -204,7 +200,7 @@ namespace Mighty
         /// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyOrm)</param>
         public MightyOrm(string connectionString = null,
                          string tableName = null,
-                         string keys = null,
+                         string keyNames = null,
                          string sequence = null,
                          string columns = null,
                          Validator validator = null,
@@ -214,8 +210,8 @@ namespace Mighty
         {
             // If this has been called as part of constructing MightyOrm (non-generic), then return immediately and let that constructor do all the work
             if (this is MightyOrm) return;
-
-            Init(connectionString, tableName, keys,
+            IsGeneric = true;
+            Init(connectionString, tableName, keyNames,
                 sequence, columns, validator, mapper, profiler, connectionProvider);
         }
 #endif
@@ -248,9 +244,9 @@ namespace Mighty
         // before saving an object)
         internal void Init(string xconnectionString,
                          string tableName,
-                         string keys,
+                         string keyNames,
 #if KEY_VALUES
-                         string valueColumn,
+                         string valueName,
 #endif
                          string sequence,
                          string columns,
@@ -270,26 +266,27 @@ namespace Mighty
 
             SetupConnection(intialConnectionString, connectionProvider);
 
-            Type columnsClass = IsDynamic ? null : typeof(T);
+            Type mappingClass;
+            if (IsGeneric)
+            {
+                mappingClass = typeof(T);
+            }
+            else
+            {
+                mappingClass = this.GetType();
+            }
 
             // Get reflected column mapping info for this type + everything else which matters (from cache if possible)
-            ColumnsContract = ColumnsContractStore.Instance.Get(
-                IsDynamic,
-                Plugin, Factory, ConnectionString, 
-                columnsClass, SqlNamingMapper);
+            ColumnsContract = ColumnsContractStore.Instance.Get(IsGeneric, mappingClass, columns, SqlNamingMapper);
 
             Columns = columns ?? ColumnsContract.ReadColumns ?? "*";
-            keys = keys ?? ColumnsContract.KeyFields;
-
-            // Always use generic class for generic version.
-            // (That will always make more sense than looking at the user's sub-class of MightyOrm{T}, even if there is one.)
-            Type tableClass = IsDynamic ? GetStrictSubclass() : columnsClass;
+            keyNames = keyNames ?? ColumnsContract.KeyFields;
 
             // This stuff is just recalculated, not cached
-            SetTableNameAndOwner(tableName, tableClass);
-            PrimaryKeys = new Keys.PrimaryKeyInfo(IsDynamic, ColumnsContract, Plugin, tableClass, SqlNamingMapper, keys, sequence);
+            SetTableNameAndOwner(tableName, mappingClass);
+            PrimaryKeys = new Keys.PrimaryKeyInfo(IsGeneric, ColumnsContract, Plugin, mappingClass, SqlNamingMapper, keyNames, sequence);
 #if KEY_VALUES
-            ValueColumn = valueColumn;
+            ValueColumn = valueName;
 #endif
 
             // Init for lazy load of table meta-data (from cache if possible; only if needed)
@@ -300,28 +297,6 @@ namespace Mighty
             // TO DO: This line probably shouldn't be here, as it's so intimately tied to code in DynamicMethodProvider
             DynamicObjectWrapper = new DynamicMethodProvider<T>(this);
 #endif
-        }
-
-        /// <summary>
-        /// The class to use for subclass-based name overrides for dynamic version of <see cref="MightyOrm"/>
-        /// </summary>
-        /// <returns></returns>
-        private Type GetStrictSubclass()
-        {
-            Type dataMappingType = dataMappingType = this.GetType();
-
-            // leave tableClass unset if we are not a true sub-class;
-            // this test enforces strict sub-class (i.e. does not pass for an instance of the class itself)
-            if (!dataMappingType
-#if !NETFRAMEWORK
-            .GetTypeInfo()
-#endif
-            .IsSubclassOf(typeof(MightyOrm)))
-            {
-                dataMappingType = null;
-            }
-
-            return dataMappingType;
         }
 
         private void SetTableNameAndOwner(string tableName, Type dataMappingType)
@@ -394,7 +369,7 @@ namespace Mighty
         private void InitTableMetaDataLazyLoader()
         {
             _TableMetaDataLazy = new Lazy<IEnumerable<dynamic>>(() => TableMetaDataStore.Instance.Get(
-                         IsDynamic, Plugin, Factory, ConnectionString,
+                         IsGeneric, Plugin, Factory, ConnectionString,
                          BareTableName, TableOwner, ColumnsContract,
                          this));
         }
@@ -425,7 +400,7 @@ namespace Mighty
             }
             object item;
             IDictionary<string, object> newItemDictionary = null;
-            if (IsDynamic)
+            if (!IsGeneric)
             {
                 item = new ExpandoObject();
                 newItemDictionary = ((ExpandoObject)item).ToDictionary();
@@ -447,7 +422,7 @@ namespace Mighty
                 }
                 if (value != null)
                 {
-                    if (!IsDynamic) ColumnsContract.GetDataMemberInfo(columnName).SetValue(item, value);
+                    if (IsGeneric) ColumnsContract.GetDataMemberInfo(columnName).SetValue(item, value);
                     else newItemDictionary.Add(columnName, value);
                 }
             }
@@ -991,7 +966,7 @@ namespace Mighty
         /// <returns></returns>
         protected internal bool IsManagedGenericType(object item)
         {
-            return !IsDynamic && item is T;
+            return IsGeneric && item is T;
         }
         #endregion
 

@@ -261,7 +261,7 @@ namespace Mighty
                     if (action == OrmAction.Insert)
                     {
                         var modified = result.Item2 ?? item;
-                        if (!IsDynamic && !(modified is T))
+                        if (IsGeneric && !(modified is T))
                         {
                             // create an item of type T from the modified item (e.g. a name-value dictionary/ExpandoObject)
                             modified = New(modified, false);
@@ -294,7 +294,7 @@ namespace Mighty
         /// <returns></returns>
         override public async Task<IDictionary<string, string>> KeyValuesAsync(CancellationToken cancellationToken, string orderBy = "")
         {
-            if (!IsDynamic)
+            if (IsGeneric)
             {
                 // TO DO: Make sure this works even when there is mapping
                 var db = new MightyOrm(null, TableName, PrimaryKeys.FieldNames, ValueColumn, connectionProvider: new PresetsConnectionProvider(ConnectionString, Factory, Plugin.GetType()));
@@ -612,7 +612,7 @@ namespace Mighty
                                         // this is for generic<T> support
                                         ColumnsContractMemberInfo[] memberInfo = null;
 
-                                        if (IsDynamic) columnNames = new string[fieldCount];
+                                        if (!IsGeneric) columnNames = new string[fieldCount];
                                         else memberInfo = new ColumnsContractMemberInfo[fieldCount];
 
                                         // for generic, we need array of properties to set; we find this
@@ -624,7 +624,7 @@ namespace Mighty
                                             {
                                                 throw new InvalidOperationException("Cannot autopopulate from anonymous column");
                                             }
-                                            if (IsDynamic)
+                                            if (!IsGeneric)
                                             {
                                                 // For dynamics, create fields using the case that comes back from the database
                                                 // TO DO: Test how this is working now in Oracle
@@ -639,7 +639,7 @@ namespace Mighty
                                         while (await useReader.ReadAsync(cancellationToken).ConfigureAwait(false))
                                         {
                                             useReader.GetValues(rowValues);
-                                            if (IsDynamic)
+                                            if (!IsGeneric)
                                             {
                                                 ExpandoObject e = new ExpandoObject();
                                                 IDictionary<string, object> d = e.ToDictionary();

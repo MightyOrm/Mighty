@@ -57,11 +57,11 @@ namespace Mighty.DataContracts
         }
 
         internal IEnumerable<dynamic> Get(
-            bool IsDynamic, PluginBase Plugin, DbProviderFactory Factory, string ConnectionString,
+            bool IsGeneric, PluginBase Plugin, DbProviderFactory Factory, string ConnectionString,
             string BareTableName, string TableOwner, ColumnsContract ColumnsContract, object Mighty
             )
         {
-            // IsDynamic does not need to be in the key, because it determines how the data is
+            // !IsGeneric does not need to be in the key, because it determines how the data is
             // fetched (do we need to create a new, dynamic instance?), but not what is fetched.
             TableMetaDataKey key = new TableMetaDataKey(
                 Plugin, Factory, ConnectionString,
@@ -75,18 +75,18 @@ namespace Mighty.DataContracts
             else
             {
                 CacheMisses++;
-                value = LoadTableMetaData(IsDynamic, key, Mighty);
+                value = LoadTableMetaData(IsGeneric, key, Mighty);
                 store.Add(key, value);
             }
             return value;
         }
 
-        private IEnumerable<dynamic> LoadTableMetaData(bool IsDynamic, TableMetaDataKey key, object Mighty)
+        private IEnumerable<dynamic> LoadTableMetaData(bool isGeneric, TableMetaDataKey key, object Mighty)
         {
             var sql = key.Plugin.BuildTableMetaDataQuery(key.BareTableName, key.TableOwner);
             IEnumerable<dynamic> unprocessedMetaData;
             dynamic db = Mighty;
-            if (!IsDynamic)
+            if (isGeneric)
             {
                 // we need a dynamic query, so on the generic version we create a new dynamic DB object with the same connection info
                 db = new MightyOrm(connectionProvider: new PresetsConnectionProvider(key.ConnectionString, key.Factory, key.Plugin.GetType()));

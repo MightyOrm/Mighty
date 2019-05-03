@@ -97,8 +97,8 @@ namespace Mighty.DataContracts
         /// </remarks>
         public override bool Equals(object obj)
         {
-            var other = obj as TableMetaDataKey;
-            if (other == null) return false;
+            if (!(obj is TableMetaDataKey)) return false;
+            var other = (TableMetaDataKey)obj;
             var y =
                 Plugin.GetType() == other.Plugin.GetType() &&
                 Factory == other.Factory &&
