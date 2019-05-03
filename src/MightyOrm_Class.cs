@@ -277,16 +277,17 @@ namespace Mighty
             }
 
             // Get reflected column mapping info for this type + everything else which matters (from cache if possible)
+            // (columns passed in here are only ever used if the auto-mapping settings imply that they are field/prop names)
             ColumnsContract = ColumnsContractStore.Instance.Get(IsGeneric, mappingClass, columns, SqlNamingMapper);
 
-            Columns = columns ?? ColumnsContract.ReadColumns ?? "*";
-            keyNames = keyNames ?? ColumnsContract.KeyFields;
+            Columns = ColumnsContract.Map(AutoMap.Columns, columns) ?? ColumnsContract.ReadColumns ?? "*";
+            keyNames = ColumnsContract.ReverseMap(AutoMap.Keys, keyNames) ?? ColumnsContract.KeyFields;
 
             // This stuff is just recalculated, not cached
             SetTableNameAndOwner(tableName, mappingClass);
             PrimaryKeys = new Keys.PrimaryKeyInfo(IsGeneric, ColumnsContract, Plugin, mappingClass, SqlNamingMapper, keyNames, sequence);
 #if KEY_VALUES
-            ValueColumn = valueName;
+            ValueColumn = ColumnsContract.Map(AutoMap.Value, valueName);
 #endif
 
             // Init for lazy load of table meta-data (from cache if possible; only if needed)
@@ -888,7 +889,7 @@ namespace Mighty
                     if (PrimaryKeys.SequenceNameOrIdentityFunction != null && Plugin.IsSequenceBased)
                     {
                         // our copy of SequenceNameOrIdentityFunction is only ever non-null when there is a non-compound PK
-                        insertNames.Add(PrimaryKeys.FieldNames);
+                        insertNames.Add(PrimaryKeys.KeyNames);
                         // TO DO: Should there be two places for BuildNextval? (See above.) Why?
                         insertValues.Add(Plugin.BuildNextval(PrimaryKeys.SequenceNameOrIdentityFunction));
                     }
@@ -926,13 +927,13 @@ namespace Mighty
             if (item is ExpandoObject)
             {
                 var dict = ((ExpandoObject)item).ToDictionary();
-                dict[PrimaryKeys.FieldNames] = pk;
+                dict[PrimaryKeys.KeyNames] = pk;
                 return item;
             }
             // Write PK back to NameValueCollection if we can
             if (item is NameValueCollection)
             {
-                ((NameValueCollection)item)[PrimaryKeys.FieldNames] = pk.ToString();
+                ((NameValueCollection)item)[PrimaryKeys.KeyNames] = pk.ToString();
                 return item;
             }
             // Write PK back to POCO of type T if we can
@@ -953,7 +954,7 @@ namespace Mighty
                 // Convert POCO to expando
                 var result = item.ToExpando();
                 var dict = result.ToDictionary();
-                dict[PrimaryKeys.FieldNames] = pk;
+                dict[PrimaryKeys.KeyNames] = pk;
                 return result;
             }
             return null;

@@ -123,7 +123,7 @@ namespace Mighty.Interfaces
         /// <param name="fieldNames">A comma-separated list of field names to be mapped to database column names</param>
         /// <param name="columns">This parameter should only be supplied for auto-mapped dynamic instances of Mighty; in that case pass in the same `columns` value here which is passed to the constructor of <see cref="MightyOrm"/></param>
         /// <returns></returns>
-        abstract public string Map(string fieldNames, Type classType, string columns = null);
+        abstract public string Map(Type classType, string fieldNames, string columns = null);
         #endregion
     }
 }

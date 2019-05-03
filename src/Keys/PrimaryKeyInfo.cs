@@ -20,7 +20,7 @@ namespace Mighty.Keys
         /// <summary>
         /// Primary key field or fields (exact C# names, no mapping applied) as a comma separated list
         /// </summary>
-        public string FieldNames { get; private set; }
+        public string KeyNames { get; private set; }
 
         /// <summary>
         /// Number of primary key fields
@@ -84,7 +84,7 @@ namespace Mighty.Keys
             {
                 keys = mapper.PrimaryKeyFieldNames(dataMappingType);
             }
-            FieldNames = keys;
+            KeyNames = keys;
             if (keys == null)
             {
                 PrimaryKeyList = new List<string>();
@@ -147,12 +147,12 @@ namespace Mighty.Keys
                 if (!IsGeneric)
                 {
 #if KEY_VALUES
-                    PrimaryKeyColumn = FieldNames;
+                    PrimaryKeyColumn = KeyNames;
 #endif
                 }
                 else
                 {
-                    PrimaryKeyMemberInfo = ColumnsContract.GetMember(FieldNames, "primary key");
+                    PrimaryKeyMemberInfo = ColumnsContract.GetMember(KeyNames, "primary key");
 #if KEY_VALUES
                     //// PrimaryKeyColumn is only ever used on dynamic version
                     //PrimaryKeyColumn = ColumnsContract.Key.ColumnName(ColumnsContract.Key.DataItemType, FieldNames);
@@ -248,11 +248,11 @@ namespace Mighty.Keys
         /// <returns></returns>
         internal string CheckGetPrimaryKeyFields()
         {
-            if (string.IsNullOrEmpty(FieldNames))
+            if (string.IsNullOrEmpty(KeyNames))
             {
                 throw new InvalidOperationException("No primary key field(s) have been specified");
             }
-            return FieldNames;
+            return KeyNames;
         }
 
 #pragma warning disable IDE0059 // Value assigned is never used

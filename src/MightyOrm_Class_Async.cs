@@ -297,7 +297,7 @@ namespace Mighty
             if (IsGeneric)
             {
                 // TO DO: Make sure this works even when there is mapping
-                var db = new MightyOrm(null, TableName, PrimaryKeys.FieldNames, ValueColumn, connectionProvider: new PresetsConnectionProvider(ConnectionString, Factory, Plugin.GetType()));
+                var db = new MightyOrm(null, TableName, PrimaryKeys.KeyNames, ValueColumn, connectionProvider: new PresetsConnectionProvider(ConnectionString, Factory, Plugin.GetType()));
                 return await db.KeyValuesAsync(cancellationToken, orderBy);
             }
             string partialMessage = $" to call {nameof(KeyValuesAsync)}, please provide one in your constructor";
@@ -472,7 +472,8 @@ namespace Mighty
         {
             int limit = pageSize;
             int offset = (currentPage - 1) * pageSize;
-            if (columns == null) columns = Columns;
+            columns = ColumnsContract.Map(AutoMap.Columns, columns) ?? Columns;
+            orderBy = ColumnsContract.Map(AutoMap.OrderBy, orderBy);
             var pagingQueryPair = Plugin.BuildPagingQueryPair(columns, tableNameOrJoinSpec, orderBy, where, limit, offset);
             var result = new PagedResults<T>();
             result.TotalRecords = Convert.ToInt32(await ScalarAsync(pagingQueryPair.CountQuery, cancellationToken).ConfigureAwait(false));
@@ -532,7 +533,8 @@ namespace Mighty
             DbConnection connection = null,
             params object[] args)
         {
-            if (columns == null) columns = Columns;
+            columns = ColumnsContract.Map(AutoMap.Columns, columns) ?? Columns;
+            orderBy = ColumnsContract.Map(AutoMap.OrderBy, orderBy);
             var sql = Plugin.BuildSelect(columns, CheckGetTableName(), where, orderBy, limit);
             return await QueryNWithParamsAsync<T>(sql,
                 inParams, outParams, ioParams, returnParams,

@@ -9,6 +9,24 @@ using Mighty.Interfaces;
 namespace Mighty.Mapping
 {
     /// <summary>
+    /// Useful object extensions
+    /// </summary>
+    static public partial class ObjectExtensions
+    {
+        /// <summary>
+        /// Utility method to map one string to another, chainable in fluent syntax.
+        /// </summary>
+        /// <param name="from"></param>
+        /// <param name="match"></param>
+        /// <param name="to"></param>
+        /// <returns></returns>
+        static public string Map(this string from, string match, string to)
+        {
+            if (string.Equals(from, match, StringComparison.OrdinalIgnoreCase)) return to;
+            else return from;
+        }
+    }
+    /// <summary>
     /// Pass an instance of this class to the constructor of <see cref="MightyOrm"/> in order to
     /// map between C# field names and SQL column names.
     /// If you're not (yet) used to <see cref="Action"/>/<see cref="Func{T, TResult}"/> syntax in C#, you may find
@@ -175,8 +193,9 @@ namespace Mighty.Mapping
         ///   - But here and there Mighty takes in SQL fragments other than `keys`, `columns` and `orderBy`, and the user
         ///     may still validly need this method then
         /// </remarks>
-        override public string Map(string fieldNames, Type classType, string columns = null)
+        override public string Map(Type classType, string fieldNames, string columns = null)
         {
+            // check that we're legal
             if (classType == null)
             {
                 // we cannot do the mapping without this
@@ -190,11 +209,13 @@ namespace Mighty.Mapping
                     $"To use {nameof(SqlNamingMapper)}.{nameof(SqlNamingMapper.Map)} with dyanamic instances of {nameof(MightyOrm)} pass the type of the class or user subclass of {nameof(MightyOrm)} that you are using, do not pass typeof(object) or typeof(ExpandoObject)");
             }
 
+            // return null (and don't waste time looking up the contract) if we're null
             if (fieldNames == null)
             {
                 return null;
             }
 
+            // get the contract
             bool IsGeneric = (classType == typeof(MightyOrm) ||
                               classType
 #if !NETFRAMEWORK
@@ -203,7 +224,9 @@ namespace Mighty.Mapping
                               .IsSubclassOf(typeof(MightyOrm)));
 
             ColumnsContract columnsContract = ColumnsContractStore.Instance.Get(IsGeneric, classType, columns, this);
-            return string.Join(", ", fieldNames.Split(',').Select(n => n.Trim()).Select(n => columnsContract.Map(n)));
+
+            // do the mapping
+            return columnsContract.Map(AutoMap.On, fieldNames);
         }
         #endregion
 

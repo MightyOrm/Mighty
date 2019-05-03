@@ -22,7 +22,7 @@ namespace Mighty
         Off = 0,
 
         /// <summary>
-        /// Remap `keys` parameter (for <see cref="MightyOrm"/> and <see cref="MightyOrm{T}"/> constructors only)
+        /// Remap `keyNames` parameter (for <see cref="MightyOrm"/> and <see cref="MightyOrm{T}"/> constructors only)
         /// </summary>
         Keys = 1 << 0,
 
@@ -36,10 +36,22 @@ namespace Mighty
         /// </summary>
         OrderBy = 1 << 2,
 
+#if KEY_VALUES
+        /// <summary>
+        /// Remap `valueName` parameter (for <see cref="MightyOrm"/> and <see cref="MightyOrm{T}"/> constructors only)
+        /// </summary>
+        Value = 1 << 3,
+#endif
+
         /// <summary>
         /// Remap everything (i.e. `keys`, `columns` and `orderBy` parameters to <see cref="MightyOrm"/>
         /// and <see cref="MightyOrm{T}"/> constructors and all other methods which accept them)
         /// </summary>
-        On = Keys | Columns | OrderBy
+        On =  Keys
+            | Columns
+            | OrderBy
+#if KEY_VALUES
+            | Value
+#endif
     }
 }

@@ -114,9 +114,9 @@ namespace Mighty.DataContracts
                 {
                     throw new InvalidOperationException($"You must enable {nameof(AutoMap)}.{nameof(AutoMap.Columns)} in your {nameof(DatabaseTableAttribute.AutoMapAfterColumnRename)} settings for any dynamic instance of {nameof(MightyOrm)} with column name mapping");
                 }
-                // Columns is not needed in the data contract otherwise
-                // Where needed, normalise it (trim and sort) to improve caching
-                this.DynamicColumnSpec = string.Join(",", columns.Split(',').Select(c => c.Trim()).OrderBy(c => c));
+                // Columns is not needed in the data contract except if we're here;
+                // where needed, normalise it to improve caching
+                DynamicColumnSpec = NormaliseColumns(columns);
             }
 
             ColumnName = mapper.ColumnName;
@@ -124,6 +124,16 @@ namespace Mighty.DataContracts
             IgnoreColumn = mapper.IgnoreColumn;
 
             this.DataItemType = type;
+        }
+
+        /// <summary>
+        /// Normalise - trim and sort - column names to improve caching
+        /// </summary>
+        /// <param name="columns"></param>
+        /// <returns></returns>
+        private string NormaliseColumns(string columns)
+        {
+            return string.Join(",", columns.Split(',').Select(c => c.Trim()).OrderBy(c => c));
         }
 
         /// <summary>
