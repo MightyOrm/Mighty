@@ -1,10 +1,30 @@
-Development Installation Notes:
-===============================
+# Development Installation Notes:
+
+## Quick Install
+
+All drivers for all databases (even SQL Server) for .NET Core are NuGet packages. The comments on drivers below are about the .NET Framework driver(s) for each database.
+
+### SQL Server
+
+ - SQL Server Development Edition
+ - AdventureWorks database
+ - Run Mighty test scripts:
+   - SP Tests (install into AdventureWorks)
+   - Write Tests DB (creates its own DB)
+ - The `System.Data.SqlClient` ADO.NET driver is always available by default
+
+### SQLite
+
+ - Download and save the SQLite test database `Chinook_Sqlite_AutoIncrementPKs.sqlite` from https://github.com/lerocha/chinook-database/tree/master/ChinookDatabase/DataSources
+ - No other installation is needed!
+ - The `System.Data.SQLite` ADO.NET driver for .NET framework is always available by default (with Windows?), as far as I can make out
+ - The `Microsoft.Data.Sqlite` driver for .NET Core is a NuGet download, as is standard for all databases with .NET Core
 
 SQL Server:
 -----------
 
-- The test database is Adventure Works (Adventure Works 2014 works fine; probably higher too, but not tested)
+- SQL Server Developer Edition (full feature, free, development only) should be fine for testing
+- The test database is Adventure Works (Adventure Works 2014 and 2017 work fine; probably others too)
     o Download and the restore from `AdventureWorks2014.bak`, from:
       https://docs.microsoft.com/en-us/sql/samples/adventureworks-install-configure
     o Some additional SPs have been added (run `MightyTests\Sql\SqlServerSPTests.sql` to create)
@@ -13,11 +33,6 @@ SQL Server:
 
 Oracle:
 -------
-
-- Npgsql-3.2.0.msi
-    o This is for PostgreSQL
-    o "Installs Npgsql into the GAC and madds it to your machine.config. This is not the recommended way to use Npgsql (use nuget instead)."
-    o For now, I have done this.
 
 - Unzip ODP.NET_Managed_ODAC12cR4.zip
     o This is for Oracle managed data access client (oracle.manageddataaccess.client)
@@ -48,13 +63,19 @@ SQLite:
 - Tools for managing the SQLite DB are in sqlite-tools-win32-x86-3170000.zip, but these are not needed to run the tests
 
 - The Microsoft SQLite data provider must be installed (`Microsoft.Data.Sqlite` for .NET Core, or `System.Data.SQLite` for .NET Framework)
-  TO DO: How? (These may be installed by default, I think.)
+  - I have never had to install these, they seem to be available by default from somwhere (with Windows? with Visual Studio?).
 
 - The database for all SQLite tests is the autonumber variant of the Chinook example DB for SQLite,
   i.e. `Chinook_Sqlite_AutoIncrementPKs.sqlite` from https://github.com/lerocha/chinook-database/tree/master/ChinookDatabase/DataSources
 
 PostgreSQL:
 -----------
+
+- Npgsql-3.2.0.msi
+    o This is for PostgreSQL
+    o "Installs Npgsql into the GAC and adds it to your machine.config. This is not the recommended way to use Npgsql (use nuget instead)."
+    o For now, I have done this.
+
 
 Install the database itself from: PostgreSQL-9.6.1-1-win64-bigsql.exe
 You'll want to install pgAdmin as well
@@ -74,8 +95,7 @@ MySQL:
 - Install the server from https://dev.mysql.com/downloads/mysql/
     o Note the comment "Note: MySQL Installer is 32 bit, but will install both 32 bit and 64 bit binaries."
     o Download the web installer version to only pull the parts you actually need from the web during the install
-    o NB If you have previously installed MySQL you will need to uninstall everything in order to select a different
-      Setup Type (e.g. to change from 'Client Only' to 'Full' or 'Custom')
+    o NB If you have previously installed MySQL you will need to uninstall everything in order to select a different Setup Type (e.g. to change from 'Client Only' to 'Full' or 'Custom')
 
 - You require MySQL Server on the server and Connector/NET on the client, and you will probablty want MySQL Workbench
 
