@@ -32,12 +32,14 @@ namespace Mighty.DataContracts
         public readonly string DynamicColumnSpec;
 
         /// <summary>
-        /// The auto-map settings for the type
+        /// Does this contract have a column mapping?
         /// </summary>
         /// <remarks>
-        /// Not needed as part of this key's hashcode, since it is derived
+        /// Not needed as part of the key's hashcode, since it is derived.
+        /// Storing this saves some hashing if there is 'no' mapping (i.e. the default mapping fns. only). It is also
+        /// used to determine whether a columns spec is mandatory for a dynamic instance of Mighty (it is when this is <c>true</c>).
         /// </remarks>
-        public readonly bool HasColumnMapping;
+        public readonly bool HasMapperColumnsMapping;
 
         /// <summary>
         /// The user-supplied <see cref="DatabaseTableAttribute"/> settings for the data item type;
@@ -62,9 +64,10 @@ namespace Mighty.DataContracts
         public readonly Func<Type, string, bool> IgnoreColumn;
 
         /// <summary>
-        /// Will the key result in a null columns contract?
+        /// If the instance of Mighty is dynamic and there is no column spec, then there is no need
+        /// to store a mapping.
         /// </summary>
-        public bool NullContract { get { return !IsGeneric && DynamicColumnSpec == null; } }
+        public readonly bool DynamicNullContract;
 
         /// <summary>
         /// Constructor
@@ -99,21 +102,21 @@ namespace Mighty.DataContracts
                     mapper.AutoMapAfterColumnRename(type));
             }
 
-            HasColumnMapping =
+            HasMapperColumnsMapping =
                 mapper.ColumnNameMapping != SqlNamingMapper.IdentityColumnMapping ||
                 mapper.ColumnDataDirection != SqlNamingMapper.ColumnDataDirectionUnspecified ||
                 mapper.IgnoreColumn != SqlNamingMapper.NeverIgnoreColumn;
 
-            if (!IsGeneric && HasColumnMapping)
+            // If the user is trying to map column names in a dynamic instance of Mighty, then there must be a columns spec and columns auto-mapping must be left on
+            if (!IsGeneric && HasMapperColumnsMapping)
             {
-                // If we are trying to map column names in a dynamic instance of Mighty, then we must have a columns spec and we must use columns auto-mapping
                 if (columns == null || columns == "*")
                 {
                     throw new InvalidOperationException($"You must provide an explicit `columns` specification to any dynamic instance of {nameof(MightyOrm)} with column name mapping");
                 }
-                if ((DatabaseTableSettings.AutoMapAfterColumnRename & AutoMap.Columns) == 0)
+                if ((DatabaseTableSettings.AutoMap & AutoMap.Columns) == 0)
                 {
-                    throw new InvalidOperationException($"You must enable {nameof(AutoMap)}.{nameof(AutoMap.Columns)} in your {nameof(DatabaseTableSettings.AutoMapAfterColumnRename)} settings for any dynamic instance of {nameof(MightyOrm)} with column name mapping");
+                    throw new InvalidOperationException($"You must enable {nameof(AutoMap)}.{nameof(AutoMap.Columns)} in your {nameof(DatabaseTableSettings.AutoMap)} settings for any dynamic instance of {nameof(MightyOrm)} with column name mapping");
                 }
                 // Columns is not needed in the data contract except if we're here;
                 // where needed, normalise it to improve caching
@@ -124,7 +127,9 @@ namespace Mighty.DataContracts
             ColumnDataDirection = mapper.ColumnDataDirection;
             IgnoreColumn = mapper.IgnoreColumn;
 
-            this.DataItemType = type;
+            DataItemType = type;
+
+            DynamicNullContract = !IsGeneric && DynamicColumnSpec == null;
         }
 
         /// <summary>
@@ -150,11 +155,8 @@ namespace Mighty.DataContracts
             if (!IsGeneric)
             {
                 // For dynamic types the only things that can affect the mapping are the column mapping, if any,
-                // and the final DatabaseTableSettings, but not the item type per se.
-                if (HasColumnMapping)
-                {
-                    h = DynamicColumnSpec?.GetHashCode() ?? 0;
-                }
+                // and the final DatabaseTableSettings (which is included below anyway), but not the item type per se.
+                h = DynamicColumnSpec?.GetHashCode() ?? 0;
             }
             else
             {
@@ -164,7 +166,7 @@ namespace Mighty.DataContracts
 
             h ^= DatabaseTableSettings.GetHashCode();
 
-            if (HasColumnMapping)
+            if (HasMapperColumnsMapping)
             {
                 h ^= (ColumnName?.GetHashCode() ?? 0) ^
                      (ColumnDataDirection?.GetHashCode() ?? 0) ^
@@ -189,11 +191,8 @@ namespace Mighty.DataContracts
             if (!IsGeneric)
             {
                 // For dynamic types the only things that can affect the mapping are the column mapping, if any,
-                // and the final DatabaseTableSettings, but not the item type per se.
-                if (HasColumnMapping)
-                {
-                    y = DynamicColumnSpec == other.DynamicColumnSpec;
-                }
+                // and the final DatabaseTableSettings (which is included below anyway), but not the item type per se.
+                y = DynamicColumnSpec == other.DynamicColumnSpec;
             }
             else
             {
@@ -204,7 +203,7 @@ namespace Mighty.DataContracts
             y = y &&
                 DatabaseTableSettings.Equals(other.DatabaseTableSettings);
 
-            if (HasColumnMapping)
+            if (HasMapperColumnsMapping)
             {
                 y = y &&
                     ColumnName == other.ColumnName &&

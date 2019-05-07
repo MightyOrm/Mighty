@@ -20,9 +20,17 @@ namespace Mighty.Keys
     public class PrimaryKeyInfo
     {
         /// <summary>
-        /// Primary key columns as a comma separated list
+        /// Primary key database column name (or multiple columns as a comma separated list)
         /// </summary>
-        public string PrimaryKeyColumns { get; private set; }
+        public string PrimaryKeyColumn { get; private set; }
+
+        /// <summary>
+        /// Primary key field or property name (or multiple names as a comma separated list)
+        /// </summary>
+        /// <remarks>
+        /// Mighty does not (currently) use this internally, it is made available as a convenience to users
+        /// </remarks>
+        public string PrimaryKeyField { get; private set; }
 
         /// <summary>
         /// Number of primary keys
@@ -30,7 +38,7 @@ namespace Mighty.Keys
         public int Count { get { return PrimaryKeyColumnList.Count; } }
 
         /// <summary>
-        /// Separated, primary key columns
+        /// Separated, primary key columns (note: these are database column names not class field or property names if these are different)
         /// </summary>
         public List<string> PrimaryKeyColumnList;
 
@@ -95,10 +103,20 @@ namespace Mighty.Keys
             else
             {
                 // from mapper
-                keys = DataContract.Map(AutoMap.On, mapper.GetPrimaryKeyFieldNames(dataMappingType));
+                PrimaryKeyField = mapper.GetPrimaryKeyFieldNames(dataMappingType);
+                keys = DataContract.Map(AutoMap.On, PrimaryKeyField);
             }
-            PrimaryKeyColumns = keys; // we need null here if no keys
-            PrimaryKeyColumnList = keys?.Split(',').Select(k => k.Trim()).ToList() ?? new List<string>();
+
+            if (keys == null)
+            {
+                PrimaryKeyColumnList = new List<string>();
+            }
+            else
+            {
+                PrimaryKeyColumn = keys;
+                if (PrimaryKeyField == null) PrimaryKeyField = DataContract.ReverseMap(PrimaryKeyColumn);
+                PrimaryKeyColumnList = keys.Split(',').Select(k => k.Trim()).ToList();
+            }
         }
 
         private void SetSequence(PluginBase plugin, SqlNamingMapper mapper, string sequence)
@@ -150,7 +168,7 @@ namespace Mighty.Keys
             // and we only want to write to the PK when there is a SequenceNameOrIdentityFunction
             if (SequenceNameOrIdentityFunction != null)
             {
-                PrimaryKeyMemberName = dataContract.ReverseMap(PrimaryKeyColumns);
+                PrimaryKeyMemberName = dataContract.ReverseMap(PrimaryKeyColumn);
                 if (isGeneric)
                 {
                     PrimaryKeyMemberInfo = dataContract.GetMember(PrimaryKeyMemberName, "primary key");
@@ -170,7 +188,7 @@ namespace Mighty.Keys
             {
                 throw new InvalidOperationException($"A single primary key must be specified{partialMessage}");
             }
-            return PrimaryKeyColumns;
+            return PrimaryKeyColumn;
         }
 #endif
 
@@ -245,11 +263,11 @@ namespace Mighty.Keys
         /// <returns></returns>
         internal string CheckGetPrimaryKeyFields()
         {
-            if (string.IsNullOrEmpty(PrimaryKeyColumns))
+            if (string.IsNullOrEmpty(PrimaryKeyColumn))
             {
                 throw new InvalidOperationException("No primary key field(s) have been specified");
             }
-            return PrimaryKeyColumns;
+            return PrimaryKeyColumn;
         }
 
 #pragma warning disable IDE0059 // Value assigned is never used

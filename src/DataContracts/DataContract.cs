@@ -75,7 +75,7 @@ namespace Mighty.DataContracts
         public DataContract(DataContractKey Key)
         {
             this.Key = Key;
-            if (!Key.NullContract)
+            if (!Key.DynamicNullContract)
             {
                 var ReadColumnList = new List<string>();
                 var KeyColumnsList = new List<string>();
@@ -104,12 +104,16 @@ namespace Mighty.DataContracts
 
                 if (foundControlledColumn)
                 {
+                    // We have a read column list if there are any controlled columns (including e.g. ignored columns) in the contract
                     ReadColumns = string.Join(", ", ReadColumnList);
                 }
+
                 if (foundRenamedColumn)
                 {
-                    AutoMapSettings = Key.DatabaseTableSettings.AutoMapAfterColumnRename;
+                    // This switches on auto-mapping by defaut if there are any actually renamed columns
+                    AutoMapSettings = Key.DatabaseTableSettings.AutoMap;
                 }
+
                 if (KeyColumnsList.Count > 0)
                 {
                     KeyColumns = string.Join(", ", KeyColumnsList);
@@ -186,7 +190,7 @@ namespace Mighty.DataContracts
                         include = false;
                         foundControlledColumn = true;
                     }
-                    if (attr is DatabaseKeyAttribute)
+                    if (attr is DatabasePrimaryKeyAttribute)
                     {
                         isKey = true;
                     }
@@ -240,7 +244,7 @@ namespace Mighty.DataContracts
         /// <returns></returns>
         public bool IsMightyColumn(string columnName)
         {
-            return Key.NullContract || ColumnNameToMemberInfo.ContainsKey(columnName);
+            return Key.DynamicNullContract || ColumnNameToMemberInfo.ContainsKey(columnName);
         }
 
         /// <summary>
@@ -278,7 +282,7 @@ namespace Mighty.DataContracts
         /// <returns></returns>
         public bool TryGetDataMemberName(string columnName, out string memberName, DataDirection dataDirection = 0)
         {
-            if (Key.NullContract)
+            if (Key.DynamicNullContract)
             {
                 memberName = columnName;
                 return true;
@@ -367,7 +371,7 @@ namespace Mighty.DataContracts
         /// <returns>The database column name</returns>
         public string Map(string fieldName)
         {
-            if (Key.NullContract)
+            if (Key.DynamicNullContract)
             {
                 return fieldName;
             }
@@ -399,7 +403,7 @@ namespace Mighty.DataContracts
             }
             else
             {
-                // They are (or should be) already column names
+                // 'field names' are or should be already column names, in this case
                 return fieldNames;
             }
         }
@@ -411,7 +415,7 @@ namespace Mighty.DataContracts
         /// <returns>The field or property name</returns>
         public string ReverseMap(string columnName)
         {
-            if (Key.NullContract)
+            if (Key.DynamicNullContract)
             {
                 return columnName;
             }

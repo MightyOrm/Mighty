@@ -309,13 +309,19 @@ namespace Mighty
             if (tableName != null)
             {
                 // this line allows an empty string table name in the constructor to be used to force not using any table name
-                // TO DO: Test? (Also why, exactly, did I think this was worth doing at the time...?)
+                // TO DO: Test. (Not sure exactly why I thought this was worth doing, but no table name is handled cleanly, so I guess why not?)
                 tableName = tableName == "" ? null : tableName;
             }
             else
             {
                 // this will still be null if neither attributes nor mapper have overridden their default behaviour
                 tableName = dataContract.Key.DatabaseTableSettings.TableName;
+
+                // if not specified any other way, use data item type class name
+                if (tableName == null && dataContract.Key.DataItemType != typeof(MightyOrm))
+                {
+                    tableName = dataContract.Key.DataItemType.Name;
+                }
             }
 
             if (tableName != null)
@@ -874,7 +880,7 @@ namespace Mighty
                     if (PrimaryKeyInfo.SequenceNameOrIdentityFunction != null && Plugin.IsSequenceBased)
                     {
                         // our copy of SequenceNameOrIdentityFunction is only ever non-null when there is a non-compound PK
-                        insertNames.Add(PrimaryKeyInfo.PrimaryKeyColumns);
+                        insertNames.Add(PrimaryKeyInfo.PrimaryKeyColumn);
                         // TO DO: Should there be two places for BuildNextval? (See above.) Why?
                         insertValues.Add(Plugin.BuildNextval(PrimaryKeyInfo.SequenceNameOrIdentityFunction));
                     }
@@ -912,13 +918,13 @@ namespace Mighty
             if (item is ExpandoObject)
             {
                 var dict = ((ExpandoObject)item).ToDictionary();
-                dict[PrimaryKeyInfo.PrimaryKeyColumns] = pk;
+                dict[PrimaryKeyInfo.PrimaryKeyColumn] = pk;
                 return item;
             }
             // Write PK back to NameValueCollection if we can
             if (item is NameValueCollection)
             {
-                ((NameValueCollection)item)[PrimaryKeyInfo.PrimaryKeyColumns] = pk.ToString();
+                ((NameValueCollection)item)[PrimaryKeyInfo.PrimaryKeyColumn] = pk.ToString();
                 return item;
             }
             // Write PK back to POCO of type T if we can

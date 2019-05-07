@@ -297,7 +297,7 @@ namespace Mighty
             if (IsGeneric)
             {
                 // TO DO: Make sure this works even when there is mapping
-                var db = new MightyOrm(null, TableName, PrimaryKeyInfo.PrimaryKeyColumns, ValueColumn, connectionProvider: new PresetsConnectionProvider(ConnectionString, Factory, Plugin.GetType()));
+                var db = new MightyOrm(null, TableName, PrimaryKeyInfo.PrimaryKeyColumn, ValueColumn, connectionProvider: new PresetsConnectionProvider(ConnectionString, Factory, Plugin.GetType()));
                 return await db.KeyValuesAsync(cancellationToken, orderBy);
             }
             string partialMessage = $" to call {nameof(KeyValuesAsync)}, please provide one in your constructor";

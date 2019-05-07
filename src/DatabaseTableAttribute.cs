@@ -18,7 +18,7 @@ namespace Mighty
         /// <summary>
         /// The auto-map setting
         /// </summary>
-        public AutoMap AutoMapAfterColumnRename { get; protected set; }
+        public AutoMap AutoMap { get; protected set; }
 
         /// <summary>
         /// The case-sensitivity setting
@@ -34,7 +34,7 @@ namespace Mighty
         public DatabaseTableAttribute(string name = null, bool caseSensitiveColumnMapping = false, AutoMap autoMap = AutoMap.On)
         {
             TableName = name;
-            AutoMapAfterColumnRename = autoMap;
+            AutoMap = autoMap;
             CaseSensitiveColumnMapping = caseSensitiveColumnMapping;
         }
 
@@ -46,7 +46,7 @@ namespace Mighty
         {
             var h =
                 (TableName?.GetHashCode() ?? 0) ^
-                (int)AutoMapAfterColumnRename ^
+                (int)AutoMap ^
                 (CaseSensitiveColumnMapping ? 1 : 0);
 
             return h;
@@ -64,7 +64,7 @@ namespace Mighty
 
             var y =
                 TableName == other.TableName &&
-                AutoMapAfterColumnRename == other.AutoMapAfterColumnRename &&
+                AutoMap == other.AutoMap &&
                 CaseSensitiveColumnMapping == other.CaseSensitiveColumnMapping;
 
             return y;
