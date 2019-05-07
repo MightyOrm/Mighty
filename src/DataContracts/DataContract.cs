@@ -368,19 +368,47 @@ namespace Mighty.DataContracts
         /// Return database column name from field or property name
         /// </summary>
         /// <param name="fieldName">The field or property name</param>
+        /// <param name="which">
+        /// Which type of matching is this?
+        /// Only relevant to allow very basic additional handing of orderBy ASC and DESC.
+        /// </param>
         /// <returns>The database column name</returns>
-        public string Map(string fieldName)
+        public string Map(string fieldName, AutoMap which = AutoMap.Off)
         {
             if (Key.DynamicNullContract)
             {
                 return fieldName;
+            }
+            string ascDesc = "";
+            if ((which & AutoMap.OrderBy) != 0)
+            {
+                if (!splitOrderBy(out fieldName, out ascDesc, " ASC", fieldName))
+                {
+                    splitOrderBy(out fieldName, out ascDesc, " DESC", fieldName);
+                }
             }
             string mapped;
             if (!MemberNameToColumnName.TryGetValue(fieldName, out mapped))
             {
                 throw new InvalidOperationException($"Field or property name {fieldName} does not exist in {Key.DataItemType.FullName}, or exists but has been excluded from database column mapping");
             }
-            return mapped;
+            return mapped + ascDesc;
+        }
+
+        private bool splitOrderBy(out string fieldName, out string ascDesc, string suffix, string originalFieldName)
+        {
+            if (originalFieldName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
+            {
+                fieldName = originalFieldName.Substring(0, originalFieldName.Length - suffix.Length).Trim();
+                ascDesc = originalFieldName.Substring(originalFieldName.Length - suffix.Length);
+                return true;
+            }
+            else
+            {
+                fieldName = originalFieldName;
+                ascDesc = "";
+                return false;
+            }
         }
 
         /// <summary>
@@ -399,7 +427,7 @@ namespace Mighty.DataContracts
             }
             if (which == AutoMap.On || (which & AutoMapSettings) != 0)
             {
-                return string.Join(", ", fieldNames.Split(',').Select(n => n.Trim()).Select(n => Map(n)));
+                return string.Join(", ", fieldNames.Split(',').Select(n => n.Trim()).Select(n => Map(n, which)));
             }
             else
             {

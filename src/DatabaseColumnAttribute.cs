@@ -6,7 +6,7 @@ using System.Text;
 namespace Mighty
 {
     /// <summary>
-    /// Specify that this field or property should be included in database operations.
+    /// Specify that this field or property should be included in database operations even if non-public.
     /// Optionally provide a database name for the underlying column.
     /// Optionally specify that this field or property should be used for data reads or writes only.
     /// </summary>
@@ -36,7 +36,7 @@ namespace Mighty
         /// </summary>
         /// <param name="name">
         /// The database column name;
-        /// setting this turns on auto-mapping of `keys`, `columns` and `orderBy` inputs to Mighty;
+        /// setting this turns on auto-mapping of `keys`, `columns` and `orderBy` inputs to Mighty by default;
         /// to disable that apply [<see cref="DatabaseTableAttribute"/>(autoMap: <see cref="AutoMap.Off"/>)] to the class.
         /// </param>
         /// <param name="direction">The database column name</param>
