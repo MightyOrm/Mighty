@@ -10,7 +10,7 @@ namespace Mighty.DataContracts
 {
     /// <summary>
     /// A data contract key (unique identifier);
-    /// all of the values on which a <see cref="ColumnsContract"/> depends.
+    /// all of the values on which a <see cref="DataContract"/> depends.
     /// </summary>
     public class TableMetaDataKey
     {
@@ -40,9 +40,9 @@ namespace Mighty.DataContracts
         public string TableOwner;
 
         /// <summary>
-        /// ColumnsContract
+        /// DataContract
         /// </summary>
-        public ColumnsContract ColumnsContract;
+        public DataContract DataContract;
 
         /// <summary>
         /// Constructor
@@ -52,10 +52,10 @@ namespace Mighty.DataContracts
         /// <param name="ConnectionString"></param>
         /// <param name="BareTableName"></param>
         /// <param name="TableOwner"></param>
-        /// <param name="ColumnsContract"></param>
+        /// <param name="DataContract"></param>
         internal TableMetaDataKey(
             PluginBase Plugin, DbProviderFactory Factory, string ConnectionString,
-            string BareTableName, string TableOwner, ColumnsContract ColumnsContract
+            string BareTableName, string TableOwner, DataContract DataContract
             )
         {
             this.Plugin = Plugin;
@@ -63,7 +63,7 @@ namespace Mighty.DataContracts
             this.ConnectionString = ConnectionString;
             this.BareTableName = BareTableName;
             this.TableOwner = TableOwner;
-            this.ColumnsContract = ColumnsContract;
+            this.DataContract = DataContract;
         }
 
         /// <summary>
@@ -82,7 +82,7 @@ namespace Mighty.DataContracts
                 (ConnectionString?.GetHashCode() ?? 0) ^
                 (BareTableName?.GetHashCode() ?? 0) ^
                 (TableOwner?.GetHashCode() ?? 0) ^
-                (ColumnsContract?.GetHashCode() ?? 0);
+                (DataContract?.GetHashCode() ?? 0);
             return h;
         }
 
@@ -105,7 +105,7 @@ namespace Mighty.DataContracts
                 ConnectionString == other.ConnectionString &&
                 BareTableName == other.BareTableName &&
                 TableOwner == other.TableOwner &&
-                ColumnsContract == other.ColumnsContract;
+                DataContract == other.DataContract;
             return y;
         }
     }

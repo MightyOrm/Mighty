@@ -13,7 +13,7 @@ namespace Mighty
         /// <summary>
         /// The underlying table name.
         /// </summary>
-        public string Name { get; protected set; }
+        public string TableName { get; protected set; }
 
         /// <summary>
         /// The auto-map setting
@@ -28,14 +28,46 @@ namespace Mighty
         /// <summary>
         /// Constructor
         /// </summary>
-        /// <param name="name">Database name for the underlying table</param>
+        /// <param name="name">Database table name for the underlying table</param>
         /// <param name="caseSensitiveColumnMapping">Should Mighty be case sensitive when mapping from field and property names to database names?</param>
-        /// <param name="autoMapAfterColumnRename">Should Mighty automatically remap any `keys`, `columns` or `orderBy` inputs it receives, if one or more column names have been remapped?</param>
-        public DatabaseTableAttribute(string name, bool caseSensitiveColumnMapping = false, AutoMap autoMapAfterColumnRename = AutoMap.On)
+        /// <param name="autoMap">Should Mighty automatically remap any `keys`, `columns` or `orderBy` inputs it receives, if one or more column names have been remapped?</param>
+        public DatabaseTableAttribute(string name = null, bool caseSensitiveColumnMapping = false, AutoMap autoMap = AutoMap.On)
         {
-            Name = name;
-            AutoMapAfterColumnRename = autoMapAfterColumnRename;
+            TableName = name;
+            AutoMapAfterColumnRename = autoMap;
             CaseSensitiveColumnMapping = caseSensitiveColumnMapping;
+        }
+
+        /// <summary>
+        /// Override the hash code for the class
+        /// </summary>
+        /// <returns></returns>
+        public override int GetHashCode()
+        {
+            var h =
+                (TableName?.GetHashCode() ?? 0) ^
+                (int)AutoMapAfterColumnRename ^
+                (CaseSensitiveColumnMapping ? 1 : 0);
+
+            return h;
+        }
+
+        /// <summary>
+        /// Override equality for the class
+        /// </summary>
+        /// <returns></returns>
+        public override bool Equals(object obj)
+        {
+            if (!(obj is DatabaseTableAttribute)) return false;
+
+            var other = (DatabaseTableAttribute)obj;
+
+            var y =
+                TableName == other.TableName &&
+                AutoMapAfterColumnRename == other.AutoMapAfterColumnRename &&
+                CaseSensitiveColumnMapping == other.CaseSensitiveColumnMapping;
+
+            return y;
         }
     }
 }

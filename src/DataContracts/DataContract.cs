@@ -34,12 +34,12 @@ namespace Mighty.DataContracts
     /// Remember, Mighty *never* parses the SQL fragments which the user sends in! It's been a pain to get this to a consistent state where it
     /// doesn't need to, but the result is better.
     /// </remarks>
-    public class ColumnsContract
+    public class DataContract
     {
         /// <summary>
         /// The info about what this is a data contract for
         /// </summary>
-        public ColumnsContractKey Key { get; protected set; }
+        public DataContractKey Key { get; protected set; }
 
         /// <summary>
         /// All data read columns in one string (mapping, if any, already applied), or null
@@ -61,7 +61,7 @@ namespace Mighty.DataContracts
         /// <summary>
         /// The reflected <see cref="MemberInfo"/> corresponding to all specified columns in the database table
         /// </summary>
-        public Dictionary<string, ColumnsContractMemberInfo> ColumnNameToMemberInfo;
+        public Dictionary<string, DataContractMemberInfo> ColumnNameToMemberInfo;
 
         /// <summary>
         /// The reverse mapping for all specified columns in the database table
@@ -72,7 +72,7 @@ namespace Mighty.DataContracts
         /// Create a new data contract corresponding to the values in the key
         /// </summary>
         /// <param name="Key">All the items on which the contract depends</param>
-        public ColumnsContract(ColumnsContractKey Key)
+        public DataContract(DataContractKey Key)
         {
             this.Key = Key;
             if (!Key.NullContract)
@@ -82,8 +82,8 @@ namespace Mighty.DataContracts
                 bool foundControlledColumn = false;
                 bool foundRenamedColumn = false;
 
-                ColumnNameToMemberInfo = new Dictionary<string, ColumnsContractMemberInfo>(Key.CaseSensitiveColumnMapping ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
-                MemberNameToColumnName = new Dictionary<string, string>(Key.CaseSensitiveColumnMapping ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
+                ColumnNameToMemberInfo = new Dictionary<string, DataContractMemberInfo>(Key.DatabaseTableSettings.CaseSensitiveColumnMapping ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
+                MemberNameToColumnName = new Dictionary<string, string>(Key.DatabaseTableSettings.CaseSensitiveColumnMapping ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
 
                 if (Key.IsGeneric)
                 {
@@ -104,15 +104,15 @@ namespace Mighty.DataContracts
 
                 if (foundControlledColumn)
                 {
-                    ReadColumns = string.Join(",", ReadColumnList);
+                    ReadColumns = string.Join(", ", ReadColumnList);
                 }
                 if (foundRenamedColumn)
                 {
-                    AutoMapSettings = Key.AutoMapAfterColumnRename;
+                    AutoMapSettings = Key.DatabaseTableSettings.AutoMapAfterColumnRename;
                 }
                 if (KeyColumnsList.Count > 0)
                 {
-                    KeyColumns = string.Join(",", KeyColumnsList);
+                    KeyColumns = string.Join(", ", KeyColumnsList);
                 }
             }
         }
@@ -129,7 +129,7 @@ namespace Mighty.DataContracts
         /// <returns>Whether a controlled column (<see cref="DatabaseColumnAttribute"/> or <see cref="DatabaseIgnoreAttribute"/>) was found</returns>
         protected void AddReflectedColumns(
             out bool foundControlledColumn, out bool foundRenamedColumn,
-            List<string> ReadColumnList, List<string> KeyColumnsList, ColumnsContractKey key, BindingFlags bindingFlags)
+            List<string> ReadColumnList, List<string> KeyColumnsList, DataContractKey key, BindingFlags bindingFlags)
         {
             foundControlledColumn = false;
             foundRenamedColumn = false;
@@ -158,7 +158,7 @@ namespace Mighty.DataContracts
         /// <returns>Whether a controlled column (<see cref="DatabaseColumnAttribute"/> or <see cref="DatabaseIgnoreAttribute"/>) was found</returns>
         protected void AddReflectedColumn(
             out bool foundControlledColumn, out bool foundRenamedColumn,
-            List<string> ReadColumnList, List<string> KeyColumnsList, ColumnsContractKey key, MemberInfo member, string name, bool include)
+            List<string> ReadColumnList, List<string> KeyColumnsList, DataContractKey key, MemberInfo member, string name, bool include)
         {
             foundControlledColumn = false;
             foundRenamedColumn = false;
@@ -222,7 +222,7 @@ namespace Mighty.DataContracts
                 {
                     foundRenamedColumn = true;
                 }
-                ColumnNameToMemberInfo.Add(sqlColumnName, new ColumnsContractMemberInfo(key.DataItemType, member, name, dataDirection));
+                ColumnNameToMemberInfo.Add(sqlColumnName, new DataContractMemberInfo(key.DataItemType, member, name, dataDirection));
                 MemberNameToColumnName.Add(name, sqlColumnName);
                 ReadColumnList.Add($"{(transformSql != null ? $"{transformSql} AS " : "")}{sqlColumnName}");
                 if (isKey)
@@ -249,9 +249,9 @@ namespace Mighty.DataContracts
         /// <param name="columnName">The database column name</param>
         /// <param name="what">Brief description of what is being looked for</param>
         /// <returns></returns>
-        public ColumnsContractMemberInfo GetDataMemberInfo(string columnName, string what = null)
+        public DataContractMemberInfo GetDataMemberInfo(string columnName, string what = null)
         {
-            ColumnsContractMemberInfo memberInfo;
+            DataContractMemberInfo memberInfo;
             if (!TryGetDataMemberInfo(columnName, out memberInfo))
             {
                 throw new InvalidOperationException(
@@ -283,7 +283,7 @@ namespace Mighty.DataContracts
                 memberName = columnName;
                 return true;
             }
-            if (TryGetDataMemberInfo(columnName, out ColumnsContractMemberInfo memberInfo, dataDirection))
+            if (TryGetDataMemberInfo(columnName, out DataContractMemberInfo memberInfo, dataDirection))
             {
                 memberName = memberInfo.Name;
                 return true;
@@ -299,7 +299,7 @@ namespace Mighty.DataContracts
         /// <param name="memberInfo">The data member info</param>
         /// <param name="dataDirection">The required data direction (only non-zero is tested)</param>
         /// <returns></returns>
-        public bool TryGetDataMemberInfo(string columnName, out ColumnsContractMemberInfo memberInfo, DataDirection dataDirection = 0)
+        public bool TryGetDataMemberInfo(string columnName, out DataContractMemberInfo memberInfo, DataDirection dataDirection = 0)
         {
             if (!TryGetDataMemberInfo(columnName, out memberInfo)) return false;
             if (dataDirection != 0 && memberInfo.DataDirection != 0 && (memberInfo.DataDirection | dataDirection) == 0) memberInfo = null;
@@ -307,18 +307,18 @@ namespace Mighty.DataContracts
         }
 
         /// <summary>
-        /// Look up <see cref="ColumnsContractMemberInfo"/> from database column name
+        /// Look up <see cref="DataContractMemberInfo"/> from database column name
         /// </summary>
         /// <param name="columnName">The database column name</param>
         /// <param name="memberInfo">The data member info</param>
         /// <returns></returns>
-        private bool TryGetDataMemberInfo(string columnName, out ColumnsContractMemberInfo memberInfo)
+        private bool TryGetDataMemberInfo(string columnName, out DataContractMemberInfo memberInfo)
         {
             return ColumnNameToMemberInfo.TryGetValue(columnName, out memberInfo);
         }
 
         /// <summary>
-        /// Equals if <see cref="ColumnsContractKey"/> is equal
+        /// Equals if <see cref="DataContractKey"/> is equal
         /// </summary>
         /// <returns></returns>
         public override int GetHashCode()
@@ -327,33 +327,33 @@ namespace Mighty.DataContracts
         }
 
         /// <summary>
-        /// Equals if <see cref="ColumnsContractKey"/> is equal
+        /// Equals if <see cref="DataContractKey"/> is equal
         /// </summary>
         /// <returns></returns>
         public override bool Equals(object other)
         {
-            if (!(other is ColumnsContract)) return false;
-            return Key == ((ColumnsContract)other).Key;
+            if (!(other is DataContract)) return false;
+            return Key == ((DataContract)other).Key;
         }
 
         /// <summary>
-        /// Get field or property based on C# name not column name
-        /// (not a hashed lookup, so should not be used frequently)
-        /// NB This will search in all and only managed data members, including managed non-public members,
-        /// which is what we want... when we want it.
+        /// Get field or property based on C# field or property name.
+        /// Not a hashed lookup, so should not be used frequently.
+        /// This will search in all and only managed data members, including managed non-public members,
+        /// which is what we want.
         /// </summary>
-        /// <param name="name">Name of field or property</param>
+        /// <param name="fieldNname">Name of field or property</param>
         /// <param name="what">Short description of what is being looked for, for exception message</param>
         /// <returns></returns>
-        public MemberInfo GetMember(string name, string what = null)
+        public MemberInfo GetMember(string fieldNname, string what = null)
         {
-            var member = ColumnNameToMemberInfo.Values.Where(m => m.Member.Name == name).FirstOrDefault();
+            var member = ColumnNameToMemberInfo.Values.Where(m => m.Member.Name == fieldNname).FirstOrDefault();
             if (member == null)
             {
                 throw new InvalidOperationException(
                     string.Format(
                         "Cannot find field or property named {0}{1} in {2} (must be exact match, including case)",
-                        name,
+                        fieldNname,
                         what == null ? "" : $" for {what}",
                         Key.DataItemType.FullName));
             }
@@ -415,7 +415,7 @@ namespace Mighty.DataContracts
             {
                 return columnName;
             }
-            ColumnsContractMemberInfo member;
+            DataContractMemberInfo member;
             if (!ColumnNameToMemberInfo.TryGetValue(columnName, out member))
             {
                 throw new InvalidOperationException($"Cannot map database column name {columnName} to any field or property name");

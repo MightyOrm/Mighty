@@ -51,7 +51,7 @@ namespace Mighty.Keys
         /// </summary>
         internal string PrimaryKeyMemberName { get; private set; }
 
-        private readonly ColumnsContract ColumnsContract;
+        private readonly DataContract DataContract;
 
         private readonly PluginBase Plugin;
         private readonly SqlNamingMapper SqlNamingMapper;
@@ -61,23 +61,23 @@ namespace Mighty.Keys
         /// Manage key(s) and sequence or identity.
         /// </summary>
         /// <param name="IsGeneric"></param>
-        /// <param name="columnsContract"></param>
+        /// <param name="dataContract"></param>
         /// <param name="xplugin"></param>
         /// <param name="dataMappingType"></param>
         /// <param name="xmapper"></param>
         /// <param name="keyNames"></param>
         /// <param name="sequence"></param>
         internal PrimaryKeyInfo(
-            bool IsGeneric, ColumnsContract columnsContract, PluginBase xplugin, Type dataMappingType, SqlNamingMapper xmapper,
+            bool IsGeneric, DataContract dataContract, PluginBase xplugin, Type dataMappingType, SqlNamingMapper xmapper,
             string keyNames, string sequence)
         {
             Plugin = xplugin;
             SqlNamingMapper = xmapper;
-            DataItemType = columnsContract.Key.DataItemType;
-            ColumnsContract = columnsContract;
+            DataItemType = dataContract.Key.DataItemType;
+            DataContract = dataContract;
             SetKeys(keyNames, xmapper, dataMappingType);
             SetSequence(xplugin, xmapper, sequence);
-            SetPkMemberInfo(IsGeneric, columnsContract);
+            SetPkMemberInfo(IsGeneric, dataContract);
         }
 
         private void SetKeys(string keys, SqlNamingMapper mapper, Type dataMappingType)
@@ -85,17 +85,17 @@ namespace Mighty.Keys
             if (keys != null)
             {
                 // from constructor
-                keys = ColumnsContract.Map(AutoMap.Keys, keys);
+                keys = DataContract.Map(AutoMap.Keys, keys);
             }
-            else if (ColumnsContract.KeyColumns != null)
+            else if (DataContract.KeyColumns != null)
             {
                 // from attributes
-                keys = ColumnsContract.KeyColumns;
+                keys = DataContract.KeyColumns;
             }
             else
             {
                 // from mapper
-                keys = ColumnsContract.Map(AutoMap.On, mapper.GetPrimaryKeyFieldNames(dataMappingType));
+                keys = DataContract.Map(AutoMap.On, mapper.GetPrimaryKeyFieldNames(dataMappingType));
             }
             PrimaryKeyColumns = keys; // we need null here if no keys
             PrimaryKeyColumnList = keys?.Split(',').Select(k => k.Trim()).ToList() ?? new List<string>();
@@ -144,17 +144,17 @@ namespace Mighty.Keys
         /// <summary>
         /// Set the primary key member info
         /// </summary>
-        private void SetPkMemberInfo(bool IsGeneric, ColumnsContract ColumnsContract)
+        private void SetPkMemberInfo(bool isGeneric, DataContract dataContract)
         {
             // SequenceNameOrIdentityFunction is only left at non-null when there is a single PK,
             // and we only want to write to the PK when there is a SequenceNameOrIdentityFunction
             if (SequenceNameOrIdentityFunction != null)
             {
-                if (IsGeneric)
+                PrimaryKeyMemberName = dataContract.ReverseMap(PrimaryKeyColumns);
+                if (isGeneric)
                 {
-                    PrimaryKeyMemberInfo = ColumnsContract.GetMember(PrimaryKeyColumns, "primary key");
+                    PrimaryKeyMemberInfo = dataContract.GetMember(PrimaryKeyMemberName, "primary key");
                 }
-                PrimaryKeyMemberName = ColumnsContract.ReverseMap(PrimaryKeyColumns);
             }
         }
 
@@ -288,7 +288,7 @@ namespace Mighty.Keys
         internal bool HasPrimaryKey(object item)
         {
             int count = 0;
-            foreach (var info in new NameValueTypeEnumerator(ColumnsContract, item))
+            foreach (var info in new NameValueTypeEnumerator(DataContract, item))
             {
                 if (IsKey(info.Name)) count++;
             }
@@ -299,7 +299,7 @@ namespace Mighty.Keys
         {
             var pks = new ExpandoObject();
             var pkDictionary = pks.ToDictionary();
-            foreach (var info in new NameValueTypeEnumerator(ColumnsContract, item))
+            foreach (var info in new NameValueTypeEnumerator(DataContract, item))
             {
                 string canonicalKeyName;
                 if (IsKey(info.Name, out canonicalKeyName)) pkDictionary.Add(canonicalKeyName, info.Value);

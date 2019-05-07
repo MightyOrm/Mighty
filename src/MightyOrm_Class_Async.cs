@@ -154,7 +154,7 @@ namespace Mighty
             params object[] args)
         {
             var setValues = new StringBuilder();
-            var partialItemParameters = new NameValueTypeEnumerator(ColumnsContract, partialItem);
+            var partialItemParameters = new NameValueTypeEnumerator(DataContract, partialItem);
             // TO DO: Test that this combinedInputParams approach works
             var combinedInputParams = inParams?.ToExpando() ?? new ExpandoObject();
             var toDict = combinedInputParams.ToDictionary();
@@ -472,8 +472,8 @@ namespace Mighty
         {
             int limit = pageSize;
             int offset = (currentPage - 1) * pageSize;
-            columns = ColumnsContract.Map(AutoMap.Columns, columns) ?? DefaultColumns;
-            orderBy = ColumnsContract.Map(AutoMap.OrderBy, orderBy);
+            columns = DataContract.Map(AutoMap.Columns, columns) ?? DefaultColumns;
+            orderBy = DataContract.Map(AutoMap.OrderBy, orderBy);
             var pagingQueryPair = Plugin.BuildPagingQueryPair(columns, tableNameOrJoinSpec, orderBy, where, limit, offset);
             var result = new PagedResults<T>();
             result.TotalRecords = Convert.ToInt32(await ScalarAsync(pagingQueryPair.CountQuery, cancellationToken).ConfigureAwait(false));
@@ -533,8 +533,8 @@ namespace Mighty
             DbConnection connection = null,
             params object[] args)
         {
-            columns = ColumnsContract.Map(AutoMap.Columns, columns) ?? DefaultColumns;
-            orderBy = ColumnsContract.Map(AutoMap.OrderBy, orderBy);
+            columns = DataContract.Map(AutoMap.Columns, columns) ?? DefaultColumns;
+            orderBy = DataContract.Map(AutoMap.OrderBy, orderBy);
             var sql = Plugin.BuildSelect(columns, CheckGetTableName(), where, orderBy, limit);
             return await QueryNWithParamsAsync<T>(sql,
                 inParams, outParams, ioParams, returnParams,
@@ -612,10 +612,10 @@ namespace Mighty
                                         // this is for dynamic support
                                         string[] columnNames = null;
                                         // this is for generic<T> support
-                                        ColumnsContractMemberInfo[] memberInfo = null;
+                                        DataContractMemberInfo[] memberInfo = null;
 
                                         if (!IsGeneric) columnNames = new string[fieldCount];
-                                        else memberInfo = new ColumnsContractMemberInfo[fieldCount];
+                                        else memberInfo = new DataContractMemberInfo[fieldCount];
 
                                         // for generic, we need array of properties to set; we find this
                                         // from fieldNames array, using a look up from lowered name -> property
@@ -631,12 +631,12 @@ namespace Mighty
                                                 // For dynamics, create fields using the case that comes back from the database
                                                 // TO DO: Test how this is working now in Oracle
                                                 // leaves as null if no match
-                                                ColumnsContract.TryGetDataMemberName(columnName, out columnNames[i], DataDirection.Read);
+                                                DataContract.TryGetDataMemberName(columnName, out columnNames[i], DataDirection.Read);
                                             }
                                             else
                                             {
                                                 // leaves as null if no match
-                                                ColumnsContract.TryGetDataMemberInfo(columnName, out memberInfo[i], DataDirection.Read);
+                                                DataContract.TryGetDataMemberInfo(columnName, out memberInfo[i], DataDirection.Read);
                                             }
                                         }
                                         while (await useReader.ReadAsync(cancellationToken).ConfigureAwait(false))

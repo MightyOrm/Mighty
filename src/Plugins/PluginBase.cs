@@ -179,10 +179,10 @@ namespace Mighty.Plugins
             return new PagingQueryPair()
             {
                 CountQuery = BuildSelect("COUNT(*) AS TotalCount", tableNameOrJoinSpec, where),
-                PagingQuery = string.Format("SELECT {0} FROM {1}{2} {3} LIMIT {4}{5}",
+                PagingQuery = string.Format("SELECT {0} FROM {1}{2}{3} LIMIT {4}{5}",
                                     columns.Unthingify("SELECT"),
                                     tableNameOrJoinSpec,
-                                    where == null ? "" : string.Format(" {0}", where.Thingify("WHERE")),
+                                    where == null ? "" : where.Thingify("WHERE"),
                                     orderBy.Compulsify("ORDER BY", "paged select"),
                                     limit,
                                     offset > 0 ? string.Format(" OFFSET {0}", offset) : "")
@@ -219,8 +219,8 @@ namespace Mighty.Plugins
                                      "ORDER BY RowNumber",
                     FixStarColumns(tableNameOrJoinSpec, columns),
                     tableNameOrJoinSpec,
-                    where == null ? "" : string.Format("    {0}" + CRLF, where.Thingify("WHERE")),
-                    orderBy.Compulsify("ORDER BY", "paged select"),
+                    where == null ? "" : string.Format("    {0}" + CRLF, where.Thingify("WHERE", addSpace: false)),
+                    orderBy.Compulsify("ORDER BY", "paged select", addSpace: false),
                     offset + limit + 1,
                     offset > 0 ? string.Format("RowNumber > {0} AND ", offset) : ""
                 )

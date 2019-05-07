@@ -114,7 +114,7 @@ namespace Mighty
         /// <summary>
         /// A data contract for the current item type, specified columns and case-sensitivity
         /// </summary>
-        override public ColumnsContract ColumnsContract { get; protected set; }
+        override public DataContract DataContract { get; protected set; }
 
         /// <summary>
         /// The default set of columns to use for queries

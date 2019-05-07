@@ -72,9 +72,9 @@ namespace Mighty
             return Thingify(sql, thing, false);
         }
 
-        static internal string Compulsify(this string sql, string thing, string op)
+        static internal string Compulsify(this string sql, string thing, string op, bool addSpace = true)
         {
-            return Thingify(sql, thing, compulsory: true, op: op);
+            return Thingify(sql, thing, compulsory: true, op: op, addSpace: addSpace);
         }
 
         static internal string IndefiniteArticle(this string word)
@@ -87,7 +87,17 @@ namespace Mighty
             return "a";
         }
 
-        static internal string Thingify(this string sql, string thing, bool yes = true, bool compulsory = false, string op = null)
+        /// <summary>
+        /// Enforce existence of non-existence of string (e.g. "WHERE", "ORDER BY") at start of SQL fragment
+        /// </summary>
+        /// <param name="sql">The original fragment</param>
+        /// <param name="thing">The string to enforce</param>
+        /// <param name="yes">If true the string is added if not there ('thingify'); if false it is removed if there ('unthingify')</param>
+        /// <param name="compulsory">The user must have provided *some* fragment at this point</param>
+        /// <param name="op">The name of what is happening, for expceptions if the user has provided no fragment</param>
+        /// <param name="addSpace">insert initial space?</param>
+        /// <returns></returns>
+        static internal string Thingify(this string sql, string thing, bool yes = true, bool compulsory = false, string op = null, bool addSpace = true)
         {
             if (sql == null || (sql = sql.Trim()) == string.Empty)
             {
@@ -101,11 +111,11 @@ namespace Mighty
                 sql.StartsWith(thing, StringComparison.OrdinalIgnoreCase) &&
                 string.IsNullOrWhiteSpace(sql.Substring(thing.Length, 1)))
             {
-                return yes ? string.Format(" {0}", sql) : sql.Substring(thing.Length + 1).Trim();
+                return yes ? string.Format("{0}{1}", addSpace ? " " : "", sql) : sql.Substring(thing.Length + 1).Trim();
             }
             else
             {
-                return yes ? string.Format(" {0} {1}", thing, sql) : sql;
+                return yes ? string.Format("{0}{1} {2}", addSpace ? " " : "", thing, sql) : sql;
             }
         }
 

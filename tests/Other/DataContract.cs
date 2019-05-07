@@ -11,12 +11,21 @@ using Mighty.Mapping;
 
 namespace Mighty.Dynamic.Tests.X
 {
+    /// <remarks>
+    /// While it's arguably boring to update the cache hits and misses in here as the tests change, it's:
+    /// a) Important the understand why the numbers change when they do, and to check that (and understand
+    ///    why) each change actually makes sense, and it's
+    /// b) Essential to be able to spot if the caching gets crashed completely by any code change.
+    /// 
+    /// Also, yes these cache hit/miss tests rely on NUnit running the tests one at a time in name
+    /// order, which doesn't apply in XUnit, but they do what is needed (as above)!
+    /// </remarks>
     public class DataContract
     {
         [Test]
         public void CacheHits()
         {
-            Assert.AreEqual(520, ColumnsContractStore.Instance.CacheHits);
+            Assert.AreEqual(520, DataContractStore.Instance.CacheHits);
         }
 
         [Test]
@@ -24,7 +33,7 @@ namespace Mighty.Dynamic.Tests.X
         {
             // all the dynamic tests should only ever need one contract now,
             // even though some of the dynamic tests specify columns
-            Assert.AreEqual(3, ColumnsContractStore.Instance.CacheMisses);
+            Assert.AreEqual(3, DataContractStore.Instance.CacheMisses);
         }
 
         [Test]
@@ -75,13 +84,13 @@ namespace Mighty.Generic.Tests.X
         [Test]
         public void CacheHits()
         {
-            Assert.AreEqual(861, ColumnsContractStore.Instance.CacheHits);
+            Assert.AreEqual(861, DataContractStore.Instance.CacheHits);
         }
 
         [Test]
         public void CacheMisses()
         {
-            Assert.AreEqual(19, ColumnsContractStore.Instance.CacheMisses);
+            Assert.AreEqual(19, DataContractStore.Instance.CacheMisses);
         }
     }
 

@@ -40,11 +40,11 @@ namespace Mighty.Mapping
         #region Table-only features (not needed in column mapping conract)
         /// <summary>
         /// Function to get database table name from the data item type.
-        /// Default is to return <see cref="Type"/>.Name unmodified.
+        /// Default is to return <c>null</c> in order to not override the table name.
         /// The type passed in is the class or subclass type for dynamic instances of <see cref="MightyOrm"/>
         /// and is the generic type T for generic instances of <see cref="MightyOrm{T}"/>.
         /// </summary>
-        override public Func<Type, string> TableNameMapping { get; protected set; } = (t) => t.Name;
+        override public Func<Type, string> TableNameMapping { get; protected set; } = (t) => null;
 
         /// <summary>
         /// Function to get primary key field name(s) from the data item type and field or property name.
@@ -223,10 +223,10 @@ namespace Mighty.Mapping
 #endif
                               .IsSubclassOf(typeof(MightyOrm)));
 
-            ColumnsContract columnsContract = ColumnsContractStore.Instance.Get(IsGeneric, classType, columns, this);
+            DataContract dataContract = DataContractStore.Instance.Get(IsGeneric, classType, columns, this);
 
             // do the mapping
-            return columnsContract.Map(AutoMap.On, fieldNames);
+            return dataContract.Map(AutoMap.On, fieldNames);
         }
         #endregion
 

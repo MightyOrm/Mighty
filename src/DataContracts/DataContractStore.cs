@@ -9,32 +9,32 @@ using Mighty.Plugins;
 namespace Mighty.DataContracts
 {
     /// <summary>
-    /// <see cref="ColumnsContract"/> store.
+    /// <see cref="DataContract"/> store.
     /// Designed to be used as a singleton instance.
     /// </summary>
-    public sealed class ColumnsContractStore
+    public sealed class DataContractStore
     {
         // Singleton pattern: https://csharpindepth.com/Articles/Singleton#lazy
 
         /// <summary>
         /// Lazy initialiser
         /// </summary>
-        private static readonly Lazy<ColumnsContractStore> lazy = new Lazy<ColumnsContractStore>(() => new ColumnsContractStore());
+        private static readonly Lazy<DataContractStore> lazy = new Lazy<DataContractStore>(() => new DataContractStore());
 
         /// <summary>
         /// Singleton instance
         /// </summary>
-        public static ColumnsContractStore Instance { get { return lazy.Value; } }
+        public static DataContractStore Instance { get { return lazy.Value; } }
 
         /// <summary>
         /// Private constructor
         /// </summary>
-        private ColumnsContractStore() { }
+        private DataContractStore() { }
 
         /// <summary>
         /// The store
         /// </summary>
-        private readonly Dictionary<ColumnsContractKey, ColumnsContract> store = new Dictionary<ColumnsContractKey, ColumnsContract>();
+        private readonly Dictionary<DataContractKey, DataContract> store = new Dictionary<DataContractKey, DataContract>();
 
         /// <summary>
         /// Cache hits
@@ -61,10 +61,10 @@ namespace Mighty.DataContracts
         /// I think it does seem (more or less?) reasonable to suppose that any one class will only be written to one database at a time?
         /// So, TO DO:, at least we can *document* that caching works like this.
         /// </remarks>
-        internal ColumnsContract Get(bool IsGeneric, Type type, string columns, SqlNamingMapper mapper)
+        internal DataContract Get(bool IsGeneric, Type type, string columns, SqlNamingMapper mapper)
         {
-            ColumnsContractKey key = new ColumnsContractKey(IsGeneric, type, columns, mapper);
-            ColumnsContract value;
+            DataContractKey key = new DataContractKey(IsGeneric, type, columns, mapper);
+            DataContract value;
             if (store.TryGetValue(key, out value))
             {
                 CacheHits++;
@@ -72,7 +72,7 @@ namespace Mighty.DataContracts
             else
             {
                 CacheMisses++;
-                value = new ColumnsContract(key);
+                value = new DataContract(key);
                 store.Add(key, value);
             }
             return value;

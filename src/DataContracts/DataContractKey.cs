@@ -12,9 +12,9 @@ namespace Mighty.DataContracts
 {
     /// <summary>
     /// A data contract key (unique identifier);
-    /// all of the values on which a <see cref="ColumnsContract"/> depends.
+    /// all of the values on which a <see cref="DataContract"/> depends.
     /// </summary>
-    public class ColumnsContractKey
+    public class DataContractKey
     {
         /// <summary>
         /// Is this a dynamic instance?
@@ -40,17 +40,11 @@ namespace Mighty.DataContracts
         public readonly bool HasColumnMapping;
 
         /// <summary>
-        /// The auto-map settings for the type
+        /// The user-supplied <see cref="DatabaseTableAttribute"/> settings for the data item type;
+        /// or the same settings but derived by calling the user-supplied mapper if no such user-supplied attribute;
+        /// or the same settings but from the default mapper if no such user-supplied mapper!
         /// </summary>
-        /// <remarks>
-        /// Not needed as part of this key's hashcode, since it is derived
-        /// </remarks>
-        public readonly AutoMap AutoMapAfterColumnRename;
-
-        /// <summary>
-        /// The case sensitivity
-        /// </summary>
-        public readonly bool CaseSensitiveColumnMapping;
+        public readonly DatabaseTableAttribute DatabaseTableSettings;
 
         /// <summary>
         /// The column name mapping
@@ -79,12 +73,10 @@ namespace Mighty.DataContracts
         /// <param name="type"></param>
         /// <param name="columns"></param>
         /// <param name="mapper"></param>
-        internal ColumnsContractKey(bool isGeneric, Type type, string columns, SqlNamingMapper mapper)
+        internal DataContractKey(bool isGeneric, Type type, string columns, SqlNamingMapper mapper)
         {
             IsGeneric = isGeneric;
 
-            AutoMapAfterColumnRename = mapper.AutoMapAfterColumnRename(type);
-            CaseSensitiveColumnMapping = mapper.CaseSensitiveColumns(type);
             foreach (var attr in type
 #if !NETFRAMEWORK
                 .GetTypeInfo()
@@ -93,9 +85,18 @@ namespace Mighty.DataContracts
             {
                 if (attr is DatabaseTableAttribute)
                 {
-                    AutoMapAfterColumnRename |= ((DatabaseTableAttribute)attr).AutoMapAfterColumnRename;
-                    CaseSensitiveColumnMapping |= ((DatabaseTableAttribute)attr).CaseSensitiveColumnMapping;
+                    DatabaseTableSettings = (DatabaseTableAttribute)attr;
                 }
+            }
+
+            if (DatabaseTableSettings == null)
+            {
+                // we don't ever need to look up the mapper values if they have been overridden by the user-attribute;
+                // these will be from the user-mapper if defined, or the default mapper if not
+                DatabaseTableSettings = new DatabaseTableAttribute(
+                    mapper.TableNameMapping(type),
+                    mapper.CaseSensitiveColumns(type),
+                    mapper.AutoMapAfterColumnRename(type));
             }
 
             HasColumnMapping =
@@ -110,9 +111,9 @@ namespace Mighty.DataContracts
                 {
                     throw new InvalidOperationException($"You must provide an explicit `columns` specification to any dynamic instance of {nameof(MightyOrm)} with column name mapping");
                 }
-                if ((AutoMapAfterColumnRename & AutoMap.Columns) == 0)
+                if ((DatabaseTableSettings.AutoMapAfterColumnRename & AutoMap.Columns) == 0)
                 {
-                    throw new InvalidOperationException($"You must enable {nameof(AutoMap)}.{nameof(AutoMap.Columns)} in your {nameof(DatabaseTableAttribute.AutoMapAfterColumnRename)} settings for any dynamic instance of {nameof(MightyOrm)} with column name mapping");
+                    throw new InvalidOperationException($"You must enable {nameof(AutoMap)}.{nameof(AutoMap.Columns)} in your {nameof(DatabaseTableSettings.AutoMapAfterColumnRename)} settings for any dynamic instance of {nameof(MightyOrm)} with column name mapping");
                 }
                 // Columns is not needed in the data contract except if we're here;
                 // where needed, normalise it to improve caching
@@ -133,6 +134,8 @@ namespace Mighty.DataContracts
         /// <returns></returns>
         private string NormaliseColumns(string columns)
         {
+            // do not include space after comma here, since we assume it's not present in order to run slightly faster
+            // (with no .Trim()) when reading these back, and since this column list is never included directly in SQL output
             return string.Join(",", columns.Split(',').Select(c => c.Trim()).OrderBy(c => c));
         }
 
@@ -146,11 +149,11 @@ namespace Mighty.DataContracts
 
             if (!IsGeneric)
             {
-                // We can share the cache between dynamic instances with no column mapping
+                // For dynamic types the only things that can affect the mapping are the column mapping, if any,
+                // and the final DatabaseTableSettings, but not the item type per se.
                 if (HasColumnMapping)
                 {
-                    h = (DataItemType?.GetHashCode() ?? 0) ^
-                        (DynamicColumnSpec?.GetHashCode() ?? 0);
+                    h = DynamicColumnSpec?.GetHashCode() ?? 0;
                 }
             }
             else
@@ -159,8 +162,7 @@ namespace Mighty.DataContracts
                 h = DataItemType?.GetHashCode() ?? 0;
             }
 
-            h ^= (CaseSensitiveColumnMapping ? 1 : 0) ^
-                 ((int)AutoMapAfterColumnRename);
+            h ^= DatabaseTableSettings.GetHashCode();
 
             if (HasColumnMapping)
             {
@@ -179,18 +181,18 @@ namespace Mighty.DataContracts
         /// <returns></returns>
         public override bool Equals(object obj)
         {
-            if (!(obj is ColumnsContractKey)) return false;
-            var other = (ColumnsContractKey)obj;
+            if (!(obj is DataContractKey)) return false;
+            var other = (DataContractKey)obj;
 
             bool y = true;
 
             if (!IsGeneric)
             {
-                // We can share the cache between dynamic instances with no column mapping
+                // For dynamic types the only things that can affect the mapping are the column mapping, if any,
+                // and the final DatabaseTableSettings, but not the item type per se.
                 if (HasColumnMapping)
                 {
-                    y = DataItemType == other.DataItemType &&
-                        DynamicColumnSpec == other.DynamicColumnSpec;
+                    y = DynamicColumnSpec == other.DynamicColumnSpec;
                 }
             }
             else
@@ -200,8 +202,7 @@ namespace Mighty.DataContracts
             }
 
             y = y &&
-                CaseSensitiveColumnMapping == other.CaseSensitiveColumnMapping &&
-                AutoMapAfterColumnRename == other.AutoMapAfterColumnRename;
+                DatabaseTableSettings.Equals(other.DatabaseTableSettings);
 
             if (HasColumnMapping)
             {

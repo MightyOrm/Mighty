@@ -58,14 +58,14 @@ namespace Mighty.DataContracts
 
         internal IEnumerable<dynamic> Get(
             bool IsGeneric, PluginBase Plugin, DbProviderFactory Factory, string ConnectionString,
-            string BareTableName, string TableOwner, ColumnsContract ColumnsContract, object Mighty
+            string BareTableName, string TableOwner, DataContract DataContract, object Mighty
             )
         {
             // !IsGeneric does not need to be in the key, because it determines how the data is
             // fetched (do we need to create a new, dynamic instance?), but not what is fetched.
             TableMetaDataKey key = new TableMetaDataKey(
                 Plugin, Factory, ConnectionString,
-                BareTableName, TableOwner, ColumnsContract
+                BareTableName, TableOwner, DataContract
             );
             IEnumerable<dynamic> value;
             if (store.TryGetValue(key, out value))
@@ -107,7 +107,7 @@ namespace Mighty.DataContracts
         {
             foreach (var columnInfo in tableMetaData)
             {
-                columnInfo.IS_MIGHTY_COLUMN = key.ColumnsContract.IsMightyColumn(columnInfo.COLUMN_NAME);
+                columnInfo.IS_MIGHTY_COLUMN = key.DataContract.IsMightyColumn(columnInfo.COLUMN_NAME);
             }
             return tableMetaData;
         }

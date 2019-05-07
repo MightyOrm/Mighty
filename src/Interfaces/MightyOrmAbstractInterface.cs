@@ -125,7 +125,7 @@ namespace Mighty.Interfaces
         /// <summary>
         /// A data contract for the current item type, specified columns and case-sensitivity
         /// </summary>
-        abstract public ColumnsContract ColumnsContract { get; protected set; }
+        abstract public DataContract DataContract { get; protected set; }
 
         /// <summary>
         /// The default set of columns to use for queries

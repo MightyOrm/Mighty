@@ -278,15 +278,15 @@ namespace Mighty
 
             // Get reflected column mapping info for this type + everything else which matters (from cache if possible)
             // (columns passed in here are only ever used if the auto-mapping settings imply that they are field/prop names)
-            ColumnsContract = ColumnsContractStore.Instance.Get(IsGeneric, mappingClass, columns, SqlNamingMapper);
+            DataContract = DataContractStore.Instance.Get(IsGeneric, mappingClass, columns, SqlNamingMapper);
 
-            DefaultColumns = ColumnsContract.Map(AutoMap.Columns, columns) ?? ColumnsContract.ReadColumns ?? "*";
+            DefaultColumns = DataContract.Map(AutoMap.Columns, columns) ?? DataContract.ReadColumns ?? "*";
 
             // This stuff is just recalculated, not cached
-            SetTableNameAndOwner(tableName, mappingClass);
-            PrimaryKeyInfo = new Keys.PrimaryKeyInfo(IsGeneric, ColumnsContract, Plugin, mappingClass, SqlNamingMapper, keyNames, sequence);
+            SetTableNameAndOwner(DataContract, tableName);
+            PrimaryKeyInfo = new Keys.PrimaryKeyInfo(IsGeneric, DataContract, Plugin, mappingClass, SqlNamingMapper, keyNames, sequence);
 #if KEY_VALUES
-            ValueColumn = ColumnsContract.Map(AutoMap.Value, valueName);
+            ValueColumn = DataContract.Map(AutoMap.Value, valueName);
 #endif
 
             // Init for lazy load of table meta-data (from cache if possible; only if needed)
@@ -299,27 +299,36 @@ namespace Mighty
 #endif
         }
 
-        private void SetTableNameAndOwner(string tableName, Type dataMappingType)
+        /// <summary>
+        /// Set table name, and from that bare table name and table owner.
+        /// </summary>
+        /// <param name="dataContract">The class data contract (may include a table name override from attributes or mapper)</param>
+        /// <param name="tableName">The table name from the constructor</param>
+        private void SetTableNameAndOwner(DataContract dataContract, string tableName)
         {
             if (tableName != null)
             {
-                // an empty string can be used to force not using the sub-class name
-                TableName = tableName == "" ? null : tableName;
+                // this line allows an empty string table name in the constructor to be used to force not using any table name
+                // TO DO: Test? (Also why, exactly, did I think this was worth doing at the time...?)
+                tableName = tableName == "" ? null : tableName;
             }
-            else if (dataMappingType != null)
+            else
             {
-                TableName = SqlNamingMapper.TableNameMapping(dataMappingType);
+                // this will still be null if neither attributes nor mapper have overridden their default behaviour
+                tableName = dataContract.Key.DatabaseTableSettings.TableName;
             }
 
-            if (TableName != null)
+            if (tableName != null)
             {
-                int i = TableName.LastIndexOf('.');
+                TableName = tableName;
+                int i = tableName.LastIndexOf('.');
                 if (i >= 0)
                 {
-                    // stays at null otherwise
-                    TableOwner = TableName.Substring(0, i);
+                    // leave this at null if there is no table owner part of TableName
+                    TableOwner = tableName.Substring(0, i);
                 }
-                BareTableName = TableName.Substring(i + 1);
+                // this will always be non-null if TableName is
+                BareTableName = tableName.Substring(i + 1);
             }
         }
 
@@ -370,7 +379,7 @@ namespace Mighty
         {
             _TableMetaDataLazy = new Lazy<IEnumerable<dynamic>>(() => TableMetaDataStore.Instance.Get(
                          IsGeneric, Plugin, Factory, ConnectionString,
-                         BareTableName, TableOwner, ColumnsContract,
+                         BareTableName, TableOwner, DataContract,
                          this));
         }
         #endregion
@@ -389,13 +398,13 @@ namespace Mighty
         /// <returns></returns>
         override public T New(object nameValues = null, bool addNonPresentAsDefaults = true)
         {
-            var nvtEnumerator = new NameValueTypeEnumerator(ColumnsContract, nameValues);
+            var nvtEnumerator = new NameValueTypeEnumerator(DataContract, nameValues);
             Dictionary<string, object> columnNameToValue = new Dictionary<string, object>();
             foreach (var nvtInfo in nvtEnumerator)
             {
                 string columnName = SqlNamingMapper.ColumnNameMapping(typeof(T), nvtInfo.Name);
-                ColumnsContractMemberInfo columnInfo;
-                if (!ColumnsContract.TryGetDataMemberInfo(columnName, out columnInfo)) continue;
+                DataContractMemberInfo columnInfo;
+                if (!DataContract.TryGetDataMemberInfo(columnName, out columnInfo)) continue;
                 columnNameToValue.Add(columnName, nvtInfo.Value);
             }
             object item;
@@ -422,7 +431,7 @@ namespace Mighty
                 }
                 if (value != null)
                 {
-                    if (IsGeneric) ColumnsContract.GetDataMemberInfo(columnName).SetValue(item, value);
+                    if (IsGeneric) DataContract.GetDataMemberInfo(columnName).SetValue(item, value);
                     else newItemDictionary.Add(columnName, value);
                 }
             }
@@ -657,7 +666,7 @@ namespace Mighty
         protected void AppendRowCountResults(int rowCount, object outParams, dynamic results)
         {
             var dictionary = ((ExpandoObject)results).ToDictionary();
-            foreach (var paramInfo in new NameValueTypeEnumerator(ColumnsContract, outParams, ParameterDirection.Input))
+            foreach (var paramInfo in new NameValueTypeEnumerator(DataContract, outParams, ParameterDirection.Input))
             {
                 if (paramInfo.Value is RowCount)
                 {
@@ -758,7 +767,7 @@ namespace Mighty
             var argsItemDict = argsItem.ToDictionary();
             var count = 0;
 
-            foreach (var nvt in new NameValueTypeEnumerator(ColumnsContract, item, action: originalAction))
+            foreach (var nvt in new NameValueTypeEnumerator(DataContract, item, action: originalAction))
             {
                 var name = nvt.Name;
                 if (name == string.Empty)
@@ -767,7 +776,7 @@ namespace Mighty
                 }
                 else
                 {
-                    name = ColumnsContract.Map(name);
+                    name = DataContract.Map(name);
                 }
                 var value = nvt.Value;
                 string paramName;
@@ -913,7 +922,7 @@ namespace Mighty
                 return item;
             }
             // Write PK back to POCO of type T if we can
-            if (ColumnsContract.IsManagedGenericType(item) && PrimaryKeyInfo.PrimaryKeyMemberInfo != null)
+            if (DataContract.IsManagedGenericType(item) && PrimaryKeyInfo.PrimaryKeyMemberInfo != null)
             {
                 if (PrimaryKeyInfo.PrimaryKeyMemberInfo is FieldInfo)
                 {
@@ -1042,7 +1051,7 @@ namespace Mighty
                 return false;
             }
             bool containsRowCount = false;
-            foreach (var paramInfo in new NameValueTypeEnumerator(ColumnsContract, nameValuePairs, direction))
+            foreach (var paramInfo in new NameValueTypeEnumerator(DataContract, nameValuePairs, direction))
             {
                 if (pkFilter == PkFilter.DoNotFilter || (PrimaryKeyInfo.IsKey(paramInfo.Name) == (pkFilter == PkFilter.KeysOnly)))
                 {
@@ -1074,7 +1083,7 @@ namespace Mighty
             var nameValueArgs = new ExpandoObject();
             var nameValueDictionary = nameValueArgs.ToDictionary();
 
-            var enumerator = new NameValueTypeEnumerator(ColumnsContract, whereParams);
+            var enumerator = new NameValueTypeEnumerator(DataContract, whereParams);
 
             // If no value names in the whereParams, map the values to the primary key(s)
             if (!enumerator.HasNames())

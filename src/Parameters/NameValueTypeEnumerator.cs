@@ -26,16 +26,16 @@ namespace Mighty.Parameters
         private readonly object _o;
         private readonly ParameterDirection? _direction;
         private readonly OrmAction? _action;
-        private readonly ColumnsContract _columnsContract;
+        private readonly DataContract _dataContract;
 
         internal ParameterInfo Current { get; set; }
 
-        internal NameValueTypeEnumerator(ColumnsContract columnsContract, object o, ParameterDirection? direction = null, OrmAction? action = null)
+        internal NameValueTypeEnumerator(DataContract dataContract, object o, ParameterDirection? direction = null, OrmAction? action = null)
         {
             _o = o;
             _direction = direction;
             _action = action;
-            _columnsContract = columnsContract;
+            _dataContract = dataContract;
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -191,9 +191,9 @@ namespace Mighty.Parameters
             // Detect if the object type is T and only if it is do a loop over T's stored set of members instead, which
             // reflects columns and bindingFlags. So values obtained from any POCO type except T will always use public
             // members only, but values obtained from T will use whatever members are managed by Mighty - perfect!
-            if (_columnsContract != null && _columnsContract.IsManagedGenericType(_o))
+            if (_dataContract != null && _dataContract.IsManagedGenericType(_o))
             {
-                foreach (ColumnsContractMemberInfo member in _columnsContract.ColumnNameToMemberInfo.Values)
+                foreach (DataContractMemberInfo member in _dataContract.ColumnNameToMemberInfo.Values)
                 {
                     yield return new LazyNameValueTypeInfo(member.Name, () => member.GetValue(_o), member.MemberType);
                 }
