@@ -261,7 +261,7 @@ namespace Mighty.Keys
         /// Return comma-separated list of primary key fields, raising an exception if there are none.
         /// </summary>
         /// <returns></returns>
-        internal string CheckGetPrimaryKeyFields()
+        internal string CheckGetPrimaryKeyColumns()
         {
             if (string.IsNullOrEmpty(PrimaryKeyColumn))
             {

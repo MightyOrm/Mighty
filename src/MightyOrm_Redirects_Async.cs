@@ -1656,7 +1656,7 @@ namespace Mighty
         {
             return await PagedFromSelectAsync(
                 CheckGetTableName(),
-                orderBy ?? PrimaryKeyInfo.CheckGetPrimaryKeyFields(),
+                orderBy ?? PrimaryKeyInfo.CheckGetPrimaryKeyColumns(),
                 columns,
                 where,
                 pageSize, currentPage,
@@ -1691,7 +1691,7 @@ namespace Mighty
         {
             return await PagedFromSelectAsync(
                 CheckGetTableName(),
-                orderBy ?? PrimaryKeyInfo.CheckGetPrimaryKeyFields(),
+                orderBy ?? PrimaryKeyInfo.CheckGetPrimaryKeyColumns(),
                 cancellationToken,
                 columns,
                 where,
