@@ -476,9 +476,9 @@ namespace Mighty
             orderBy = DataContract.Map(AutoMap.OrderBy, orderBy);
             var pagingQueryPair = Plugin.BuildPagingQueryPair(columns, tableNameOrJoinSpec, orderBy, where, limit, offset);
             var result = new PagedResults<T>();
-            result.TotalRecords = Convert.ToInt32(await ScalarAsync(pagingQueryPair.CountQuery, cancellationToken).ConfigureAwait(false));
+            result.TotalRecords = Convert.ToInt32(await ScalarAsync(pagingQueryPair.CountQuery, cancellationToken, args: args).ConfigureAwait(false));
             result.TotalPages = (result.TotalRecords + pageSize - 1) / pageSize;
-            var items = await QueryAsync(pagingQueryPair.PagingQuery, cancellationToken).ConfigureAwait(false);
+            var items = await QueryAsync(pagingQueryPair.PagingQuery, cancellationToken, args: args).ConfigureAwait(false);
             result.Items = await items.ToListAsync(cancellationToken).ConfigureAwait(false);
             return result;
         }

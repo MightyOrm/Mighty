@@ -290,9 +290,9 @@ namespace Mighty
             orderBy = DataContract.Map(AutoMap.OrderBy, orderBy);
             var pagingQueryPair = Plugin.BuildPagingQueryPair(columns, tableNameOrJoinSpec, orderBy, where, limit, offset);
             var result = new PagedResults<T>();
-            result.TotalRecords = Convert.ToInt32(Scalar(pagingQueryPair.CountQuery));
+            result.TotalRecords = Convert.ToInt32(Scalar(pagingQueryPair.CountQuery, args: args));
             result.TotalPages = (result.TotalRecords + pageSize - 1) / pageSize;
-            result.Items = Query(pagingQueryPair.PagingQuery);
+            result.Items = Query(pagingQueryPair.PagingQuery, args: args);
             return result;
         }
 
