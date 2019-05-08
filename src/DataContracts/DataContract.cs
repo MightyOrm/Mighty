@@ -390,7 +390,7 @@ namespace Mighty.DataContracts
             string mapped;
             if (!MemberNameToColumnName.TryGetValue(fieldName, out mapped))
             {
-                throw new InvalidOperationException($"Field or property name {fieldName} does not exist in {Key.DataItemType.FullName}, or exists but has been excluded from database column mapping");
+                throw new InvalidOperationException($"Trying to remap field or property name {fieldName} to column name in {Key.DataItemType.FullName} but it does not exist, or exists but has been excluded from database column mapping (NB exact match including case is required)");
             }
             return mapped + ascDesc;
         }
