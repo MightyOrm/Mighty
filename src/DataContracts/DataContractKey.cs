@@ -152,20 +152,21 @@ namespace Mighty.DataContracts
         {
             int h = 0;
 
-            if (!IsGeneric)
+            if (IsGeneric)
+            {
+                // And the contract for generic instances does not depend on the column spec
+                h = DataItemType?.GetHashCode() ?? 0;
+            }
+            else
             {
                 // For dynamic types the only things that can affect the mapping are the column mapping, if any,
                 // and the final DatabaseTableSettings (which is included below anyway), but not the item type per se.
                 h = DynamicColumnSpec?.GetHashCode() ?? 0;
             }
-            else
-            {
-                // And the contract for generic instances does not depend on the column spec
-                h = DataItemType?.GetHashCode() ?? 0;
-            }
 
             h ^= DatabaseTableSettings.GetHashCode();
 
+            // Save the time of hashing these if we know they're at their default values (0 for hash of all default is fine)
             if (HasMapperColumnsMapping)
             {
                 h ^= (ColumnName?.GetHashCode() ?? 0) ^
@@ -188,28 +189,27 @@ namespace Mighty.DataContracts
 
             bool y = true;
 
-            if (!IsGeneric)
+            if (IsGeneric)
+            {
+                // And the contract for generic instances does not depend on the column spec
+                y = DataItemType == other.DataItemType;
+            }
+            else
             {
                 // For dynamic types the only things that can affect the mapping are the column mapping, if any,
                 // and the final DatabaseTableSettings (which is included below anyway), but not the item type per se.
                 y = DynamicColumnSpec == other.DynamicColumnSpec;
             }
-            else
-            {
-                // And the contract for generic instances does not depend on the column spec
-                y = DataItemType == other.DataItemType;
-            }
 
             y = y &&
                 DatabaseTableSettings.Equals(other.DatabaseTableSettings);
 
-            if (HasMapperColumnsMapping)
-            {
-                y = y &&
-                    ColumnName == other.ColumnName &&
-                    ColumnDataDirection == other.ColumnDataDirection &&
-                    IgnoreColumn == other.IgnoreColumn;
-            }
+            y = y &&
+                HasMapperColumnsMapping == other.HasMapperColumnsMapping &&
+                (!HasMapperColumnsMapping ||
+                    (ColumnName == other.ColumnName &&
+                     ColumnDataDirection == other.ColumnDataDirection &&
+                     IgnoreColumn == other.IgnoreColumn));
 
             return y;
         }
