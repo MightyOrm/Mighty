@@ -26,3 +26,5 @@ aux_links:
 # Google Analytics Tracking (optional)
 # e.g, UA-1234567-89
 ##ga_tracking: UA-5555555-55
+
+exclude: ['README.md']
