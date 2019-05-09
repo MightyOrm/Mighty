@@ -12,13 +12,20 @@ using Mighty.Mapping;
 namespace Mighty.Dynamic.Tests.X
 {
     /// <remarks>
-    /// While it's arguably boring to update the cache hits and misses in here as the tests change, it's:
-    /// a) Important the understand why the numbers change when they do, and to check that (and understand
-    ///    why) each change actually makes sense, and it's
-    /// b) Essential to be able to spot if the caching gets crashed completely by any code change.
+    /// While it's arguably tedious to update the cache hits and misses here as the tests change, it's:
+    /// a) Important the understand exactly why the numbers change when they do, and to check that each
+    ///    change actually makes sense, and it's also
+    /// b) Essential to be able to spot quickly whenever the caching gets crashed completely by any
+    ///    code change!
     /// 
-    /// Also, yes these cache hit/miss tests rely on NUnit running the tests one at a time in name
-    /// order, which doesn't apply in XUnit, but they do what is needed (as above)!
+    /// These cache hits/misses tests rely on NUnit running all the tests in the project one at a time,
+    /// in name order (which doesn't apply in XUnit, for instance), but they do what is needed and it's
+    /// certainly useful to be able to leverage the whole test suite as a caching test.
+    /// 
+    /// There doesn't seem any way to indicate to NUnit that it should run something before and after all
+    /// tests (https://stackoverflow.com/q/18485622) - and even if there was, I suppose that something
+    /// wouldn't be a test itself, anyway (as existing [<see cref="OneTimeTearDownAttribute"/>] code isn't,
+    /// for example).
     /// </remarks>
     public class DataContract
     {
