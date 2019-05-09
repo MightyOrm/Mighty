@@ -85,7 +85,8 @@ public class MyFilmClass
     [DatabaseColumn("film_id")]
     public int FilmID;
 
-    // note that class-column mapping in Mighty is not case sensitive by default (i.e. you probably don't need this one)
+    // class-column mapping in Mighty is not case sensitive by default
+    // (unless you set it to case-sensitive, you don't actually need this mappping)
     [DatabaseColumn("description")]
     public string Description;
 }
