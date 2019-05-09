@@ -37,14 +37,14 @@ namespace Mighty.Dynamic.Tests.X
         }
 
         [Test]
-        public void WithDefautMapper_CreatesOk()
+        public void WithDefaultMapper_CreatesOk()
         {
             new MightyOrm(
                 mapper: new SqlNamingMapper(columnNameMapping: SqlNamingMapper.IdentityColumnMapping));
         }
 
         [Test]
-        public void WithNonDefautMapperAndColumns_CreatesOk()
+        public void WithNonDefaultMapperAndColumns_CreatesOk()
         {
             new MightyOrm(
                 columns: "col1, col_33",
@@ -52,7 +52,7 @@ namespace Mighty.Dynamic.Tests.X
         }
 
         [Test]
-        public void WithNonDefautMapperNoColumns_ThrowsException()
+        public void WithNonDefaultMapperNoColumns_ThrowsException()
         {
             Assert.Throws<InvalidOperationException>(() =>
             {
