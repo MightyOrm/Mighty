@@ -74,7 +74,7 @@ namespace Mighty.Mapping
         /// <remarks>
         /// We may need to be able to identify this one and see if it has changed?
         /// </remarks>
-        public static readonly Func<Type, AutoMap> AlwaysAutoMap = (t) => AutoMap.On;
+        public static readonly Func<Type, AutoMap> AlwaysAutoMap = (t) => Mighty.AutoMap.On;
 
         /// <summary>
         /// Specify whether Mighty should automatically remap any `keys`, `columns` and `orderBy` inputs it receives if one or more column names have been remapped.
@@ -82,7 +82,7 @@ namespace Mighty.Mapping
         /// The type passed in is the class or subclass type for dynamic instances of <see cref="MightyOrm"/>
         /// and is the generic type T for generic instances of <see cref="MightyOrm{T}"/>.
         /// </summary>
-        override public Func<Type, AutoMap> AutoMapAfterColumnRename { get; protected set; } = AlwaysAutoMap;
+        override public Func<Type, AutoMap> AutoMap { get; protected set; } = AlwaysAutoMap;
 
         /// <summary>
         /// Return <c>false</c> whatever type is sent in.
@@ -170,65 +170,7 @@ namespace Mighty.Mapping
         /// <remarks>
         /// TO DO: Might be useful to provide additional method which splits the name at the dots then rejoins it, with single overrideable method to quote the individual parts
         /// </remarks>
-        override public Func<string, string> GetQuotedDatabaseIdentifier { get; protected set; } = (id) => id;
-        #endregion
-
-        #region Mapping utility method
-        /// <summary>
-        /// Useful alias which maps one or more comma-separated field names to comma-separated column names.
-        /// Use this on mapped but not auto-mapped instances of <see cref="MightyOrm"/> and <see cref="MightyOrm{T}"/> to
-        /// create the correct values to pass in for the `keys` parameter (applies to the constructor only), and for SQL
-        /// fragments including the `columns` (constructor and methods) and `orderBy` (methods only) parameters.
-        /// (Note: Use `new <see cref="SqlNamingMapper"/>()` as the mapper from which to call this method if you
-        /// want to use this to apply attribute-based mapping but are not using any convention-based
-        /// mapping of your own, i.e. are not using your own sub-class <see cref="SqlNamingMapper"/>.)
-        /// </summary>
-        /// <param name="classType">The item class type for the instance of Mighty (pass generic type T for generic instances of <see cref="MightyOrm{T}"/>;
-        /// pass type of class or sub-class of <see cref="MightyOrm"/> itself for dynamic instances)</param>
-        /// <param name="fieldNames">A comma-separated list of field names to be mapped to database column names</param>
-        /// <param name="columns">This parameter is only required for auto-mapped dynamic instances of Mighty; in that case pass in the same `columns` value here which is passed to the constructor of <see cref="MightyOrm"/></param>
-        /// <returns></returns>
-        /// <remarks>
-        /// It would be incorrect to throw an exception here even if the contract says that all auto-mapping is already being applied:
-        ///   - It's true that it would be wrong for the user to apply this method to anything which will also be auto-mapped
-        ///   - But here and there Mighty takes in SQL fragments other than `keys`, `columns` and `orderBy`, and the user
-        ///     may still validly need this method then
-        /// </remarks>
-        override public string Map(Type classType, string fieldNames, string columns = null)
-        {
-            // check that we're legal
-            if (classType == null)
-            {
-                // we cannot do the mapping without this
-                throw new ArgumentNullException(nameof(classType));
-            }
-
-            if (classType == typeof(object) ||
-                classType == typeof(ExpandoObject))
-            {
-                throw new InvalidOperationException(
-                    $"To use {nameof(SqlNamingMapper)}.{nameof(SqlNamingMapper.Map)} with dyanamic instances of {nameof(MightyOrm)} pass the type of the class or user subclass of {nameof(MightyOrm)} that you are using, do not pass typeof(object) or typeof(ExpandoObject)");
-            }
-
-            // return null (and don't waste time looking up the contract) if we're null
-            if (fieldNames == null)
-            {
-                return null;
-            }
-
-            // get the contract
-            bool IsGeneric = (classType == typeof(MightyOrm) ||
-                              classType
-#if !NETFRAMEWORK
-                              .GetTypeInfo()
-#endif
-                              .IsSubclassOf(typeof(MightyOrm)));
-
-            DataContract dataContract = DataContractStore.Instance.Get(IsGeneric, classType, columns, this);
-
-            // do the mapping
-            return dataContract.Map(AutoMap.On, fieldNames);
-        }
+        override public Func<string, string> QuoteDatabaseIdentifier { get; protected set; } = (id) => id;
         #endregion
 
         #region Constructors
@@ -240,20 +182,35 @@ namespace Mighty.Mapping
         /// <summary>
         /// Constructor
         /// </summary>
+        /// <param name="tableNameMapping">Table name mapping</param>
+        /// <param name="columnNameMapping">Column name mapping</param>
+        /// <param name="getPrimaryKeyFieldNames">Specify primary key field names</param>
+        /// <param name="getSequenceName">Specify sequence name</param>
+        /// <param name="ignoreColumn">Specify column ignore</param>
+        /// <param name="columnDataDirection">Experimental: Specify column data direction</param>
+        /// <param name="caseSensitiveColumns">Specify whether Mighty should be case-sensitve when mapping between fields or properties and database columns (default <c>false</c>)</param>
+        /// <param name="autoMap">The auto-map setting to use if any column renaming has been applied</param>
+        /// <param name="quoteDatabaseIdentifier"></param>
         public SqlNamingMapper(
-            Func<Type, bool> caseSensitiveColumns = null,
             Func<Type, string> tableNameMapping = null,
             Func<Type, string, string> columnNameMapping = null,
             Func<Type, string> getPrimaryKeyFieldNames = null,
             Func<Type, string> getSequenceName = null,
-            Func<string, string> getQuotedDatabaseIdentifier = null)
+            Func<Type, string, bool> ignoreColumn = null,
+            Func<Type, string, DataDirection> columnDataDirection = null,
+            Func<Type, bool> caseSensitiveColumns = null,
+            Func<Type, AutoMap> autoMap = null,
+            Func<string, string> quoteDatabaseIdentifier = null)
         {
-            if (caseSensitiveColumns != null) CaseSensitiveColumns = caseSensitiveColumns;
             if (tableNameMapping != null) TableNameMapping = tableNameMapping;
             if (columnNameMapping != null) ColumnNameMapping = columnNameMapping;
             if (getPrimaryKeyFieldNames != null) GetPrimaryKeyFieldNames = getPrimaryKeyFieldNames;
             if (getSequenceName != null) GetSequenceName = getSequenceName;
-            if (getQuotedDatabaseIdentifier != null) GetQuotedDatabaseIdentifier = getQuotedDatabaseIdentifier;
+            if (ignoreColumn != null) IgnoreColumn = ignoreColumn;
+            if (columnDataDirection != null) ColumnDataDirection = columnDataDirection;
+            if (caseSensitiveColumns != null) CaseSensitiveColumns = caseSensitiveColumns;
+            if (autoMap != null) AutoMap = autoMap;
+            if (quoteDatabaseIdentifier != null) QuoteDatabaseIdentifier = quoteDatabaseIdentifier;
         }
         #endregion
     }

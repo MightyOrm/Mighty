@@ -79,8 +79,8 @@ namespace Mighty.DataContracts
             {
                 var ReadColumnList = new List<string>();
                 var KeyColumnsList = new List<string>();
-                bool foundControlledColumn = false;
-                bool foundRenamedColumn = false;
+                bool foundControlledColumn;
+                bool foundRenamedColumn;
 
                 ColumnNameToMemberInfo = new Dictionary<string, DataContractMemberInfo>(Key.DatabaseTableSettings.CaseSensitiveColumnMapping ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
                 MemberNameToColumnName = new Dictionary<string, string>(Key.DatabaseTableSettings.CaseSensitiveColumnMapping ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
@@ -368,12 +368,23 @@ namespace Mighty.DataContracts
         /// Return database column name from field or property name
         /// </summary>
         /// <param name="fieldName">The field or property name</param>
+        /// <returns>The database column name</returns>
+        public string Map(string fieldName)
+        {
+            return Map(fieldName, AutoMap.Off);
+        }
+
+
+        /// <summary>
+        /// Return database column name from field or property name
+        /// </summary>
+        /// <param name="fieldName">The field or property name</param>
         /// <param name="which">
         /// Which type of matching is this?
         /// Only relevant to allow very basic additional handing of orderBy ASC and DESC.
         /// </param>
         /// <returns>The database column name</returns>
-        public string Map(string fieldName, AutoMap which = AutoMap.Off)
+        protected internal string Map(string fieldName, AutoMap which)
         {
             if (Key.DynamicNullContract)
             {
@@ -382,9 +393,9 @@ namespace Mighty.DataContracts
             string ascDesc = "";
             if ((which & AutoMap.OrderBy) != 0)
             {
-                if (!splitOrderBy(out fieldName, out ascDesc, " ASC", fieldName))
+                if (!SplitOrderBy(out fieldName, out ascDesc, " ASC", fieldName))
                 {
-                    splitOrderBy(out fieldName, out ascDesc, " DESC", fieldName);
+                    SplitOrderBy(out fieldName, out ascDesc, " DESC", fieldName);
                 }
             }
             string mapped;
@@ -395,7 +406,7 @@ namespace Mighty.DataContracts
             return mapped + ascDesc;
         }
 
-        private bool splitOrderBy(out string fieldName, out string ascDesc, string suffix, string originalFieldName)
+        private bool SplitOrderBy(out string fieldName, out string ascDesc, string suffix, string originalFieldName)
         {
             if (originalFieldName.EndsWith(suffix, StringComparison.OrdinalIgnoreCase))
             {
@@ -419,7 +430,7 @@ namespace Mighty.DataContracts
         /// to decide whether to actually map. Or send <see cref="AutoMap.On"/> to map unconditionally.</param>
         /// <param name="fieldNames">The incoming field names</param>
         /// <returns></returns>
-        public string Map(AutoMap which, string fieldNames)
+        protected internal string Map(AutoMap which, string fieldNames)
         {
             if (fieldNames == null)
             {

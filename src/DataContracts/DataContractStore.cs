@@ -55,11 +55,12 @@ namespace Mighty.DataContracts
         /// <param name="mapper"></param>
         /// <returns></returns>
         /// <remarks>
-        /// In theory, mapping depends on "PluginBase Plugin, DbProviderFactory Factory, string ConnectionString," as well - 
-        /// in practice, including those would make it much harder (or impossible?) to provide the very useful
-        /// <see cref="SqlNamingMapper.Map(Type, string, string)"/> feature.
-        /// I think it does seem (more or less?) reasonable to suppose that any one class will only be written to one database at a time?
-        /// So, TO DO:, at least we can *document* that caching works like this.
+        /// In theory, mapping depends on Plugin, Factory, and ConnectionString as well;
+        /// in practice, including those would make it much harder to provide the very useful
+        /// <see cref="DataContract.Map(string)"/> feature.
+        /// I think it seems (more or less?) reasonable to suppose that any one class will only
+        /// be read from and written one database with one mapping at a time? In fact, since
+        /// Mighty only supports one mapping per class, maybe this is effectively enforced anyway?
         /// </remarks>
         internal DataContract Get(bool IsGeneric, Type type, string columns, SqlNamingMapper mapper)
         {

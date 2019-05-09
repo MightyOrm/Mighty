@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Text;
 
-using Mighty.Mapping;
+using Mighty.DataContracts;
 
 namespace Mighty
 {
     /// <summary>
     /// Controls whether `keys`, `columns` and `orderBy` inputs are automatically mapped, if any fields or
     /// properties have been renamed by column mapping settings (see Mighty documentation).
-    /// (If you are not using auto-mapping, you can manually use <see cref="SqlNamingMapper.Map"/>
+    /// (If you are not using auto-mapping, you can manually use <see cref="MightyOrm"/>.<see cref="DataContract.Map(string, AutoMap)"/>
     /// to conveniently re-map one or more field or property names to column names for SQL fragments which
     /// you are passing in to Mighty.)
     /// </summary>

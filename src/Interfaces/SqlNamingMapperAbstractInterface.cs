@@ -52,7 +52,7 @@ namespace Mighty.Interfaces
         /// The type passed in is the class or subclass type for dynamic instances of <see cref="MightyOrm"/>
         /// and is the generic type T for generic instances of <see cref="MightyOrm{T}"/>.
         /// </summary>
-        abstract public Func<Type, AutoMap> AutoMapAfterColumnRename { get; protected set; }
+        abstract public Func<Type, AutoMap> AutoMap { get; protected set; }
 
         /// <summary>
         /// Should <see cref="MightyOrm{T}"/> be case sensitive when matching returned data to class properties?
@@ -105,25 +105,7 @@ namespace Mighty.Interfaces
         /// <remarks>
         /// TO DO: Might be useful to provide additional method which splits the name at the dots then rejoins it, with single overrideable method to quote the individual parts
         /// </remarks>
-        abstract public Func<string, string> GetQuotedDatabaseIdentifier { get; protected set; }
-        #endregion
-
-        #region Mapping utility method
-        /// <summary>
-        /// Useful alias which maps one or more comma-separated field names to comma-separated column names.
-        /// Use this on mapped but not auto-mapped instances of <see cref="MightyOrm"/> and <see cref="MightyOrm{T}"/> to
-        /// create the correct values to pass in for the `keys` parameter (applies to the constructor only), and for SQL
-        /// fragments including the `columns` (constructor and methods) and `orderBy` (methods only) parameters.
-        /// (Note: Use `new <see cref="SqlNamingMapper"/>()` as the mapper from which to call this method if you
-        /// want to use this to apply attribute-based mapping but are not using any convention-based
-        /// mapping of your own, i.e. are not using your own sub-class <see cref="SqlNamingMapper"/>.)
-        /// </summary>
-        /// <param name="classType">The item class type for the instance of Mighty (pass generic type T for generic instances of <see cref="MightyOrm{T}"/>;
-        /// pass type of class or sub-class of <see cref="MightyOrm"/> itself for dynamic instances)</param>
-        /// <param name="fieldNames">A comma-separated list of field names to be mapped to database column names</param>
-        /// <param name="columns">This parameter should only be supplied for auto-mapped dynamic instances of Mighty; in that case pass in the same `columns` value here which is passed to the constructor of <see cref="MightyOrm"/></param>
-        /// <returns></returns>
-        abstract public string Map(Type classType, string fieldNames, string columns = null);
+        abstract public Func<string, string> QuoteDatabaseIdentifier { get; protected set; }
         #endregion
     }
 }

@@ -39,8 +39,8 @@ namespace Mighty
         /// setting this turns on auto-mapping of `keys`, `columns` and `orderBy` inputs to Mighty by default;
         /// to disable that apply [<see cref="DatabaseTableAttribute"/>(autoMap: <see cref="AutoMap.Off"/>)] to the class.
         /// </param>
-        /// <param name="direction">The database column name</param>
-        /// <param name="sqlTransform">Experimental: column will selected as "{<paramref name="sqlTransform"/>} AS {<paramref name="name"/>}"</param>
+        /// <param name="direction">Experimental: The database column direction</param>
+        /// <param name="sqlTransform">Experimental: In auto-generated SQL the column will selected as "{<paramref name="sqlTransform"/>} AS {<paramref name="name"/>}"</param>
         public DatabaseColumnAttribute(string name = null, DataDirection direction = default, string sqlTransform = null)
         {
             this.Name = name;

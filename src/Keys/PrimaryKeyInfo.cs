@@ -148,7 +148,7 @@ namespace Mighty.Keys
                     if (plugin.IsSequenceBased)
                     {
                         // sequence-based, non-null, non-empty specifies sequence name
-                        SequenceNameOrIdentityFunction = sequence ?? mapper.GetQuotedDatabaseIdentifier(sequence);
+                        SequenceNameOrIdentityFunction = sequence ?? mapper.QuoteDatabaseIdentifier(sequence);
                     }
                     else
                     {

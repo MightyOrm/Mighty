@@ -99,7 +99,7 @@ namespace Mighty.DataContracts
                 DatabaseTableSettings = new DatabaseTableAttribute(
                     mapper.TableNameMapping(type),
                     mapper.CaseSensitiveColumns(type),
-                    mapper.AutoMapAfterColumnRename(type));
+                    mapper.AutoMap(type));
             }
 
             HasMapperColumnsMapping =
@@ -150,7 +150,7 @@ namespace Mighty.DataContracts
         /// <returns></returns>
         public override int GetHashCode()
         {
-            int h = 0;
+            int h;
 
             if (IsGeneric)
             {
@@ -187,7 +187,7 @@ namespace Mighty.DataContracts
             if (!(obj is DataContractKey)) return false;
             var other = (DataContractKey)obj;
 
-            bool y = true;
+            bool y;
 
             if (IsGeneric)
             {
