@@ -297,11 +297,22 @@ namespace Mighty.Dynamic.Tests.MySql
         public void Paged_NoSpecification()
         {
             var film = new Film(ProviderName);
-            // no order by, so in theory this is useless. It will order on PK though
+            // no order by, and paged queries logically must have an order by; this will order on PK
             var page2 = film.Paged(currentPage: 2, pageSize: 30);
             var pageItems = ((IEnumerable<dynamic>)page2.Items).ToList();
             Assert.AreEqual(30, pageItems.Count);
             Assert.AreEqual(1000, page2.TotalRecords);
+        }
+
+
+        [Test]
+        public void Paged_WhereSpecification()
+        {
+            var film = new Film(ProviderName);
+            var page11 = film.Paged(currentPage: 11, where: "description LIKE @0", args: "%the%");
+            var pageItems = ((IEnumerable<dynamic>)page11.Items).ToList();
+            Assert.AreEqual(1, pageItems.Count); // also testing being on last page
+            Assert.AreEqual(201, page11.TotalRecords);
         }
 
 

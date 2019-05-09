@@ -92,11 +92,22 @@ namespace Mighty.Generic.Tests.Oracle
         public void Paged_NoSpecification()
         {
             var depts = new Departments(ProviderName);
-            // no order by, so in theory this is useless. It will order on PK though
+            // no order by, and paged queries logically must have an order by; this will order on PK
             var page2 = depts.Paged(currentPage: 2, pageSize: 10);
             var pageItems = page2.Items.ToList();
             Assert.AreEqual(10, pageItems.Count);
             Assert.AreEqual(60, page2.TotalRecords);
+        }
+
+
+        [Test]
+        public void Paged_WhereSpecification()
+        {
+            var depts = new Departments(ProviderName);
+            var page4 = depts.Paged(currentPage: 4, where: "LOC = :0", args: "Somewhere");
+            var pageItems = page4.Items.ToList();
+            Assert.AreEqual(0, pageItems.Count); // also testing being after last page
+            Assert.AreEqual(47, page4.TotalRecords);
         }
 
 

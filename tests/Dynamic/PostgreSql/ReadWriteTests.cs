@@ -92,11 +92,22 @@ namespace Mighty.Dynamic.Tests.PostgreSql
         public void Paged_NoSpecification()
         {
             var customers = new Customer();
-            // no order by, so in theory this is useless. It will order on PK though
+            // no order by, and paged queries logically must have an order by; this will order on PK
             var page2 = customers.Paged(currentPage: 2, pageSize: 10);
             var pageItems = ((IEnumerable<dynamic>)page2.Items).ToList();
             Assert.AreEqual(10, pageItems.Count);
             Assert.AreEqual(91, page2.TotalRecords);
+        }
+
+
+        [Test]
+        public void Paged_WhereSpecification()
+        {
+            var customers = new Customer();
+            var page3 = customers.Paged(currentPage: 3, where: "companyname LIKE :0", args: "%a%");
+            var pageItems = ((IEnumerable<dynamic>)page3.Items).ToList();
+            Assert.AreEqual(20, pageItems.Count);
+            Assert.AreEqual(72, page3.TotalRecords);
         }
 
 

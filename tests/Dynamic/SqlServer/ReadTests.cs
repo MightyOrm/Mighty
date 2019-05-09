@@ -290,11 +290,22 @@ namespace Mighty.Dynamic.Tests.SqlServer
         public void Paged_NoSpecification()
         {
             var soh = new SalesOrderHeader();
-            // no order by, so in theory this is useless. It will order on PK though
+            // no order by, and paged queries logically must have an order by; this will order on PK
             var page2 = soh.Paged(currentPage:2, pageSize: 30);
             var pageItems = ((IEnumerable<dynamic>)page2.Items).ToList();
             Assert.AreEqual(30, pageItems.Count);
             Assert.AreEqual(31465, page2.TotalRecords);
+        }
+
+
+        [Test]
+        public void Paged_WhereSpecification()
+        {
+            var soh = new SalesOrderHeader();
+            var page3 = soh.Paged(currentPage: 3, where: "SalesOrderNumber LIKE @0", args: "SO4%");
+            var pageItems = ((IEnumerable<dynamic>)page3.Items).ToList();
+            Assert.AreEqual(20, pageItems.Count);
+            Assert.AreEqual(6341, page3.TotalRecords);
         }
 
 

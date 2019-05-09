@@ -74,12 +74,24 @@ namespace Mighty.Generic.Tests.Sqlite
         public void Paged_NoSpecification()
         {
             var albums = new Albums();
-            // no order by, so in theory this is useless. It will order on PK though
-            var page2 = albums.Paged(currentPage: 3, pageSize: 13);
-            var pageItems = page2.Items.ToList();
+            // no order by, and paged queries logically must have an order by; this will order on PK
+            var page3 = albums.Paged(currentPage: 3, pageSize: 13);
+            var pageItems = page3.Items.ToList();
             Assert.AreEqual(13, pageItems.Count);
             Assert.AreEqual(27, pageItems[0].AlbumId);
-            Assert.AreEqual(347, page2.TotalRecords);
+            Assert.AreEqual(347, page3.TotalRecords);
+        }
+
+
+        [Test]
+        public void Paged_WhereSpecification()
+        {
+            var albums = new Albums();
+            var page2 = albums.Paged(currentPage: 2, where: "Title LIKE @0", args: "%the%");
+            var pageItems = page2.Items.ToList();
+            Assert.AreEqual(20, pageItems.Count);
+            Assert.AreEqual(105, pageItems[0].AlbumId);
+            Assert.AreEqual(80, page2.TotalRecords);
         }
 
 
