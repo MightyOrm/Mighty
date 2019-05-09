@@ -94,7 +94,7 @@ namespace Mighty.Dynamic.Tests.MySql
             var categories = new MightyOrm(
                 string.Format(TestConstants.WriteTestConnection, ProviderName),
                 "MassiveWriteTests.Categories",
-                keyNames: "MYCATEGORYID",
+                primaryKeys: "MYCATEGORYID",
                 columns: "MYCATEGORYID, TheName, ItsADescription",
                 mapper: new SqlNamingMapper(columnNameMapping: (t, c) => c
                     // 'class' names should come first

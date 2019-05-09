@@ -26,6 +26,7 @@ namespace Mighty.Mapping
             else return from;
         }
     }
+
     /// <summary>
     /// Pass an instance of this class to the constructor of <see cref="MightyOrm"/> in order to
     /// map between C# field names and SQL column names.

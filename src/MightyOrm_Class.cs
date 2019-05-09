@@ -39,8 +39,8 @@ namespace Mighty
         /// connection string itself and provider name are looked up in the ConnectionStrings section of the .config file.
         /// </param>
         /// <param name="tableName">Table name</param>
-        /// <param name="keyNames">Either single primary key column/field name, or comma separated list of names for compound PK</param>
-        /// <param name="valueName">Value column/field name, for lookup tables</param>
+        /// <param name="primaryKeys">Either single primary key column/field name, or comma separated list of names for compound PK</param>
+        /// <param name="valueField">Value column/field name, for lookup tables</param>
         /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
         /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
         /// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
@@ -55,8 +55,8 @@ namespace Mighty
         /// </remarks>
         public MightyOrm(string connectionString = null,
                          string tableName = null,
-                         string keyNames = null,
-                         string valueName = null,
+                         string primaryKeys = null,
+                         string valueField = null,
                          string sequence = null,
                          string columns = null,
                          Validator validator = null,
@@ -64,8 +64,8 @@ namespace Mighty
                          DataProfiler profiler = null,
                          ConnectionProvider connectionProvider = null)
         {
-            Init(connectionString, tableName, keyNames,
-                valueName,
+            Init(connectionString, tableName, primaryKeys,
+                valueField,
                 sequence, columns, validator, mapper, profiler, connectionProvider);
         }
 #else
@@ -79,7 +79,7 @@ namespace Mighty
         /// connection string itself and provider name are looked up in the ConnectionStrings section of the .config file.
         /// </param>
         /// <param name="tableName">Table name</param>
-        /// <param name="keyNames">Either single primary key column/field name, or comma separated list of names for compound PK</param>
+        /// <param name="primaryKeys">Either single primary key column/field name, or comma separated list of names for compound PK</param>
         /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
         /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
         /// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
@@ -94,7 +94,7 @@ namespace Mighty
         /// </remarks>
         public MightyOrm(string connectionString = null,
                          string tableName = null,
-                         string keyNames = null,
+                         string primaryKeys = null,
                          string sequence = null,
                          string columns = null,
                          Validator validator = null,
@@ -102,7 +102,7 @@ namespace Mighty
                          DataProfiler profiler = null,
                          ConnectionProvider connectionProvider = null)
         {
-            Init(connectionString, tableName, keyNames,
+            Init(connectionString, tableName, primaryKeys,
                 sequence, columns, validator, mapper, profiler, connectionProvider);
         }
 #endif
@@ -150,8 +150,8 @@ namespace Mighty
         /// connection string itself and provider name are looked up in the ConnectionStrings section of the .config file.
         /// </param>
         /// <param name="tableName">Override the table name (defaults to using T class name)</param>
-        /// <param name="keyNames">Either single primary key column/field name, or comma separated list of names for compound PK</param>
-        /// <param name="valueName">Value column/field name, for lookup tables</param>
+        /// <param name="primaryKeys">Either single primary key column/field name, or comma separated list of names for compound PK</param>
+        /// <param name="valueField">Value column/field name, for lookup tables</param>
         /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
         /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
         /// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
@@ -162,8 +162,8 @@ namespace Mighty
         /// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyOrm)</param>
         public MightyOrm(string connectionString = null,
                          string tableName = null,
-                         string keyNames = null,
-                         string valueName = null,
+                         string primaryKeys = null,
+                         string valueField = null,
                          string sequence = null,
                          string columns = null,
                          Validator validator = null,
@@ -174,8 +174,8 @@ namespace Mighty
             // If this has been called as part of constructing MightyOrm (non-generic), then return immediately and let that constructor do all the work
             if (this is MightyOrm) return;
             IsGeneric = true;
-            Init(connectionString, tableName, keyNames,
-                valueName,
+            Init(connectionString, tableName, primaryKeys,
+                valueField,
                 sequence, columns, validator, mapper, profiler, connectionProvider);
         }
 #else
@@ -188,8 +188,8 @@ namespace Mighty
         /// On .NET Framework (but not .NET Core) this can instead be a connection string name, in which case the
         /// connection string itself and provider name are looked up in the ConnectionStrings section of the .config file.
         /// </param>
-        /// <param name="tableName">Override the table name (defaults to using T class name)</param>
-        /// <param name="keyNames">Either single primary key column/field name, or comma separated list of names for compound PK</param>
+        /// <param name="table">Override the table name (defaults to using T class name)</param>
+        /// <param name="primaryKeys">Either single primary key column/field name, or comma separated list of names for compound PK</param>
         /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
         /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
         /// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
@@ -199,8 +199,8 @@ namespace Mighty
         /// <param name="profiler">Optional SQL profiler</param>
         /// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyOrm)</param>
         public MightyOrm(string connectionString = null,
-                         string tableName = null,
-                         string keyNames = null,
+                         string table = null,
+                         string primaryKeys = null,
                          string sequence = null,
                          string columns = null,
                          Validator validator = null,
@@ -211,7 +211,7 @@ namespace Mighty
             // If this has been called as part of constructing MightyOrm (non-generic), then return immediately and let that constructor do all the work
             if (this is MightyOrm) return;
             IsGeneric = true;
-            Init(connectionString, tableName, keyNames,
+            Init(connectionString, table, primaryKeys,
                 sequence, columns, validator, mapper, profiler, connectionProvider);
         }
 #endif
@@ -244,9 +244,9 @@ namespace Mighty
         // before saving an object)
         internal void Init(string xconnectionString,
                          string tableName,
-                         string keyNames,
+                         string primaryKeys,
 #if KEY_VALUES
-                         string valueName,
+                         string valueField,
 #endif
                          string sequence,
                          string columns,
@@ -284,9 +284,9 @@ namespace Mighty
 
             // This stuff is just recalculated, not cached
             SetTableNameAndOwner(DataContract, tableName);
-            PrimaryKeyInfo = new Keys.PrimaryKeyInfo(IsGeneric, DataContract, Plugin, mappingClass, SqlNamingMapper, keyNames, sequence);
+            PrimaryKeyInfo = new Keys.PrimaryKeyInfo(IsGeneric, DataContract, Plugin, mappingClass, SqlNamingMapper, primaryKeys, sequence);
 #if KEY_VALUES
-            ValueColumn = DataContract.Map(AutoMap.Value, valueName);
+            ValueColumn = DataContract.Map(AutoMap.Value, valueField);
 #endif
 
             // Init for lazy load of table meta-data (from cache if possible; only if needed)
