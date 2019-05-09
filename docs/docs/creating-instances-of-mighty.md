@@ -19,7 +19,7 @@ The most ORM-flavoured way of creating instances of Mighty is to create a subcla
 ```c#
 public class Products : MightyOrm
 {
-    public Products() : base(Constants.ConnectionString, keys: "ProductID") {}
+    public Products() : base(Constants.ConnectionString, primaryKeys: "ProductID") {}
 }
 ```
 
@@ -35,7 +35,7 @@ public class Product
 
 public class Products : MightyOrm<Product>
 {
-    public Products() : base(Constants.ConnectionString, keys: "ProductID") { }
+    public Products() : base(Constants.ConnectionString, primaryKeys: "ProductID") { }
 }
 ```
 
@@ -64,7 +64,7 @@ In the strongly typed version, each returned product is of type `Product`. In th
 ```c#
 public class Products : MightyOrm
 {
-    public Products() : base(Constants.ConnectionString, keys: "ProductID", columns: "ProductID, Name, Description") {}
+    public Products() : base(Constants.ConnectionString, primaryKeys: "ProductID", columns: "ProductID, Name, Description") {}
 }
 ```
 

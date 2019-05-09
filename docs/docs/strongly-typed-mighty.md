@@ -19,7 +19,7 @@ public class Person
     public bool LoyalCustomer { get; set; }
 }
 
-var db = new Mighty<Person>(connectionString, keys: "PersonID");
+var db = new Mighty<Person>(connectionString, primaryKeys: "PersonID");
 
 // The input here is an anonymous object (though it would have worked fine with
 // a Person object, or an ExpandoObject, or most other reasonable choices),

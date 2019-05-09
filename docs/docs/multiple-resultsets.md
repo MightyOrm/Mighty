@@ -26,6 +26,7 @@ foreach (var set in twoSets)
 
 Some comments:
 
- - The main use-case for multiple resultsets would probably for accessing multiple results from a stored procedure using `QueryMultipleFromProcedure`, but the above example makes clear what the results will be
- - On a strongly typed instance of Mighty the items from all resultsets have to be of the same type, so unless your data is like that it probably makes more sense to use a `dynamic` instance of Mighty in this case; you could instead make a contrived class to hold all possible return values
- - You don't have to use `foreach` to consume the result sets, or even the items within the set, you can always manually use `IEnumerable.GetEnumerator`, `IEnumerator.MoveNext` and `IEnumerator.Current`
+ - The main use-case for multiple resultsets would probably for accessing multiple results from a stored procedure using `QueryMultipleFromProcedure`, the above example with explicit `SELECT` statements sent to `QueryMultiple` is just to make it clear what results will be sent back
+ - On a strongly typed instance of Mighty the items from all resultsets have to be of the same type, so unless your data is like that it probably makes more sense to use a `dynamic` instance of Mighty in this case
+    - I am hoping to find time to make Mighty also be able to produce (semi-)strongly typed multiple result sets (i.e. you would have to consume the results as `IEnumerable<IEnumerable<object>>`, but the objects in each result set would in fact be of the correct, strong types which you have requested)
+ - You don't have to use `foreach` to consume the result sets, or even items within result sets: as with any `IEnumerable` you could always manually use `IEnumerable.GetEnumerator`, `IEnumerator.MoveNext` and `IEnumerator.Current` instead
