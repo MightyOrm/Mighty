@@ -16,7 +16,7 @@ But Mighty now supports full [convention based mapping](#convention-based-mappin
 
 ---
 
-## Manual mapping
+## Manual Mapping
 
 For read-only purposes (and also for knocking up quick SQL dta transforms) you can just map your column names to field names using the `columns` parameter (in the constructor, or in the data access method):
 
@@ -34,7 +34,7 @@ foreach (var film in films)
 
 This type of mapping will work with strongly-typed instances of `MightyOrm<T>` too.
 
-## Convention based mapping
+## Convention Based Mapping
 
 For more control and the ability to support writes as well as reads, you can use convention based mapping or [attribute based mapping](#attribute-based-mapping) or both.
 
@@ -78,7 +78,7 @@ foreach (var film in films)
 }
 ```
 
-### More control
+### More Control
 {: .no_toc }
 
 In addition to mapping column names, you can map class to table names, set primary keys and more by providing any of the following functions to Mighty's `SqlNamingMapper`:
@@ -92,7 +92,7 @@ In addition to mapping column names, you can map class to table names, set prima
  - Func<string, string> QuoteDatabaseIdentifier
  - Func<Type, AutoMap> AutoMap (see [below](#auto-mapping-in-mighty))
 
-## Attribute based mapping
+## Attribute Based Mapping
 
 Mighty also supports attribute based mapping:
 
@@ -127,7 +127,7 @@ and you can specify primary key fields directly in the class definition using `[
 
 Even though most features of `SqlNamingMapper` can be done instead using attributes, and vice versa, there is no way to get Mighty to access non-public fields or properties purely using `SqlNamingMapper`. This is on purpose, to make it hard to intentionally or unintentionally make Mighty get or write object data which it shouldn't have access to.
 
-## Auto-mapping in Mighty
+## Auto-Mapping in Mighty
 
 Once you apply any column name mapping, Mighty switches on field name mapping by default. The rules are as follows:
 
