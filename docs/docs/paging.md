@@ -30,7 +30,7 @@ var page = films.Paged(orderBy: "Title", currentPage: 3, pageSize: 10);
 
 That's it!
 
-You don't even necessarily need the `orderBy`, paging will sort by primary key by default. The default page to fetch is page 1 (note `currentPage` is 1-based, not 0-based), and the default for `pageSize` is 20.
+You don't even necessarily need the `orderBy`, paging will sort by primary key by default. The default page to fetch is page 1 (note that `currentPage` is 1-based, not 0-based), and the default for `pageSize` is 20.
 
 ## Paging from an Arbitrary Select
 
