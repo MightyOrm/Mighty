@@ -147,11 +147,11 @@ namespace Mighty.Dynamic.Tests.Oracle
         public void Paged_SqlSpecification()
         {
             var depts = new Department(ProviderName);
-            var page2 = depts.PagedFromSelect("SCOTT.EMP e INNER JOIN SCOTT.DEPT d ON e.DEPTNO = d.DEPTNO", "EMPNO", "EMPNO, ENAME, DNAME", pageSize: 5, currentPage: 2);
+            var page2 = depts.PagedFromSelect("SCOTT.EMP e INNER JOIN SCOTT.DEPT d ON e.DEPTNO = d.DEPTNO", "e.EMPNO", "e.EMPNO, e.ENAME, d.DNAME", "d.DNAME = :0", 5, 2, null, "SALES");
             var pageItems = ((IEnumerable<dynamic>)page2.Items).ToList();
-            Assert.AreEqual(5, pageItems.Count);
-            Assert.AreEqual(14, page2.TotalRecords);
-            Assert.AreEqual(3, page2.TotalPages);
+            Assert.AreEqual(1, pageItems.Count);
+            Assert.AreEqual(6, page2.TotalRecords);
+            Assert.AreEqual(2, page2.TotalPages);
         }
 
         [Test]
