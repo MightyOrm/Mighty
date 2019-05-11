@@ -1,20 +1,24 @@
 ---
-title: Table and Column Name Mapping
+title: Database Mapping
 layout: default
 nav_order: 9
 ---
 
-# Table and Column Name Mapping
+# Database Mapping
 {: .no_toc }
 
 - TOC
 {:toc}
 
+Like Massive, Mighty sypports [manual mapping](#manual-mapping). This is useful for knocking up quick, read-only column name mapping, and other data transforms if you need them (e.g. `LTRIM(RTRIM(Name))`, to clean up legacy data).
+
+But Mighty now supports full [convention based mapping](#convention-based-mapping) (i.e. class to database name mapping functions) and C# [attribute based mapping](#attribute-based-mapping) as well.
+
 ---
 
-## Quick'n'dirty mapping
+## Manual mapping
 
-Like Massive, for read-only purposes you can just map your column names to field names using the constructor `columns` parameter:
+For read-only purposes (and also for knocking up quick SQL dta transforms) you can just map your column names to field names using the `columns` parameter (in the constructor, or in the data access method):
 
 ```c#
 var films = new MightyOrm(
@@ -108,65 +112,33 @@ and you can specify primary key fields directly in the class definition using `[
 
 Even though most features of `SqlNamingMapper` can be done instead using attributes, and vice versa, there is no way to get Mighty to access non-public fields or properties purely using `SqlNamingMapper`. This is on purpose, to make it hard to intentionally or unintentionally make Mighty get or write object data which it shouldn't have access to.
 
-## Auto-mapping
+## Auto-mapping in Mighty
 
 Once you apply any column name mapping, Mighty switches on field name mapping by default. The rules are as follows:
 
-|----|----|----|
-|Name of argument to `MightyOrm` contructor or method|With mapping|With no mapping, or mapping disabled (also default behaviour, when no column renaming has been done)|
-|----|----|----|
-|`primaryKeys`|Field and property names only, e.g. `"FilmID"`|Simple column names only, e.g. `"film_id"`|
-|`columns`|Field and property names only, e.g. `"FilmID, Description"`|Column names or any other valid SQL column specification, e.g. `"film_id, LTRIM(RTRIM(description)) AS description"`|
-|`orderBy`|Field and property names only, but with ASC and DESC support, e.g. `"Description DESC"`|Column names or any other valid SQL ORDER BY specification, e.g. `"LEN(description)"`|
+|----|----|----|----|
+|`MightyOrm` contructor or method parameter|Default (no columns renamed)|Some columns renamed, but auto-mapping manually disabled|Default auto-mapping, once some columns renamed|
+|----|----|----|----|
+|`primaryKeys`|List of primary key names|Column name(s) only, e.g. `"film_id"`|C# field/property name(s) only (e.g. `"FilmID"`)|
+|`columns`|Any valid SQL column specification|Any valid SQL column specification (e.g. `"film_id AS FilmID, LTRIM(RTRIM(description)) AS Description"`)|C# field/property names only (e.g. `"FilmID, Description"`)|
+|`orderBy`|Any valid SQL `ORDER BY` specification|Any valid SQL `ORDER BY` specification (e.g. `"LEN(description)"`)|C# field/property names only, but with ASC and DESC supported (e.g. `"Description DESC"`)|
 
-As long as  you haven't done any field to column name re-mapping (even if you have used other features of `SqlNamingMapper` or attributes) then auto-mapping is *always* off and *all* of the above input formats (and SQL tricks!) are always available if you want to use them.
+You can provide a set of flags which will turn auto-mapping off (for some, none or all of the above items) by passing an `autoMap` function to `SqlNamingMapper`, or by setting the `autoMap` parameter on the `DatabaseTable` attribute.
 
-> As you can see, just like Massive, Mighty often assembles SQL fragments which you pass in (e.g. `where`, `columns`, `orderBy`); but, also just like Massive, within Mighty [database parameters](parameters) *are never directly interpolated into SQL* and instead are always passed to the underlying database as true `DbParameter` values. This is essential to help avoid SQL injection attacks.
+> Just like Massive, Mighty assembles SQL fragments which you pass in (e.g. `where`, `columns`, `orderBy`). Also just like Massive, [database parameters](parameters) *are never directly interpolated into SQL* and instead are always passed to the underlying database as true `DbParameter` values. This is essential to help avoid SQL injection attacks.
 
-You can provide a set of flags which will turn auto-mapping off (for some, none or all of the above items) by passing an `autoMap` function to `SqlNamingMapper`, or by setting the `autoMap` parameter of the `DatabaseTable` attribute.
 
-### Examples:
+### Maintainable auto-mapping:
 {: .no_toc }
 
+With auto-mapping (or as the default, with no column renaming), instead of using raw strings as your field/column names which are passed in to Mighty you can (completely optionally) use the C# `nameof` function instead. This is more future-proof against field renames, and in general just allows your IDE to track references to the field name for you:
+
 ```c#
-\\ With auto-mapping
-
-public class Film
-{
-    [DatabaseColumn("film_id")]
-    public int FilmID;
-
-    [DatabaseColumn("description")]
-    public string Description;
-}
-
-...
-
-var films = new MightyOrm<Film>(connectionString);
-var films = films.All(orderBy: "FilmID");
-
-// Or, more maintainably:
 var films = films.All(orderBy: nameof(Film.FilmID));
 ```
 
+To get the same effect if you have column renames but have manually disabled auto-mapping, you additionally have to map the column name. You can do this as follows:
+
 ```c#
-\\ Without auto-mapping
-
-[DatabaseTable(autoMap: AutoMap.Off)]
-public class Film
-{
-    [DatabaseColumn("film_id")]
-    public int FilmID;
-
-    [DatabaseColumn("description")]
-    public string Description;
-}
-
-...
-
-var films = new MightyOrm<Film>(connectionString);
-var films = films.All(orderBy: "film_id");
-
-// Or, more maintainably:
 var films = films.All(orderBy: films.DataContract.Map(nameof(Film.FilmID));
 ```
