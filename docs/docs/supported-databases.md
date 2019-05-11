@@ -5,6 +5,12 @@ nav_order: 15
 ---
 
 # Supported Databases
+{: .no_toc }
+
+- TOC
+{:toc}
+
+## ADO.NET Database Drivers
 
 Here are the currently supported ADO.NET database drivers in Mighty:
 
@@ -19,7 +25,9 @@ Here are the currently supported ADO.NET database drivers in Mighty:
 |System.Data.SQLite|YES|NO|
 |Microsoft.Data.Sqlite|NO|YES|
 
-For named parameters in Mighty (like `@ProductID` or `:DNAME`) and auto-numbered parameters (like `@0`, `@1` or `:0`, `:1`) the correct parmeter prefix to use depends on the database:
+## Parameter Prefixes
+
+For named parameters in Mighty (like `@ProductID` or `:DNAME`) and auto-numbered parameters (like `@0`, `@1` or `:0`, `:1`) the correct [parameter prefix](parameters#auto-numbered-parameters) to use depends on the database:
 
 |Database|Parameter Prefix|
 |:-----|:-----:|
