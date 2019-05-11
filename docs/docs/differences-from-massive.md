@@ -29,7 +29,8 @@ Here is a list of those items which won't compile directly against former Massiv
 
 ## Validation
 
-- `IsValid(item)` now returns a `List&lt;object&gt;` of errors (this is intentionally a `List`, not an `IList`). Each object is one error; the error objects are typically strings, but you get to decide this in your validation class. So `db.IsValid(item).Errors.Count == 0` checks for no errors (but `IsValid` can also returns the reported errors without storing them in a shared variable which might potentially be overwritten but other calls to the same instance of Mighty). As in Massive, you may not even need to to call `IsValid(item)` directly, since validation is called automatically during CRUD operations.
+- `IsValid(item)` now returns a `List<object>` of errors (this is intentionally a `List`, not an `IList`). Each object is one error; the error objects are typically strings, but you get to decide this in your validation class. So `db.IsValid(item).Errors.Count == 0` checks for no errors (and `IsValid` can return the reported errors immediately, without storing them in a shared variable which might potentially be overwritten by other calls to the same instance of Mighty).
+  - As in Massive, you may not even need to to call `IsValid(item)` directly, since validation is called automatically during CRUD operations.
 - All validation is now done via hooks in the `Mighty.Validation.Validator` class, not in the `MightyOrm` class itself. If you need validation you should create your own subclass of this, override the hook methods which you need, and pass a new instance of it to the constructor of `MightyOrm`.
 
 ## CRUD
