@@ -10,7 +10,7 @@ nav_order: 9
 - TOC
 {:toc}
 
-Like Massive, Mighty sypports [manual mapping](#manual-mapping). This is useful for knocking up quick, read-only column name mapping, and other data transforms if you need them (e.g. `LTRIM(RTRIM(Name))`, to clean up legacy data).
+Like Massive, Mighty supports [manual mapping](#manual-mapping). This is useful for knocking up quick, read-only column name mapping, and for other data transforms if you need them (e.g. `LTRIM(RTRIM(Name))`, to clean up legacy data).
 
 But Mighty now supports full [convention based mapping](#convention-based-mapping) (i.e. class to database name mapping functions) and C# [attribute based mapping](#attribute-based-mapping) as well.
 
@@ -52,12 +52,13 @@ public class Film
 
 var films = new MightyOrm<Film>(
     connectionString,
-    mapper: new SqlNamingMapper(columnNameMapping: (t, n) => n
-        .Map(nameof(Film.FilmID), "film_id")
-        .Map(nameof(Film.Description), "description"));
+    mapper: new SqlNamingMapper(columnNameMapping: (t, n) =>
+        n
+        .Map("FilmID", "film_id")
+        .Map("Film.Description", "description"));
 ```
 
-You can control table names, primary keys and a lot more by providing different functions to Mighty's `SqlNamingMapper`.
+The `.Map` string extension method for creating quick maps and used above is defined in `Mighty.Mapping`, but is entirely optional.
 
 As long as you provide a `columns` parameter, you can even do convention based mapping on a dynamic instance of Mighty 😊 :
 
@@ -66,8 +67,8 @@ var films = new MightyOrm(
     connectionString,
     tableName: "film",
     columns: "FilmID, Description",
-    // `.Map` string extension for creating quick maps is defined in `Mighty.Mapping`, but is entirely optional
-    mapper: new SqlNamingMapper(columnNameMapping: (t, n) => n
+    mapper: new SqlNamingMapper(columnNameMapping: (t, n) =>
+        n
         .Map("FilmID", "film_id")
         .Map("Description", "description"));
 var films = films.All();
@@ -76,6 +77,20 @@ foreach (var film in films)
     Console.WriteLine($"{film.FilmID}: {film.Description}");
 }
 ```
+
+### More control
+{: .no_toc }
+
+In addition to mapping column names, you can map class to table names, set primary keys and more by providing any of the following functions to Mighty's `SqlNamingMapper`:
+
+ - Func<Type, string> TableNameMapping
+ - Func<Type, string, string> ColumnNameMapping
+ - Func<Type, string> GetPrimaryKeyFieldNames
+ - Func<Type, string> GetSequenceName
+ - Func<Type, string, bool> IgnoreColumn
+ - Func<Type, bool> CaseSensitiveColumns
+ - Func<string, string> QuoteDatabaseIdentifier
+ - Func<Type, AutoMap> AutoMap (see [below](#auto-mapping-in-mighty))
 
 ## Attribute based mapping
 
@@ -121,12 +136,11 @@ Once you apply any column name mapping, Mighty switches on field name mapping by
 |----|----|----|----|
 |`primaryKeys`|List of primary key names|Column name(s) only, e.g. `"film_id"`|C# field/property name(s) only (e.g. `"FilmID"`)|
 |`columns`|Any valid SQL column specification|Any valid SQL column specification (e.g. `"film_id AS FilmID, LTRIM(RTRIM(description)) AS Description"`)|C# field/property names only (e.g. `"FilmID, Description"`)|
-|`orderBy`|Any valid SQL `ORDER BY` specification|Any valid SQL `ORDER BY` specification (e.g. `"LEN(description)"`)|C# field/property names only, but with ASC and DESC supported (e.g. `"Description DESC"`)|
+|`orderBy`|Any valid SQL `ORDER BY` specification|Any valid SQL `ORDER BY` specification (e.g. `"LEN(description)"`)|C# field/property names only, but with ASC and DESC support (e.g. `"Description DESC"`)|
 
 You can provide a set of flags which will turn auto-mapping off (for some, none or all of the above items) by passing an `autoMap` function to `SqlNamingMapper`, or by setting the `autoMap` parameter on the `DatabaseTable` attribute.
 
-> Just like Massive, Mighty assembles SQL fragments which you pass in (e.g. `where`, `columns`, `orderBy`). Also just like Massive, [database parameters](parameters) *are never directly interpolated into SQL* and instead are always passed to the underlying database as true `DbParameter` values. This is essential to help avoid SQL injection attacks.
-
+> Just like Massive, Mighty assembles SQL fragments which you pass in (e.g. `where`, `columns`, `orderBy`). Also just like Massive, [database parameters](parameters) *are never directly interpolated into SQL* and instead are always passed to the underlying database as true `DbParameter` values. (This is essential to help avoid SQL injection attacks.)
 
 ### Maintainable auto-mapping:
 {: .no_toc }
