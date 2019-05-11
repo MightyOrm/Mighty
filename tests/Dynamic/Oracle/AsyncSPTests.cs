@@ -1,4 +1,4 @@
-﻿#if NETFRAMEWORK || (NETCOREAPP && !(NETCOREAPP1_0 || NETCOREAPP1_1))
+﻿#if (NETFRAMEWORK && !NET40) || (NETCOREAPP && !(NETCOREAPP1_0 || NETCOREAPP1_1))
 using System;
 using System.Data;
 using System.Collections.Async;

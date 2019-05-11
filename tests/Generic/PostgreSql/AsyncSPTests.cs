@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !NET40
+using System;
 using System.Data;
 using System.Dynamic;
 using System.Collections.Async;
@@ -80,3 +81,4 @@ namespace Mighty.Generic.Tests.PostgreSql
         }
     }
 }
+#endif

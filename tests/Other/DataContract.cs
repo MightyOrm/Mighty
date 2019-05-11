@@ -32,7 +32,19 @@ namespace Mighty.Dynamic.Tests.X
         [Test]
         public void CacheHits()
         {
+#if NETFRAMEWORK
+#if !NET40
             Assert.AreEqual(537, DataContractStore.Instance.CacheHits);
+#else
+            Assert.AreEqual(258, DataContractStore.Instance.CacheHits);
+#endif
+#elif NETCOREAPP
+#if !(NETCOREAPP1_0 || NETCOREAPP1_1)
+            Assert.AreEqual(466, DataContractStore.Instance.CacheHits);
+#else
+            Assert.AreEqual(400, DataContractStore.Instance.CacheHits);
+#endif
+#endif
         }
 
         [Test]
@@ -40,7 +52,19 @@ namespace Mighty.Dynamic.Tests.X
         {
             // all the dynamic tests should only ever need one contract now,
             // even though some of the dynamic tests specify columns
+#if NETFRAMEWORK
+#if !NET40
             Assert.AreEqual(3, DataContractStore.Instance.CacheMisses);
+#else
+            Assert.AreEqual(2, DataContractStore.Instance.CacheMisses);
+#endif
+#elif NETCOREAPP
+#if !(NETCOREAPP1_0 || NETCOREAPP1_1)
+            Assert.AreEqual(3, DataContractStore.Instance.CacheMisses);
+#else
+            Assert.AreEqual(3, DataContractStore.Instance.CacheMisses);
+#endif
+#endif
         }
 
         [Test]
@@ -73,7 +97,19 @@ namespace Mighty.Dynamic.Tests.X
         [Test]
         public void CacheHits()
         {
+#if NETFRAMEWORK
+#if !NET40
             Assert.AreEqual(12, TableMetaDataStore.Instance.CacheHits);
+#else
+            Assert.AreEqual(3, TableMetaDataStore.Instance.CacheHits);
+#endif
+#elif NETCOREAPP
+#if !(NETCOREAPP1_0 || NETCOREAPP1_1)
+            Assert.AreEqual(12, TableMetaDataStore.Instance.CacheHits);
+#else
+            Assert.AreEqual(12, TableMetaDataStore.Instance.CacheHits);
+#endif
+#endif
         }
 
         [Test]
@@ -91,13 +127,37 @@ namespace Mighty.Generic.Tests.X
         [Test]
         public void CacheHits()
         {
+#if NETFRAMEWORK
+#if !NET40
             Assert.AreEqual(893, DataContractStore.Instance.CacheHits);
+#else
+            Assert.AreEqual(438, DataContractStore.Instance.CacheHits);
+#endif
+#elif NETCOREAPP
+#if !(NETCOREAPP1_0 || NETCOREAPP1_1)
+            Assert.AreEqual(778, DataContractStore.Instance.CacheHits);
+#else
+            Assert.AreEqual(674, DataContractStore.Instance.CacheHits);
+#endif
+#endif
         }
 
         [Test]
         public void CacheMisses()
         {
+#if NETFRAMEWORK
+#if !NET40
             Assert.AreEqual(19, DataContractStore.Instance.CacheMisses);
+#else
+            Assert.AreEqual(18, DataContractStore.Instance.CacheMisses);
+#endif
+#elif NETCOREAPP
+#if !(NETCOREAPP1_0 || NETCOREAPP1_1)
+            Assert.AreEqual(18, DataContractStore.Instance.CacheMisses);
+#else
+            Assert.AreEqual(16, DataContractStore.Instance.CacheMisses);
+#endif
+#endif
         }
     }
 
@@ -106,13 +166,31 @@ namespace Mighty.Generic.Tests.X
         [Test]
         public void CacheHits()
         {
+#if NETFRAMEWORK
+#if !NET40
             Assert.AreEqual(69, TableMetaDataStore.Instance.CacheHits);
+#else
+            Assert.AreEqual(24, TableMetaDataStore.Instance.CacheHits);
+#endif
+#elif NETCOREAPP
+#if !(NETCOREAPP1_0 || NETCOREAPP1_1)
+            Assert.AreEqual(68, TableMetaDataStore.Instance.CacheHits);
+#else
+            Assert.AreEqual(67, TableMetaDataStore.Instance.CacheHits);
+#endif
+#endif
         }
 
         [Test]
         public void CacheMisses()
         {
+#if NETFRAMEWORK
             Assert.AreEqual(22, TableMetaDataStore.Instance.CacheMisses);
+#elif !(NETCOREAPP1_0 || NETCOREAPP1_1)
+            Assert.AreEqual(21, TableMetaDataStore.Instance.CacheMisses);
+#else
+            Assert.AreEqual(20, TableMetaDataStore.Instance.CacheMisses);
+#endif
         }
     }
 }
