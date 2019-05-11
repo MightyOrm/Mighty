@@ -18,7 +18,7 @@ Here is a list of those items which won't compile directly against former Massiv
 
 ## DataTable support
 
-- DataTable is no longer directly supported (not even on .NET Framework). However if you need it, the (short) Massive source code for .ToDataTable() is [here](https://github.com/FransBouma/Massive/blob/583c0932cb5da17f06216777be74e16a421f2df4/src/Massive.Shared.cs#L140-L187); it is open source, under the same license as this project.
+- DataTable is no longer directly supported (not even on .NET Framework). However if you need it, the (short) Massive source code for .ToDataTable() is [here](https://github.com/FransBouma/Massive/blob/583c0932cb5da17f06216777be74e16a421f2df4/src/Massive.Shared.cs#L140-L187); it is open source, under the same license as this project
 
 ## Table meta-data
 
@@ -29,9 +29,10 @@ Here is a list of those items which won't compile directly against former Massiv
 
 ## Validation
 
-- `IsValid(item)` now returns a `List<object>` of errors (this is intentionally a `List`, not an `IList`). Each object is one error; the error objects are typically strings, but you get to decide this in your validation class. So `db.IsValid(item).Errors.Count == 0` checks for no errors (and `IsValid` can return the reported errors immediately, without storing them in a shared variable which might potentially be overwritten by other calls to the same instance of Mighty).
-  - As in Massive, you may not even need to to call `IsValid(item)` directly, since validation is called automatically during CRUD operations.
-- All validation is now done via hooks in the `Mighty.Validation.Validator` class, not in the `MightyOrm` class itself. If you need validation you should create your own subclass of this, override the hook methods which you need, and pass a new instance of it to the constructor of `MightyOrm`.
+- Automatic pre-validation before CRUD actions is off by default in Mighty, set `PrevalidationType = Prevalidation.Full` (or `Prevalidation.Lazy`) on your validator class to enable it
+- All validation is now done via overridable methods in the `Mighty.Validation.Validator` class, not in the `MightyOrm` class itself. If you need validation you should create your own `Validator` subclass, overriding the methods which you need, and pass an instance of it to the constructor of `MightyOrm`
+- `IsValid(item)` now returns a `List<object>` of errors (this is intentionally a `List`, not an `IList`). Each object is one error; the error objects are typically strings, but you get to decide this in your validation class. So `db.IsValid(item).Errors.Count == 0` checks for no errors (and `IsValid` can return the reported errors immediately, without storing them in a shared variable which might potentially be overwritten by other calls to the same instance of Mighty)
+  - As in Massive, you may well not be calling `IsValid(item)` directly anyway, since validation is called automatically during CRUD operations
 
 ## CRUD
 
