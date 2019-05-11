@@ -995,12 +995,11 @@ namespace Mighty
             }
             else
             {
-                var cursor = value as Cursor;
-                if (cursor != null)
+                if (value is Cursor)
                 {
                     // Placeholder cursor ref; we only need the value if passing in a cursor by value
-                    // doesn't work on Postgres.
-                    if (!Plugin.SetCursor(p, cursor.Value))
+                    // doesn't work on Postgres. (TO DO: What? Is this out of date?)
+                    if (!Plugin.SetCursor(p, ((Cursor)value).Value))
                     {
                         throw new InvalidOperationException("ADO.NET provider does not support cursors");
                     }

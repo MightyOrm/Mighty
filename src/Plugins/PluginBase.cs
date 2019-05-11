@@ -460,7 +460,7 @@ namespace Mighty.Plugins
         /// Return false if not supported on this provider.
         /// </summary>
         /// <param name="p">The parameter</param>
-        /// <param name="value">The value (a db-sepcific cursor reference; often a string containing a cursor id)</param>
+        /// <param name="value">The value (a db-specific cursor reference; typically a string containing a cursor id of some sort)</param>
         /// <returns></returns>
         virtual public bool SetCursor(DbParameter p, object value) { return false; }
 
