@@ -174,8 +174,10 @@ namespace Mighty.Dynamic.Tests.Oracle
         {
             var db = new SPTestsDatabase(ProviderName);
             var twoSetDirect = await db.ExecuteProcedureAsync("tworesults", outParams: new { prc1 = new Cursor(), prc2 = new Cursor() });
-            Assert.AreEqual("OracleRefCursor", twoSetDirect.prc1.GetType().Name);
-            Assert.AreEqual("OracleRefCursor", twoSetDirect.prc2.GetType().Name);
+            Assert.AreEqual(typeof(Cursor), twoSetDirect.prc1.GetType());
+            Assert.AreEqual("OracleRefCursor", ((Cursor)twoSetDirect.prc1).CursorRef.GetType().Name);
+            Assert.AreEqual(typeof(Cursor), twoSetDirect.prc2.GetType());
+            Assert.AreEqual("OracleRefCursor", ((Cursor)twoSetDirect.prc2).CursorRef.GetType().Name);
         }
 
 
@@ -205,8 +207,10 @@ namespace Mighty.Dynamic.Tests.Oracle
         {
             var db = new SPTestsDatabase(ProviderName);
             var mixedDirect = await db.ExecuteProcedureAsync("mixedresults", outParams: new { prc1 = new Cursor(), prc2 = new Cursor(), num1 = 0, num2 = 0 });
-            Assert.AreEqual("OracleRefCursor", mixedDirect.prc1.GetType().Name);
-            Assert.AreEqual("OracleRefCursor", mixedDirect.prc2.GetType().Name);
+            Assert.AreEqual(typeof(Cursor), mixedDirect.prc1.GetType());
+            Assert.AreEqual("OracleRefCursor", ((Cursor)mixedDirect.prc1).CursorRef.GetType().Name);
+            Assert.AreEqual(typeof(Cursor), mixedDirect.prc2.GetType());
+            Assert.AreEqual("OracleRefCursor", ((Cursor)mixedDirect.prc2).CursorRef.GetType().Name);
             Assert.AreEqual(1, mixedDirect.num1);
             Assert.AreEqual(2, mixedDirect.num2);
         }
@@ -223,7 +227,8 @@ namespace Mighty.Dynamic.Tests.Oracle
             using (var conn = await db.OpenConnectionAsync())
             {
                 var res1 = await db.ExecuteWithParamsAsync("begin open :p_rc for select * from emp where deptno = 10; end;", outParams: new { p_rc = new Cursor() }, connection: conn);
-                Assert.AreEqual("OracleRefCursor", res1.p_rc.GetType().Name);
+                Assert.AreEqual(typeof(Cursor), res1.p_rc.GetType());
+                Assert.AreEqual("OracleRefCursor", ((Cursor)res1.p_rc).CursorRef.GetType().Name);
 
                 await db.ExecuteAsync("delete from processing_result");
 

@@ -5,7 +5,10 @@ namespace Mighty
     /// </summary>
     public class Cursor
     {
-        internal object Value { get; private set; }
+        /// <summary>
+        /// The cursor ref for the underlying ADO.NET database provider
+        /// </summary>
+        public object CursorRef { get; }
 
         /// <summary>
         /// Constructor
@@ -16,7 +19,16 @@ namespace Mighty
         /// </param>
         public Cursor(object value = null)
         {
-            Value = value;
+            CursorRef = value;
+        }
+
+        /// <summary>
+        /// String representation of the type of this object and what it contains
+        /// </summary>
+        /// <returns></returns>
+        public override string ToString()
+        {
+            return $"{base.ToString()}: {(CursorRef == null ? "null" : (CursorRef is string ? $@"""{(string)CursorRef}""" : CursorRef.ToString()))}";
         }
     }
 }

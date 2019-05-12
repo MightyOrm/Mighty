@@ -322,7 +322,8 @@ namespace Mighty.Dynamic.Tests.PostgreSql
             // Following the Oracle pattern this will not dereference: we get a variable value and a cursor ref.
             var itemCursorMix = db.ExecuteProcedure("cursor_mix", outParams: new { anyname = new Cursor(), othername = 0 });
             Assert.AreEqual(42, itemCursorMix.othername);
-            Assert.AreEqual(typeof(string), itemCursorMix.anyname.GetType()); // NB PostgreSql ref cursors return as string
+            Assert.AreEqual(typeof(Cursor), itemCursorMix.anyname.GetType());
+            Assert.AreEqual(typeof(string), ((Cursor)itemCursorMix.anyname).CursorRef.GetType()); // NB PostgreSql ref cursors return as string
         }
 
         [Test]
@@ -335,7 +336,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
                 using(var trans = conn.BeginTransaction())
                 {
                     var cursors = db.ExecuteProcedure("cursorNByOne", outParams: new { c1 = new Cursor(), c2 = new Cursor() }, connection: conn);
-                    var cursor1 = db.QueryFromProcedure("fetch_next_ints_from_cursor", new { mycursor = new Cursor(cursors.c1) }, connection: conn);
+                    var cursor1 = db.QueryFromProcedure("fetch_next_ints_from_cursor", new { mycursor = cursors.c1 }, connection: conn);
                     int count1 = 0;
                     foreach(var item in cursor1)
                     {
@@ -344,7 +345,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
                         count1++;
                     }
                     Assert.AreEqual(1, count1);
-                    var cursor2 = db.QueryFromProcedure("fetch_next_ints_from_cursor", new { mycursor = new Cursor(cursors.c2) }, connection: conn);
+                    var cursor2 = db.QueryFromProcedure("fetch_next_ints_from_cursor", new { mycursor = cursors.c2 }, connection: conn);
                     int count2 = 0;
                     foreach(var item in cursor2)
                     {
@@ -369,7 +370,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
             using(var scope = new TransactionScope())
             {
                 var cursors = db.ExecuteProcedure("cursorNByOne", outParams: new { c1 = new Cursor(), c2 = new Cursor() });
-                var cursor1 = db.QueryFromProcedure("fetch_next_ints_from_cursor", new { mycursor = new Cursor(cursors.c1) });
+                var cursor1 = db.QueryFromProcedure("fetch_next_ints_from_cursor", new { mycursor = cursors.c1 });
                 int count1 = 0;
                 foreach(var item in cursor1)
                 {
@@ -378,7 +379,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
                     count1++;
                 }
                 Assert.AreEqual(1, count1);
-                var cursor2 = db.QueryFromProcedure("fetch_next_ints_from_cursor", new { mycursor = new Cursor(cursors.c2) });
+                var cursor2 = db.QueryFromProcedure("fetch_next_ints_from_cursor", new { mycursor = cursors.c2 });
                 int count2 = 0;
                 foreach(var item in cursor2)
                 {
@@ -457,10 +458,10 @@ namespace Mighty.Dynamic.Tests.PostgreSql
                 // cursors in PostgreSQL must share a transaction (not just a connection, as in Oracle)
                 using(var trans = conn.BeginTransaction())
                 {
-                    var result = db.ExecuteProcedure("lump", returnParams: new { cname = new Cursor() }, connection: conn);
+                    var result = db.ExecuteProcedure("lump", returnParams: new { cursor = new Cursor() }, connection: conn);
                     while(true)
                     {
-                        var fetchTest = db.QueryWithParams($@"FETCH {FetchSize} FROM ""{result.cname}""", connection: conn);
+                        var fetchTest = db.Query($@"FETCH {FetchSize} FROM ""{result.cursor.CursorRef}""", connection: conn);
                         int subcount = 0;
                         foreach(var item in fetchTest)
                         {
@@ -475,7 +476,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
                         }
                         batchCount++;
                     }
-                    db.Execute($@"CLOSE ""{result.cname}""", connection: conn);
+                    db.Execute($@"CLOSE ""{result.cursor.CursorRef}""", connection: conn);
                     trans.Commit();
                 }
             }
@@ -496,7 +497,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
             // Either of these will show big server-side buffers in PostrgeSQL logs (but will still pass)
             //db.AutoDereferenceFetchSize = -1; // FETCH ALL
             //db.AutoDereferenceFetchSize = 400000;
-            var fetchTest = db.QueryFromProcedure("lump", returnParams: new { cname = new Cursor() });
+            var fetchTest = db.QueryFromProcedure("lump", returnParams: new { cursor = new Cursor() });
             int count = 0;
             foreach(var item in fetchTest)
             {
@@ -514,7 +515,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
             // Either of these will show big server-side buffers in PostrgeSQL logs (but will still pass)
             //db.AutoDereferenceFetchSize = -1; // FETCH ALL
             //db.AutoDereferenceFetchSize = 400000;
-            var results = db.QueryMultipleFromProcedure("lump2", returnParams: new { cname = new Cursor() });
+            var results = db.QueryMultipleFromProcedure("lump2", returnParams: new { cursor = new Cursor() });
             int rcount = 0;
             foreach (var result in results)
             {

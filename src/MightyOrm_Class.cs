@@ -657,6 +657,7 @@ namespace Mighty
                 {
                     var name = Plugin.DeprefixParameterName(param.ParameterName, cmd);
                     var value = Plugin.GetValue(param);
+                    if (Plugin.IsCursor(param)) value = new Cursor(value);
                     resultDictionary.Add(name, value == DBNull.Value ? null : value);
                 }
             }
@@ -999,7 +1000,7 @@ namespace Mighty
                 {
                     // Placeholder cursor ref; we only need the value if passing in a cursor by value
                     // doesn't work on Postgres. (TO DO: What? Is this out of date?)
-                    if (!Plugin.SetCursor(p, ((Cursor)value).Value))
+                    if (!Plugin.SetCursor(p, ((Cursor)value).CursorRef))
                     {
                         throw new InvalidOperationException("ADO.NET provider does not support cursors");
                     }
