@@ -1050,6 +1050,10 @@ namespace Mighty
         /// <param name="pkFilter">Optional PK filter control</param>
         internal bool AddNamedParams(DbCommand cmd, object nameValuePairs, ParameterDirection direction = ParameterDirection.Input, PkFilter pkFilter = PkFilter.DoNotFilter)
         {
+            if (nameValuePairs is DbConnection)
+            {
+                throw new InvalidOperationException($"Object of type {nameof(DbConnection)} found instead of {direction.ToString().ToLowerInvariant()} parameters; you need to supply missing nulls or use the `connection:` named parameter to put your connection parameter in the right place");
+            }
             if (nameValuePairs == null)
             {
                 // We want to return quickly in this case

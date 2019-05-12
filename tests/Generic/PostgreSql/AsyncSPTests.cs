@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !NET40
+using System;
 using System.Data;
 using System.Dynamic;
 using System.Collections.Async;
@@ -40,7 +41,6 @@ namespace Mighty.Generic.Tests.PostgreSql
         }
 
 
-#if SYNC_ONLY && !NETCOREAPP
         [Test]
         public async Task DereferenceFromQuery_ManualWrapping()
         {
@@ -49,18 +49,22 @@ namespace Mighty.Generic.Tests.PostgreSql
             // so in this case we need to add the wrapping transaction manually (with TransactionScope or
             // BeginTransaction, see other examples in this file)
             int count = 0;
-            using (var scope = new TransactionScope())
+            using (var conn = await db.OpenConnectionAsync())
             {
-                var employees = await db.QueryAsync("SELECT * FROM cursor_employees()");
-                await employees.ForEachAsync(employee => {
-                    Console.WriteLine(employee.firstname + " " + employee.lastname);
-                    count++;
-                });
-                scope.Complete();
+                using (var trans = conn.BeginTransaction())
+                {
+                    var employees = await db.QueryAsync("SELECT * FROM cursor_employees()", conn);
+                    await employees.ForEachAsync(employee =>
+                    {
+                        Console.WriteLine(employee.firstname + " " + employee.lastname);
+                        count++;
+                    });
+                    trans.Commit();
+                }
             }
             Assert.AreEqual(9, count);
         }
-#endif
+
 
         [Test]
         public async Task DereferenceFromQuery_AutoWrapping()
@@ -77,3 +81,4 @@ namespace Mighty.Generic.Tests.PostgreSql
         }
     }
 }
+#endif

@@ -1,4 +1,4 @@
-﻿#if NET40 || NETSTANDARD2_0
+﻿#if NETSTANDARD2_0 // || NET40
 using System;
 using System.Collections.Generic;
 using System.Dynamic;

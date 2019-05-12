@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !NET40
+using System;
 using System.Data;
 using System.Dynamic;
 using System.Collections.Async;
@@ -225,7 +226,6 @@ namespace Mighty.Dynamic.Tests.PostgreSql
         }
 
 
-#if SYNC_ONLY && !NETCOREAPP
         [Test]
         public async Task DereferenceFromQuery_ManualWrapping()
         {
@@ -234,18 +234,22 @@ namespace Mighty.Dynamic.Tests.PostgreSql
             // so in this case we need to add the wrapping transaction manually (with TransactionScope or
             // BeginTransaction, see other examples in this file)
             int count = 0;
-            using (var scope = new TransactionScope())
+            using (var conn = await db.OpenConnectionAsync())
             {
-                var employees = await db.QueryAsync("SELECT * FROM cursor_employees()");
-                await employees.ForEachAsync(employee => {
-                    Console.WriteLine(employee.firstname + " " + employee.lastname);
-                    count++;
-                });
-                scope.Complete();
+                using (var trans = conn.BeginTransaction())
+                {
+                    var employees = await db.QueryAsync("SELECT * FROM cursor_employees()", conn);
+                    await employees.ForEachAsync(employee =>
+                    {
+                        Console.WriteLine(employee.firstname + " " + employee.lastname);
+                        count++;
+                    });
+                    //scope.Complete();
+                }
             }
             Assert.AreEqual(9, count);
         }
-#endif
+
 
         [Test]
         public async Task DereferenceFromQuery_AutoWrapping()
@@ -389,34 +393,37 @@ namespace Mighty.Dynamic.Tests.PostgreSql
             }
         }
 
-#if SYNC_ONLY && !NETCOREAPP
         [Test]
         public async Task InputCursors_TransactionScope()
         {
             var db = new SPTestsDatabase();
 
             // cursors in PostgreSQL must share a transaction (not just a connection, as in Oracle)
-            // to use TransactionScope with Npgsql, the connection string must include "Enlist=true;"
-            using (var scope = new TransactionScope())
+            using (var conn = await db.OpenConnectionAsync())
             {
-                var cursors = await db.ExecuteProcedureAsync("cursorNByOne", outParams: new { c1 = new Cursor(), c2 = new Cursor() });
-                var cursor1 = await db.QueryFromProcedureAsync("fetch_next_ints_from_cursor", new { mycursor = new Cursor(cursors.c1) });
-                int count1 = 0;
-                await cursor1.ForEachAsync(item => {
-                    Assert.AreEqual(11, item.myint1);
-                    Assert.AreEqual(22, item.myint2);
-                    count1++;
-                });
-                Assert.AreEqual(1, count1);
-                var cursor2 = await db.QueryFromProcedureAsync("fetch_next_ints_from_cursor", new { mycursor = new Cursor(cursors.c2) });
-                int count2 = 0;
-                await cursor2.ForEachAsync(item => {
-                    Assert.AreEqual(33, item.myint1);
-                    Assert.AreEqual(44, item.myint2);
-                    count2++;
-                });
-                Assert.AreEqual(1, count2);
-                scope.Complete();
+                using (var trans = conn.BeginTransaction())
+                {
+                    var cursors = await db.ExecuteProcedureAsync("cursorNByOne", outParams: new { c1 = new Cursor(), c2 = new Cursor() }, connection: conn);
+                    var cursor1 = await db.QueryFromProcedureAsync("fetch_next_ints_from_cursor", new { mycursor = new Cursor(cursors.c1) }, connection: conn);
+                    int count1 = 0;
+                    await cursor1.ForEachAsync(item =>
+                    {
+                        Assert.AreEqual(11, item.myint1);
+                        Assert.AreEqual(22, item.myint2);
+                        count1++;
+                    });
+                    Assert.AreEqual(1, count1);
+                    var cursor2 = await db.QueryFromProcedureAsync("fetch_next_ints_from_cursor", new { mycursor = new Cursor(cursors.c2) }, connection: conn);
+                    int count2 = 0;
+                    await cursor2.ForEachAsync(item =>
+                    {
+                        Assert.AreEqual(33, item.myint1);
+                        Assert.AreEqual(44, item.myint2);
+                        count2++;
+                    });
+                    Assert.AreEqual(1, count2);
+                    trans.Commit();
+                }
             }
         }
 
@@ -431,38 +438,44 @@ namespace Mighty.Dynamic.Tests.PostgreSql
             db.NpgsqlAutoDereferenceCursors = false; // for this instance only
 
             // cursors in PostgreSQL must share a transaction (not just a connection, as in Oracle)
-            // to use TransactionScope with Npgsql, the connection string must include "Enlist=true;"
-            using (var scope = new TransactionScope())
+            using (var conn = await db.OpenConnectionAsync())
             {
-                // Including a cursor param is optional and makes no difference, because Npgsql/PostgreSQL is lax about such things
-                // and we don't need to hint to Massive to do anything special 
-                var cursors = await db.QueryFromProcedureAsync("cursorOneByN"); //, outParams: new { abcdef = new Cursor() });
-                string[] cursor = new string[2];
-                int i = 0;
-                await cursors.ForEachAsync(item => {
-                    cursor[i++] = item.cursoronebyn;
-                });
-                Assert.AreEqual(2, i);
-                var cursor1 = await db.QueryFromProcedureAsync("fetch_next_ints_from_cursor", new { mycursor = new Cursor(cursor[0]) });
-                int count1 = 0;
-                await cursor1.ForEachAsync(item => {
-                    Assert.AreEqual(1, item.myint1);
-                    Assert.AreEqual(2, item.myint2);
-                    count1++;
-                });
-                Assert.AreEqual(1, count1);
-                var cursor2 = await db.QueryFromProcedureAsync("fetch_next_ints_from_cursor", new { mycursor = new Cursor(cursor[1]) });
-                int count2 = 0;
-                await cursor2.ForEachAsync(item => {
-                    Assert.AreEqual(3, item.myint1);
-                    Assert.AreEqual(4, item.myint2);
-                    count2++;
-                });
-                Assert.AreEqual(1, count2);
-                scope.Complete();
+
+                using (var trans = conn.BeginTransaction())
+                {
+                    // Including a cursor param is optional and makes no difference, because Npgsql/PostgreSQL is lax about such things
+                    // and we don't need to hint to Massive to do anything special 
+                    var cursors = await db.QueryFromProcedureAsync("cursorOneByN", connection: conn); //, outParams: new { abcdef = new Cursor() });
+                    string[] cursor = new string[2];
+                    int i = 0;
+                    await cursors.ForEachAsync(item =>
+                    {
+                        cursor[i++] = item.cursoronebyn;
+                    });
+                    Assert.AreEqual(2, i);
+                    var cursor1 = await db.QueryFromProcedureAsync("fetch_next_ints_from_cursor", new { mycursor = new Cursor(cursor[0]) }, connection: conn);
+                    int count1 = 0;
+                    await cursor1.ForEachAsync(item =>
+                    {
+                        Assert.AreEqual(1, item.myint1);
+                        Assert.AreEqual(2, item.myint2);
+                        count1++;
+                    });
+                    Assert.AreEqual(1, count1);
+                    var cursor2 = await db.QueryFromProcedureAsync("fetch_next_ints_from_cursor", new { mycursor = new Cursor(cursor[1]) }, connection: conn);
+                    int count2 = 0;
+                    await cursor2.ForEachAsync(item =>
+                    {
+                        Assert.AreEqual(3, item.myint1);
+                        Assert.AreEqual(4, item.myint2);
+                        count2++;
+                    });
+                    Assert.AreEqual(1, count2);
+                    trans.Commit();
+                }
             }
         }
-#endif
+
 
         // Temporarily commenting out large cursor tests
 #if true
@@ -617,3 +630,4 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 #endif
     }
 }
+#endif

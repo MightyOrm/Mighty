@@ -8,18 +8,18 @@ using System.Reflection;
 
 using Mighty.Profiling;
 
-#if NET40
+#if false //NET40
 // NB This CAN be loaded from NuGet pre-release package by name (currently SqlProfiler v0.0.1-alpha3),
 // or from co-loaded project.
 using SqlProfiler;
+using MightyTests.SOTests;
 #endif
 
 using MightyTests;
-using MightyTests.SOTests;
 
 namespace Mighty.Generic.Tests.NUnit.ConsoleRunner
 {
-#if NET40
+#if false //NET40
     /// <summary>
     /// Make a simple link between <see cref="Mighty.Profiling.SqlProfiler"/> and <see cref="SqlProfiler.SimpleCommandWrapper"/>.
     /// </summary>
@@ -38,7 +38,7 @@ namespace Mighty.Generic.Tests.NUnit.ConsoleRunner
 
     class Program
     {
-#if NET40
+#if false //NET40
         static public void SOSubTest(dynamic da, dynamic db)
         {
             Console.WriteLine(da.Foo());
