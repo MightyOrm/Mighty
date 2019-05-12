@@ -22,14 +22,14 @@ Here is a list of those items which won't compile directly against former Massiv
 
 ## Table meta-data
 
-- `Schema` is now called `TableMetaData` (the word 'schema' was potentially misleading on those DB systems where it also means something like 'namespace')
+- `Schema` is now called `TableMetaData` (the word 'schema' for table meta data was potentially misleading on those databases where a table's schema already means something like 'owner', or 'namespace')
 - `DefaultValue(columnName)` is now called `GetColumnDefault(columnName)`
 - `Prototype` is replaced by `New()`
 - `CreateFrom(collection)` is replaced by `NewFrom(obj)` (where `obj` can be a `NameValueCollection` as before, but now can also be any other sensible way of specifying a name-value set)
 
 ## Validation
 
-- Automatic pre-validation before CRUD actions is off by default in Mighty, set `PrevalidationType = Prevalidation.Full` (or `Prevalidation.Lazy`) on your validator class to enable it
+- Automatic pre-validation before [CRUD actions](crud-actions) (save, insert, update, delete) is off by default in Mighty, set `PrevalidationType = Prevalidation.Full` (or `Prevalidation.Lazy`) on your validator class to enable it
 - All validation is now done via overridable methods in the `Mighty.Validation.Validator` class, not in the `MightyOrm` class itself. If you need validation you should create your own `Validator` subclass, overriding the methods which you need, and pass an instance of it to the constructor of `MightyOrm`
 - `IsValid(item)` now returns a `List<object>` of errors (this is intentionally a `List`, not an `IList`). Each object is one error; the error objects are typically strings, but you get to decide this in your validation class. So `db.IsValid(item).Errors.Count == 0` checks for no errors (and `IsValid` can return the reported errors immediately, without storing them in a shared variable which might potentially be overwritten by other calls to the same instance of Mighty)
   - As in Massive, you may well not be calling `IsValid(item)` directly anyway, since validation is called automatically during CRUD operations
@@ -50,7 +50,7 @@ Here is a list of those items which won't compile directly against former Massiv
 
 ## Dynamic Methods
 
-Massive had various useful, but effectively rather well-hidden methods, which were supported only dynamically, i.e. the named methods and arguments didn't 'really' exist, but were all processed by a dynamic method provider.
+Massive had various useful, but effectively rather well-hidden methods, which were supported only dynamically, i.e. the named methods and arguments didn't 'really' exist, but were all processed by a dynamic method handler.
 
 These methods were useful, but having dynamic methods adds a slight overhead to *every* call to Massive (even if it's not stored in a dynamic variable), and more importantly there is no Intellisense at all (so the fact that the methods exist is invisible, and there is no information about what the methods and their arguments do). So, although early versions of Mighty *did* support these methods, they have now all been turned into normal instance methods.
 
