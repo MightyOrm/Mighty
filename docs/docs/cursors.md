@@ -12,7 +12,7 @@ nav_order: 12
 
 ## Using Cursors in Mighty
 
-Of the five databases which Mighty [currently supports](supported-databases) four of these (all except SQLite) have cursors, but only two of those (Oracle and Postgresql) support passing cursors out to client code. On those two databases, Mighty fully supports working with cursors.
+Of the five databases which Mighty [currently supports](supported-databases) four of these (all except SQLite) have cursors, but only two of those (Oracle and PostgreSQL) support passing cursors out to client code. On those two databases, Mighty fully supports working with cursors.
 
 Cursors are created and referenced using the Mighty `Cursor` class, as in the examples below.
 
@@ -146,4 +146,4 @@ foreach (var employee in employees)
 - If you need to, you can turn off Npgsql automatic cursor dereferencing by setting `NpgsqlAutoDereferenceCursors` to false
 - But note that (as in Oracle) using `Execute` instead of `Query` will let you get at the raw (non-dereferenced) cursors even when dereferencing is on
 
-> You do not need to manually create a transaction for Npgsql automatic cursor dereferencing, Mighty does this for you. It will re-use the existing transaction if one is present (on the current `DbConnection` if you passed one in; or via `TransactionScope`, on .NET Framework only).
+> You do not need to manually create a transaction for Npgsql automatic cursor dereferencing, Mighty does this for you, if necessary, and will use the existing transaction if one is already present (on the current `DbConnection` if you passed one in, or on the current `TransactionScope` in .NET Framework).
