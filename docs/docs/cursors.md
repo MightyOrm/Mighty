@@ -84,7 +84,7 @@ using (var conn = db.OpenConnection())
         var result = db.ExecuteProcedure("get_cursor", returnParams: new { o_cursor = new Cursor() }, connection: conn);
         while (true)
         {
-            var fetchResults = db.Query($"FETCH {FetchSize} FROM \{result.cursor.CursorRef}\", connection: conn);
+            var fetchResults = db.Query($"FETCH {FetchSize} FROM \"{result.cursor.CursorRef}\", connection: conn);
             int subcount = 0;
             foreach (var item in fetchResults)
             {
