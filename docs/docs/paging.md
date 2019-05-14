@@ -39,10 +39,10 @@ If you need to, still without having to write the full paging query, you can spe
 ```c#
 var db = new MightyOrm(connectionString);
 var page = db.PagedFromSelect(
-	"Employee e INNER JOIN Department d ON e.DepartmentID = d.DepartmentID", // could have just been a table name!
-	"e.EmployeeID", // order by
-	"e.EmployeeID, e.GivenName, e.FamilyName, d.Name AS DepartmentName", // columns
-	"e.FamilyName = @0", // OPTIONAL WHERE spec
-	currentPage: 3, pageSize: 20, // page specs (defaults are 1 and 20)
-	args: "Smith"); // OPTIONAL args for WHERE spec
+    "Employee e INNER JOIN Department d ON e.DepartmentID = d.DepartmentID", // could have just been a table name!
+    "e.EmployeeID", // order by
+    "e.EmployeeID, e.GivenName, e.FamilyName, d.Name AS DepartmentName", // columns
+    "e.FamilyName = @0", // OPTIONAL WHERE spec
+    currentPage: 3, pageSize: 20, // page specs (defaults are 1 and 20)
+    args: "Smith"); // OPTIONAL args for WHERE spec
 ```

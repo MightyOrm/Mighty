@@ -17,9 +17,9 @@ Like Massive, Mighty supports passing simple auto-numbered parameters using the 
 ```c#
 var db = new MightyOrm(connectionString);
 var salesSmiths = db.Query(
-	"SELECT * FROM Employees e WHERE e.FamilyName = @0 AND e.DepartmentID = @1",
-	"Smith",
-	SalesID);
+    "SELECT * FROM Employees e WHERE e.FamilyName = @0 AND e.DepartmentID = @1",
+    "Smith",
+    SalesID);
 ```
 
 You could have added as many arguments as you need at the end of this, simply separating them by commas.
@@ -29,8 +29,8 @@ If you have used C# named parameters before you get to the optional `args` then 
 ```c#
 var employees = new MightyOrm(connectionString, "Employees");
 var salesSmiths = employees.All(
-	where: "e.FamilyName = @0 AND e.DepartmentID = @1",
-	args: new object[] { "Smith", SalesID });
+    where: "e.FamilyName = @0 AND e.DepartmentID = @1",
+    args: new object[] { "Smith", SalesID });
 ```
 
 Though it is a feature of C# not of Mighty, it is worth noting that when passing a single argument after named params this can be simplified to:
@@ -38,8 +38,8 @@ Though it is a feature of C# not of Mighty, it is worth noting that when passing
 ```c#
 var employees = new MightyOrm(connectionString, "Employees");
 var smiths = employees.All(
-	where: "e.FamilyName = @0",
-	args: "Smith");
+    where: "e.FamilyName = @0",
+    args: "Smith");
 ```
 
 > Whether to use `@0`, `@1`, etc. or `:0`, `:1`, etc. for auto-numbered parameters [depends on the database](supported-databases): use `:0`, etc. for Oracle and PostgreSQL, and `@0`, etc. for everything else.
@@ -53,15 +53,15 @@ For example:
 ```c#
 var db = new MightyOrm(connectionString);
 var result = db.ExecuteProcedure(
-	"rewards_report_for_date",
-	inParams: new {
-		min_monthly_purchases = 3,
-		min_dollar_amount_purchased = 20,
-		report_date = new DateTime(2015, 5, 1)
-	},
-	outParams: new {
-		count_rewardees = 0
-	});
+    "rewards_report_for_date",
+    inParams: new {
+        min_monthly_purchases = 3,
+        min_dollar_amount_purchased = 20,
+        report_date = new DateTime(2015, 5, 1)
+    },
+    outParams: new {
+        count_rewardees = 0
+    });
 Console.WriteLine(result.count_rewardees);
 ```
 
@@ -70,9 +70,9 @@ This is especially useful for stored procedures, but can also be used with arbit
 ```c#
 var db = new MightyOrm(connectionString);
 dynamic result = db.ExecuteWithParams(
-	"set @a = @b + 1",
-	inParams: new { b = 1233 },
-	outParams: new { a = 0 });
+    "set @a = @b + 1",
+    inParams: new { b = 1233 },
+    outParams: new { a = 0 });
 Assert.AreEqual(1234, result.a);
 ```
 
