@@ -111,6 +111,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\SqlProfiler\SqlProfiler.csproj" />
     <ProjectReference Include="..\src\Mighty.csproj" />
   </ItemGroup>
 

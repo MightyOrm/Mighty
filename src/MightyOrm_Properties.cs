@@ -25,12 +25,22 @@ namespace Mighty
         /// <summary>
         /// Should we auto-dereference cursors when using the Npgsql ADO.NET driver? (See Mighty documentation.)
         /// </summary>
-        override public bool NpgsqlAutoDereferenceCursors { get; set; } = true;
+        override public bool NpgsqlAutoDereferenceCursors { get; set; }
+
+        /// <summary>
+        /// Allows setting a global value for whether to auto-dereference cursors when using the Npgsql ADO.NET driver. (See Mighty documentation.)
+        /// </summary>
+        static public bool? GlobalNpgsqlAutoDereferenceCursors { get; set; }
 
         /// <summary>
         /// How many rows at a time should we fetch if auto-dereferencing cursors on the Npgsql ADO.NET driver? (Default value 10,000.) (See Mighty documentation.)
         /// </summary>
-        override public int NpgsqlAutoDereferenceFetchSize { get; set; } = 10000;
+        override public int NpgsqlAutoDereferenceFetchSize { get; set; }
+
+        /// <summary>
+        /// Allows setting a global value for how many rows at a time to fetch if auto-dereferencing cursors on the Npgsql ADO.NET driver. (Default value 10,000.) (See Mighty documentation.)
+        /// </summary>
+        static public int? GlobalNpgsqlAutoDereferenceFetchSize { get; set; }
         #endregion
 
         #region Properties

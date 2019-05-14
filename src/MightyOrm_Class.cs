@@ -255,14 +255,21 @@ namespace Mighty
                          DataProfiler xprofiler,
                          ConnectionProvider connectionProvider)
         {
-            // Slightly hacky, works round the fact that static items are not shared between differently typed classes of the same generic type:
-            // use passed-in item; followed by global item for this particular generic class (if specified); followed by global item for the dynamic class
-            // (which is intended to be the place you should use, if specifying one of these globally), followed by null object.
-            // (A null connectionString still makes sense in .NET Framework, where ConfigFileConnectionProvider will then use the first user connectionString from app.Config)
+            // Use the passed in item, followed by the user global default for the specific generic type, followed by
+            // the user global default for untyped Mighty, followed by the default default.
+            // (The second and third of these refer to the same value for dynamically typed Mighty, but not for generically typed Mighty.)
+            // A null connectionString still makes sense in .NET Framework, where ConfigFileConnectionProvider will then
+            // use the first user connection string from the .config file.
             string intialConnectionString = xconnectionString ?? GlobalConnectionString ?? MightyOrm.GlobalConnectionString ?? null;
             Validator = xvalidator ?? GlobalValidator ?? MightyOrm.GlobalValidator ?? new NullValidator();
             DataProfiler = xprofiler ?? GlobalDataProfiler ?? MightyOrm.GlobalDataProfiler ?? new DataProfiler();
             SqlNamingMapper = xmapper ?? GlobalSqlNamingMapper ?? MightyOrm.GlobalSqlNamingMapper ?? new SqlNamingMapper();
+
+            // Use the user global default for the specific generic type, followed by the user global default for untyped Mighty,
+            // followed by the default default.
+            // Note that these are not passed in to the constructor, but unlike the above four these two do have public setters.
+            NpgsqlAutoDereferenceCursors = GlobalNpgsqlAutoDereferenceCursors ?? MightyOrm.GlobalNpgsqlAutoDereferenceCursors ?? true;
+            NpgsqlAutoDereferenceFetchSize = GlobalNpgsqlAutoDereferenceFetchSize ?? MightyOrm.GlobalNpgsqlAutoDereferenceFetchSize ?? 10000;
 
             SetupConnection(intialConnectionString, connectionProvider);
 
