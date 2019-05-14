@@ -29,8 +29,13 @@ namespace MightyTests.Profiling
                 (method, command, behavior) =>
                 {
 #if DEBUG
+#if NET40
+                    Console.WriteLine("-----");
+                    Console.WriteLine(command.CommandText);
+#else
                     Debug.WriteLine("-----");
                     Debug.WriteLine(command.CommandText);
+#endif
 #endif
                     DbCommandMethodCounts[method]++;
                 });
