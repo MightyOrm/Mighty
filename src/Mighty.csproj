@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard1.6;netstandard2.0;netcoreapp3.0;net40;net45</TargetFrameworks>
 	<PackageId>Mighty</PackageId>
-    <Version>3.0.4-beta-3</Version>
+    <Version>3.0.4</Version>
     <Authors>Mike Beaton</Authors>
     <Owners>MightyOrm</Owners>
     <Description>A new small, happy, dynamic micro-ORM and general purpose .NET data access wrapper.
@@ -17,8 +17,6 @@ Based on and highly compatible with Massive, but now with:
 * Cursors (on Oracle and PostgreSQL; cursors are not designed to be passed out to client code on other databases)
 * Multiple result sets
 * Simultaneous access to more then one database provider
-
-Beta version.	
 </Description>
     <PackageIconUrl>https://avatars3.githubusercontent.com/u/26790220?v=3&amp;s=200</PackageIconUrl>
     <Copyright>Copyright (c) 2017-2019 Mike Beaton</Copyright>
