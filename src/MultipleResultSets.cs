@@ -15,6 +15,11 @@ namespace Mighty
     {
         private IEnumerable<EnumerableResultSet<T>> _wrapped;
 
+        /// <summary>
+        /// Has this been disposed (or not yet accessed)?
+        /// </summary>
+        public bool IsDisposed { get { return _wrapped == null; } }
+
         private IEnumerator<EnumerableResultSet<T>> _enumerator;
         private IEnumerator<EnumerableResultSet<T>> enumerator
         {
@@ -32,6 +37,10 @@ namespace Mighty
         /// <param name="wrapped"></param>
         internal MultipleResultSets(IEnumerable<EnumerableResultSet<T>> wrapped)
         {
+            if (!(wrapped is IDisposable))
+            {
+                throw new Exception($"{nameof(MultipleResultSets<T>)} cannot wrap non-disposable {nameof(IEnumerable<T>)}");
+            }
             _wrapped = wrapped;
         }
 
@@ -63,7 +72,11 @@ namespace Mighty
         /// </summary>
         public void Dispose()
         {
-            do { } while (NextResultSet());
+            if (_wrapped != null)
+            {
+                ((IDisposable)_wrapped).Dispose();
+                _wrapped = null;
+            }
         }
 
         /// <summary>

@@ -85,29 +85,37 @@ namespace Mighty.Generic.Tests.SqlServer
         {
             var db = new MightyOrm(TestConstants.ReadTestConnection);
             int[] counts = new int[2];
-            using (var twoSets = db.QueryMultiple("select 1 as a, 2 as b; select 3 as c, 4 as d;"))
+            MultipleResultSets<dynamic> twoSets;
+            EnumerableResultSet<dynamic> set1;
+            using (twoSets = db.QueryMultiple("select 1 as a, 2 as b; select 3 as c, 4 as d;"))
             {
-                twoSets.NextResultSet();
-                foreach (var item in twoSets.CurrentResultSet.ResultsAs<myAb>())
+                Assert.True(twoSets.NextResultSet());
+                set1 = twoSets.CurrentResultSet;
+                foreach (var item in set1.ResultsAs<myAb>())
                 {
                     Assert.AreEqual(1, item.a);
                     Assert.AreEqual(2, item.b);
                     counts[0]++;
                 }
             }
+            Assert.True(set1.IsDisposed);
+            Assert.True(twoSets.IsDisposed);
             Assert.AreEqual(1, counts[0]);
             Assert.AreEqual(0, counts[1]);
         }
 
         [Test]
-        public void QueryMultiple_OnlyFirstResult_DisposesCorrectly()
+        public void QueryMultiple_OnlyFirstRow_DisposesCorrectly()
         {
             var db = new MightyOrm(TestConstants.ReadTestConnection);
             int[] counts = new int[2];
-            using (var twoSets = db.QueryMultiple("select 1 as a, 2 as b; select 3 as c, 4 as d;"))
+            MultipleResultSets<dynamic> twoSets;
+            EnumerableResultSet<dynamic> set1;
+            using (twoSets = db.QueryMultiple("select 1 as a, 2 as b; select 3 as c, 4 as d;"))
             {
-                twoSets.NextResultSet();
-                foreach (var item in twoSets.CurrentResultSet.ResultsAs<myAb>())
+                Assert.True(twoSets.NextResultSet());
+                set1 = twoSets.CurrentResultSet;
+                foreach (var item in set1.ResultsAs<myAb>())
                 {
                     Assert.AreEqual(1, item.a);
                     Assert.AreEqual(2, item.b);
@@ -115,6 +123,8 @@ namespace Mighty.Generic.Tests.SqlServer
                     break;
                 }
             }
+            Assert.True(set1.IsDisposed);
+            Assert.True(twoSets.IsDisposed);
             Assert.AreEqual(1, counts[0]);
             Assert.AreEqual(0, counts[1]);
         }

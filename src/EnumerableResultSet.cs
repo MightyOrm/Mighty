@@ -18,15 +18,21 @@ namespace Mighty
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <remarks>
-    /// I am pretty sure this doesn't need to implement <see cref="IDisposable"/>, because it is only ever used
-    /// via foreach, and foreach will dispose of things for us. (See towards then end of
-    /// https://blogs.msdn.microsoft.com/dancre/2008/03/15/yield-and-usings-your-dispose-may-not-be-called/ .)
-    /// TO DO: Test
+    /// Any yield return <see cref="IEnumerable"/> implements <see cref="IDisposable"/>, and we need to make
+    /// sure we call that too, since we are wrapping it.
+    /// https://blogs.msdn.microsoft.com/dancre/2008/03/15/yield-and-usings-your-dispose-may-not-be-called/
     /// </remarks>
-    public sealed class EnumerableResultSet<T> : IEnumerable<T> where T : class, new()
+    public sealed class EnumerableResultSet<T> : IEnumerable<T>, IDisposable where T : class, new()
     {
         private DbConnection _connection;
         private DbDataReader _outerReader;
+
+        private IDisposable _results;
+
+        /// <summary>
+        /// Has this been disposed (or not yet accessed)?
+        /// </summary>
+        public bool IsDisposed { get { return _results == null; } }
 
         /// <summary>
         /// The parent instance of <see cref="MightyOrm{T}"/>
@@ -66,7 +72,9 @@ namespace Mighty
         /// <returns></returns>
         public IEnumerable<T> Results()
         {
-            return MightyInstance.QueryNWithParams<T>(null, (CommandBehavior)(-1), _connection, _outerReader);
+            IEnumerable<T> retval = MightyInstance.QueryNWithParams<T>(null, (CommandBehavior)(-1), _connection, _outerReader);
+            _results = (IDisposable)retval;
+            return retval;
         }
 
         /// <summary>
@@ -108,12 +116,26 @@ namespace Mighty
                             MightyInstance.ConnectionString,
                             MightyInstance.Factory,
                             MightyInstance.Plugin.GetType()));
-            return mightyT2.QueryNWithParams<T2>(null, (CommandBehavior)(-1), _connection, _outerReader);
+            IEnumerable<T2> retval = mightyT2.QueryNWithParams<T2>(null, (CommandBehavior)(-1), _connection, _outerReader);
+            _results = (IDisposable)retval;
+            return retval;
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
             return Results().GetEnumerator();
+        }
+
+        /// <summary>
+        /// Clean up and dispose of everything
+        /// </summary>
+        public void Dispose()
+        {
+            if (_results != null)
+            {
+                _results.Dispose();
+                _results = null;
+            }
         }
     }
 }
