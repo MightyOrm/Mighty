@@ -853,7 +853,7 @@ namespace Mighty.Interfaces
         /// <param name="connection">Optional conneciton to use</param>
         /// <param name="outerReader">The outer reader when this is a call to the inner reader in QueryMultiple</param>
         /// <returns></returns>
-        abstract protected Task<IAsyncEnumerable<X>> QueryNWithParamsAsync<X>(DbCommand command, CancellationToken cancellationToken = default, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, DbDataReader outerReader = null);
+        abstract protected internal Task<IAsyncEnumerable<X>> QueryNWithParamsAsync<X>(DbCommand command, CancellationToken cancellationToken = default, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, DbDataReader outerReader = null);
         #endregion
 
         #region Table specific methods

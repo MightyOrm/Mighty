@@ -327,13 +327,13 @@ namespace Mighty
         /// <summary>
         /// Yield return values for single or multiple resultsets.
         /// </summary>
-        /// <typeparam name="X">Use with <typeparamref name="T"/> for single or <see cref="IEnumerable{T}"/> for multiple</typeparam>
+        /// <typeparam name="X">Use with <typeparamref name="T"/> for single or <see cref="EnumerableResultSet{T}"/> for multiple</typeparam>
         /// <param name="command">The command to execute</param>
         /// <param name="behavior">The command behaviour</param>
         /// <param name="connection">Optional conneciton to use</param>
         /// <param name="outerReader">The outer reader when this is a call to the inner reader in QueryMultiple</param>
         /// <returns></returns>
-        override protected IEnumerable<X> QueryNWithParams<X>(DbCommand command, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, DbDataReader outerReader = null)
+        override protected internal IEnumerable<X> QueryNWithParams<X>(DbCommand command, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, DbDataReader outerReader = null)
         {
             using (command)
             {
@@ -360,14 +360,14 @@ namespace Mighty
                     {
                         using (var reader = (outerReader == null ? Plugin.ExecuteDereferencingReader(command, behavior, connection ?? localConn) : null))
                         {
-                            if (typeof(X) == typeof(IEnumerable<T>))
+                            if (typeof(X) == typeof(EnumerableResultSet<T>))
                             {
                                 // query multiple pattern
                                 do
                                 {
                                     // cast is required because compiler doesn't see that we've just checked that X is IEnumerable<T>
                                     // first three params carefully chosen so as to avoid lots of checks about outerReader in the code above in this method
-                                    yield return (X)QueryNWithParams<T>(null, (CommandBehavior)(-1), connection ?? localConn, reader);
+                                    yield return (X)((IEnumerable<T>)new EnumerableResultSet<T>(this, connection ?? localConn, reader));
                                 }
                                 while (reader.NextResult());
                             }

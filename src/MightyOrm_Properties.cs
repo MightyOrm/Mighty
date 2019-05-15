@@ -52,7 +52,7 @@ namespace Mighty
         /// <summary>
         /// ADO.NET provider factory
         /// </summary>
-        protected DbProviderFactory Factory { get; set; } // when public, was protected set
+        protected internal DbProviderFactory Factory { get; protected set; }
 
         /// <summary>
         /// Plugin

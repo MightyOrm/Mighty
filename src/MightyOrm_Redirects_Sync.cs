@@ -194,10 +194,10 @@ namespace Mighty
         /// <param name="command">The command to execute</param>
         /// <param name="connection">The connection to use</param>
         /// <returns></returns>
-        override public IEnumerable<IEnumerable<T>> QueryMultiple(DbCommand command,
+        override public MultipleResultSets<T> QueryMultiple(DbCommand command,
             DbConnection connection = null)
         {
-            return QueryNWithParams<IEnumerable<T>>(command: command, connection: connection);
+            return new MultipleResultSets<T>(QueryNWithParams<EnumerableResultSet<T>>(command: command, connection: connection));
         }
 
         /// <summary>
@@ -209,10 +209,10 @@ namespace Mighty
         /// <remarks>
         /// 'Easy-calling' version, optional args straight after SQL.
         /// </remarks>
-        override public IEnumerable<IEnumerable<T>> QueryMultiple(string sql,
+        override public MultipleResultSets<T> QueryMultiple(string sql,
             params object[] args)
         {
-            return QueryNWithParams<IEnumerable<T>>(sql, args: args);
+            return new MultipleResultSets<T>(QueryNWithParams<EnumerableResultSet<T>>(sql, args: args));
         }
 
         /// <summary>
@@ -222,11 +222,11 @@ namespace Mighty
         /// <param name="connection">The connection to use</param>
         /// <param name="args">Auto-numbered parameter values for SQL</param>
         /// <returns></returns>
-        override public IEnumerable<IEnumerable<T>> QueryMultiple(string sql,
+        override public MultipleResultSets<T> QueryMultiple(string sql,
             DbConnection connection,
             params object[] args)
         {
-            return QueryNWithParams<IEnumerable<T>>(sql, connection: connection, args: args);
+            return new MultipleResultSets<T>(QueryNWithParams<EnumerableResultSet<T>>(sql, connection: connection, args: args));
         }
 
         /// <summary>
@@ -240,14 +240,14 @@ namespace Mighty
         /// <param name="connection">The connection to use</param>
         /// <param name="args">Auto-numbered parameter values for SQL</param>
         /// <returns></returns>
-        override public IEnumerable<IEnumerable<T>> QueryMultipleWithParams(string sql,
+        override public MultipleResultSets<T> QueryMultipleWithParams(string sql,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
             params object[] args)
         {
-            return QueryNWithParams<IEnumerable<T>>(sql,
+            return new MultipleResultSets<T>(QueryNWithParams<EnumerableResultSet<T>>(sql,
                 inParams, outParams, ioParams, returnParams,
-                connection: connection, args: args);
+                connection: connection, args: args));
         }
 
         /// <summary>
@@ -261,15 +261,15 @@ namespace Mighty
         /// <param name="returnParams">Named return parameters</param>
         /// <param name="args">Auto-numbered input parameters</param>
         /// <returns></returns>
-        override public IEnumerable<IEnumerable<T>> QueryMultipleFromProcedure(string spName,
+        override public MultipleResultSets<T> QueryMultipleFromProcedure(string spName,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
             params object[] args)
         {
-            return QueryNWithParams<IEnumerable<T>>(spName,
+            return new MultipleResultSets<T>(QueryNWithParams<EnumerableResultSet<T>>(spName,
                 inParams, outParams, ioParams, returnParams,
                 isProcedure: true,
-                connection: connection, args: args);
+                connection: connection, args: args));
         }
 
         /// <summary>
@@ -457,7 +457,7 @@ namespace Mighty
         /// <summary>
         /// Yield return values for single or multiple resultsets.
         /// </summary>
-        /// <typeparam name="X">Use with <typeparamref name="T"/> for single or <see cref="IEnumerable{T}"/> for multiple</typeparam>
+        /// <typeparam name="X">Use with <typeparamref name="T"/> for single or <see cref="EnumerableResultSet{T}"/> for multiple</typeparam>
         /// <param name="sql">The command SQL</param>
         /// <param name="inParams">Named input parameters</param>
         /// <param name="outParams">Named output parameters</param>

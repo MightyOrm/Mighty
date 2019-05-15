@@ -552,7 +552,7 @@ namespace Mighty
         /// <param name="connection">Optional conneciton to use</param>
         /// <param name="outerReader">The outer reader when this is a call to the inner reader in QueryMultiple</param>
         /// <returns></returns>
-        override protected async Task<IAsyncEnumerable<X>> QueryNWithParamsAsync<X>(DbCommand command, CancellationToken cancellationToken = default, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, DbDataReader outerReader = null)
+        override protected internal async Task<IAsyncEnumerable<X>> QueryNWithParamsAsync<X>(DbCommand command, CancellationToken cancellationToken = default, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, DbDataReader outerReader = null)
         {
             return new AsyncEnumerable<X>(async yield => {
                 using (command)

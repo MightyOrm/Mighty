@@ -14,7 +14,7 @@ using Mighty.Validation;
 // </summary>
 namespace Mighty.Interfaces
 {
-    abstract public partial class MightyOrmAbstractInterface<T>
+    abstract public partial class MightyOrmAbstractInterface<T> where T : class, new()
     {
         // 'Interface' for the general purpose data access wrapper methods (i.e. the ones which can be used
         // even if no table has been specified).
@@ -162,7 +162,7 @@ namespace Mighty.Interfaces
         /// <param name="command">The command to execute</param>
         /// <param name="connection">The connection to use</param>
         /// <returns></returns>
-        abstract public IEnumerable<IEnumerable<T>> QueryMultiple(DbCommand command,
+        abstract public MultipleResultSets<T> QueryMultiple(DbCommand command,
             DbConnection connection = null);
 
         /// <summary>
@@ -174,7 +174,7 @@ namespace Mighty.Interfaces
         /// <remarks>
         /// 'Easy-calling' version, optional args straight after SQL.
         /// </remarks>
-        abstract public IEnumerable<IEnumerable<T>> QueryMultiple(string sql,
+        abstract public MultipleResultSets<T> QueryMultiple(string sql,
             params object[] args);
 
         /// <summary>
@@ -184,7 +184,7 @@ namespace Mighty.Interfaces
         /// <param name="connection">The connection to use</param>
         /// <param name="args">Auto-numbered parameter values for SQL</param>
         /// <returns></returns>
-        abstract public IEnumerable<IEnumerable<T>> QueryMultiple(string sql,
+        abstract public MultipleResultSets<T> QueryMultiple(string sql,
             DbConnection connection,
             params object[] args);
 
@@ -199,7 +199,7 @@ namespace Mighty.Interfaces
         /// <param name="connection">The connection to use</param>
         /// <param name="args">Auto-numbered parameter values for SQL</param>
         /// <returns></returns>
-        abstract public IEnumerable<IEnumerable<T>> QueryMultipleWithParams(string sql,
+        abstract public MultipleResultSets<T> QueryMultipleWithParams(string sql,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
             params object[] args);
@@ -215,7 +215,7 @@ namespace Mighty.Interfaces
         /// <param name="returnParams">Named return parameters</param>
         /// <param name="args">Auto-numbered input parameters</param>
         /// <returns></returns>
-        abstract public IEnumerable<IEnumerable<T>> QueryMultipleFromProcedure(string spName,
+        abstract public MultipleResultSets<T> QueryMultipleFromProcedure(string spName,
             object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
             DbConnection connection = null,
             params object[] args);
@@ -399,7 +399,7 @@ namespace Mighty.Interfaces
         /// <param name="connection">Optional conneciton to use</param>
         /// <param name="outerReader">The outer reader when this is a call to the inner reader in QueryMultiple</param>
         /// <returns></returns>
-        abstract protected IEnumerable<X> QueryNWithParams<X>(DbCommand command, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, DbDataReader outerReader = null);
+        abstract protected internal IEnumerable<X> QueryNWithParams<X>(DbCommand command, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, DbDataReader outerReader = null);
         #endregion
 
         #region Table specific methods
