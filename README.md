@@ -1,4 +1,4 @@
-# Mighty
+# Mighty [![NuGet](https://img.shields.io/nuget/v/Mighty.svg)](https://nuget.org/packages/Mighty)
 
 [DOCUMENTATION](https://mightyorm.github.io/Mighty/)
 
