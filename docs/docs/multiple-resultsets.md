@@ -6,7 +6,6 @@ nav_order: 7
 
 # Multiple Resultsets
 
-
 Hot off the press!
 
 We now properly support strongly typed multiple result sets:
