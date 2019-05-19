@@ -118,7 +118,7 @@ db.ExecuteAsProcedure("cursor_in_out.process_cursor",
 
 Oracle ADO.NET provider for .NET automatically supports cursor dereferencing: when you query from a result set which contains cursors, what you actually get back is multiple result sets, once for each cursor.
 
-Npgsql for PostgreSQL used to (only partially) support this, but currently no longer does; though this [may be brought back shortly](https://github.com/npgsql/npgsql/issues/1785). In the mean time, if you need this, it is fully supported in Mighty! This is potentially very useful since it makes it possible to return multiple resultsets from stored procedures in PostgreSQL. It is not the most efficient way to pass result sets on PostrgeSQL. But it is the only way to pass multiple result sets, and it is simple to set up and easy to code against!
+Npgsql for PostgreSQL used to (only partially) support this, but [currently no longer does](https://github.com/npgsql/npgsql/issues/1785). In the mean time, if you need this, it is fully supported in Mighty! This is potentially very useful since it makes it possible to return multiple resultsets from stored procedures in PostgreSQL. It is not the most efficient way to pass result sets on PostrgeSQL. But it is the only way to pass multiple result sets, and it is simple to set up and easy to code against!
 
 ## Transactions
 
