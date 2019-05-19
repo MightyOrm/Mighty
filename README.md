@@ -80,18 +80,17 @@ As well as dynamic multiple results sets, Mighty now properly supports strongly 
 ```c#
 var db = new MightyOrm(connectionString);
 var now = DateTime.Now;
-using (var multiple = db.ExecuteMultipleFromProcedure("procPurchaseReport",
+using (var multiple = db.ExecuteMultipleFromProcedure("PurchaseReport",
     inParams: new { StartDate = now.AddMonths(6), EndDate = now })
 {
     multiple.NextResultSet();
-    foreach (PurchaseReportSummary summary in
-        multiple.CurrentResultSet.ResultsAs<ReportSummary>())
+    foreach (var summary in multiple.CurrentResultSet.ResultsAs<PurchaseReportSummary>())
     {
         Console.WriteLine($"Total Sales for Report Period: ${summary.Total}");
     }
+
     multiple.NextResultSet();
-    foreach (PurchaseReportMonthly monthly in
-        multiple.CurrentResultSet.ResultsAs<PurchaseReportMonthly>())
+    foreach (var monthly in multiple.CurrentResultSet.ResultsAs<PurchaseReportMonthly>())
     {
         Console.WriteLine($"Total Sales for Month ${monthly.Month}: ${monthly.Total}");
     }
