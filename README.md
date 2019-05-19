@@ -147,6 +147,8 @@ var films = new MightyOrm(connectionString, "Film");
 var page = films.Paged(orderBy: "Title", currentPage: 2, pageSize: 30);
 ```
 
+Mighty also has a `PagedFromSelect` method which, apart from just doing what it says on the tin, allows you to simply and correctly page over joined table results, if that is what you need!
+
 ## Supported databases
 
  - SQL Server
