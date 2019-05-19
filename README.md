@@ -19,7 +19,7 @@ var db = new MightyOrm(connectionString, "Film", "FilmID");
 
 var film = db.Single(47);
 film.Description = "This is a better description";
-film.Save();
+db.Save(film);
 
 var films = db.All(new { Director = "Spielberg" });
 foreach (var film in films) Console.WriteLine(film.Title);
