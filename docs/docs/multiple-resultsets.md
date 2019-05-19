@@ -6,7 +6,34 @@ nav_order: 7
 
 # Multiple Resultsets
 
-The pattern for reading multiple resultsets in Mighty is as follows:
+
+Hot off the press!
+
+We now properly support strongly typed multiple result sets:
+
+```c#
+var db = new MightyOrm(connectionString);
+var now = DateTime.Now;
+using (var multiple = db.ExecuteMultipleFromProcedure("procPurchaseReport",
+    inParams: new { StartDate = now.AddMonths(6), EndDate = now })
+{
+    multiple.NextResultSet();
+    foreach (var summary in multiple.CurrentResultSet.ResultsAs<ReportSummary>())
+    {
+        Console.WriteLine($"Total Sales for Report Period: ${summary.Total}");
+        break; // assume only one summary item
+    }
+    multiple.NextResultSet();
+    foreach (var monthly in multiple.CurrentResultSet.ResultsAs<PurchaseReportMonthly>())
+    {
+        Console.WriteLine($"Total Sales for Month ${monthly.Month}: ${monthly.Total}");
+    }
+}
+```
+
+The above pattern would work perfectly well (without having to predefine *any* classes at all to hold the return data) by just using `Results()` (instead of `ResultsAt<T>()`) to return dynamically typed items for each result set, with their fields driven by the returned data.
+
+Below is the previous pattern for reading multiple resultsets in Mighty. This 'enumerable of enumerables' pattern still works, and might even be of some use for cheap and cheerful coding if you're using a dynamic instance of Mighty:
 
 ```c#
 MightyOrm db = new MightyOrm(connectionString);
@@ -23,10 +50,3 @@ foreach (var set in twoSets)
     sets++;
 }
 ```
-
-Some comments:
-
- - The main use-case for multiple resultsets would probably for accessing multiple results from a stored procedure using `QueryMultipleFromProcedure`, the above example with explicit `SELECT` statements sent to `QueryMultiple` is just to make it clear what results will be sent back
- - On a strongly typed instance of Mighty the items from all resultsets have to be of the same type, so unless your data is like that it probably makes more sense to use a `dynamic` instance of Mighty in this case
-    - I am hoping to find time to make Mighty also be able to produce (semi-)strongly typed multiple result sets (i.e. you would have to consume the results as `IEnumerable<IEnumerable<object>>`, but the objects in each result set would in fact be of the correct, strong types which you have requested)
- - You don't have to use `foreach` to consume the result sets, or even items within result sets: as with any `IEnumerable` you could always manually use `IEnumerable.GetEnumerator`, `IEnumerator.MoveNext` and `IEnumerator.Current` instead
