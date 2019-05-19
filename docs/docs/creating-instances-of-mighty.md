@@ -10,7 +10,7 @@ nav_order: 2
 - TOC
 {:toc}
 
-## Creating instances directly
+## Creating Instances Directly
 
 You can create instances of Mighty very simply, without making any subclasses:
 
