@@ -10,15 +10,13 @@ nav_order: 9
 - TOC
 {:toc}
 
-Like Massive, Mighty supports [manual mapping](#manual-mapping). This is useful for knocking up quick, read-only column name mapping, and for other data transforms if you need them (e.g. `LTRIM(RTRIM(Name))`, to clean up legacy data).
-
-But Mighty now supports full [convention based mapping](#convention-based-mapping) (i.e. class to database name mapping functions) and C# [attribute based mapping](#attribute-based-mapping) as well.
+Like Massive, Mighty supports [manual mapping](#manual-mapping) which is useful for knocking up quick, read-only column name mapping, but Mighty also now supports full [convention based mapping](#convention-based-mapping) (i.e. class to database name mapping functions) and [attribute based mapping](#attribute-based-mapping).
 
 ---
 
 ## Manual Mapping
 
-For read-only purposes (and also for knocking up quick SQL dta transforms) you can just map your column names to field names using the `columns` parameter (in the constructor, or in the data access method):
+For read-only purposes (and also for knocking up quick SQL data transforms) you can just map your column names to field names using the `columns` parameter (in the constructor, or in the data access method):
 
 ```c#
 var films = new MightyOrm(
