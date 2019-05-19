@@ -88,7 +88,6 @@ using (var multiple = db.ExecuteMultipleFromProcedure("procPurchaseReport",
         multiple.CurrentResultSet.ResultsAs<ReportSummary>())
     {
         Console.WriteLine($"Total Sales for Report Period: ${summary.Total}");
-        break; // assume only one summary item
     }
     multiple.NextResultSet();
     foreach (PurchaseReportMonthly monthly in
