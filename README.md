@@ -30,8 +30,6 @@ But now extended - hopefully just as sweetly! - in several new directions.
 
 # Feature Overview
 
-More complete documentation on all these features is [available here](https://mightyorm.github.io/Mighty/).
-
 ## Named and directional parameters
 
 ```c#
