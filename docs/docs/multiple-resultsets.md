@@ -22,6 +22,7 @@ using (var multiple = db.ExecuteMultipleFromProcedure("procPurchaseReport",
         Console.WriteLine($"Total Sales for Report Period: ${summary.Total}");
         break; // assume only one summary item
     }
+
     multiple.NextResultSet();
     foreach (var monthly in multiple.CurrentResultSet.ResultsAs<PurchaseReportMonthly>())
     {
@@ -30,9 +31,9 @@ using (var multiple = db.ExecuteMultipleFromProcedure("procPurchaseReport",
 }
 ```
 
-The above pattern would work perfectly well (without having to predefine *any* classes at all to hold the return data) by just using `Results()` (instead of `ResultsAt<T>()`) to return dynamically typed items for each result set, with their fields driven by the returned data.
+The above pattern would work perfectly well (without having to predefine *any* classes at all to hold the return data) by enumerating over `CurrentResultSet.Results()` instead of `ResultsAt<T>()` - or equivalently just over `CurrentResultSet` directly - to return dynamically typed items for each result set, with their fields driven by the returned data.
 
-Below is the previous pattern for reading multiple resultsets in Mighty. This 'enumerable of enumerables' pattern still works, and might even be of some use for cheap and cheerful coding if you're using a dynamic instance of Mighty:
+Below is the previous pattern for reading multiple resultsets in Mighty. This 'enumerable of enumerables' pattern still works in all the same places where the above pattern works, and might even be of some use for cheap and cheerful coding if you're using a dynamic instance of Mighty:
 
 ```c#
 MightyOrm db = new MightyOrm(connectionString);
