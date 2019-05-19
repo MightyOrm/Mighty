@@ -1,6 +1,7 @@
 # ![logo](https://mightyorm.github.io/Mighty/assets/realfavicon/favicon-32x32.png) Mighty
 
 [![NuGet](https://img.shields.io/nuget/v/Mighty.svg)](https://nuget.org/packages/Mighty)
+[![Documentation](https://img.shields.io/badge/-Documentation-f52a62.svg)](https://mightyorm.github.io/Mighty/)
 
 Available for:
 
