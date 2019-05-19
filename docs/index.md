@@ -10,10 +10,10 @@ nav_exclude: true
 
 A new small, happy, dynamic micro-ORM and general purpose .NET data access wrapper.
 
-Based on and highly compatible with Massive, but now with:
+Based on and highly compatible with Massive, but now with added:
 
-* .NET Core 1.0, 1.1, 2.0, 3.0-preview
-* Strongly typed or dynamic results
+* .NET Core support (1.0, 1.1, 2.0, 3.0-preview)
+* Strongly typed and dynamic results
 * Parameter names and directions (where you need it; automatic parameter naming as in Massive still works as before)
 * Multiple result sets
 * Transactions

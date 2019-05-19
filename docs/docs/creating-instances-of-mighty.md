@@ -5,12 +5,6 @@ nav_order: 2
 ---
 
 # Creating Instances of Mighty
-{: .no_toc }
-
-- TOC
-{:toc}
-
----
 
 ## Subclassing MightyOrm
 
