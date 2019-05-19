@@ -127,7 +127,7 @@ Even though most features of `SqlNamingMapper` can be done instead using attribu
 
 ## Auto-Mapping in Mighty
 
-Once you apply any column name mapping, Mighty switches on field name mapping by default. The rules are as follows:
+Once you apply any column name mapping, Mighty switches on field name mapping by default. This is simply to make your life more convenient, and it can easily be disabled if you don't want it. The rules are as follows:
 
 |----|----|----|----|
 |`MightyOrm` contructor or method parameter|Default (no columns renamed)|Some columns renamed, but auto-mapping manually disabled|Default auto-mapping, once some columns renamed|
