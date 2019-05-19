@@ -13,7 +13,7 @@ A new small, happy, dynamic micro-ORM and general purpose .NET data access wrapp
 Based on and highly compatible with Massive, but now with added:
 
 * .NET Core support (1.0, 1.1, 2.0, 3.0-preview)
-* Strongly typed and dynamic results
+* Strongly typed as well as dynamic results
 * Parameter names and directions (where you need it; automatic parameter naming as in Massive still works as before)
 * Multiple result sets
 * Transactions
