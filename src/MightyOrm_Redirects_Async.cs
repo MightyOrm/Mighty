@@ -30,7 +30,8 @@ namespace Mighty
         /// <param name="command">The command to execute</param>
         /// <param name="connection">The connection to use</param>
         /// <returns></returns>
-        override public async Task<IAsyncEnumerable<T>> QueryAsync(DbCommand command,
+        override public async Task<IAsyncEnumerable<T>> QueryAsync(
+            DbCommand command,
             DbConnection connection = null)
         {
             return await QueryNWithParamsAsync<T>(command: command, connection: connection);
@@ -39,49 +40,16 @@ namespace Mighty
         /// <summary>
         /// Get <see cref="IEnumerable{T}"/> of items returned by database command.
         /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="command">The command to execute</param>
         /// <param name="connection">The connection to use</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
-        override public async Task<IAsyncEnumerable<T>> QueryAsync(DbCommand command,
+        override public async Task<IAsyncEnumerable<T>> QueryAsync(
             CancellationToken cancellationToken,
+            DbCommand command,
             DbConnection connection = null)
         {
             return await QueryNWithParamsAsync<T>(command: command, cancellationToken: cancellationToken, connection: connection);
-        }
-
-        /// <summary>
-        /// Get single item returned by database command.
-        /// </summary>
-        /// <param name="command">The command to execute</param>
-        /// <param name="connection">Optional connection to use</param>
-        /// <returns></returns>
-        override public async Task<T> SingleAsync(DbCommand command,
-            DbConnection connection = null)
-        {
-            return await
-                (await QueryNWithParamsAsync<T>(
-                    command: command, connection: connection).ConfigureAwait(false))
-                .FirstOrDefaultAsync().ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Get single item returned by database command.
-        /// </summary>
-        /// <param name="command">The command to execute</param>
-        /// <param name="connection">Optional connection to use</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
-        /// <returns></returns>
-        override public async Task<T> SingleAsync(DbCommand command,
-            CancellationToken cancellationToken,
-            DbConnection connection = null)
-        {
-            return await
-                (await QueryNWithParamsAsync<T>(
-                    command: command,
-                    cancellationToken: cancellationToken,
-                    connection: connection).ConfigureAwait(false))
-                .FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -109,8 +77,9 @@ namespace Mighty
         /// <remarks>
         /// 'Easy-calling' version, optional args straight after SQL.
         /// </remarks>
-        override public async Task<IAsyncEnumerable<T>> QueryAsync(string sql,
+        override public async Task<IAsyncEnumerable<T>> QueryAsync(
             CancellationToken cancellationToken,
+            string sql,
             params object[] args)
         {
             return await QueryNWithParamsAsync<T>(sql, cancellationToken: cancellationToken, args: args);
@@ -143,8 +112,9 @@ namespace Mighty
         /// <remarks>
         /// 'Easy-calling' version, optional args straight after SQL.
         /// </remarks>
-        override public async Task<T> SingleFromQueryAsync(string sql,
+        override public async Task<T> SingleFromQueryAsync(
             CancellationToken cancellationToken,
+            string sql,
             params object[] args)
         {
             return await
@@ -174,9 +144,10 @@ namespace Mighty
         /// <param name="args">Auto-numbered parameter values for SQL</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
-        override public async Task<IAsyncEnumerable<T>> QueryAsync(string sql,
-            DbConnection connection,
+        override public async Task<IAsyncEnumerable<T>> QueryAsync(
             CancellationToken cancellationToken,
+            string sql,
+            DbConnection connection,
             params object[] args)
         {
             return await QueryNWithParamsAsync<T>(sql, connection: connection, cancellationToken: cancellationToken, args: args);
@@ -206,9 +177,10 @@ namespace Mighty
         /// <param name="args">Auto-numbered input parameters</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
-        override public async Task<T> SingleFromQueryAsync(string sql,
-            DbConnection connection,
+        override public async Task<T> SingleFromQueryAsync(
             CancellationToken cancellationToken,
+            string sql,
+            DbConnection connection,
             params object[] args)
         {
             return await
@@ -253,16 +225,21 @@ namespace Mighty
         /// <param name="args">Auto-numbered parameter values for SQL</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
-        override public async Task<IAsyncEnumerable<T>> QueryWithParamsAsync(string sql,
+        override public async Task<IAsyncEnumerable<T>> QueryWithParamsAsync(
             CancellationToken cancellationToken,
-            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            string sql,
+            object inParams = null,
+            object outParams = null,
+            object ioParams = null,
+            object returnParams = null,
             DbConnection connection = null,
             params object[] args)
         {
             return await QueryNWithParamsAsync<T>(
                 sql,
                 inParams, outParams, ioParams, returnParams,
-                connection: connection, cancellationToken: cancellationToken,
+                connection: connection,
+                cancellationToken: cancellationToken,
                 args: args);
         }
 
@@ -301,9 +278,13 @@ namespace Mighty
         /// <param name="args">Auto-numbered input parameters</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
-        override public async Task<T> SingleFromQueryWithParamsAsync(string sql,
+        override public async Task<T> SingleFromQueryWithParamsAsync(
             CancellationToken cancellationToken,
-            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            string sql,
+            object inParams = null,
+            object outParams = null,
+            object ioParams = null,
+            object returnParams = null,
             DbConnection connection = null,
             params object[] args)
         {
@@ -311,7 +292,8 @@ namespace Mighty
                 (await QueryNWithParamsAsync<T>(
                     sql,
                     inParams, outParams, ioParams, returnParams,
-                    connection: connection, cancellationToken: cancellationToken,
+                    connection: connection,
+                    cancellationToken: cancellationToken,
                     args: args).ConfigureAwait(false))
                 .FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -350,9 +332,13 @@ namespace Mighty
         /// <param name="args">Auto-numbered input parameters</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
-        override public async Task<IAsyncEnumerable<T>> QueryFromProcedureAsync(string spName,
+        override public async Task<IAsyncEnumerable<T>> QueryFromProcedureAsync(
             CancellationToken cancellationToken,
-            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            string spName,
+            object inParams = null,
+            object outParams = null,
+            object ioParams = null,
+            object returnParams = null,
             DbConnection connection = null,
             params object[] args)
         {
@@ -401,9 +387,13 @@ namespace Mighty
         /// <param name="args">Auto-numbered input parameters</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
-        override public async Task<T> SingleFromProcedureAsync(string spName,
+        override public async Task<T> SingleFromProcedureAsync(
             CancellationToken cancellationToken,
-            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            string spName,
+            object inParams = null,
+            object outParams = null,
+            object ioParams = null,
+            object returnParams = null,
             DbConnection connection = null,
             params object[] args)
         {
@@ -412,7 +402,8 @@ namespace Mighty
                     spName,
                     inParams, outParams, ioParams, returnParams,
                     isProcedure: true,
-                    connection: connection, cancellationToken: cancellationToken,
+                    connection: connection,
+                    cancellationToken: cancellationToken,
                     args: args).ConfigureAwait(false))
                 .FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
         }
@@ -432,12 +423,13 @@ namespace Mighty
         /// <summary>
         /// Get <see cref="IEnumerable{R}"/> of result sets, each of which is itself an <see cref="IEnumerable{T}"/> of items, returned by database command.
         /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="command">The command to execute</param>
         /// <param name="connection">The connection to use</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
-        override public async Task<IAsyncEnumerable<IAsyncEnumerable<T>>> QueryMultipleAsync(DbCommand command,
+        override public async Task<IAsyncEnumerable<IAsyncEnumerable<T>>> QueryMultipleAsync(
             CancellationToken cancellationToken,
+            DbCommand command,
             DbConnection connection = null)
         {
             return await QueryNWithParamsAsync<IAsyncEnumerable<T>>(command: command, cancellationToken: cancellationToken, connection: connection);
@@ -468,8 +460,9 @@ namespace Mighty
         /// <remarks>
         /// 'Easy-calling' version, optional args straight after SQL.
         /// </remarks>
-        override public async Task<IAsyncEnumerable<IAsyncEnumerable<T>>> QueryMultipleAsync(string sql,
+        override public async Task<IAsyncEnumerable<IAsyncEnumerable<T>>> QueryMultipleAsync(
             CancellationToken cancellationToken,
+            string sql,
             params object[] args)
         {
             return await QueryNWithParamsAsync<IAsyncEnumerable<T>>(sql, cancellationToken: cancellationToken, args: args);
@@ -497,9 +490,10 @@ namespace Mighty
         /// <param name="args">Auto-numbered parameter values for SQL</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
-        override public async Task<IAsyncEnumerable<IAsyncEnumerable<T>>> QueryMultipleAsync(string sql,
-            DbConnection connection,
+        override public async Task<IAsyncEnumerable<IAsyncEnumerable<T>>> QueryMultipleAsync(
             CancellationToken cancellationToken,
+            string sql,
+            DbConnection connection,
             params object[] args)
         {
             return await QueryNWithParamsAsync<IAsyncEnumerable<T>>(sql, connection: connection, cancellationToken: cancellationToken, args: args);
@@ -529,6 +523,7 @@ namespace Mighty
         /// <summary>
         /// Get <see cref="IEnumerable{R}"/> of result sets, each of which is itself an <see cref="IEnumerable{T}"/> of items, returned by SQL query with support for named parameters.
         /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="sql">The command SQL</param>
         /// <param name="inParams">Named input parameters</param>
         /// <param name="outParams">Named output parameters</param>
@@ -536,18 +531,22 @@ namespace Mighty
         /// <param name="returnParams">Named return parameters</param>
         /// <param name="connection">The connection to use</param>
         /// <param name="args">Auto-numbered parameter values for SQL</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
-        override public async Task<IAsyncEnumerable<IAsyncEnumerable<T>>> QueryMultipleWithParamsAsync(string sql,
+        override public async Task<IAsyncEnumerable<IAsyncEnumerable<T>>> QueryMultipleWithParamsAsync(
             CancellationToken cancellationToken,
-            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            string sql,
+            object inParams = null,
+            object outParams = null,
+            object ioParams = null,
+            object returnParams = null,
             DbConnection connection = null,
             params object[] args)
         {
             return await QueryNWithParamsAsync<IAsyncEnumerable<T>>(
                 sql,
                 inParams, outParams, ioParams, returnParams,
-                connection: connection, cancellationToken: cancellationToken,
+                connection: connection,
+                cancellationToken: cancellationToken,
                 args: args);
         }
 
@@ -585,9 +584,13 @@ namespace Mighty
         /// <param name="args">Auto-numbered input parameters</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
-        override public async Task<IAsyncEnumerable<IAsyncEnumerable<T>>> QueryMultipleFromProcedureAsync(string spName,
+        override public async Task<IAsyncEnumerable<IAsyncEnumerable<T>>> QueryMultipleFromProcedureAsync(
             CancellationToken cancellationToken,
-            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            string spName,
+            object inParams = null,
+            object outParams = null,
+            object ioParams = null,
+            object returnParams = null,
             DbConnection connection = null,
             params object[] args)
         {
@@ -595,7 +598,8 @@ namespace Mighty
                 spName,
                 inParams, outParams, ioParams, returnParams,
                 isProcedure: true,
-                connection: connection, cancellationToken: cancellationToken,
+                connection: connection,
+                cancellationToken: cancellationToken,
                 args: args);
         }
 
@@ -620,20 +624,21 @@ namespace Mighty
         /// <summary>
         /// Execute SQL query.
         /// </summary>
-        /// <param name="sql">The command SQL</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <param name="sql">The command SQL</param>
         /// <param name="args">Auto-numbered parameters for the SQL</param>
         /// <returns>The number of rows affected</returns>
         /// <remarks>
         /// 'Easy-calling' version, optional args straight after SQL.
         /// </remarks>
-        override public async Task<int> ExecuteAsync(string sql,
+        override public async Task<int> ExecuteAsync(
             CancellationToken cancellationToken,
+            string sql,
             params object[] args)
         {
             using (var command = CreateCommandWithParams(sql, args: args))
             {
-                return await ExecuteAsync(command, cancellationToken).ConfigureAwait(false);
+                return await ExecuteAsync(cancellationToken, command).ConfigureAwait(false);
             }
         }
 
@@ -657,19 +662,20 @@ namespace Mighty
         /// <summary>
         /// Execute SQL query.
         /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="sql">The command SQL</param>
         /// <param name="connection">Optional connection to use</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="args">Auto-numbered parameters for the SQL</param>
         /// <returns>The number of rows affected</returns>
-        override public async Task<int> ExecuteAsync(string sql,
-            DbConnection connection,
+        override public async Task<int> ExecuteAsync(
             CancellationToken cancellationToken,
+            string sql,
+            DbConnection connection,
             params object[] args)
         {
             using (var command = CreateCommandWithParams(sql, args: args))
             {
-                return await ExecuteAsync(command, cancellationToken, connection).ConfigureAwait(false);
+                return await ExecuteAsync(cancellationToken, command, connection).ConfigureAwait(false);
             }
         }
 
@@ -689,8 +695,9 @@ namespace Mighty
             DbConnection connection = null,
             params object[] args)
         {
-            return await ExecuteWithParamsAsync(sql,
+            return await ExecuteWithParamsAsync(
                 CancellationToken.None,
+                sql,
                 inParams, outParams, ioParams, returnParams,
                 connection,
                 args).ConfigureAwait(false);
@@ -708,9 +715,13 @@ namespace Mighty
         /// <param name="args">Auto-numbered input parameters</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns>A dynamic object containing the names and output values of all output, input-output and return parameters</returns>
-        override public async Task<dynamic> ExecuteWithParamsAsync(string sql,
+        override public async Task<dynamic> ExecuteWithParamsAsync(
             CancellationToken cancellationToken,
-            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            string sql,
+            object inParams = null,
+            object outParams = null,
+            object ioParams = null,
+            object returnParams = null,
             DbConnection connection = null,
             params object[] args)
         {
@@ -719,7 +730,7 @@ namespace Mighty
                 args: args);
             using (retval.Item1)
             {
-                var rowCount = await ExecuteAsync(retval.Item1, connection).ConfigureAwait(false);
+                var rowCount = await ExecuteAsync(cancellationToken, retval.Item1, connection).ConfigureAwait(false);
                 var results = ResultsAsExpando(retval.Item1);
                 if (retval.Item2)
                 {
@@ -745,8 +756,9 @@ namespace Mighty
             DbConnection connection = null,
             params object[] args)
         {
-            return await ExecuteProcedureAsync(spName,
+            return await ExecuteProcedureAsync(
                 CancellationToken.None,
+                spName,
                 inParams, outParams, ioParams, returnParams,
                 connection,
                 args);
@@ -764,9 +776,13 @@ namespace Mighty
         /// <param name="args">Auto-numbered input parameters</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns>A dynamic object containing the names and output values of all output, input-output and return parameters</returns>
-        override public async Task<dynamic> ExecuteProcedureAsync(string spName,
+        override public async Task<dynamic> ExecuteProcedureAsync(
             CancellationToken cancellationToken,
-            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            string spName,
+            object inParams = null,
+            object outParams = null,
+            object ioParams = null,
+            object returnParams = null,
             DbConnection connection = null,
             params object[] args)
         {
@@ -776,7 +792,7 @@ namespace Mighty
                 args: args);
             using (retval.Item1)
             {
-                var rowCount = await ExecuteAsync(retval.Item1, cancellationToken, connection).ConfigureAwait(false);
+                var rowCount = await ExecuteAsync(cancellationToken, retval.Item1, connection).ConfigureAwait(false);
                 var results = ResultsAsExpando(retval.Item1);
                 if (retval.Item2)
                 {
@@ -814,13 +830,14 @@ namespace Mighty
         /// <remarks>
         /// 'Easy-calling' version, optional args straight after SQL.
         /// </remarks>
-        override public async Task<object> ScalarAsync(string sql,
+        override public async Task<object> ScalarAsync(
             CancellationToken cancellationToken,
+            string sql,
             params object[] args)
         {
             using (var command = CreateCommand(sql, args))
             {
-                return await ScalarAsync(command, cancellationToken).ConfigureAwait(false);
+                return await ScalarAsync(cancellationToken, command).ConfigureAwait(false);
             }
         }
 
@@ -844,19 +861,20 @@ namespace Mighty
         /// <summary>
         /// Return scalar result (value of first or only column from first or only row) from SQL query.
         /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="sql">The command SQL</param>
         /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered input parameters</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
-        override public async Task<object> ScalarAsync(string sql,
-            DbConnection connection,
+        override public async Task<object> ScalarAsync(
             CancellationToken cancellationToken,
+            string sql,
+            DbConnection connection,
             params object[] args)
         {
             using (var command = CreateCommand(sql, args))
             {
-                return await ScalarAsync(command, cancellationToken, connection).ConfigureAwait(false);
+                return await ScalarAsync(cancellationToken, command, connection).ConfigureAwait(false);
             }
         }
 
@@ -896,9 +914,13 @@ namespace Mighty
         /// <param name="args">Auto-numbered input parameters</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
-        override public async Task<object> ScalarWithParamsAsync(string sql,
+        override public async Task<object> ScalarWithParamsAsync(
             CancellationToken cancellationToken,
-            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            string sql,
+            object inParams = null,
+            object outParams = null,
+            object ioParams = null,
+            object returnParams = null,
             DbConnection connection = null,
             params object[] args)
         {
@@ -906,7 +928,7 @@ namespace Mighty
                 inParams, outParams, ioParams, returnParams,
                 args: args))
             {
-                return await ScalarAsync(command, cancellationToken, connection).ConfigureAwait(false);
+                return await ScalarAsync(cancellationToken, command, connection).ConfigureAwait(false);
             }
         }
 
@@ -947,9 +969,13 @@ namespace Mighty
         /// <param name="args">Auto-numbered input parameters</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
-        override public async Task<object> ScalarFromProcedureAsync(string spName,
+        override public async Task<object> ScalarFromProcedureAsync(
             CancellationToken cancellationToken,
-            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+            string spName,
+            object inParams = null,
+            object outParams = null,
+            object ioParams = null,
+            object returnParams = null,
             DbConnection connection = null,
             params object[] args)
         {
@@ -958,7 +984,7 @@ namespace Mighty
                 isProcedure: true,
                 args: args))
             {
-                return await ScalarAsync(command, cancellationToken, connection).ConfigureAwait(false);
+                return await ScalarAsync(cancellationToken, command, connection).ConfigureAwait(false);
             }
         }
 
@@ -966,18 +992,28 @@ namespace Mighty
         /// Yield return values for single or multiple resultsets.
         /// </summary>
         /// <typeparam name="X">Use with <typeparamref name="T"/> for single or <see cref="IEnumerable{T}"/> for multiple</typeparam>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="sql">The command SQL</param>
         /// <param name="inParams">Named input parameters</param>
         /// <param name="outParams">Named output parameters</param>
         /// <param name="ioParams">Named input-output parameters</param>
         /// <param name="returnParams">Named return parameters</param>
         /// <param name="isProcedure">Is the SQL a stored procedure name (with optional argument spec) only?</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="behavior">The command behaviour</param>
-        /// <param name="connection">Optional conneciton to use</param>
+        /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered parameters for the SQL</param>
         /// <returns></returns>
-        override protected async Task<IAsyncEnumerable<X>> QueryNWithParamsAsync<X>(string sql = null, object inParams = null, object outParams = null, object ioParams = null, object returnParams = null, bool isProcedure = false, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, CancellationToken cancellationToken = default, params object[] args)
+        override protected async Task<IAsyncEnumerable<X>> QueryNWithParamsAsync<X>(
+            string sql,
+            object inParams = null,
+            object outParams = null,
+            object ioParams = null,
+            object returnParams = null,
+            bool isProcedure = false,
+            CommandBehavior behavior = CommandBehavior.Default,
+            DbConnection connection = null,
+            CancellationToken cancellationToken = default,
+            params object[] args)
         {
             var command = CreateCommandWithParams(sql, inParams, outParams, ioParams, returnParams, isProcedure, null, args);
             return await QueryNWithParamsAsync<X>(command, cancellationToken, behavior, connection);
@@ -1001,7 +1037,7 @@ namespace Mighty
             DbConnection connection = null,
             params object[] args)
         {
-            return await AggregateWithParamsAsync("COUNT", columns, CancellationToken.None, where, connection, args: args).ConfigureAwait(false);
+            return await AggregateWithParamsAsync(CancellationToken.None, "COUNT", columns, where, connection, args: args).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1020,7 +1056,7 @@ namespace Mighty
             DbConnection connection = null,
             params object[] args)
         {
-            return await AggregateWithParamsAsync("COUNT", columns, cancellationToken, where, connection, args: args).ConfigureAwait(false);
+            return await AggregateWithParamsAsync(cancellationToken, "COUNT", columns, where, connection, args: args).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1035,7 +1071,7 @@ namespace Mighty
             string columns = "*",
             DbConnection connection = null)
         {
-            return await AggregateAsync("COUNT", columns, CancellationToken.None, whereParams, connection).ConfigureAwait(false);
+            return await AggregateAsync(CancellationToken.None, "COUNT", columns, whereParams, connection).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1052,7 +1088,7 @@ namespace Mighty
             string columns = "*",
             DbConnection connection = null)
         {
-            return await AggregateAsync("COUNT", columns, cancellationToken, whereParams, connection).ConfigureAwait(false);
+            return await AggregateAsync(cancellationToken, "COUNT", columns, whereParams, connection).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1069,41 +1105,26 @@ namespace Mighty
             DbConnection connection = null,
             params object[] args)
         {
-            return await AggregateWithParamsAsync("MAX", columns, CancellationToken.None, where, connection, args: args).ConfigureAwait(false);
+            return await AggregateWithParamsAsync(CancellationToken.None, "MAX", columns, where, connection, args: args).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Get MAX of column on current table.
         /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="columns">Columns</param>
         /// <param name="where">WHERE clause</param>
         /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered input parameters</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
         override public async Task<object> MaxAsync(
-            string columns,
             CancellationToken cancellationToken,
+            string columns,
             string where = null,
             DbConnection connection = null,
             params object[] args)
         {
-            return await AggregateWithParamsAsync("MAX", columns, cancellationToken, where, connection, args: args).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Get MAX of column on current table.
-        /// </summary>
-        /// <param name="columns">Columns</param>
-        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
-        /// <param name="connection">Optional connection to use</param>
-        /// <returns></returns>
-        override public async Task<object> MaxAsync(
-            string columns,
-            object whereParams = null,
-            DbConnection connection = null)
-        {
-            return await AggregateAsync("MAX", columns, CancellationToken.None, whereParams, connection).ConfigureAwait(false);
+            return await AggregateWithParamsAsync(cancellationToken, "MAX", columns, where, connection, args: args).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1112,15 +1133,30 @@ namespace Mighty
         /// <param name="columns">Columns</param>
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="connection">Optional connection to use</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
         override public async Task<object> MaxAsync(
             string columns,
-            CancellationToken cancellationToken,
             object whereParams = null,
             DbConnection connection = null)
         {
-            return await AggregateAsync("MAX", columns, cancellationToken, whereParams, connection).ConfigureAwait(false);
+            return await AggregateAsync(CancellationToken.None, "MAX", columns, whereParams, connection).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Get MAX of column on current table.
+        /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <param name="columns">Columns</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <returns></returns>
+        override public async Task<object> MaxAsync(
+            CancellationToken cancellationToken,
+            string columns,
+            object whereParams = null,
+            DbConnection connection = null)
+        {
+            return await AggregateAsync(cancellationToken, "MAX", columns, whereParams, connection).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1137,41 +1173,26 @@ namespace Mighty
             DbConnection connection = null,
             params object[] args)
         {
-            return await AggregateWithParamsAsync("MIN", columns, CancellationToken.None, where, connection, args: args).ConfigureAwait(false);
+            return await AggregateWithParamsAsync(CancellationToken.None, "MIN", columns, where, connection, args: args).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Get MIN of column on current table.
         /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="columns">Columns</param>
         /// <param name="where">WHERE clause</param>
         /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered input parameters</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
         override public async Task<object> MinAsync(
-            string columns,
             CancellationToken cancellationToken,
+            string columns,
             string where = null,
             DbConnection connection = null,
             params object[] args)
         {
-            return await AggregateWithParamsAsync("MIN", columns, cancellationToken, where, connection, args: args).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Get MIN of column on current table.
-        /// </summary>
-        /// <param name="columns">Columns</param>
-        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
-        /// <param name="connection">Optional connection to use</param>
-        /// <returns></returns>
-        override public async Task<object> MinAsync(
-            string columns,
-            object whereParams = null,
-            DbConnection connection = null)
-        {
-            return await AggregateAsync("MIN", columns, CancellationToken.None, whereParams, connection).ConfigureAwait(false);
+            return await AggregateWithParamsAsync(cancellationToken, "MIN", columns, where, connection, args: args).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1180,15 +1201,30 @@ namespace Mighty
         /// <param name="columns">Columns</param>
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="connection">Optional connection to use</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
         override public async Task<object> MinAsync(
             string columns,
-            CancellationToken cancellationToken,
             object whereParams = null,
             DbConnection connection = null)
         {
-            return await AggregateAsync("MIN", columns, cancellationToken, whereParams, connection).ConfigureAwait(false);
+            return await AggregateAsync(CancellationToken.None, "MIN", columns, whereParams, connection).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Get MIN of column on current table.
+        /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <param name="columns">Columns</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <returns></returns>
+        override public async Task<object> MinAsync(
+            CancellationToken cancellationToken,
+            string columns,
+            object whereParams = null,
+            DbConnection connection = null)
+        {
+            return await AggregateAsync(cancellationToken, "MIN", columns, whereParams, connection).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1205,41 +1241,26 @@ namespace Mighty
             DbConnection connection = null,
             params object[] args)
         {
-            return await AggregateWithParamsAsync("SUM", columns, CancellationToken.None, where, connection, args: args).ConfigureAwait(false);
+            return await AggregateWithParamsAsync(CancellationToken.None, "SUM", columns, where, connection, args: args).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Get SUM of column on current table.
         /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="columns">Columns</param>
         /// <param name="where">WHERE clause</param>
         /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered input parameters</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
         override public async Task<object> SumAsync(
-            string columns,
             CancellationToken cancellationToken,
+            string columns,
             string where = null,
             DbConnection connection = null,
             params object[] args)
         {
-            return await AggregateWithParamsAsync("SUM", columns, cancellationToken, where, connection, args: args).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Get SUM of column on current table.
-        /// </summary>
-        /// <param name="columns">Columns</param>
-        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
-        /// <param name="connection">Optional connection to use</param>
-        /// <returns></returns>
-        override public async Task<object> SumAsync(
-            string columns,
-            object whereParams = null,
-            DbConnection connection = null)
-        {
-            return await AggregateAsync("SUM", columns, CancellationToken.None, whereParams, connection).ConfigureAwait(false);
+            return await AggregateWithParamsAsync(cancellationToken, "SUM", columns, where, connection, args: args).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1248,15 +1269,30 @@ namespace Mighty
         /// <param name="columns">Columns</param>
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="connection">Optional connection to use</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
         override public async Task<object> SumAsync(
             string columns,
-            CancellationToken cancellationToken,
             object whereParams = null,
             DbConnection connection = null)
         {
-            return await AggregateAsync("SUM", columns, cancellationToken, whereParams, connection).ConfigureAwait(false);
+            return await AggregateAsync(CancellationToken.None, "SUM", columns, whereParams, connection).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Get SUM of column on current table.
+        /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <param name="columns">Columns</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <returns></returns>
+        override public async Task<object> SumAsync(
+            CancellationToken cancellationToken,
+            string columns,
+            object whereParams = null,
+            DbConnection connection = null)
+        {
+            return await AggregateAsync(cancellationToken, "SUM", columns, whereParams, connection).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1273,26 +1309,26 @@ namespace Mighty
             DbConnection connection = null,
             params object[] args)
         {
-            return await AggregateWithParamsAsync("AVG", columns, CancellationToken.None, where, connection, args: args).ConfigureAwait(false);
+            return await AggregateWithParamsAsync(CancellationToken.None, "AVG", columns, where, connection, args: args).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Get AVG of column on current table.
         /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="columns">Columns</param>
         /// <param name="where">WHERE clause</param>
         /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered input parameters</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
         override public async Task<object> AvgAsync(
-            string columns,
             CancellationToken cancellationToken,
+            string columns,
             string where = null,
             DbConnection connection = null,
             params object[] args)
         {
-            return await AggregateWithParamsAsync("AVG", columns, cancellationToken, where, connection, args: args).ConfigureAwait(false);
+            return await AggregateWithParamsAsync(cancellationToken, "AVG", columns, where, connection, args: args).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1307,24 +1343,24 @@ namespace Mighty
             object whereParams = null,
             DbConnection connection = null)
         {
-            return await AggregateAsync("AVG", columns, CancellationToken.None, whereParams, connection).ConfigureAwait(false);
+            return await AggregateAsync(CancellationToken.None, "AVG", columns, whereParams, connection).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Get AVG of column on current table.
         /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="columns">Columns</param>
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="connection">Optional connection to use</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
         override public async Task<object> AvgAsync(
-            string columns,
             CancellationToken cancellationToken,
+            string columns,
             object whereParams = null,
             DbConnection connection = null)
         {
-            return await AggregateAsync("AVG", columns, cancellationToken, whereParams, connection).ConfigureAwait(false);
+            return await AggregateAsync(cancellationToken, "AVG", columns, whereParams, connection).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1336,28 +1372,35 @@ namespace Mighty
         /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered input parameters</param>
         /// <returns></returns>
-        override public async Task<object> AggregateAsync(string function, string columns, string where = null,
+        override public async Task<object> AggregateAsync(
+            string function,
+            string columns,
+            string where = null,
             DbConnection connection = null,
             params object[] args)
         {
-            return await AggregateWithParamsAsync(function, columns, CancellationToken.None, where, connection: connection, args: args).ConfigureAwait(false);
+            return await AggregateWithParamsAsync(CancellationToken.None, function, columns, where, connection: connection, args: args).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Perform aggregate operation on the current table (use for SUM, MAX, MIN, AVG, etc.)
         /// </summary>
-        /// <param name="function">Aggregate function</param>
-        /// <param name="columns">Columns for aggregate function</param>
-        /// <param name="where">WHERE clause</param>
-        /// <param name="connection">Optional connection to use</param>
-        /// <param name="args">Auto-numbered input parameters</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <param name="function">Aggregate function</param>
+        /// <param name="columns">Columns for aggregate function</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         /// <returns></returns>
-        override public async Task<object> AggregateAsync(string function, string columns, CancellationToken cancellationToken, string where = null,
+        override public async Task<object> AggregateAsync(
+            CancellationToken cancellationToken,
+            string function,
+            string columns,
+            string where = null,
             DbConnection connection = null,
             params object[] args)
         {
-            return await AggregateWithParamsAsync(function, columns, cancellationToken, where, connection: connection, args: args).ConfigureAwait(false);
+            return await AggregateWithParamsAsync(cancellationToken, function, columns, where, connection: connection, args: args).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1368,42 +1411,73 @@ namespace Mighty
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
-        override public async Task<object> AggregateAsync(string function, string columns, object whereParams = null,
+        override public async Task<object> AggregateAsync(
+            string function,
+            string columns,
+            object whereParams = null,
             DbConnection connection = null)
         {
-            return await AggregateAsync(function, columns, CancellationToken.None, whereParams, connection: connection).ConfigureAwait(false);
+            return await AggregateAsync(CancellationToken.None, function, columns, whereParams, connection: connection).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Perform aggregate operation on the current table (use for SUM, MAX, MIN, AVG, etc.)
         /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="function">Aggregate function</param>
         /// <param name="columns">Columns for aggregate function</param>
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="connection">Optional connection to use</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
-        override public async Task<object> AggregateAsync(string function, string columns, CancellationToken cancellationToken, object whereParams = null,
+        override public async Task<object> AggregateAsync(
+            CancellationToken cancellationToken,
+            string function,
+            string columns,
+            object whereParams = null,
             DbConnection connection = null)
         {
             Tuple<string, object, object[]> retval = GetWhereSpecFromWhereParams(whereParams);
             return await AggregateWithParamsAsync(
+                cancellationToken,
                 function, columns,
                 where: retval.Item1, inParams: retval.Item2, args: retval.Item3,
-                connection: connection, cancellationToken: cancellationToken);
+                connection: connection);
         }
 
         /// <summary>
-        /// Get single item from the current table using primary key or name-value where specification.
+        /// Get single item returned by database command.
         /// </summary>
-        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
-        /// <param name="columns">List of columns to return</param>
+        /// <param name="command">The command to execute</param>
         /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
-        override public async Task<T> SingleAsync(object whereParams, string columns = null,
+        override public async Task<T> SingleAsync(
+            DbCommand command,
             DbConnection connection = null)
         {
-            return await SingleAsync(whereParams, CancellationToken.None, columns, connection).ConfigureAwait(false);
+            return await
+                (await QueryNWithParamsAsync<T>(
+                    command: command, connection: connection).ConfigureAwait(false))
+                .FirstOrDefaultAsync().ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Get single item returned by database command.
+        /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <param name="command">The command to execute</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <returns></returns>
+        override public async Task<T> SingleAsync(
+            CancellationToken cancellationToken,
+            DbCommand command,
+            DbConnection connection = null)
+        {
+            return await
+                (await QueryNWithParamsAsync<T>(
+                    command: command,
+                    cancellationToken: cancellationToken,
+                    connection: connection).ConfigureAwait(false))
+                .FirstOrDefaultAsync(cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1412,9 +1486,27 @@ namespace Mighty
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="columns">List of columns to return</param>
         /// <param name="connection">Optional connection to use</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
-        override public async Task<T> SingleAsync(object whereParams, CancellationToken cancellationToken, string columns = null,
+        override public async Task<T> SingleAsync(
+            object whereParams,
+            string columns = null,
+            DbConnection connection = null)
+        {
+            return await SingleAsync(CancellationToken.None, whereParams, columns, connection).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Get single item from the current table using primary key or name-value where specification.
+        /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
+        /// <param name="columns">List of columns to return</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <returns></returns>
+        override public async Task<T> SingleAsync(
+            CancellationToken cancellationToken,
+            object whereParams,
+            string columns = null,
             DbConnection connection = null)
         {
             Tuple<string, object, object[]> retval = GetWhereSpecFromWhereParams(whereParams);
@@ -1434,7 +1526,8 @@ namespace Mighty
         /// <remarks>
         /// 'Easy-calling' version, optional args straight after where.
         /// </remarks>
-        override public async Task<T> SingleAsync(string where,
+        override public async Task<T> SingleAsync(
+            string where,
             params object[] args)
         {
             return await SingleWithParamsAsync(where, args: args).ConfigureAwait(false);
@@ -1444,17 +1537,50 @@ namespace Mighty
         /// Get single item from the current table using WHERE specification.
         /// </summary>
         /// <param name="where">WHERE clause</param>
+        /// <param name="connection">The connection to use</param>
         /// <param name="args">Auto-numbered input parameters</param>
+        /// <returns></returns>
+        override public async Task<T> SingleAsync(
+            string where,
+            DbConnection connection,
+            params object[] args)
+        {
+            return await SingleWithParamsAsync(where, args: args).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Get single item from the current table using WHERE specification.
+        /// </summary>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="args">Auto-numbered input parameters</param>
         /// <returns></returns>
         /// <remarks>
         /// 'Easy-calling' version, optional args straight after where.
         /// </remarks>
-        override public async Task<T> SingleAsync(string where,
+        override public async Task<T> SingleAsync(
             CancellationToken cancellationToken,
+            string where,
             params object[] args)
         {
-            return await SingleWithParamsAsync(where, cancellationToken, args: args).ConfigureAwait(false);
+            return await SingleWithParamsAsync(cancellationToken, where, args: args).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Get single item from the current table using WHERE specification.
+        /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="args">Auto-numbered input parameters</param>
+        /// <returns></returns>
+        override public async Task<T> SingleAsync(
+            CancellationToken cancellationToken,
+            string where,
+            DbConnection connection,
+            params object[] args)
+        {
+            return await SingleWithParamsAsync(where, args: args).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -1470,7 +1596,8 @@ namespace Mighty
         /// DbConnection coming early (not just before args) in this one case is really useful, as it avoids ambiguity between
         /// the `columns` and `orderBy` strings and optional string args.
         /// </remarks>
-        override public async Task<T> SingleAsync(string where,
+        override public async Task<T> SingleAsync(
+            string where,
             DbConnection connection = null,
             string orderBy = null,
             string columns = null,
@@ -1482,42 +1609,49 @@ namespace Mighty
         /// <summary>
         /// Get single item from the current table using WHERE specification.
         /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="where">WHERE clause</param>
         /// <param name="connection">Optional connection to use</param>
         /// <param name="orderBy">ORDER BY clause</param>
         /// <param name="columns">Comma separated list of columns to return or "*"</param>
         /// <param name="args">Auto-numbered input parameters</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
         /// <remarks>
         /// DbConnection coming early (not just before args) in this one case is really useful, as it avoids ambiguity between
         /// the `columns` and `orderBy` strings and optional string args.
         /// </remarks>
-        override public async Task<T> SingleAsync(string where,
+        override public async Task<T> SingleAsync(
             CancellationToken cancellationToken,
+            string where,
             DbConnection connection = null,
             string orderBy = null,
             string columns = null,
             params object[] args)
         {
-            return await SingleWithParamsAsync(where, cancellationToken, orderBy, columns, connection: connection, args: args).ConfigureAwait(false);
+            return await SingleWithParamsAsync(cancellationToken, where, orderBy, columns, connection: connection, args: args).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Get single item from the current table using WHERE specification with support for named parameters.
         /// </summary>
         /// <param name="where">WHERE clause</param>
-        /// <param name="connection">Optional connection to use</param>
         /// <param name="orderBy">ORDER BY clause</param>
         /// <param name="columns">Columns to return</param>
         /// <param name="inParams">Named input parameters</param>
         /// <param name="outParams">Named output parameters</param>
         /// <param name="ioParams">Named input-output parameters</param>
         /// <param name="returnParams">Named return parameters</param>
+        /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered input parameters</param>
         /// <returns></returns>
-        override public async Task<T> SingleWithParamsAsync(string where, string orderBy = null, string columns = null,
-            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+        override public async Task<T> SingleWithParamsAsync(
+            string where,
+            string orderBy = null,
+            string columns = null,
+            object inParams = null,
+            object outParams = null,
+            object ioParams = null,
+            object returnParams = null,
             DbConnection connection = null,
             params object[] args)
         {
@@ -1533,19 +1667,26 @@ namespace Mighty
         /// <summary>
         /// Get single item from the current table using WHERE specification with support for named parameters.
         /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="where">WHERE clause</param>
-        /// <param name="connection">Optional connection to use</param>
         /// <param name="orderBy">ORDER BY clause</param>
         /// <param name="columns">Columns to return</param>
         /// <param name="inParams">Named input parameters</param>
         /// <param name="outParams">Named output parameters</param>
         /// <param name="ioParams">Named input-output parameters</param>
         /// <param name="returnParams">Named return parameters</param>
+        /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered input parameters</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
-        override public async Task<T> SingleWithParamsAsync(string where, CancellationToken cancellationToken, string orderBy = null, string columns = null,
-            object inParams = null, object outParams = null, object ioParams = null, object returnParams = null,
+        override public async Task<T> SingleWithParamsAsync(
+            CancellationToken cancellationToken,
+            string where,
+            string orderBy = null,
+            string columns = null,
+            object inParams = null,
+            object outParams = null,
+            object ioParams = null,
+            object returnParams = null,
             DbConnection connection = null,
             params object[] args)
         {
@@ -1569,7 +1710,10 @@ namespace Mighty
         /// <param name="args">Auto-numbered input parameters</param>
         /// <returns></returns>
         override public async Task<IAsyncEnumerable<T>> AllAsync(
-            string where = null, string orderBy = null, string columns = null, int limit = 0,
+            string where = null,
+            string orderBy = null,
+            string columns = null,
+            int limit = 0,
             params object[] args)
         {
             return await AllWithParamsAsync(where, orderBy, columns, limit, args: args).ConfigureAwait(false);
@@ -1587,7 +1731,10 @@ namespace Mighty
         /// <returns></returns>
         override public async Task<IAsyncEnumerable<T>> AllAsync(
             CancellationToken cancellationToken,
-            string where = null, string orderBy = null, string columns = null, int limit = 0,
+            string where = null,
+            string orderBy = null,
+            string columns = null,
+            int limit = 0,
             params object[] args)
         {
             return await AllWithParamsAsync(cancellationToken, where, orderBy, columns, limit, args: args).ConfigureAwait(false);
@@ -1602,7 +1749,10 @@ namespace Mighty
         /// <param name="limit">Maximum number of items to return</param>
         /// <returns></returns>
         override public async Task<IAsyncEnumerable<T>> AllAsync(
-            object whereParams = null, string orderBy = null, string columns = null, int limit = 0)
+            object whereParams = null,
+            string orderBy = null,
+            string columns = null,
+            int limit = 0)
         {
             return await AllAsync(CancellationToken.None, whereParams, orderBy, columns, limit);
         }
@@ -1618,7 +1768,10 @@ namespace Mighty
         /// <returns></returns>
         override public async Task<IAsyncEnumerable<T>> AllAsync(
             CancellationToken cancellationToken,
-            object whereParams = null, string orderBy = null, string columns = null, int limit = 0)
+            object whereParams = null,
+            string orderBy = null,
+            string columns = null,
+            int limit = 0)
         {
             Tuple<string, object, object[]> retval = GetWhereSpecFromWhereParams(whereParams);
             if (retval.Item3 != null)
@@ -1650,7 +1803,8 @@ namespace Mighty
             string orderBy = null,
             string columns = null,
             string where = null,
-            int pageSize = 20, int currentPage = 1,
+            int pageSize = 20,
+            int currentPage = 1,
             DbConnection connection = null,
             params object[] args)
         {
@@ -1667,6 +1821,7 @@ namespace Mighty
         /// <summary>
         /// Table-specific paging; there is also a data wrapper version of paging <see cref="PagedFromSelect"/>.
         /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="orderBy">You may provide orderBy, if you don't it will try to order by PK and will produce an exception if there is no PK defined.</param>
         /// <param name="where">WHERE clause</param>
         /// <param name="columns">Columns to return</param>
@@ -1674,7 +1829,6 @@ namespace Mighty
         /// <param name="currentPage">Current page</param>
         /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered input parameters</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns>The result of the paged query. Result properties are Items, TotalPages, and TotalRecords.</returns>
         /// <remarks>
         /// `columns` parameter is not placed first because it's an override to something we may have alread provided in the constructor
@@ -1685,14 +1839,15 @@ namespace Mighty
             string orderBy = null,
             string columns = null,
             string where = null,
-            int pageSize = 20, int currentPage = 1,
+            int pageSize = 20,
+            int currentPage = 1,
             DbConnection connection = null,
             params object[] args)
         {
             return await PagedFromSelectAsync(
+                cancellationToken,
                 CheckGetTableName(),
                 orderBy ?? PrimaryKeyInfo.CheckGetPrimaryKeyColumns(),
-                cancellationToken,
                 columns,
                 where,
                 pageSize, currentPage,
@@ -1708,7 +1863,8 @@ namespace Mighty
         /// </summary>
         /// <param name="items">The items</param>
         /// <returns></returns>
-        override public async Task<int> SaveAsync(params object[] items)
+        override public async Task<int> SaveAsync(
+            params object[] items)
         {
             return (await ActionOnItemsWithOutputAsync(OrmAction.Save, null, items).ConfigureAwait(false)).Item1;
         }
@@ -1719,24 +1875,12 @@ namespace Mighty
         /// objects with missing or default primary keys are inserted
         /// and objects with non-default primary keys are updated.
         /// </summary>
-        /// <param name="items">The items</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
-        /// <returns></returns>
-        override public async Task<int> SaveAsync(CancellationToken cancellationToken, params object[] items)
-        {
-            return (await ActionOnItemsWithOutputAsync(OrmAction.Save, null, items, cancellationToken).ConfigureAwait(false)).Item1;
-        }
-
-        /// <summary>
-        /// Save one or more items.
-        /// 'Save' means
-        /// objects with missing or default primary keys are inserted
-        /// and objects with non-default primary keys are updated.
-        /// </summary>
         /// <param name="connection">The connection to use</param>
         /// <param name="items">The items</param>
         /// <returns></returns>
-        override public async Task<int> SaveAsync(DbConnection connection, params object[] items)
+        override public async Task<int> SaveAsync(
+            DbConnection connection,
+            params object[] items)
         {
             return (await ActionOnItemsWithOutputAsync(OrmAction.Save, connection, items).ConfigureAwait(false)).Item1;
         }
@@ -1747,11 +1891,30 @@ namespace Mighty
         /// objects with missing or default primary keys are inserted
         /// and objects with non-default primary keys are updated.
         /// </summary>
-        /// <param name="connection">The connection to use</param>
+        /// <param name="items">The items</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns></returns>
+        override public async Task<int> SaveAsync(
+            CancellationToken cancellationToken,
+            params object[] items)
+        {
+            return (await ActionOnItemsWithOutputAsync(OrmAction.Save, null, items, cancellationToken).ConfigureAwait(false)).Item1;
+        }
+
+        /// <summary>
+        /// Save one or more items.
+        /// 'Save' means
+        /// objects with missing or default primary keys are inserted
+        /// and objects with non-default primary keys are updated.
+        /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <param name="connection">The connection to use</param>
         /// <param name="items">The items</param>
         /// <returns></returns>
-        override public async Task<int> SaveAsync(DbConnection connection, CancellationToken cancellationToken, params object[] items)
+        override public async Task<int> SaveAsync(
+            CancellationToken cancellationToken,
+            DbConnection connection,
+            params object[] items)
         {
             return (await ActionOnItemsWithOutputAsync(OrmAction.Save, connection, items, cancellationToken).ConfigureAwait(false)).Item1;
         }
@@ -1763,36 +1926,11 @@ namespace Mighty
         /// and objects with non-default primary keys are updated.
         /// </summary>
         /// <param name="items">The items</param>
+        /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
-        override public async Task<int> SaveAsync(IEnumerable<object> items)
-        {
-            return (await ActionOnItemsWithOutputAsync(OrmAction.Save, null, items).ConfigureAwait(false)).Item1;
-        }
-
-        /// <summary>
-        /// Save array or other <see cref="IEnumerable"/> of items.
-        /// 'Save' means
-        /// objects with missing or default primary keys are inserted
-        /// and objects with non-default primary keys are updated.
-        /// </summary>
-        /// <param name="items">The items</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
-        /// <returns></returns>
-        override public async Task<int> SaveAsync(IEnumerable<object> items, CancellationToken cancellationToken)
-        {
-            return (await ActionOnItemsWithOutputAsync(OrmAction.Save, null, items, cancellationToken).ConfigureAwait(false)).Item1;
-        }
-
-        /// <summary>
-        /// Save array or other <see cref="IEnumerable"/> of items.
-        /// 'Save' means
-        /// objects with missing or default primary keys are inserted
-        /// and objects with non-default primary keys are updated.
-        /// </summary>
-        /// <param name="connection">The connection to use</param>
-        /// <param name="items">The items</param>
-        /// <returns></returns>
-        override public async Task<int> SaveAsync(DbConnection connection, IEnumerable<object> items)
+        override public async Task<int> SaveAsync(
+            IEnumerable<object> items,
+            DbConnection connection = null)
         {
             return (await ActionOnItemsWithOutputAsync(OrmAction.Save, connection, items).ConfigureAwait(false)).Item1;
         }
@@ -1803,11 +1941,14 @@ namespace Mighty
         /// objects with missing or default primary keys are inserted
         /// and objects with non-default primary keys are updated.
         /// </summary>
-        /// <param name="connection">The connection to use</param>
+        /// <param name="connection">Optional connection to use</param>
         /// <param name="items">The items</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
-        override public async Task<int> SaveAsync(DbConnection connection, IEnumerable<object> items, CancellationToken cancellationToken)
+        override public async Task<int> SaveAsync(
+            CancellationToken cancellationToken,
+            IEnumerable<object> items,
+            DbConnection connection = null)
         {
             return (await ActionOnItemsWithOutputAsync(OrmAction.Save, connection, items, cancellationToken).ConfigureAwait(false)).Item1;
         }
@@ -1817,8 +1958,11 @@ namespace Mighty
         /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>
         /// <param name="item">The item to insert, in any reasonable format (for MightyOrm&lt;T&gt; this includes, but is not limited to, in instance of type T)</param>
+        /// <param name="connection">Optional connection to use</param>
         /// <returns>The item sent in but with the primary key populated</returns>
-        override public async Task<T> InsertAsync(object item)
+        override public async Task<T> InsertAsync(
+            object item,
+            DbConnection connection = null)
         {
             return (await ActionOnItemsAsync(OrmAction.Insert, null, new object[] { item }).ConfigureAwait(false)).FirstOrDefault();
         }
@@ -1827,10 +1971,14 @@ namespace Mighty
         /// Insert single item.
         /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>
-        /// <param name="item">The item to insert, in any reasonable format (for MightyOrm&lt;T&gt; this includes, but is not limited to, in instance of type T)</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <param name="item">The item to insert, in any reasonable format (for MightyOrm&lt;T&gt; this includes, but is not limited to, in instance of type T)</param>
+        /// <param name="connection">Optional connection to use</param>
         /// <returns>The item sent in but with the primary key populated</returns>
-        override public async Task<T> InsertAsync(object item, CancellationToken cancellationToken)
+        override public async Task<T> InsertAsync(
+            CancellationToken cancellationToken,
+            object item,
+            DbConnection connection = null)
         {
             return (await ActionOnItemsAsync(OrmAction.Insert, null, new object[] { item }, cancellationToken).ConfigureAwait(false)).FirstOrDefault();
         }
@@ -1841,7 +1989,8 @@ namespace Mighty
         /// </summary>
         /// <param name="items">The items</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
-        override public async Task<IEnumerable<T>> InsertAsync(params object[] items)
+        override public async Task<IEnumerable<T>> InsertAsync(
+            params object[] items)
         {
             return await ActionOnItemsAsync(OrmAction.Insert, null, items).ConfigureAwait(false);
         }
@@ -1850,22 +1999,12 @@ namespace Mighty
         /// Insert one or more items.
         /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>
-        /// <param name="items">The items</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
-        /// <returns>The items sent in but with the primary keys populated</returns>
-        override public async Task<IEnumerable<T>> InsertAsync(CancellationToken cancellationToken, params object[] items)
-        {
-            return await ActionOnItemsAsync(OrmAction.Insert, null, items, cancellationToken).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Insert one or more items.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
-        /// </summary>
         /// <param name="connection">The connection to use</param>
         /// <param name="items">The items</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
-        override public async Task<IEnumerable<T>> InsertAsync(DbConnection connection, params object[] items)
+        override public async Task<IEnumerable<T>> InsertAsync(
+            DbConnection connection,
+            params object[] items)
         {
             return await ActionOnItemsAsync(OrmAction.Insert, connection, items).ConfigureAwait(false);
         }
@@ -1874,11 +2013,28 @@ namespace Mighty
         /// Insert one or more items.
         /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <param name="items">The items</param>
+        /// <returns>The items sent in but with the primary keys populated</returns>
+        override public async Task<IEnumerable<T>> InsertAsync(
+            CancellationToken cancellationToken,
+            params object[] items)
+        {
+            return await ActionOnItemsAsync(OrmAction.Insert, null, items, cancellationToken).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Insert one or more items.
+        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
+        /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="connection">The connection to use</param>
         /// <param name="items">The items</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns>The items sent in but with the primary keys populated</returns>
-        override public async Task<IEnumerable<T>> InsertAsync(DbConnection connection, CancellationToken cancellationToken, params object[] items)
+        override public async Task<IEnumerable<T>> InsertAsync(
+            CancellationToken cancellationToken,
+            DbConnection connection,
+            params object[] items)
         {
             return await ActionOnItemsAsync(OrmAction.Insert, connection, items, cancellationToken).ConfigureAwait(false);
         }
@@ -1888,32 +2044,11 @@ namespace Mighty
         /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>
         /// <param name="items">The items</param>
+        /// <param name="connection">Optional connection to use</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
-        override public async Task<IEnumerable<T>> InsertAsync(IEnumerable<object> items)
-        {
-            return await ActionOnItemsAsync(OrmAction.Insert, null, items).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Insert array or other <see cref="IEnumerable"/> of items.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
-        /// </summary>
-        /// <param name="items">The items</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
-        /// <returns>The items sent in but with the primary keys populated</returns>
-        override public async Task<IEnumerable<T>> InsertAsync(IEnumerable<object> items, CancellationToken cancellationToken)
-        {
-            return await ActionOnItemsAsync(OrmAction.Insert, null, items, cancellationToken).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Insert array or other <see cref="IEnumerable"/> of items.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
-        /// </summary>
-        /// <param name="connection">The connection to use</param>
-        /// <param name="items">The items</param>
-        /// <returns>The items sent in but with the primary keys populated</returns>
-        override public async Task<IEnumerable<T>> InsertAsync(DbConnection connection, IEnumerable<object> items)
+        override public async Task<IEnumerable<T>> InsertAsync(
+            IEnumerable<object> items,
+            DbConnection connection = null)
         {
             return await ActionOnItemsAsync(OrmAction.Insert, connection, items).ConfigureAwait(false);
         }
@@ -1922,11 +2057,14 @@ namespace Mighty
         /// Insert array or other <see cref="IEnumerable"/> of items.
         /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>
-        /// <param name="connection">The connection to use</param>
-        /// <param name="items">The items</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <param name="items">The items</param>
+        /// <param name="connection">Optional connection to use</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
-        override public async Task<IEnumerable<T>> InsertAsync(DbConnection connection, IEnumerable<object> items, CancellationToken cancellationToken)
+        override public async Task<IEnumerable<T>> InsertAsync(
+            CancellationToken cancellationToken,
+            IEnumerable<object> items,
+            DbConnection connection = null)
         {
             return await ActionOnItemsAsync(OrmAction.Insert, connection, items, cancellationToken).ConfigureAwait(false);
         }
@@ -1936,7 +2074,8 @@ namespace Mighty
         /// </summary>
         /// <param name="items">The items</param>
         /// <returns></returns>
-        override public async Task<int> UpdateAsync(params object[] items)
+        override public async Task<int> UpdateAsync(
+            params object[] items)
         {
             return (await ActionOnItemsWithOutputAsync(OrmAction.Update, null, items).ConfigureAwait(false)).Item1;
         }
@@ -1944,21 +2083,12 @@ namespace Mighty
         /// <summary>
         /// Update one or more items.
         /// </summary>
-        /// <param name="items">The items</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
-        /// <returns></returns>
-        override public async Task<int> UpdateAsync(CancellationToken cancellationToken, params object[] items)
-        {
-            return (await ActionOnItemsWithOutputAsync(OrmAction.Update, null, items, cancellationToken).ConfigureAwait(false)).Item1;
-        }
-
-        /// <summary>
-        /// Update one or more items.
-        /// </summary>
         /// <param name="connection">The connection to use</param>
         /// <param name="items">The items</param>
         /// <returns></returns>
-        override public async Task<int> UpdateAsync(DbConnection connection, params object[] items)
+        override public async Task<int> UpdateAsync(
+            DbConnection connection,
+            params object[] items)
         {
             return (await ActionOnItemsWithOutputAsync(OrmAction.Update, connection, items).ConfigureAwait(false)).Item1;
         }
@@ -1966,11 +2096,27 @@ namespace Mighty
         /// <summary>
         /// Update one or more items.
         /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <param name="items">The items</param>
+        /// <returns></returns>
+        override public async Task<int> UpdateAsync(
+            CancellationToken cancellationToken,
+            params object[] items)
+        {
+            return (await ActionOnItemsWithOutputAsync(OrmAction.Update, null, items, cancellationToken).ConfigureAwait(false)).Item1;
+        }
+
+        /// <summary>
+        /// Update one or more items.
+        /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="connection">The connection to use</param>
         /// <param name="items">The items</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
-        override public async Task<int> UpdateAsync(DbConnection connection, CancellationToken cancellationToken, params object[] items)
+        override public async Task<int> UpdateAsync(
+            CancellationToken cancellationToken,
+            DbConnection connection,
+            params object[] items)
         {
             return (await ActionOnItemsWithOutputAsync(OrmAction.Update, connection, items, cancellationToken).ConfigureAwait(false)).Item1;
         }
@@ -1979,30 +2125,11 @@ namespace Mighty
         /// Update array or other <see cref="IEnumerable"/> of items.
         /// </summary>
         /// <param name="items">The items</param>
+        /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
-        override public async Task<int> UpdateAsync(IEnumerable<object> items)
-        {
-            return (await ActionOnItemsWithOutputAsync(OrmAction.Update, null, items).ConfigureAwait(false)).Item1;
-        }
-
-        /// <summary>
-        /// Update array or other <see cref="IEnumerable"/> of items.
-        /// </summary>
-        /// <param name="items">The items</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
-        /// <returns></returns>
-        override public async Task<int> UpdateAsync(IEnumerable<object> items, CancellationToken cancellationToken)
-        {
-            return (await ActionOnItemsWithOutputAsync(OrmAction.Update, null, items, cancellationToken).ConfigureAwait(false)).Item1;
-        }
-
-        /// <summary>
-        /// Update array or other <see cref="IEnumerable"/> of items.
-        /// </summary>
-        /// <param name="connection">The connection to use</param>
-        /// <param name="items">The items</param>
-        /// <returns></returns>
-        override public async Task<int> UpdateAsync(DbConnection connection, IEnumerable<object> items)
+        override public async Task<int> UpdateAsync(
+            IEnumerable<object> items,
+            DbConnection connection = null)
         {
             return (await ActionOnItemsWithOutputAsync(OrmAction.Update, connection, items).ConfigureAwait(false)).Item1;
         }
@@ -2010,11 +2137,14 @@ namespace Mighty
         /// <summary>
         /// Update array or other <see cref="IEnumerable"/> of items.
         /// </summary>
-        /// <param name="connection">The connection to use</param>
-        /// <param name="items">The items</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <param name="items">The items</param>
+        /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
-        override public async Task<int> UpdateAsync(DbConnection connection, IEnumerable<object> items, CancellationToken cancellationToken)
+        override public async Task<int> UpdateAsync(
+            CancellationToken cancellationToken,
+            IEnumerable<object> items,
+            DbConnection connection = null)
         {
             return (await ActionOnItemsWithOutputAsync(OrmAction.Update, connection, items, cancellationToken).ConfigureAwait(false)).Item1;
         }
@@ -2028,7 +2158,8 @@ namespace Mighty
         /// </summary>
         /// <param name="items">The items</param>
         /// <returns>The number of items affected</returns>
-        override public async Task<int> DeleteAsync(params object[] items)
+        override public async Task<int> DeleteAsync(
+            params object[] items)
         {
             return (await ActionOnItemsWithOutputAsync(OrmAction.Delete, null, items).ConfigureAwait(false)).Item1;
         }
@@ -2041,24 +2172,11 @@ namespace Mighty
         /// other fields as well which will be ignored here).
         /// </summary>
         /// <param name="items">The items</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
-        /// <returns>The number of items affected</returns>
-        override public async Task<int> DeleteAsync(CancellationToken cancellationToken, params object[] items)
-        {
-            return (await ActionOnItemsWithOutputAsync(OrmAction.Delete, null, items, cancellationToken).ConfigureAwait(false)).Item1;
-        }
-
-        /// <summary>
-        /// Delete one or more items.
-        /// Each argument may be (or contain) a value (or values) only, in which case
-        /// it specifies the primary key value(s) of the item to delete, or it can be any object containing name-values pairs in which case
-        /// it should contain fields with names matching the primary key(s) whose values will specify the item to delete (but it may contain
-        /// other fields as well which will be ignored here).
-        /// </summary>
-        /// <param name="items">The items</param>
         /// <param name="connection">The connection to use</param>
         /// <returns>The number of items affected</returns>
-        override public async Task<int> DeleteAsync(DbConnection connection, params object[] items)
+        override public async Task<int> DeleteAsync(
+            DbConnection connection,
+            params object[] items)
         {
             return (await ActionOnItemsWithOutputAsync(OrmAction.Delete, connection, items).ConfigureAwait(false)).Item1;
         }
@@ -2071,10 +2189,30 @@ namespace Mighty
         /// other fields as well which will be ignored here).
         /// </summary>
         /// <param name="items">The items</param>
-        /// <param name="connection">The connection to use</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns>The number of items affected</returns>
-        override public async Task<int> DeleteAsync(DbConnection connection, CancellationToken cancellationToken, params object[] items)
+        override public async Task<int> DeleteAsync(
+            CancellationToken cancellationToken,
+            params object[] items)
+        {
+            return (await ActionOnItemsWithOutputAsync(OrmAction.Delete, null, items, cancellationToken).ConfigureAwait(false)).Item1;
+        }
+
+        /// <summary>
+        /// Delete one or more items.
+        /// Each argument may be (or contain) a value (or values) only, in which case
+        /// it specifies the primary key value(s) of the item to delete, or it can be any object containing name-values pairs in which case
+        /// it should contain fields with names matching the primary key(s) whose values will specify the item to delete (but it may contain
+        /// other fields as well which will be ignored here).
+        /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="items">The items</param>
+        /// <returns>The number of items affected</returns>
+        override public async Task<int> DeleteAsync(
+            CancellationToken cancellationToken,
+            DbConnection connection,
+            params object[] items)
         {
             return (await ActionOnItemsWithOutputAsync(OrmAction.Delete, connection, items, cancellationToken).ConfigureAwait(false)).Item1;
         }
@@ -2087,38 +2225,11 @@ namespace Mighty
         /// other fields as well which will be ignored here).
         /// </summary>
         /// <param name="items">The items</param>
+        /// <param name="connection">Optional connection to use</param>
         /// <returns>The number of items affected</returns>
-        override public async Task<int> DeleteAsync(IEnumerable<object> items)
-        {
-            return (await ActionOnItemsWithOutputAsync(OrmAction.Delete, null, items).ConfigureAwait(false)).Item1;
-        }
-
-        /// <summary>
-        /// Delete an array or other <see cref="IEnumerable"/> of items.
-        /// Each argument may be (or contain) a value (or values) only, in which case
-        /// it specifies the primary key value(s) of the item to delete, or it can be any object containing name-values pairs in which case
-        /// it should contain fields with names matching the primary key(s) whose values will specify the item to delete (but it may contain
-        /// other fields as well which will be ignored here).
-        /// </summary>
-        /// <param name="items">The items</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
-        /// <returns>The number of items affected</returns>
-        override public async Task<int> DeleteAsync(IEnumerable<object> items, CancellationToken cancellationToken)
-        {
-            return (await ActionOnItemsWithOutputAsync(OrmAction.Delete, null, items, cancellationToken).ConfigureAwait(false)).Item1;
-        }
-
-        /// <summary>
-        /// Delete an array or other <see cref="IEnumerable"/> of items.
-        /// Each argument may be (or contain) a value (or values) only, in which case
-        /// it specifies the primary key value(s) of the item to delete, or it can be any object containing name-values pairs in which case
-        /// it should contain fields with names matching the primary key(s) whose values will specify the item to delete (but it may contain
-        /// other fields as well which will be ignored here).
-        /// </summary>
-        /// <param name="items">The items</param>
-        /// <param name="connection">The connection to use</param>
-        /// <returns>The number of items affected</returns>
-        override public async Task<int> DeleteAsync(DbConnection connection, IEnumerable<object> items)
+        override public async Task<int> DeleteAsync(
+            IEnumerable<object> items,
+            DbConnection connection = null)
         {
             return (await ActionOnItemsWithOutputAsync(OrmAction.Delete, connection, items).ConfigureAwait(false)).Item1;
         }
@@ -2130,11 +2241,14 @@ namespace Mighty
         /// it should contain fields with names matching the primary key(s) whose values will specify the item to delete (but it may contain
         /// other fields as well which will be ignored here).
         /// </summary>
-        /// <param name="items">The items</param>
-        /// <param name="connection">The connection to use</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <param name="items">The items</param>
+        /// <param name="connection">Optional connection to use</param>
         /// <returns>The number of items affected</returns>
-        override public async Task<int> DeleteAsync(DbConnection connection, IEnumerable<object> items, CancellationToken cancellationToken)
+        override public async Task<int> DeleteAsync(
+            CancellationToken cancellationToken,
+            IEnumerable<object> items,
+            DbConnection connection = null)
         {
             return (await ActionOnItemsWithOutputAsync(OrmAction.Delete, connection, items, cancellationToken).ConfigureAwait(false)).Item1;
         }
@@ -2146,9 +2260,13 @@ namespace Mighty
         /// </summary>
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
-        override public async Task<int> UpdateUsingAsync(object partialItem, object whereParams)
+        /// <param name="connection">Optional connection to use</param>
+        override public async Task<int> UpdateUsingAsync(
+            object partialItem,
+            object whereParams,
+            DbConnection connection = null)
         {
-            return await UpdateUsingAsync(partialItem, whereParams, null, CancellationToken.None).ConfigureAwait(false);
+            return await UpdateUsingAsync(CancellationToken.None, partialItem, whereParams, connection).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -2156,45 +2274,22 @@ namespace Mighty
         /// If `keys` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
         /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New"/> with first parameter `partialItem` and second parameter `false` first.
         /// </summary>
-        /// <param name="partialItem">Item containing values to update with</param>
-        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
-        override public async Task<int> UpdateUsingAsync(object partialItem, object whereParams, CancellationToken cancellationToken)
-        {
-            return await UpdateUsingAsync(partialItem, whereParams, null, cancellationToken).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Update the row(s) specified by the primary key(s) or WHERE values sent in using the values from the item sent in.
-        /// If `keys` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
-        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New"/> with first parameter `partialItem` and second parameter `false` first.
-        /// </summary>
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="connection">Optional connection to use</param>
-        override public async Task<int> UpdateUsingAsync(object partialItem, object whereParams,
-            DbConnection connection)
-        {
-            return await UpdateUsingAsync(partialItem, whereParams, connection, CancellationToken.None).ConfigureAwait(false);
-        }
-
-        /// <summary>
-        /// Update the row(s) specified by the primary key(s) or WHERE values sent in using the values from the item sent in.
-        /// If `keys` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
-        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New"/> with first parameter `partialItem` and second parameter `false` first.
-        /// </summary>
-        /// <param name="partialItem">Item containing values to update with</param>
-        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
-        /// <param name="connection">Optional connection to use</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
-        override public async Task<int> UpdateUsingAsync(object partialItem, object whereParams,
-            DbConnection connection, CancellationToken cancellationToken)
+        override public async Task<int> UpdateUsingAsync(
+            CancellationToken cancellationToken,
+            object partialItem,
+            object whereParams,
+            DbConnection connection = null)
         {
             Tuple<string, object, object[]> retval = GetWhereSpecFromWhereParams(whereParams);
             return await UpdateUsingWithParamsAsync(
+                cancellationToken,
                 partialItem,
                 where: retval.Item1, inParams: retval.Item2, args: retval.Item3,
-                connection: connection, cancellationToken: cancellationToken).ConfigureAwait(false);
+                connection: connection).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -2205,14 +2300,16 @@ namespace Mighty
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="where">WHERE clause specifying which rows to update</param>
         /// <param name="args">Auto-numbered input parameters</param>
-        override public async Task<int> UpdateUsingAsync(object partialItem, string where,
+        override public async Task<int> UpdateUsingAsync(
+            object partialItem,
+            string where,
             params object[] args)
         {
             return await UpdateUsingWithParamsAsync(
+                CancellationToken.None,
                 partialItem,
                 where,
                 null,
-                CancellationToken.None,
                 null,
                 args).ConfigureAwait(false);
         }
@@ -2222,19 +2319,21 @@ namespace Mighty
         /// If `keys` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
         /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New"/> with first parameter `partialItem` and second parameter `false` first.
         /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="where">WHERE clause specifying which rows to update</param>
         /// <param name="args">Auto-numbered input parameters</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
-        override public async Task<int> UpdateUsingAsync(object partialItem, string where,
+        override public async Task<int> UpdateUsingAsync(
             CancellationToken cancellationToken,
+            object partialItem,
+            string where,
             params object[] args)
         {
             return await UpdateUsingWithParamsAsync(
+                cancellationToken,
                 partialItem,
                 where,
                 null,
-                cancellationToken,
                 args).ConfigureAwait(false);
         }
 
@@ -2247,7 +2346,8 @@ namespace Mighty
         /// </param>
         /// <param name="args">Auto-numbered input parameters</param>
         /// <returns>The number of items affected</returns>
-        override public async Task<int> DeleteAsync(string where,
+        override public async Task<int> DeleteAsync(
+            string where,
             params object[] args)
         {
             return await DeleteAsync(where, null, args).ConfigureAwait(false);
@@ -2256,18 +2356,19 @@ namespace Mighty
         /// <summary>
         /// Delete one or more items based on a WHERE clause.
         /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="where">
         /// Non-optional WHERE clause.
         /// Specify "1=1" if you are sure that you want to delete all rows.
         /// </param>
         /// <param name="args">Auto-numbered input parameters</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns>The number of items affected</returns>
-        override public async Task<int> DeleteAsync(string where,
+        override public async Task<int> DeleteAsync(
             CancellationToken cancellationToken,
+            string where,
             params object[] args)
         {
-            return await DeleteAsync(where, null, cancellationToken, args).ConfigureAwait(false);
+            return await DeleteAsync(cancellationToken, where, null, args).ConfigureAwait(false);
         }
         #endregion
     }

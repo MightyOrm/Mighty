@@ -208,7 +208,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
                 var db = new SPTestsDatabase();
                 // Unlike the Oracle data access layer, Npgsql v3 does not dereference cursor parameters.
                 // We have added back the support for this which was previously in Npgsql v2.
-                var employees = await db.QueryFromProcedureAsync("cursor_employees", cts.Token, outParams: new { refcursor = new Cursor() });
+                var employees = await db.QueryFromProcedureAsync(cts.Token, "cursor_employees", outParams: new { refcursor = new Cursor() });
                 int count = 0;
                 Assert.ThrowsAsync<TaskCanceledException>(async () =>
                 {

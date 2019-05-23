@@ -9,7 +9,9 @@ using System.Text;
 using System.Transactions;
 #endif
 
+#if NETFRAMEWORK
 using Mighty.ConnectionProviders;
+#endif
 using Mighty.DataContracts;
 using Mighty.Interfaces;
 using Mighty.Parameters;
@@ -330,10 +332,14 @@ namespace Mighty
         /// <typeparam name="X">Use with <typeparamref name="T"/> for single or <see cref="EnumerableResultSet{T}"/> for multiple</typeparam>
         /// <param name="command">The command to execute</param>
         /// <param name="behavior">The command behaviour</param>
-        /// <param name="connection">Optional conneciton to use</param>
+        /// <param name="connection">Optional connection to use</param>
         /// <param name="outerReader">The outer reader when this is a call to the inner reader in QueryMultiple</param>
         /// <returns></returns>
-        override protected internal IEnumerable<X> QueryNWithParams<X>(DbCommand command, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, DbDataReader outerReader = null)
+        override protected internal IEnumerable<X> QueryNWithParams<X>(
+            DbCommand command,
+            CommandBehavior behavior = CommandBehavior.Default,
+            DbConnection connection = null,
+            DbDataReader outerReader = null)
         {
             using (command)
             {

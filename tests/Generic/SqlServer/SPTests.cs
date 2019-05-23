@@ -98,7 +98,6 @@ namespace Mighty.Generic.Tests.SqlServer
                     counts[0]++;
                 }
             }
-            Assert.True(set1.IsDisposed);
             Assert.True(twoSets.IsDisposed);
             Assert.AreEqual(1, counts[0]);
             Assert.AreEqual(0, counts[1]);
@@ -123,7 +122,6 @@ namespace Mighty.Generic.Tests.SqlServer
                     break;
                 }
             }
-            Assert.True(set1.IsDisposed);
             Assert.True(twoSets.IsDisposed);
             Assert.AreEqual(1, counts[0]);
             Assert.AreEqual(0, counts[1]);

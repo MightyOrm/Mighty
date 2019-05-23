@@ -267,7 +267,7 @@ namespace Mighty.Generic.Tests.MySql
             using (CancellationTokenSource cts = new CancellationTokenSource())
             {
                 var films = new Films(ProviderName);
-                var allRows = await films.QueryAsync("SELECT * FROM sakila.film", cts.Token);
+                var allRows = await films.QueryAsync(cts.Token, "SELECT * FROM sakila.film");
                 int count = 0;
                 Assert.ThrowsAsync<TaskCanceledException>(async () =>
                 {
