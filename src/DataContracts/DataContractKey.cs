@@ -92,6 +92,8 @@ namespace Mighty.DataContracts
                 }
             }
 
+            // TO DO: Should we really be calling the mapper in the data contract *key* constructor?
+            // (Whatever calls are made here are called *every time* we check whether we already have a contract.)
             if (DatabaseTableSettings == null)
             {
                 // we don't ever need to look up the mapper values if they have been overridden by the user-attribute;
