@@ -21,7 +21,7 @@ namespace Mighty
         public bool IsDisposed { get { return _wrapped == null; } }
 
         private IEnumerator<EnumerableResultSet<T>> _enumerator;
-        private IEnumerator<EnumerableResultSet<T>> enumerator
+        private IEnumerator<EnumerableResultSet<T>> Enumerator
         {
             get
             {
@@ -50,12 +50,12 @@ namespace Mighty
         /// <returns></returns>
         public IEnumerator<EnumerableResultSet<T>> GetEnumerator()
         {
-            return enumerator;
+            return Enumerator;
         }
 
         IEnumerator IEnumerable.GetEnumerator()
         {
-            return enumerator;
+            return Enumerator;
         }
 
         /// <summary>
@@ -64,7 +64,7 @@ namespace Mighty
         /// <returns></returns>
         public bool NextResultSet()
         {
-            return enumerator.MoveNext();
+            return Enumerator.MoveNext();
         }
 
         /// <summary>
@@ -86,11 +86,11 @@ namespace Mighty
         {
             get
             {
-                if (enumerator == null)
+                if (Enumerator == null)
                 {
                     throw new InvalidOperationException($"Call {nameof(NextResultSet)}() before accessing {nameof(CurrentResultSet)}");
                 }
-                return enumerator.Current;
+                return Enumerator.Current;
             }
         }
     }
