@@ -10,14 +10,14 @@ using SqlProfiler.Simple;
 
 namespace MightyTests.Profiling
 {
-    public class MightyTestsProfiler : DataProfiler
+    public class MightyTestsSqlProfiler : DataProfiler
     {
         public Dictionary<DbCommandMethod, int> DbCommandMethodCounts;
 
         /// <summary>
         /// Constructor
         /// </summary>
-        public MightyTestsProfiler()
+        public MightyTestsSqlProfiler()
         {
             DbCommandMethodCounts = new Dictionary<DbCommandMethod, int>();
             DbCommandMethodCounts[DbCommandMethod.ExecuteDbDataReader] = 0;

@@ -1788,7 +1788,7 @@ namespace Mighty.Interfaces
         /// </summary>
         /// <param name="items">The items</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
-        abstract public Task<IEnumerable<T>> InsertAsync(
+        abstract public Task<List<T>> InsertAsync(
             params object[] items);
 
         /// <summary>
@@ -1798,7 +1798,7 @@ namespace Mighty.Interfaces
         /// <param name="connection">The connection to use</param>
         /// <param name="items">The items</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
-        abstract public Task<IEnumerable<T>> InsertAsync(
+        abstract public Task<List<T>> InsertAsync(
             DbConnection connection,
             params object[] items);
 
@@ -1809,7 +1809,7 @@ namespace Mighty.Interfaces
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="items">The items</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
-        abstract public Task<IEnumerable<T>> InsertAsync(
+        abstract public Task<List<T>> InsertAsync(
             CancellationToken cancellationToken,
             params object[] items);
 
@@ -1821,7 +1821,7 @@ namespace Mighty.Interfaces
         /// <param name="connection">The connection to use</param>
         /// <param name="items">The items</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
-        abstract public Task<IEnumerable<T>> InsertAsync(
+        abstract public Task<List<T>> InsertAsync(
             CancellationToken cancellationToken,
             DbConnection connection,
             params object[] items);
@@ -1833,7 +1833,7 @@ namespace Mighty.Interfaces
         /// <param name="connection">Optional connection to use</param>
         /// <param name="items">The items</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
-        abstract public Task<IEnumerable<T>> InsertAsync(
+        abstract public Task<List<T>> InsertAsync(
             IEnumerable<object> items,
             DbConnection connection = null);
 
@@ -1845,7 +1845,7 @@ namespace Mighty.Interfaces
         /// <param name="connection">Optional connection to use</param>
         /// <param name="items">The items</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
-        abstract public Task<IEnumerable<T>> InsertAsync(
+        abstract public Task<List<T>> InsertAsync(
             CancellationToken cancellationToken,
             IEnumerable<object> items,
             DbConnection connection = null);

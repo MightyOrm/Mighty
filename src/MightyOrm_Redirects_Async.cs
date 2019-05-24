@@ -1989,7 +1989,7 @@ namespace Mighty
         /// </summary>
         /// <param name="items">The items</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
-        override public async Task<IEnumerable<T>> InsertAsync(
+        override public async Task<List<T>> InsertAsync(
             params object[] items)
         {
             return await ActionOnItemsAsync(OrmAction.Insert, null, items).ConfigureAwait(false);
@@ -2002,7 +2002,7 @@ namespace Mighty
         /// <param name="connection">The connection to use</param>
         /// <param name="items">The items</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
-        override public async Task<IEnumerable<T>> InsertAsync(
+        override public async Task<List<T>> InsertAsync(
             DbConnection connection,
             params object[] items)
         {
@@ -2016,7 +2016,7 @@ namespace Mighty
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="items">The items</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
-        override public async Task<IEnumerable<T>> InsertAsync(
+        override public async Task<List<T>> InsertAsync(
             CancellationToken cancellationToken,
             params object[] items)
         {
@@ -2031,7 +2031,7 @@ namespace Mighty
         /// <param name="connection">The connection to use</param>
         /// <param name="items">The items</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
-        override public async Task<IEnumerable<T>> InsertAsync(
+        override public async Task<List<T>> InsertAsync(
             CancellationToken cancellationToken,
             DbConnection connection,
             params object[] items)
@@ -2046,7 +2046,7 @@ namespace Mighty
         /// <param name="items">The items</param>
         /// <param name="connection">Optional connection to use</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
-        override public async Task<IEnumerable<T>> InsertAsync(
+        override public async Task<List<T>> InsertAsync(
             IEnumerable<object> items,
             DbConnection connection = null)
         {
@@ -2061,7 +2061,7 @@ namespace Mighty
         /// <param name="items">The items</param>
         /// <param name="connection">Optional connection to use</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
-        override public async Task<IEnumerable<T>> InsertAsync(
+        override public async Task<List<T>> InsertAsync(
             CancellationToken cancellationToken,
             IEnumerable<object> items,
             DbConnection connection = null)

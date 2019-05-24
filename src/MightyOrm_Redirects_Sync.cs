@@ -920,7 +920,8 @@ namespace Mighty
         override public int Save(
             params object[] items)
         {
-            return ActionOnItemsWithOutput(OrmAction.Save, null, items).Item1;
+            ActionOnItemsWithOutput(out int affectedCount, out List<T> modifiedItems, OrmAction.Save, null, items);
+            return affectedCount;
         }
 
         /// <summary>
@@ -936,7 +937,8 @@ namespace Mighty
             DbConnection connection,
             params object[] items)
         {
-            return ActionOnItemsWithOutput(OrmAction.Save, connection, items).Item1;
+            ActionOnItemsWithOutput(out int affectedCount, out List<T> modifiedItems, OrmAction.Save, connection, items);
+            return affectedCount;
         }
 
         /// <summary>
@@ -950,7 +952,8 @@ namespace Mighty
         override public int Save(
             IEnumerable<object> items)
         {
-            return ActionOnItemsWithOutput(OrmAction.Save, null, items).Item1;
+            ActionOnItemsWithOutput(out int affectedCount, out List<T> modifiedItems, OrmAction.Save, null, items);
+            return affectedCount;
         }
 
         /// <summary>
@@ -966,7 +969,8 @@ namespace Mighty
             IEnumerable<object> items,
             DbConnection connection)
         {
-            return ActionOnItemsWithOutput(OrmAction.Save, connection, items).Item1;
+            ActionOnItemsWithOutput(out int affectedCount, out List<T> modifiedItems, OrmAction.Save, connection, items);
+            return affectedCount;
         }
 
         /// <summary>
@@ -989,7 +993,7 @@ namespace Mighty
         /// </summary>
         /// <param name="items">The items</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
-        override public IEnumerable<T> Insert(
+        override public List<T> Insert(
             params object[] items)
         {
             return ActionOnItems(OrmAction.Insert, null, items);
@@ -1002,7 +1006,7 @@ namespace Mighty
         /// <param name="connection">The connection to use</param>
         /// <param name="items">The items</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
-        override public IEnumerable<T> Insert(
+        override public List<T> Insert(
             DbConnection connection,
             params object[] items)
         {
@@ -1016,7 +1020,7 @@ namespace Mighty
         /// <param name="items">The items</param>
         /// <param name="connection">Optional connection to use</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
-        override public IEnumerable<T> Insert(
+        override public List<T> Insert(
             IEnumerable<object> items,
             DbConnection connection = null)
         {
@@ -1031,7 +1035,8 @@ namespace Mighty
         override public int Update(
             params object[] items)
         {
-            return ActionOnItemsWithOutput(OrmAction.Update, null, items).Item1;
+            ActionOnItemsWithOutput(out int affectedCount, out List<T> modifiedItems, OrmAction.Update, null, items);
+            return affectedCount;
         }
 
         /// <summary>
@@ -1044,7 +1049,8 @@ namespace Mighty
             DbConnection connection,
             params object[] items)
         {
-            return ActionOnItemsWithOutput(OrmAction.Update, connection, items).Item1;
+            ActionOnItemsWithOutput(out int affectedCount, out List<T> modifiedItems, OrmAction.Update, connection, items);
+            return affectedCount;
         }
 
         /// <summary>
@@ -1055,7 +1061,8 @@ namespace Mighty
         override public int Update(
             IEnumerable<object> items)
         {
-            return ActionOnItemsWithOutput(OrmAction.Update, null, items).Item1;
+            ActionOnItemsWithOutput(out int affectedCount, out List<T> modifiedItems, OrmAction.Update, null, items);
+            return affectedCount;
         }
 
         /// <summary>
@@ -1068,7 +1075,8 @@ namespace Mighty
             IEnumerable<object> items,
             DbConnection connection)
         {
-            return ActionOnItemsWithOutput(OrmAction.Update, connection, items).Item1;
+            ActionOnItemsWithOutput(out int affectedCount, out List<T> modifiedItems, OrmAction.Update, connection, items);
+            return affectedCount;
         }
 
         /// <summary>
@@ -1083,7 +1091,8 @@ namespace Mighty
         override public int Delete(
             params object[] items)
         {
-            return ActionOnItemsWithOutput(OrmAction.Delete, null, items).Item1;
+            ActionOnItemsWithOutput(out int affectedCount, out List<T> modifiedItems, OrmAction.Delete, null, items);
+            return affectedCount;
         }
 
         /// <summary>
@@ -1100,7 +1109,8 @@ namespace Mighty
             DbConnection connection,
             params object[] items)
         {
-            return ActionOnItemsWithOutput(OrmAction.Delete, connection, items).Item1;
+            ActionOnItemsWithOutput(out int affectedCount, out List<T> modifiedItems, OrmAction.Delete, connection, items);
+            return affectedCount;
         }
 
         /// <summary>
@@ -1117,7 +1127,8 @@ namespace Mighty
             IEnumerable<object> items,
             DbConnection connection = null)
         {
-            return ActionOnItemsWithOutput(OrmAction.Delete, connection, items).Item1;
+            ActionOnItemsWithOutput(out int affectedCount, out List<T> modifiedItems, OrmAction.Delete, connection, items);
+            return affectedCount;
         }
 
         /// <summary>

@@ -240,7 +240,7 @@ namespace Mighty
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns>The list of modified items</returns>
         /// <remarks>Here and in <see cref="UpsertItemPK"/> we always return the modified original object where possible</remarks>
-        internal async Task<IEnumerable<T>> ActionOnItemsAsync(OrmAction action, DbConnection connection, IEnumerable<object> items, CancellationToken cancellationToken = default)
+        internal async Task<List<T>> ActionOnItemsAsync(OrmAction action, DbConnection connection, IEnumerable<object> items, CancellationToken cancellationToken = default)
         {
             return (await ActionOnItemsWithOutputAsync(action, connection, items, cancellationToken).ConfigureAwait(false)).Item2;
         }
@@ -256,7 +256,7 @@ namespace Mighty
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns>The list of modified items</returns>
         /// <remarks>Here and in <see cref="UpsertItemPK"/> we always return the modified original object where possible</remarks>
-        protected async Task<Tuple<int, IEnumerable<T>>> ActionOnItemsWithOutputAsync(OrmAction action, DbConnection connection, IEnumerable<object> items, CancellationToken cancellationToken = default)
+        protected async Task<Tuple<int, List<T>>> ActionOnItemsWithOutputAsync(OrmAction action, DbConnection connection, IEnumerable<object> items, CancellationToken cancellationToken = default)
         {
             List<T> modifiedItems = null;
             if (action == OrmAction.Insert)
@@ -286,7 +286,7 @@ namespace Mighty
                 }
                 count++;
             }
-            return new Tuple<int, IEnumerable<T>>(affected, modifiedItems);
+            return new Tuple<int, List<T>>(affected, modifiedItems);
         }
 
 #if KEY_VALUES

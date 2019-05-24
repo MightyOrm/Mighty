@@ -105,7 +105,7 @@ namespace Mighty.Generic.Tests.X
         {
 #if NETFRAMEWORK
 #if !NET40
-            Assert.AreEqual(893, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(901, DataContractStore.Instance.CacheHits);
 #else
             Assert.AreEqual(438, DataContractStore.Instance.CacheHits);
 #endif
@@ -123,7 +123,7 @@ namespace Mighty.Generic.Tests.X
         {
 #if NETFRAMEWORK
 #if !NET40
-            Assert.AreEqual(19, DataContractStore.Instance.CacheMisses);
+            Assert.AreEqual(21, DataContractStore.Instance.CacheMisses);
 #else
             Assert.AreEqual(18, DataContractStore.Instance.CacheMisses);
 #endif

@@ -887,7 +887,7 @@ namespace Mighty.Interfaces
         /// </summary>
         /// <param name="items">The items</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
-        abstract public IEnumerable<T> Insert(
+        abstract public List<T> Insert(
             params object[] items);
 
         /// <summary>
@@ -897,7 +897,7 @@ namespace Mighty.Interfaces
         /// <param name="connection">The connection to use</param>
         /// <param name="items">The items</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
-        abstract public IEnumerable<T> Insert(
+        abstract public List<T> Insert(
             DbConnection connection,
             params object[] items);
 
@@ -908,7 +908,7 @@ namespace Mighty.Interfaces
         /// <param name="items">The items</param>
         /// <param name="connection">Optional connection to use</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
-        abstract public IEnumerable<T> Insert(
+        abstract public List<T> Insert(
             IEnumerable<object> items,
             DbConnection connection = null);
 

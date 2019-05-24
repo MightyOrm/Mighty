@@ -137,9 +137,10 @@ namespace Mighty
         /// <param name="items">The item or items</param>
         /// <returns>The list of modified items</returns>
         /// <remarks>Here and in <see cref="UpsertItemPK"/> we always return the modified original object where possible</remarks>
-        internal IEnumerable<T> ActionOnItems(OrmAction action, DbConnection connection, IEnumerable<object> items)
+        internal List<T> ActionOnItems(OrmAction action, DbConnection connection, IEnumerable<object> items)
         {
-            return ActionOnItemsWithOutput(action, connection, items).Item2;
+            ActionOnItemsWithOutput(out int affectedCount, out List<T> modifiedItems, action, connection, items);
+            return modifiedItems;
         }
 
         /// <summary>
@@ -147,27 +148,28 @@ namespace Mighty
         /// An <see cref="IEnumerable{T}"/> of *modified* items is returned; the modification is to update the primary key to the correct new value for inserted items.
         /// If the input item does not support field writes/inserts as needed then an <see cref="ExpandoObject"/> corresponding to the updated item is returned instead.
         /// </summary>
+        /// <param name="affectedCount">Returns number of items affected</param>
+        /// <param name="modifiedItems">Returns modified items</param>
         /// <param name="action">The ORM action</param>
         /// <param name="connection">The connection to use</param>
         /// <param name="items">The item or items</param>
         /// <returns>The list of modified items</returns>
         /// <remarks>Here and in <see cref="UpsertItemPK"/> we always return the modified original object where possible</remarks>
-        internal Tuple<int, IEnumerable<T>> ActionOnItemsWithOutput(OrmAction action, DbConnection connection, IEnumerable<object> items)
+        internal void ActionOnItemsWithOutput(out int affectedCount, out List<T> modifiedItems, OrmAction action, DbConnection connection, IEnumerable<object> items)
         {
-            List<T> modifiedItems = null;
+            modifiedItems = null;
             if (action == OrmAction.Insert)
             {
                 modifiedItems = new List<T>();
             }
-            int count = 0;
-            int affected = 0;
+            affectedCount = 0;
             ValidateAction(items, action);
             foreach (var item in items)
             {
                 if (Validator.ShouldPerformAction(item, action))
                 {
                     object result;
-                    affected += ActionOnItem(out result, action, item, connection);
+                    affectedCount += ActionOnItem(out result, action, item, connection);
                     if (action == OrmAction.Insert)
                     {
                         var modified = result ?? item;
@@ -179,9 +181,7 @@ namespace Mighty
                     }
                     Validator.HasPerformedAction(item, action);
                 }
-                count++;
             }
-            return new Tuple<int, IEnumerable<T>>(affected, modifiedItems);
         }
 
 #if KEY_VALUES
