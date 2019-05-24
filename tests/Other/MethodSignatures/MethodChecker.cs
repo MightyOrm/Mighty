@@ -13,93 +13,25 @@ using NUnit.Framework;
 
 namespace Mighty.MethodSignatures
 {
-    public static partial class ObjectExtensions
-    {
-        public static List<string> CamelCaseSplit(this string str, bool enforceFirstUpper = true)
-        {
-            if (str == null) return null;
-            var results = new List<string>();
-            if (str == string.Empty) return results;
-            int o = 0, p = 0, w = 0;
-            bool firstWord = true;
-            do
-            {
-                bool add;
-                if (p == str.Length) add = true;
-                else
-                {
-                    char c = str[p];
-                    bool isUpper = (c == c.ToString().ToUpperInvariant()[0]);
-                    if (firstWord)
-                    {
-                        if (enforceFirstUpper && !isUpper)
-                        {
-                            throw new InvalidOperationException($"{str}: first char of all public member names must be upper case");
-                        }
-                        firstWord = false;
-                    }
-                    add = (w > 0 && isUpper);
-                }
-                if (add)
-                {
-                    results.Add(str.Substring(o, p - o));
-                    w = 0;
-                    o = p;
-                }
-                else
-                {
-                    w++;
-                }
-                p++;
-            }
-            while (p <= str.Length);
-            return results;
-        }
-
-        public static string FriendlyName(this Type type)
-        {
-            StringBuilder sb = new StringBuilder();
-            if (type.GenericTypeArguments.Length == 0)
-            {
-                sb.Append(type.Name);
-            }
-            else
-            {
-                sb.Append(type.Name.Remove(type.Name.IndexOf('`')));
-                sb.Append('<');
-                bool first = true;
-                foreach (var generic in type.GenericTypeArguments)
-                {
-                    if (first) first = false;
-                    else sb.Append(',');
-                    sb.Append(generic.FriendlyName());
-                }
-                sb.Append('>');
-            }
-            return sb.ToString();
-        }
-
-        public static bool Matches(this ParameterInfo[] us, Type[] them)
-        {
-            int count = us.Count();
-            for (int i = 0; i < count; i++)
-            {
-                if (us[i].ParameterType != them[i]) return false;
-            }
-            return true;
-        }
-    }
     public class MethodChecker<M, T> where T : class, new()
     {
         private Type mightyType;
 
-        List<PropertyInfo> Properties;
-        List<MethodInfo> SyncMethods;
-        List<MethodInfo> AsyncMethods;
+        public readonly List<PropertyInfo> Properties;
+
+        public readonly List<MethodInfo> StaticMethods;
+        public readonly List<MethodInfo> SyncOnlyMethods;
+        public readonly List<MethodInfo> SyncMethods;
+        public readonly List<MethodInfo> AsyncMethods;
 
         public MethodChecker(bool isAbstract, bool isVirtual)
         {
             mightyType = typeof(M);
+
+            StaticMethods = new List<MethodInfo>();
+            SyncMethods = new List<MethodInfo>();
+            SyncOnlyMethods = new List<MethodInfo>();
+            AsyncMethods = new List<MethodInfo>();
 
             // no fields expected
             var fields = mightyType.GetFields();
@@ -121,7 +53,8 @@ namespace Mighty.MethodSignatures
 
                 CheckMethod(
                     out MightyMethodType methodType,
-                    out bool async,
+                    out bool isAsync,
+                    out bool isSyncOnly,
                     out bool withParams,
                     out bool fromProcedure,
                     method);
@@ -141,12 +74,24 @@ namespace Mighty.MethodSignatures
                         int d = 1;
                     }
                 }
+
+                if (method.IsStatic) StaticMethods.Add(method);
+                else if (isSyncOnly) SyncOnlyMethods.Add(method);
+                else if (isAsync) AsyncMethods.Add(method);
+                else SyncMethods.Add(method);
             }
         }
 
-        public void CheckMethod(out MightyMethodType methodType, out bool async, out bool withParams, out bool fromProcedure, MethodInfo method)
+        public void CheckMethod(
+            out MightyMethodType methodType,
+            out bool isAsync,
+            out bool isSyncOnly,
+            out bool withParams,
+            out bool fromProcedure,
+            MethodInfo method)
         {
             Type returnType;
+            isSyncOnly = false;
             withParams = false;
             fromProcedure = false;
 
@@ -155,10 +100,10 @@ namespace Mighty.MethodSignatures
                 int wordCount = words.Count;
                 int lastWord = 0;
 
-                async = (words[words.Count - 1] == "Async");
-                if (async)
+                isAsync = (words[words.Count - 1] == "Async");
+                if (isAsync)
                 {
-                    async = true;
+                    isAsync = true;
                     wordCount--;
                 }
 
@@ -209,7 +154,6 @@ namespace Mighty.MethodSignatures
                 else if (wordCount == 1 && words[0] == "Open")
                 {
                     methodType = MightyMethodType.Factory;
-                    if (!method.IsStatic) throw new InvalidOperationException($"Mighty factory method Open must be static in {mightyType.FriendlyName()}");
                 }
                 else if (wordCount == 2 && words[0] == "Open" && words[1] == "Connection")
                 {
@@ -249,19 +193,23 @@ namespace Mighty.MethodSignatures
 
                 if (methodType != MightyMethodType._Illegal)
                 {
-                    if (async)
+                    if (method.IsStatic != (methodType == MightyMethodType.Factory))
+                        throw new InvalidOperationException($"{(methodType == MightyMethodType.Factory ? "" : "Only ")}Mighty factory method must be static at method {method.Name} in {mightyType.FriendlyName()}");
+
+                    if (methodType == MightyMethodType.New ||
+                        methodType == MightyMethodType.CreateCommand ||
+                        methodType == MightyMethodType.ResultsAsExpando ||
+                        methodType == MightyMethodType.GetColumnInfo ||
+                        methodType == MightyMethodType.IsValid ||
+                        methodType == MightyMethodType.HasPrimaryKey ||
+                        methodType == MightyMethodType.GetPrimaryKey ||
+                        methodType == MightyMethodType.Factory)
                     {
-                        if (methodType == MightyMethodType.New ||
-                            methodType == MightyMethodType.CreateCommand ||
-                            methodType == MightyMethodType.ResultsAsExpando ||
-                            methodType == MightyMethodType.GetColumnInfo ||
-                            methodType == MightyMethodType.IsValid ||
-                            methodType == MightyMethodType.HasPrimaryKey ||
-                            methodType == MightyMethodType.GetPrimaryKey ||
-                            methodType == MightyMethodType.Factory)
+                        if (isAsync)
                         {
                             throw new InvalidOperationException($"Async {methodType} method {method.Name} illegal");
                         }
+                        isSyncOnly = true;
                     }
 
                     lastWord++;
@@ -288,45 +236,45 @@ namespace Mighty.MethodSignatures
                 switch (methodType)
                 {
                     case MightyMethodType.Single:
-                        if (async) returnType = typeof(Task<T>);
+                        if (isAsync) returnType = typeof(Task<T>);
                         else returnType = typeof(T);
                         break;
 
                     case MightyMethodType.Query:
-                        if (async) returnType = typeof(Task<IAsyncEnumerable<T>>);
+                        if (isAsync) returnType = typeof(Task<IAsyncEnumerable<T>>);
                         else returnType = typeof(IEnumerable<T>);
                         break;
 
                     case MightyMethodType.QueryMultiple:
-                        if (async) returnType = typeof(Task<IAsyncEnumerable<IAsyncEnumerable<T>>>); // throw new NotImplementedException("AsyncMultipleResultSets<T> not implemented yet");
+                        if (isAsync) returnType = typeof(Task<IAsyncEnumerable<IAsyncEnumerable<T>>>); // throw new NotImplementedException("AsyncMultipleResultSets<T> not implemented yet");
                         else returnType = typeof(MultipleResultSets<T>);
                         break;
 
                     case MightyMethodType.Execute:
                         if (withParams || fromProcedure)
                         {
-                            if (async) returnType = typeof(Task<object>);
+                            if (isAsync) returnType = typeof(Task<object>);
                             else returnType = typeof(object);
                         }
                         else
                         {
-                            if (async) returnType = typeof(Task<int>);
+                            if (isAsync) returnType = typeof(Task<int>);
                             else returnType = typeof(int);
                         }
                         break;
 
                     case MightyMethodType.Scalar:
-                        if (async) returnType = typeof(Task<object>);
+                        if (isAsync) returnType = typeof(Task<object>);
                         else returnType = typeof(object);
                         break;
 
                     case MightyMethodType.Aggregate:
-                        if (async) returnType = typeof(Task<object>);
+                        if (isAsync) returnType = typeof(Task<object>);
                         else returnType = typeof(object);
                         break;
 
                     case MightyMethodType.Paged:
-                        if (async) returnType = typeof(Task<PagedResults<T>>);
+                        if (isAsync) returnType = typeof(Task<PagedResults<T>>);
                         else returnType = typeof(PagedResults<T>);
                         break;
 
@@ -335,12 +283,12 @@ namespace Mighty.MethodSignatures
                         if (methodParams.Matches(new Type[] { typeof(object), typeof(DbConnection) }) ||
                             methodParams.Matches(new Type[] { typeof(CancellationToken), typeof(object), typeof(DbConnection) }))
                         {
-                            if (async) returnType = typeof(Task<T>);
+                            if (isAsync) returnType = typeof(Task<T>);
                             else returnType = typeof(T);
                         }
                         else
                         {
-                            if (async) returnType = typeof(Task<List<T>>);
+                            if (isAsync) returnType = typeof(Task<List<T>>);
                             else returnType = typeof(List<T>);
                         }
                         break;
@@ -348,19 +296,19 @@ namespace Mighty.MethodSignatures
                     case MightyMethodType.Delete:
                     case MightyMethodType.Save:
                     case MightyMethodType.Update:
-                        if (async) returnType = typeof(Task<int>);
+                        if (isAsync) returnType = typeof(Task<int>);
                         else returnType = typeof(int);
                         break;
 
 #if KEY_VALUES
                     case MightyMethodType.KeyValues:
-                        if (async) returnType = typeof(Task<IDictionary<string, string>>);
+                        if (isAsync) returnType = typeof(Task<IDictionary<string, string>>);
                         else returnType = typeof(IDictionary<string, string>);
                         break;
 #endif
 
                     case MightyMethodType.OpenConnection:
-                        if (async) returnType = typeof(Task<DbConnection>);
+                        if (isAsync) returnType = typeof(Task<DbConnection>);
                         else returnType = typeof(DbConnection);
                         break;
 
