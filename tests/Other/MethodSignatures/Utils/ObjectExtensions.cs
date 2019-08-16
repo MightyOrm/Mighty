@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
 using System.Reflection;
 using System.Text;
@@ -9,6 +10,27 @@ namespace Mighty.MethodSignatures
 {
     public static partial class ObjectExtensions
     {
+        public static void DoNotContainParamType(this IEnumerable<MethodInfo> methods, Type t)
+        {
+            methods.ForEach(m => {
+                if (m.ContainsParamType(t))
+                {
+                    throw new InvalidOperationException($"Found {t.Name} parameter in sync-only method {m.Name}");
+                }
+            });
+        }
+
+        public static bool ContainsParamType(this MethodInfo method, Type t)
+        {
+            var param = method.GetParameters().Where(p => t == p.ParameterType).FirstOrDefault();
+            return param != null;
+        }
+
+        public static void ForEach<T>(this IEnumerable<T> enumerable, Action<T> action)
+        {
+            foreach (var item in enumerable) action(item);
+        }
+
         public static List<string> CamelCaseSplit(this string str, bool enforceFirstUpper = true)
         {
             if (str == null) return null;

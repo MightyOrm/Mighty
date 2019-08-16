@@ -75,7 +75,7 @@ namespace Mighty.DataContracts
         /// <param name="value">The value to write</param>
         public void SetValue(object obj, object value)
         {
-            if (DataDirection != 0 && (DataDirection & DataDirection.Write) == 0)
+            if (DataDirection != 0 && (DataDirection & DataDirection.ReadFromDatabase) == 0)
             {
                 throw new InvalidOperationException(
                     $"Cannot write to {this}, write disabled by {nameof(DatabaseColumnAttribute)} {nameof(DataDirection)} setting.");
@@ -130,7 +130,7 @@ namespace Mighty.DataContracts
         /// <returns></returns>
         public object GetValue(object obj)
         {
-            if (DataDirection != 0 && (DataDirection & DataDirection.Read) == 0)
+            if (DataDirection != 0 && (DataDirection & DataDirection.WriteToDatabase) == 0)
             {
                 throw new InvalidOperationException(
                     $"Cannot read from {this}, read disabled by {nameof(DatabaseColumnAttribute)} {nameof(DataDirection)} setting.");

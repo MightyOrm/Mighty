@@ -14,7 +14,7 @@ namespace Mighty
         /// <summary>
         /// The requested page of items
         /// </summary>
-        public IEnumerable<T> Items;
+        public List<T> Items;
 
         /// <summary>
         /// The total number of pages available

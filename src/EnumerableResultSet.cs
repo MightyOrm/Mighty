@@ -18,7 +18,7 @@ namespace Mighty
     /// </summary>
     /// <typeparam name="T"></typeparam>
     /// <remarks>
-    /// When thinking about disposing all disposable items potentiall in use here, remember that it is
+    /// When thinking about disposing all disposable items potentially in use here, remember that it is
     /// the Enumerator and not the initial Enumerable from a yield return which implements IDisposable.
     /// https://stackoverflow.com/q/4982396
     /// </remarks>

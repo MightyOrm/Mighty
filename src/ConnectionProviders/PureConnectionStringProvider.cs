@@ -22,53 +22,59 @@ namespace Mighty.ConnectionProviders
         // fluent API
         override public ConnectionProvider Init(string connectionString)
         {
-            string providerName = null;
+            const string ProviderName = "ProviderName";
+            string _providerName = null;
 #if NETFRAMEWORK
             var extraMessage = _usedAfterConfigFile ? " (and is not a valid connection string name)" : "";
 #endif
-            StringBuilder ConnectionString = new StringBuilder();
-            try
+            StringBuilder _connectionString = new StringBuilder();
+            if (connectionString != null)
             {
-                foreach (var configPair in connectionString.Split(';'))
+                try
                 {
-                    if (!string.IsNullOrEmpty(configPair))
+                    foreach (var configPair in connectionString.Split(';'))
                     {
-                        var keyValuePair = configPair.Split('=');
-                        if ("providername".Equals(keyValuePair[0], StringComparison.OrdinalIgnoreCase))
+                        if (!string.IsNullOrEmpty(configPair))
                         {
-                            providerName = keyValuePair[1];
-                        }
-                        else
-                        {
-                            ConnectionString.Append(configPair);
-                            ConnectionString.Append(";");
+                            var keyValuePair = configPair.Split('=');
+                            if (ProviderName.Equals(keyValuePair[0], StringComparison.OrdinalIgnoreCase))
+                            {
+                                _providerName = keyValuePair[1];
+                            }
+                            else
+                            {
+                                _connectionString.Append(configPair);
+                                _connectionString.Append(";");
+                            }
                         }
                     }
                 }
-            }
-            catch (Exception ex)
-            {
-                throw new InvalidOperationException("Cannot parse as connection string \"" + connectionString + "\""
+                catch (Exception ex)
+                {
+                    throw new InvalidOperationException("Cannot parse as connection string \"" + connectionString + "\""
 #if NETFRAMEWORK
                     + extraMessage
 #endif
                     , ex);
+                }
             }
-            if (providerName == null)
+            if (_providerName == null)
             {
-                throw new InvalidOperationException("Cannot find ProviderName=... in connection string passed to MightyOrm"
+                throw new InvalidOperationException($"Cannot find {ProviderName}=... in connection string passed to MightyOrm"
 #if NETFRAMEWORK
                     + extraMessage
 #endif
                     );
             }
-            DatabasePluginType = MightyProviderFactories.GetDatabasePluginAsType(providerName);
+            DatabasePluginType = MightyProviderFactories.GetDatabasePluginAsType(_providerName);
 #if NETFRAMEWORK
-            ProviderFactoryInstance = DbProviderFactories.GetFactory(providerName);
+            ProviderFactoryInstance = DbProviderFactories.GetFactory(_providerName);
 #else
-            ProviderFactoryInstance = MightyProviderFactories.GetFactory(providerName);
+            ProviderFactoryInstance = MightyProviderFactories.GetFactory(_providerName);
 #endif
-            this.ConnectionString = ConnectionString.ToString();
+            if (_connectionString.Length > 0)
+                this.ConnectionString = _connectionString.ToString();
+
             return this;
         }
     }

@@ -43,6 +43,20 @@ namespace Mighty
         static public int? GlobalNpgsqlAutoDereferenceFetchSize { get; set; }
         #endregion
 
+        #region Sql Server auto-join commands to any transaction
+        /// <summary>
+        /// Should we automatically enlist all commands to any transaction on any connection provided?
+        /// SQL Server does not do this automatically even though other ADO.NET providers do. (Default value true.)
+        /// </summary>
+        override public bool SqlServerAutoEnlistCommandsToTransactions { get; set; }
+
+        /// <summary>
+        /// Allows setting a global value for whether we should automatically enlist all commands to any transaction on any connection provided?
+        /// SQL Server does not do this automatically even though other ADO.NET providers do. (Default value true.)
+        /// </summary>
+        static public bool? GlobalSqlServerAutoEnlistCommandsToTransactions { get; set; }
+        #endregion
+
         #region Properties
         /// <summary>
         /// Connection string

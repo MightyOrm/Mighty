@@ -48,7 +48,7 @@ namespace Mighty
             DbConnection connection,
             params object[] args)
         {
-            return CreateCommandWithParams(sql, args: args);
+            return CreateCommandWithParams(sql, connection: connection, args: args);
         }
         #endregion
 

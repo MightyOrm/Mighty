@@ -294,7 +294,7 @@ namespace Mighty
             var result = new PagedResults<T>();
             result.TotalRecords = Convert.ToInt32(Scalar(pagingQueryPair.CountQuery, args: args));
             result.TotalPages = (result.TotalRecords + pageSize - 1) / pageSize;
-            result.Items = Query(pagingQueryPair.PagingQuery, args: args);
+            result.Items = Query(pagingQueryPair.PagingQuery, args: args).ToList();
             return result;
         }
 
@@ -407,6 +407,7 @@ namespace Mighty
                                         var columnName = useReader.GetName(i);
                                         if (string.IsNullOrEmpty(columnName))
                                         {
+                                            // TO DO: This should just cleanly be ignored, here and in the async code
                                             throw new InvalidOperationException("Cannot autopopulate from anonymous column");
                                         }
                                         if (!IsGeneric)
@@ -414,12 +415,12 @@ namespace Mighty
                                             // For dynamics, create fields using the case that comes back from the database
                                             // TO DO: Test how this is working now in Oracle
                                             // leaves as null if no match
-                                            DataContract.TryGetDataMemberName(columnName, out columnNames[i], DataDirection.Read);
+                                            DataContract.TryGetDataMemberName(columnName, out columnNames[i], DataDirection.ReadFromDatabase);
                                         }
                                         else
                                         {
                                             // leaves as null if no match
-                                            DataContract.TryGetDataMemberInfo(columnName, out memberInfo[i], DataDirection.Read);
+                                            DataContract.TryGetDataMemberInfo(columnName, out memberInfo[i], DataDirection.ReadFromDatabase);
                                         }
                                     }
                                     while (useReader.Read())
@@ -481,7 +482,7 @@ namespace Mighty
         private int ActionOnItem(out object modified, OrmAction originalAction, object item, DbConnection connection)
         {
             OrmAction revisedAction;
-            DbCommand command = CreateActionCommand(originalAction, item, out revisedAction);
+            DbCommand command = CreateActionCommand(originalAction, item, out revisedAction, connection);
             command.Connection = connection;
             if (revisedAction == OrmAction.Insert && PrimaryKeyInfo.SequenceNameOrIdentityFunction != null)
             {

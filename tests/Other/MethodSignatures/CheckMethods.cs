@@ -1,52 +1,125 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using NUnit.Framework;
 
-using NUnit.Framework;
-
-using Mighty;
 using Mighty.Interfaces;
+using System.Data.Common;
+using System;
+using System.Diagnostics;
+using System.Linq;
+using System.Reflection;
+using System.Collections.Generic;
+using System.Threading;
 
 namespace Mighty.MethodSignatures
 {
     [TestFixture]
     public class CheckMethods
     {
-        [Test]
-        public void CheckAll()
+        private readonly MethodChecker<MightyOrmAbstractInterface<CheckMethods>, CheckMethods> interfaceDefinedMethods;
+        private readonly MethodChecker<MightyOrm, dynamic> dynamicMightyDefinedMethods;
+        private readonly MethodChecker<MightyOrm<CheckMethods>, CheckMethods> genericMightyDefinedMethods;
+
+        public CheckMethods()
         {
-            var interfaceMethods = new MethodChecker<MightyOrmAbstractInterface<CheckMethods>, CheckMethods>(true, true);
-            var dynamicMightyMethods = new MethodChecker<MightyOrm, dynamic>(false, false);
-            var genericMightyMethods = new MethodChecker<MightyOrm<CheckMethods>, CheckMethods>(false, true);
+            interfaceDefinedMethods = new MethodChecker<MightyOrmAbstractInterface<CheckMethods>, CheckMethods>(true, true);
+            dynamicMightyDefinedMethods = new MethodChecker<MightyOrm, dynamic>(false, false);
+            genericMightyDefinedMethods = new MethodChecker<MightyOrm<CheckMethods>, CheckMethods>(false, true);
+        }
 
-            // just the factory methods
-            Assert.AreEqual(0, interfaceMethods.StaticMethods.Count);
-            Assert.AreEqual(1, dynamicMightyMethods.StaticMethods.Count);
-            Assert.AreEqual(1, genericMightyMethods.StaticMethods.Count);
+        [Test]
+        public void StaticFactoryMethods_Present()
+        {
+            Assert.AreEqual(0, interfaceDefinedMethods.StaticMethods.Count);
+            Assert.AreEqual(1, dynamicMightyDefinedMethods.StaticMethods.Count);
+            Assert.AreEqual(1, genericMightyDefinedMethods.StaticMethods.Count);
+        }
 
-            // apart from the static factory method MightyOrm just is MightyOrm<dynamic>
-            Assert.AreEqual(0, dynamicMightyMethods.SyncOnlyMethods.Count);
-            Assert.AreEqual(0, dynamicMightyMethods.SyncMethods.Count);
-            Assert.AreEqual(0, dynamicMightyMethods.AsyncMethods.Count);
+        [Test]
+        public void MightyOrm_IsJustMightyOrmDynamic()
+        {
+            Assert.AreEqual(0, dynamicMightyDefinedMethods.SyncOnlyMethods.Count);
+            Assert.AreEqual(0, dynamicMightyDefinedMethods.SyncMethods.Count);
+            Assert.AreEqual(0, dynamicMightyDefinedMethods.AsyncMethods.Count);
+        }
 
-            // we know that all the interface methods must be present, but check that nothing extra is present
-            Assert.AreEqual(10, interfaceMethods.SyncOnlyMethods.Count);
-            Assert.AreEqual(interfaceMethods.SyncOnlyMethods.Count, genericMightyMethods.SyncOnlyMethods.Count);
+        [Test]
+        public void Interface_MethodCounts()
+        {
+            Assert.AreEqual(10, interfaceDefinedMethods.SyncOnlyMethods.Count);
+            Assert.AreEqual(70, interfaceDefinedMethods.SyncMethods.Count);
+            Assert.AreEqual(136, interfaceDefinedMethods.AsyncMethods.Count);
+        }
 
-            Assert.AreEqual(70, interfaceMethods.SyncMethods.Count);
-            Assert.AreEqual(interfaceMethods.SyncMethods.Count, genericMightyMethods.SyncMethods.Count);
+        [Test]
+        public void GenericClass_NoExtraMethods()
+        {
+            Assert.AreEqual(interfaceDefinedMethods.SyncOnlyMethods.Count, genericMightyDefinedMethods.SyncOnlyMethods.Count);
+            Assert.AreEqual(interfaceDefinedMethods.SyncMethods.Count, genericMightyDefinedMethods.SyncMethods.Count);
+            Assert.AreEqual(interfaceDefinedMethods.AsyncMethods.Count, genericMightyDefinedMethods.AsyncMethods.Count);
+        }
 
-            Assert.AreEqual(136, interfaceMethods.AsyncMethods.Count);
-            Assert.AreEqual(interfaceMethods.AsyncMethods.Count, genericMightyMethods.AsyncMethods.Count);
+        private const string CreateCommand = "CreateCommand";
+        private const string OpenConnection = "OpenConnection";
+        private const string KeyValues = "KeyValues";
+        private static readonly Type dbConnectionType = typeof(DbConnection);
+        private static readonly Type cancellationTokenType = typeof(CancellationToken);
 
-            // okay, so interface and generic mighty must be identical at this point
-            // now we can start checking either one of them for the sync/async pattern, etc.
+        [Test]
+        public void SyncOnlyMethods_CreateCommandCount()
+        {
+            Assert.AreEqual(3,
+                interfaceDefinedMethods
+                    .SyncOnlyMethods
+                    .Where(m => m.Name.StartsWith(CreateCommand)).Select(m => m).Count());
+        }
 
-            // check that all the sync methods have a version with and without dbconnection
+        /// <remarks>
+        /// Sync only methods do not have a <see cref="DbConnection"/> param, except for two of
+        /// the three variants of <see cref="MightyOrm{T}.CreateCommand(string, DbConnection)"/>
+        /// (as just checked above), which do.
+        /// </remarks>
+        [Test]
+        public void SyncOnlyMethods_DoNotContainDbConnection()
+        {
+            interfaceDefinedMethods
+                .SyncOnlyMethods
+                .Where(m => !m.Name.StartsWith(CreateCommand))
+                .DoNotContainParamType(dbConnectionType);
+        }
 
-            // check that all the async methods have a variant with and one without cancellationtoken
+        [Test]
+        public void SyncMethods_OpenConnectionCount()
+        {
+            Assert.AreEqual(1,
+                interfaceDefinedMethods
+                    .SyncMethods
+                    .Where(m => m.Name.StartsWith(OpenConnection)).Count());
+        }
+
+        [Test]
+        public void SyncOnlyMethods_DoNotContainCancellationToken()
+        {
+            interfaceDefinedMethods
+                .SyncOnlyMethods
+                .DoNotContainParamType(cancellationTokenType);
+        }
+
+        [Test]
+        public void SyncMethods_HaveDbConnectionAndNonDbConnectionVariants()
+        {
+            List<MethodInfo> dbConnectionMethods = new List<MethodInfo>();
+            List<MethodInfo> nonDbConnectionMethods = new List<MethodInfo>();
+            interfaceDefinedMethods
+                .SyncMethods
+                .Where(m =>
+                    m.Name != OpenConnection &&
+                    m.Name != KeyValues)
+                .ForEach(m => {
+                    if (m.ContainsParamType(dbConnectionType)) dbConnectionMethods.Add(m);
+                    else nonDbConnectionMethods.Add(m);
+                });
+            nonDbConnectionMethods.ForEach(m => {
+                var o = m;
+            });
         }
     }
 }
