@@ -115,7 +115,13 @@ namespace Mighty.DataContracts
                 }
                 catch (FormatException)
                 {
-                    throw new FormatException($"Cannot convert {value.GetType().Name} value for {DeclaringType.Name}.{Name} to {t.Name}");
+                    var type = value.GetType();
+                    string displayValue = value.ToString();
+                    if (type == typeof(string))
+                    {
+                        displayValue = $"\"{displayValue}\"";
+                    }
+                    throw new FormatException($"Cannot convert non-null {value.GetType().Name} value {displayValue} from database to {t.Name} for {DeclaringType.Name}.{Name}");
                 }
             }
 
