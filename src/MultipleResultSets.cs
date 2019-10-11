@@ -80,7 +80,7 @@ namespace Mighty
         }
 
         /// <summary>
-        /// Access the current result set; remember to call <see cref="NextResultSet"/>() before accessing each result set.
+        /// Access the current result set; remember to call <see cref="NextResultSet"/> before accessing each result set.
         /// </summary>
         public EnumerableResultSet<T> CurrentResultSet
         {
