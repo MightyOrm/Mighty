@@ -7,6 +7,10 @@ namespace Mighty
     /// <summary>
     /// Specify the data direction for a <see cref="DatabaseColumnAttribute"/>.
     /// </summary>
+    /// <remarks>
+    /// TO DO: Since data is always CRUD, we need to distinguish between Create and Update, so this is useless and should be killed.
+    /// You can do the equivalent only better with <see cref="Mighty.Mapping.SqlNamingMapper"/>.
+    /// </remarks>
     [Flags]
     public enum DataDirection
     {
