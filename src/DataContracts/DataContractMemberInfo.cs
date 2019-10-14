@@ -145,7 +145,7 @@ namespace Mighty.DataContracts
         /// <returns></returns>
         public override string ToString()
         {
-            return $"{(Field != null ? "field" : "property")} {Name} of {DeclaringType.FullName}";
+            return $"{(Field != null ? "Field" : "Property")} {Name} of {DeclaringType.FullName}";
         }
     }
 }
