@@ -18,19 +18,19 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp1.0'">
-    <DefineConstants>NETCOREAPP;NETCOREAPP1_0</DefineConstants>
+    <DefineConstants>NETCOREAPP;NETCOREAPP1_0;DISABLE_DEVART</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp1.1'">
-    <DefineConstants>NETCOREAPP;NETCOREAPP1_1</DefineConstants>
+    <DefineConstants>NETCOREAPP;NETCOREAPP1_1;DISABLE_DEVART</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
-    <DefineConstants>NETCOREAPP;NETCOREAPP2_0</DefineConstants>
+    <DefineConstants>NETCOREAPP;NETCOREAPP2_0;DISABLE_DEVART</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
-    <DefineConstants>NETCOREAPP;NETCOREAPP3_0</DefineConstants>
+    <DefineConstants>NETCOREAPP;NETCOREAPP3_0;DISABLE_DEVART</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp1.0'">

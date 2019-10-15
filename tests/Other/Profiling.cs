@@ -21,7 +21,11 @@ namespace Mighty.XAllTests.SqlProfiling
 #endif
 #elif NETCOREAPP
 #if !(NETCOREAPP1_0 || NETCOREAPP1_1)
+#if DISABLE_DEVART
+            Assert.AreEqual(1185, ((MightyTestsProfiler)MightyOrm.GlobalDataProfiler).DbCommandMethodCounts[DbCommandMethod.ExecuteDbDataReader]);
+#else
             Assert.AreEqual(1315, ((MightyTestsProfiler)MightyOrm.GlobalDataProfiler).DbCommandMethodCounts[DbCommandMethod.ExecuteDbDataReader]);
+#endif
 #else
             Assert.AreEqual(1249, ((MightyTestsProfiler)MightyOrm.GlobalDataProfiler).DbCommandMethodCounts[DbCommandMethod.ExecuteDbDataReader]);
 #endif
@@ -39,7 +43,11 @@ namespace Mighty.XAllTests.SqlProfiling
 #endif
 #elif NETCOREAPP
 #if !(NETCOREAPP1_0 || NETCOREAPP1_1)
+#if DISABLE_DEVART
+            Assert.AreEqual(222, ((MightyTestsProfiler)MightyOrm.GlobalDataProfiler).DbCommandMethodCounts[DbCommandMethod.ExecuteNonQuery]);
+#else
             Assert.AreEqual(268, ((MightyTestsProfiler)MightyOrm.GlobalDataProfiler).DbCommandMethodCounts[DbCommandMethod.ExecuteNonQuery]);
+#endif
 #else
             Assert.AreEqual(198, ((MightyTestsProfiler)MightyOrm.GlobalDataProfiler).DbCommandMethodCounts[DbCommandMethod.ExecuteNonQuery]);
 #endif
@@ -57,7 +65,11 @@ namespace Mighty.XAllTests.SqlProfiling
 #endif
 #elif NETCOREAPP
 #if !(NETCOREAPP1_0 || NETCOREAPP1_1)
+#if DISABLE_DEVART
+            Assert.AreEqual(261, ((MightyTestsProfiler)MightyOrm.GlobalDataProfiler).DbCommandMethodCounts[DbCommandMethod.ExecuteScalar]);
+#else
             Assert.AreEqual(359, ((MightyTestsProfiler)MightyOrm.GlobalDataProfiler).DbCommandMethodCounts[DbCommandMethod.ExecuteScalar]);
+#endif
 #else
             Assert.AreEqual(323, ((MightyTestsProfiler)MightyOrm.GlobalDataProfiler).DbCommandMethodCounts[DbCommandMethod.ExecuteScalar]);
 #endif
