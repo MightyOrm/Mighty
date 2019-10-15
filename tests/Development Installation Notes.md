@@ -90,7 +90,7 @@ MySQL:
 
 - Install the latest "dotConnect for MySQL (Express Edition)" (i.e. the free version of `Devart.Data.MySql` data provider)
   using `dcmysqlfree.exe` (you don't need the help files or the Visual Studio integration; you do need to install the provider
-  to the GAC)
+  to the GAC) [NB you need to have installed (this way) the version which your project loads from NuGet, or the license will not work]
 
 - Install the server from https://dev.mysql.com/downloads/mysql/
     o Note the comment "Note: MySQL Installer is 32 bit, but will install both 32 bit and 64 bit binaries."

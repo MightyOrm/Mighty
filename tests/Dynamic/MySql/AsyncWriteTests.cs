@@ -1,7 +1,7 @@
 ﻿#if !NET40
 using System;
 using System.Collections;
-using System.Collections.Async;
+using Dasync.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Dynamic;
@@ -17,7 +17,9 @@ using Mighty.Mapping;
 namespace Mighty.Dynamic.Tests.MySql
 {
     [TestFixture("MySql.Data.MySqlClient")]
+#if !NETCOREAPP // Devart works fine on .NET Core, but I want to get a version to test with without paying $100 p/a!
     [TestFixture("Devart.Data.MySql")]
+#endif
     public class AsyncWriteTests
     {
         private readonly string ProviderName;
