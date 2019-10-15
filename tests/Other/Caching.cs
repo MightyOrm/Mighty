@@ -52,7 +52,11 @@ namespace Mighty.Dynamic.Tests.X
             Assert.AreEqual(466, DataContractStore.Instance.CacheHits);
 #endif
 #else
+#if DISABLE_DEVART
+            Assert.AreEqual(297, DataContractStore.Instance.CacheHits);
+#else
             Assert.AreEqual(400, DataContractStore.Instance.CacheHits);
+#endif
 #endif
 #endif
         }
@@ -90,12 +94,8 @@ namespace Mighty.Dynamic.Tests.X
             Assert.AreEqual(3, TableMetaDataStore.Instance.CacheHits);
 #endif
 #elif NETCOREAPP
-#if !(NETCOREAPP1_0 || NETCOREAPP1_1)
 #if DISABLE_DEVART
             Assert.AreEqual(8, TableMetaDataStore.Instance.CacheHits);
-#else
-            Assert.AreEqual(12, TableMetaDataStore.Instance.CacheHits);
-#endif
 #else
             Assert.AreEqual(12, TableMetaDataStore.Instance.CacheHits);
 #endif
@@ -141,7 +141,11 @@ namespace Mighty.Generic.Tests.X
             Assert.AreEqual(778, DataContractStore.Instance.CacheHits);
 #endif
 #else
+#if DISABLE_DEVART
+            Assert.AreEqual(494, DataContractStore.Instance.CacheHits);
+#else
             Assert.AreEqual(674, DataContractStore.Instance.CacheHits);
+#endif
 #endif
 #endif
         }
@@ -177,14 +181,18 @@ namespace Mighty.Generic.Tests.X
             Assert.AreEqual(24, TableMetaDataStore.Instance.CacheHits);
 #endif
 #elif NETCOREAPP
-#if !(NETCOREAPP1_0 || NETCOREAPP1_1)
+#if NETCOREAPP3_0 || NETCOREAPP2_0
 #if DISABLE_DEVART
             Assert.AreEqual(46, TableMetaDataStore.Instance.CacheHits);
 #else
             Assert.AreEqual(68, TableMetaDataStore.Instance.CacheHits);
 #endif
 #else
+#if DISABLE_DEVART
+            Assert.AreEqual(45, TableMetaDataStore.Instance.CacheHits);
+#else
             Assert.AreEqual(67, TableMetaDataStore.Instance.CacheHits);
+#endif
 #endif
 #endif
         }
@@ -194,14 +202,18 @@ namespace Mighty.Generic.Tests.X
         {
 #if NETFRAMEWORK
             Assert.AreEqual(22, TableMetaDataStore.Instance.CacheMisses);
-#elif !(NETCOREAPP1_0 || NETCOREAPP1_1)
+#elif NETCOREAPP3_0 || NETCOREAPP2_0
 #if DISABLE_DEVART
             Assert.AreEqual(15, TableMetaDataStore.Instance.CacheMisses);
 #else
             Assert.AreEqual(21, TableMetaDataStore.Instance.CacheMisses);
 #endif
 #else
+#if DISABLE_DEVART
+            Assert.AreEqual(14, TableMetaDataStore.Instance.CacheMisses);
+#else
             Assert.AreEqual(20, TableMetaDataStore.Instance.CacheMisses);
+#endif
 #endif
         }
     }
