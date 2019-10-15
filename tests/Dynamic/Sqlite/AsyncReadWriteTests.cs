@@ -39,7 +39,7 @@ namespace Mighty.Dynamic.Tests.Sqlite
             }
             // The output from the provider is a bunch of bytes either way, so we stick with the provider
             // default here (especially since it is the same in both cases).
-#if NETCOREAPP
+#if NETCOREAPP2_0 || NETCOREAPP3_0
             // This changed from `byte[]` to `string` somewhere between System.Data.SQLite 1.0.105 and 1.0.111
             Assert.AreEqual(typeof(string), item.val.GetType());
 #else
