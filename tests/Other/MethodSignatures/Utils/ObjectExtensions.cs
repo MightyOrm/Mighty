@@ -74,6 +74,9 @@ namespace Mighty.MethodSignatures
 
         public static string FriendlyName(this Type type)
         {
+#if NET40
+            return type.Name;
+#else
             StringBuilder sb = new StringBuilder();
             if (type.GenericTypeArguments.Length == 0)
             {
@@ -93,6 +96,7 @@ namespace Mighty.MethodSignatures
                 sb.Append('>');
             }
             return sb.ToString();
+#endif
         }
 
         public static bool Matches(this ParameterInfo[] us, Type[] them)

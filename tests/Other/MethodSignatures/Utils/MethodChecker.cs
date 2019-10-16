@@ -1,5 +1,7 @@
 ﻿using System;
-using System.Collections.Async;
+#if !NET40 && !NETCOREAPP3_0
+using Dasync.Collections;
+#endif
 using System.Collections.Generic;
 using System.Data.Common;
 using System.Linq;
@@ -22,7 +24,9 @@ namespace Mighty.MethodSignatures
         public readonly List<MethodInfo> StaticMethods;
         public readonly List<MethodInfo> SyncOnlyMethods;
         public readonly List<MethodInfo> SyncMethods;
+#if !NET40
         public readonly List<MethodInfo> AsyncMethods;
+#endif
 
         public MethodChecker(bool isAbstract, bool isVirtual)
         {
@@ -31,7 +35,9 @@ namespace Mighty.MethodSignatures
             StaticMethods = new List<MethodInfo>();
             SyncMethods = new List<MethodInfo>();
             SyncOnlyMethods = new List<MethodInfo>();
+#if !NET40
             AsyncMethods = new List<MethodInfo>();
+#endif
 
             // no fields expected
             var fields = mightyType.GetFields();
@@ -53,7 +59,9 @@ namespace Mighty.MethodSignatures
 
                 CheckMethod(
                     out MightyMethodType methodType,
+#if !NET40
                     out bool isAsync,
+#endif
                     out bool isSyncOnly,
                     out bool withParams,
                     out bool fromProcedure,
@@ -61,35 +69,44 @@ namespace Mighty.MethodSignatures
 
                 foreach (var param in method.GetParameters())
                 {
+#if !NET40
                     if (param.HasDefaultValue != param.IsOptional)
                     {
                         throw new InvalidOperationException("Unhandled param configuration");
                     }
                     if (param.HasDefaultValue)
                     {
-                        int c = 1;
+                        //int c = 1;
                     }
+#endif
                     if (param.IsOptional)
                     {
-                        int d = 1;
+                        //int d = 1;
                     }
                 }
 
                 if (method.IsStatic) StaticMethods.Add(method);
                 else if (isSyncOnly) SyncOnlyMethods.Add(method);
+#if !NET40
                 else if (isAsync) AsyncMethods.Add(method);
+#endif
                 else SyncMethods.Add(method);
             }
         }
 
         public void CheckMethod(
             out MightyMethodType methodType,
+#if !NET40
             out bool isAsync,
+#endif
             out bool isSyncOnly,
             out bool withParams,
             out bool fromProcedure,
             MethodInfo method)
         {
+#if NET40
+            bool isAsync;
+#endif
             Type returnType;
             isSyncOnly = false;
             withParams = false;
@@ -196,6 +213,12 @@ namespace Mighty.MethodSignatures
                     if (method.IsStatic != (methodType == MightyMethodType.Factory))
                         throw new InvalidOperationException($"{(methodType == MightyMethodType.Factory ? "" : "Only ")}Mighty factory method must be static at method {method.Name} in {mightyType.FriendlyName()}");
 
+#if NET40
+                    if (isAsync)
+                    {
+                        throw new InvalidOperationException($"Async {methodType} method {method.Name} always illegal in .NET Framework 4.0");
+                    }
+#endif
                     if (methodType == MightyMethodType.New ||
                         methodType == MightyMethodType.CreateCommand ||
                         methodType == MightyMethodType.ResultsAsExpando ||
@@ -205,10 +228,12 @@ namespace Mighty.MethodSignatures
                         methodType == MightyMethodType.GetPrimaryKey ||
                         methodType == MightyMethodType.Factory)
                     {
+#if !NET40
                         if (isAsync)
                         {
                             throw new InvalidOperationException($"Async {methodType} method {method.Name} illegal");
                         }
+#endif
                         isSyncOnly = true;
                     }
 
@@ -241,13 +266,31 @@ namespace Mighty.MethodSignatures
                         break;
 
                     case MightyMethodType.Query:
-                        if (isAsync) returnType = typeof(Task<IAsyncEnumerable<T>>);
-                        else returnType = typeof(IEnumerable<T>);
+#if !NET40
+                        if (isAsync)
+#if NETCOREAPP3_0
+                            returnType = typeof(Task<IAsyncEnumerable<T>>);
+#else
+                            // this is ambiguous without the namespace in netcoreapp2_0
+                            returnType = typeof(Task<Dasync.Collections.IAsyncEnumerable<T>>);
+#endif
+                        else
+#endif
+                            returnType = typeof(IEnumerable<T>);
                         break;
 
                     case MightyMethodType.QueryMultiple:
-                        if (isAsync) returnType = typeof(Task<IAsyncEnumerable<IAsyncEnumerable<T>>>); // throw new NotImplementedException("AsyncMultipleResultSets<T> not implemented yet");
-                        else returnType = typeof(MultipleResultSets<T>);
+#if !NET40
+                        if (isAsync)
+#if NETCOREAPP3_0
+                            returnType = typeof(Task<IAsyncEnumerable<IAsyncEnumerable<T>>>); // throw new NotImplementedException("AsyncMultipleResultSets<T> not implemented yet");
+#else
+                            // this is ambiguous without the namespace in netcoreapp2_0
+                            returnType = typeof(Task<Dasync.Collections.IAsyncEnumerable<Dasync.Collections.IAsyncEnumerable<T>>>); // throw new NotImplementedException("AsyncMultipleResultSets<T> not implemented yet");
+#endif
+                        else
+#endif
+                            returnType = typeof(MultipleResultSets<T>);
                         break;
 
                     case MightyMethodType.Execute:
