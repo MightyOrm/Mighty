@@ -1,5 +1,12 @@
 # Mighty Docs
 
+Click this button to read Mighty's:
+
+[![Documentation](https://img.shields.io/badge/-Documentation-f52a62.svg)](https://mightyorm.github.io/Mighty/)
+
+
+What follows are instructions for building a local copy of the Mighty docs.
+
 Install Ruby.
 
 On Windows:
