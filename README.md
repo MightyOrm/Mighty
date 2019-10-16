@@ -2,10 +2,11 @@
 
 [![NuGet](https://img.shields.io/nuget/v/Mighty.svg)](https://nuget.org/packages/Mighty)
 [![Documentation](https://img.shields.io/badge/-Documentation-f52a62.svg)](https://mightyorm.github.io/Mighty/)
+[![Change Log](https://img.shields.io/badge/Change%20Log-green)](CHANGELOG.md)
 
 Available for:
 
- - .NET Core 1.0+ (including 3.0 preview)
+ - .NET Core 1.0+ (including 3.0 final)
  - .NET Framework 4.5+
  - .NET Framework 4.0+ (without async support)
 
