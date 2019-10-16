@@ -1,7 +1,7 @@
 ﻿#if (NETFRAMEWORK && !NET40) || (NETCOREAPP && !(NETCOREAPP1_0 || NETCOREAPP1_1))
 using System;
 using System.Data;
-using System.Collections.Async;
+using Dasync.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;

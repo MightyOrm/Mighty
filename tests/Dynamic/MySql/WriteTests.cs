@@ -14,7 +14,9 @@ using Mighty.Mapping;
 namespace Mighty.Dynamic.Tests.MySql
 {
     [TestFixture("MySql.Data.MySqlClient")]
+#if !DISABLE_DEVART // Devart works fine on .NET Core, but I want to get a version to test with without paying $100 p/a!
     [TestFixture("Devart.Data.MySql")]
+#endif
     public class WriteTests
     {
         private readonly string ProviderName;

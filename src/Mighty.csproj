@@ -1,16 +1,16 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>netstandard1.6;netstandard2.0;netcoreapp3.0;net40;net45</TargetFrameworks>
+    <TargetFrameworks>netstandard1.6;netstandard2.0;netstandard2.1;net40;net45</TargetFrameworks>
 	<PackageId>Mighty</PackageId>
-    <Version>3.0.4</Version>
+    <Version>3.0.6</Version>
     <Authors>Mike Beaton</Authors>
     <Owners>MightyOrm</Owners>
     <Description>A new small, happy, dynamic micro-ORM and general purpose .NET data access wrapper.
 
 Based on and highly compatible with Massive, but now with:
 
-* .NET Core 1.0, 1.1, 2.0, 3.0-preview
+* .NET Core 1.0, 1.1, 2.0, 3.0 (as well as .NET Framework 4.0+)
 * Stored procedure support
 * Parameter names and directions (where you need it; automatic parameter naming as in Massive still works as before)
 * Transaction support
@@ -26,7 +26,7 @@ Based on and highly compatible with Massive, but now with:
   </PropertyGroup>
 
   <PropertyGroup>
-    <DocumentationFile>Mighty.xml</DocumentationFile>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 
   <PropertyGroup>	
@@ -57,24 +57,28 @@ Based on and highly compatible with Massive, but now with:
     <DefineConstants>NETSTANDARD;NETSTANDARD2_0</DefineConstants>
   </PropertyGroup>
 
+  <PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+    <DefineConstants>NETSTANDARD;NETSTANDARD2_1</DefineConstants>
+  </PropertyGroup>
+
   <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
     <DefineConstants>NETCOREAPP;NETCOREAPP3_0</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp1.0'">
-    <PackageReference Include="AsyncEnumerator" Version="3.0.2-beta" />
+    <PackageReference Include="AsyncEnumerator" Version="3.1.0" />
     <PackageReference Include="System.Collections.Specialized" Version="4.3.0" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp1.1'">
-    <PackageReference Include="AsyncEnumerator" Version="3.0.2-beta" />
+    <PackageReference Include="AsyncEnumerator" Version="3.1.0" />
     <PackageReference Include="System.Collections.Specialized" Version="4.3.0" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard1.6'">
-    <PackageReference Include="AsyncEnumerator" Version="3.0.2-beta" />
+    <PackageReference Include="AsyncEnumerator" Version="3.1.0" />
     <PackageReference Include="Microsoft.CSharp" Version="4.3.0" />
     <PackageReference Include="System.Collections.Specialized" Version="4.3.0" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
@@ -82,13 +86,19 @@ Based on and highly compatible with Massive, but now with:
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.0'">
-    <PackageReference Include="AsyncEnumerator" Version="3.0.2-beta" />
+    <PackageReference Include="AsyncEnumerator" Version="3.1.0" />
+    <PackageReference Include="Microsoft.CSharp" Version="4.3.0" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.2" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+    <PackageReference Include="AsyncEnumerator" Version="3.1.0" />
     <PackageReference Include="Microsoft.CSharp" Version="4.3.0" />
     <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.2" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
-    <PackageReference Include="AsyncEnumerator" Version="3.0.2-beta" />
+    <PackageReference Include="AsyncEnumerator" Version="3.1.0" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'net40'">
@@ -99,7 +109,7 @@ Based on and highly compatible with Massive, but now with:
   
   <ItemGroup Condition="'$(TargetFramework)' == 'net45'">
     <PackageReference Include="AsyncEnumerator">
-      <Version>3.0.2-beta</Version>
+      <Version>3.1.0</Version>
     </PackageReference>
     <Reference Include="Microsoft.CSharp" />
     <Reference Include="System.Configuration" />

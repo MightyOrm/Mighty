@@ -1,6 +1,6 @@
 ﻿#if !NET40
 using System;
-using System.Collections.Async;
+using Dasync.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;

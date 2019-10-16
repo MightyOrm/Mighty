@@ -1,6 +1,6 @@
 ﻿#if !NET40
 using System;
-using System.Collections.Async;
+using Dasync.Collections;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
@@ -49,13 +49,19 @@ namespace Mighty.Dynamic.Tests.PostgreSql
             }
         }
 
-
+#if !NETCOREAPP2_0 && !NETCOREAPP3_0
         /// <summary>
         /// This is documenting a bug in Npgsql; if it changes, we can remove the extra code we've added to
         /// <see cref="Mighty.Npgsql.NpgsqlDereferencingReader"/> to make it respond to cancellations even though the Npgsql objects don't.
         /// </summary>
         /// <remarks>
         /// Note the similar tests for all other supported drivers, which pass.
+        /// This is now fixed in Npgsql somewhere between 3.2.2 and 4.1.1 (from a quick test, it
+        /// *doesn't* seem to change at 3.2.6 despite this https://github.com/npgsql/npgsql/issues/1718).
+        /// TO DO: This is obviously currently passing on .NET 4.5 because I haven't updated my machine.config Npgsl driver, though I could.
+        /// It is correctly passing on .NET Core 1.0 and 1.1 because you can't update the drivers for this to a version which passes.
+        /// The extra code in <see cref="Mighty.Npgsql.NpgsqlDereferencingReader"/> isn't causing any harm, and can only be removed
+        /// if we can detect which version of Npgsql we are on.
         /// </remarks>
         [Test]
         public async Task All_NoParameters_NpgsqlDoesNotRespondToCancellation()
@@ -80,7 +86,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
                 Assert.AreEqual(91, count);
             }
         }
-
+#endif
 
         [Test]
         public async Task All_LimitSpecification()

@@ -1,4 +1,4 @@
-﻿#if !NET40
+﻿#if !NET40 && !DISABLE_DEVART // Devart works fine on .NET Core, but I want to get a version to test with without paying $100 p/a!
 using System;
 using System.Collections;
 using System.Collections.Generic;

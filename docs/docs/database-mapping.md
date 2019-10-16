@@ -10,15 +10,13 @@ nav_order: 9
 - TOC
 {:toc}
 
-Like Massive, Mighty supports [manual mapping](#manual-mapping). This is useful for knocking up quick, read-only column name mapping, and for other data transforms if you need them (e.g. `LTRIM(RTRIM(Name))`, to clean up legacy data).
-
-But Mighty now supports full [convention based mapping](#convention-based-mapping) (i.e. class to database name mapping functions) and C# [attribute based mapping](#attribute-based-mapping) as well.
+Like Massive, Mighty supports [manual mapping](#manual-mapping) which is useful for knocking up quick, read-only column name mapping, but Mighty also now supports full [convention based mapping](#convention-based-mapping) (i.e. class to database name mapping functions) and [attribute based mapping](#attribute-based-mapping).
 
 ---
 
 ## Manual Mapping
 
-For read-only purposes (and also for knocking up quick SQL dta transforms) you can just map your column names to field names using the `columns` parameter (in the constructor, or in the data access method):
+For read-only purposes (and also for knocking up quick SQL data transforms) you can just map your column names to field names using the `columns` parameter (in the constructor, or in the data access method):
 
 ```c#
 var films = new MightyOrm(
@@ -125,11 +123,11 @@ and you can specify primary key fields directly in the class definition using `[
 
 > You can get Mighty to read and write non-public data members by applying `[DatabaseColumn]` (with or without any constructor parameters) to fields or properties which you control.
 
-Even though most features of `SqlNamingMapper` can be done instead using attributes, and vice versa, there is no way to get Mighty to access non-public fields or properties purely using `SqlNamingMapper`. This is on purpose, to make it hard to intentionally or unintentionally make Mighty get or write object data which it shouldn't have access to.
+Even though most features of `SqlNamingMapper` can be done instead using attributes, and vice versa, there is no way to get Mighty to access non-public fields or properties purely using `SqlNamingMapper`, you have to use the `[DatabaseColumn]` attribute instead. This is on purpose, to make it hard to intentionally or unintentionally make Mighty get or write object data which it shouldn't have access to.
 
 ## Auto-Mapping in Mighty
 
-Once you apply any column name mapping, Mighty switches on field name mapping by default. The rules are as follows:
+Once you apply any column name mapping, Mighty switches on field name mapping by default. This is simply to make your life more convenient, and it can easily be disabled if you don't want it. The rules are as follows:
 
 |----|----|----|----|
 |`MightyOrm` contructor or method parameter|Default (no columns renamed)|Some columns renamed, but auto-mapping manually disabled|Default auto-mapping, once some columns renamed|

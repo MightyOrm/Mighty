@@ -19,6 +19,7 @@ Cursors are created and referenced using the Mighty `Cursor` class, as in the ex
 > When looking at these examples, bear in mind that you no NOT normally need to manually open and pass connections when using Mighty. It is supported for advanced use-cases where you have to share a connection (such as when using cursors on Oracle) or a transaction (such as when using cursors on PostgreSQL).
 
 ### Oracle
+{: .no_toc }
 
 Passing a cursor from one function to another:
 
@@ -38,6 +39,7 @@ using (var conn = db.OpenConnection())
 ```
 
 ### PostgreSQL
+{: .no_toc }
 
 Passing a cursor from one function to another:
 
@@ -70,6 +72,7 @@ using (var conn = db.OpenConnection())
 ```
 
 ### PostgreSQL - Manual Cursor Dereferencing
+{: .no_toc }
 
 Manually dereferencing a cursor. (This example shows you *how* to do this but YOU DO NOT NEED TO, Mighty will do this for you - see [next section](#automatic-cursor-dereferencing))! 😊)
 
@@ -105,6 +108,7 @@ using (var conn = db.OpenConnection())
 ## Automatic Cursor Dereferencing
 
 ### Oracle
+{: .no_toc }
 
 The default behaviour of the Oracle ADO.NET driver(s) is to automatically dereference cursors. That is, if you run a query which actually, at the database level, returns one or more rows with one or more cursors in them, then you don't get back the cursors as the result of your query, you get back multiple result sets, each one containing the result of dereferencing (returning all the rows from) a cursor from the original results.
 
@@ -125,6 +129,7 @@ foreach (var employee in employees)
 - This is all the default behaviour of the Oracle ADO.NET drivers
 
 ### PostgreSQL
+{: .no_toc }
 
 The default behaviour of the v2 Npgsql driver for PostrgeSQL was to deference cursors, but this was removed in v3 (partly because the implementation was incomplete; partly to avoid encouraging people to write code which dereferences cursors on PostgreSQL, since returning tables from functions and querying these is actually more efficient - considerably so for large result sets).
 

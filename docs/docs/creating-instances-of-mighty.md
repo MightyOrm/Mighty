@@ -10,22 +10,24 @@ nav_order: 2
 - TOC
 {:toc}
 
----
+## Creating Instances
 
-## Subclassing MightyOrm
-
-The most ORM-flavoured way of creating instances of Mighty is to create a subclass of `MightyOrm` for each table:
+You can create instances of Mighty very simply, without making any subclasses:
 
 ```c#
-public class Products : MightyOrm
-{
-    public Products() : base(Constants.ConnectionString, primaryKeys: "ProductID") {}
-}
+// Non-table specific dynamic version
+var db = new MightyOrm(connectionString);
 ```
 
-or, using [strong types](strongly-typed-mighty):
+```c#
+// Table specific dynamic version
+var db = new MightyOrm(connectionString, "Products", "ProductID");
+```
+
+You can also create strongly typed instances:
 
 ```c#
+// Table specific strongly typed version
 public class Product
 {
     int ProductID { get; set; }
@@ -39,73 +41,34 @@ public class Products : MightyOrm<Product>
 }
 ```
 
-The table name is taken from the subclass name. You can override this by passing in a value for the `tableName` constructor parameter.
-
-Then you can start to read and write data:
-
-```c#
-var products = new Products();
-
-var allProducts = products.All();
-foreach (var product in allProducts)
-{
-    Console.WriteLine($"{product.Name}: {product.Description}");
-}
-
-var product1 = products.Single(1245);
-product1.Description("Even better than the real thing");
-products.Update(product1);
-
-// etc.
-```
-
-In the strongly typed version, each returned product is of type `Product`. In the dynamically typed version each product is a `dynamic` object (actually of type `ExpandObject`) and the fields returned in it are whatever the database sends back. You can control the fields returned by using the `columns` parameter in the constructor:
+And, especially useful when working with dynamic types, you can also create instances of Mighty by creating a subclass of `MightyOrm` for each table:
 
 ```c#
 public class Products : MightyOrm
 {
-    public Products() : base(Constants.ConnectionString, primaryKeys: "ProductID", columns: "ProductID, Name, Description") {}
+    public Products() : base(Constants.ConnectionString, primaryKeys: "ProductID") {}
 }
 ```
 
-## Creating Instances Directly
+In that last example the table name is taken from the subclass name, though you could still override this by passing in a value for the `tableName` constructor parameter.
 
-You can also create instances of Mighty directly, without making any subclasses.
+In the strongly typed table-specific version above, each returned product is of type `Product`. In the dynamically typed versions each product is a `dynamic` object (actually of type `ExpandObject`) and the fields returned in it are whatever the database sends back. For either type, you can simply control the fields returned by using the `columns` parameter in the constructor. (Though more advanced [mapping](database-mapping) is also available.)
 
-> All of the examples in these subsections can be modified slightly to generate [strongly typed](strongly-typed-mighty) instances of `MightyOrm` as well.
+## Using Connection Strings
 
 ### .NET Core
+{: .no_toc }
 
-On both .NET Core and .NET Framework you can create an instance by:
-
-```c#
-// Non-table specific version
-var db = new MightyOrm(connectionString);
-```
-
-```c#
-// Table specific version
-var db = new MightyOrm(connectionString, "Products", "ProductID");
-```
-
-The connecting string you pass is any normal ADO.NET connection string, except that *it should additionally include the provider name in the connection string* using the non-standard (but convenient!) `ProviderName=` syntax. E.g. `ProviderName=Oracle.ManagedDataAccess.Client` or  `ProviderName=System.Data.SqlClient`.
-
+On .NET Core the connecting string you pass is any normal ADO.NET connection string, except that *it should additionally include the provider name in the connection string* using the non-standard (but convenient!) `ProviderName=` syntax. E.g. `ProviderName=Oracle.ManagedDataAccess.Client` or  `ProviderName=System.Data.SqlClient`.
 
 ### .NET Framework
+{: .no_toc }
 
-On .NET Framework connection strings and their associated provider names are normally stored in the `<ConnectionStrings>` section of your `Web.Config` or `App.Config` file and on .NET Framework you can additionally create instances of Mighty with:
+On .NET Framework connection strings and their associated provider names are normally stored in the `<ConnectionStrings>` section of your `Web.Config` or `App.Config` file and on .NET Framework you can additionally pass the connection string name to create instances of Mighty:
 
 ```c#
-// Non-table specific version
 var db = new MightyOrm("Northwind");
 ```
-
-```c#
-// Table specific version
-var db = new MightyOrm("Northwind", "Products", "ProductID");
-```
-
-Here what you have provided is the connection string name, to look up in the `<ConnectionStrings>` section of your `.Config` file.
 
 > If Mighty can't find a connection string with this name then it will try to use what you passed in directly as a connection string before failing. This means that on .NET Framework you can pass in either a connection string or a connection string name and both will work.
 
@@ -117,7 +80,7 @@ var db = new MightyOrm();
 
 This creates a non-table specific instance of Mighty using the first connection string in your `Web.Config` or `App.Config` file.
 
-### Factory Method
+## Factory Method
 
 For convenience and compatibility with Massive, Mighty also provides the `Open()` factory method:
 

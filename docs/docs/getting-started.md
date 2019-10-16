@@ -14,7 +14,7 @@ nav_order: 1
 
 ## Installing Mighty
 
-Just add the current version of Mighty to your project using [NuGet](https://www.nuget.org/packages/Mighty) and make sure that you have installed the [ADO.NET data drivers]() for the database(s) which you need to access.
+Just add the current version of Mighty to your project using [NuGet](https://www.nuget.org/packages/Mighty) and make sure that you have installed the [ADO.NET data drivers](supported-databases) for the database(s) which you need to access.
 
 ## Reading Data
 

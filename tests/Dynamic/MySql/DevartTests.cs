@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !DISABLE_DEVART // Devart works fine on .NET Core, but I want to get a version to test with without paying $100 p/a!
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Data;
@@ -17,7 +18,7 @@ namespace Mighty.Dynamic.Tests.MySql
         private readonly string ProviderName = "Devart.Data.MySql";
 
         // Massive style calls to some examples from https://www.devart.com/dotconnect/mysql/docs/Parameters.html#inoutparams
-        #region Devart Examples
+#region Devart Examples
 
         /// <remarks>
         /// Demonstrates that this Devart-specific syntax is possible in Massive;
@@ -44,6 +45,7 @@ namespace Mighty.Dynamic.Tests.MySql
             }
             Assert.AreEqual(20, result.param2);
         }
-        #endregion
+#endregion
     }
 }
+#endif

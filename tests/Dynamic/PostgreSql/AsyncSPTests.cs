@@ -1,8 +1,8 @@
-﻿#if !NET40
+﻿#if !NET40 && !NETCOREAPP2_0 // TO DO: Why is AsyncEnumerator ForEachAsync not available in .NET Core 2.0 (when it is in 1.0, 1.1 and 3.0)?
 using System;
 using System.Data;
 using System.Dynamic;
-using System.Collections.Async;
+using Dasync.Collections;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
