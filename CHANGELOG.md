@@ -18,6 +18,7 @@ It's what I would have done if I could have released a version 3 of Massive ;).
 
 Fix Intellisense code comments not working due to [stackoverflow.com/a/57731750/795690](https://stackoverflow.com/a/57731750/795690)
 
-## Coming shortly: 3.0.6
+## 3.0.6
 
-Update to .NET Core 3.0 final
+- Update to .NET Core 3.0 final
+- Update to use AsyncEnumerator 3.1.0 (non-beta version)
