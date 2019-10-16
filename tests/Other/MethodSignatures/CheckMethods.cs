@@ -47,18 +47,16 @@ namespace Mighty.MethodSignatures
         public void Interface_MethodCounts()
         {
             Assert.AreEqual(10, interfaceDefinedMethods.SyncOnlyMethods.Count);
-#if NETCOREAPP
-            // TO DO: Figure out and comment why it's one less!
-            Assert.AreEqual(69, interfaceDefinedMethods.SyncMethods.Count);
-#else
+#if KEY_VALUES
             Assert.AreEqual(70, interfaceDefinedMethods.SyncMethods.Count);
+#else
+            Assert.AreEqual(69, interfaceDefinedMethods.SyncMethods.Count);
 #endif
 #if !NET40
-#if NETCOREAPP
-            // TO DO: Figure out and comment why it's two less!
-            Assert.AreEqual(134, interfaceDefinedMethods.AsyncMethods.Count);
-#else
+#if KEY_VALUES
             Assert.AreEqual(136, interfaceDefinedMethods.AsyncMethods.Count);
+#else
+            Assert.AreEqual(134, interfaceDefinedMethods.AsyncMethods.Count);
 #endif
 #endif
         }
