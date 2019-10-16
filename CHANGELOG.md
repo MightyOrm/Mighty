@@ -1,12 +1,13 @@
 # Mighty Change Log
 
-## 3.0.3-beta
+## 3.0.6
 
-First release of Mighty.
+- Update to .NET Core 3.0 final
+- Update to use AsyncEnumerator 3.1.0 (non-beta version)
 
-It's what I would have done if I could have released a version 3 of Massive ;).
+## 3.0.5
 
-.NET Core support and optional named and directional parameter support are where it all came from, everything else springs from those.
+Fix Intellisense code comments not working due to [stackoverflow.com/a/57731750/795690](https://stackoverflow.com/a/57731750/795690)
 
 ## 3.0.4
 
@@ -14,11 +15,10 @@ It's what I would have done if I could have released a version 3 of Massive ;).
 - Finish [documentation](https://mightyorm.github.io/Mighty/)
 - Minor improvements to API
 
-## 3.0.5
+## 3.0.3-beta
 
-Fix Intellisense code comments not working due to [stackoverflow.com/a/57731750/795690](https://stackoverflow.com/a/57731750/795690)
+First release of Mighty.
 
-## 3.0.6
+It's what I would have done if I could have released a version 3 of Massive ;).
 
-- Update to .NET Core 3.0 final
-- Update to use AsyncEnumerator 3.1.0 (non-beta version)
+.NET Core support and optional named and directional parameter support are where it all came from, everything else springs from those.

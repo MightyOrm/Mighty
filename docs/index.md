@@ -20,4 +20,4 @@ Based on and highly compatible with Massive, but now with added:
 * Cursors (on Oracle and PostgreSQL; cursors are not designed to be passed out to client code on other databases)
 * Simultaneous access to more then one database provider
 
-In addition to .NET Core, which is new in Mighty, like Massive, Mighty still runs on .NET Framework 4.5+; and on .NET Framework 4.0+ without async support.
+In addition to the new .NET Core support Mighty, like Massive, still runs on .NET Framework 4.5+ and on .NET Framework 4.0+ without async support.
