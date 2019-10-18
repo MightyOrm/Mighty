@@ -291,8 +291,8 @@ namespace Mighty
         {
             int limit = pageSize;
             int offset = (currentPage - 1) * pageSize;
-            columns = DataContract.Map(AutoMap.Columns, columns) ?? DefaultColumns;
-            orderBy = DataContract.Map(AutoMap.OrderBy, orderBy);
+            columns = columns == null ? DefaultColumns : DataContract.Map(AutoMap.Columns, columns.Unthingify("SELECT"));
+            orderBy = orderBy == null ? null : DataContract.Map(AutoMap.OrderBy, orderBy.Unthingify("ORDER BY"));
             var pagingQueryPair = Plugin.BuildPagingQueryPair(columns, tableNameOrJoinSpec, orderBy, where, limit, offset);
             var result = new PagedResults<T>();
             result.TotalRecords = Convert.ToInt32(ScalarWithParams(
