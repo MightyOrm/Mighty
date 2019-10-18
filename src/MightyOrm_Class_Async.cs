@@ -428,7 +428,7 @@ namespace Mighty
         /// <summary>
         /// Return paged results from arbitrary select statement with support for named parameters.
         /// </summary>
-        /// <param name="columns">Column spec</param>
+        /// <param name="columns">Column spec (here, you can pass "[column-list]" or "SELECT [column-list]")</param>
         /// <param name="tableNameOrJoinSpec">A table name, or a complete join specification (i.e. anything you can SELECT FROM in SQL)</param>
         /// <param name="orderBy">ORDER BY clause</param>
         /// <param name="where">WHERE clause</param>
@@ -441,11 +441,6 @@ namespace Mighty
         /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered input parameters</param>
         /// <returns>The result of the paged query. Result properties are Items, TotalPages, and TotalRecords.</returns>
-        /// <remarks>
-        /// In this one instance, because of the connection to the underlying logic of these queries, the user
-        /// can pass "SELECT columns" instead of columns.
-        /// TO DO: Possibly Possibly cancel the above, it makes no sense from a UI pov!
-        /// </remarks>
         override public async Task<PagedResults<T>> PagedFromSelectWithParamsAsync(
             string tableNameOrJoinSpec,
             string orderBy,
@@ -481,7 +476,7 @@ namespace Mighty
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="tableNameOrJoinSpec">A table name, or a complete join specification (i.e. anything you can SELECT FROM in SQL)</param>
         /// <param name="orderBy">ORDER BY clause</param>
-        /// <param name="columns">Column spec</param>
+        /// <param name="columns">Column spec (here, you can pass "[column-list]" or "SELECT [column-list]")</param>
         /// <param name="where">WHERE clause</param>
         /// <param name="pageSize">Page size</param>
         /// <param name="currentPage">Current page</param>
@@ -492,11 +487,6 @@ namespace Mighty
         /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered input parameters</param>
         /// <returns>The result of the paged query. Result properties are Items, TotalPages, and TotalRecords.</returns>
-        /// <remarks>
-        /// In this one instance, because of the connection to the underlying logic of these queries, the user
-        /// can pass "SELECT columns" instead of columns.
-        /// TO DO: Possibly Possibly cancel the above, it makes no sense from a UI pov!
-        /// </remarks>
         override public async Task<PagedResults<T>> PagedFromSelectWithParamsAsync(
             CancellationToken cancellationToken,
             string tableNameOrJoinSpec,
