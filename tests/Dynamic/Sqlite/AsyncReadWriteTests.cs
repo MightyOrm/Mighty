@@ -181,6 +181,18 @@ namespace Mighty.Dynamic.Tests.Sqlite
 
 
         [Test]
+        public async Task Paged_WhereSpecification_WithParams()
+        {
+            var albums = new Album();
+            var page2 = await albums.PagedWithParamsAsync(currentPage: 2, where: "Title LIKE @Title", inParams: new { Title = "%the%" });
+            var pageItems = ((IEnumerable<dynamic>)page2.Items).ToList();
+            Assert.AreEqual(20, pageItems.Count);
+            Assert.AreEqual(105, pageItems[0].AlbumId);
+            Assert.AreEqual(80, page2.TotalRecords);
+        }
+
+
+        [Test]
         public async Task Paged_OrderBySpecification()
         {
             var albums = new Album();

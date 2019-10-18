@@ -48,15 +48,15 @@ namespace Mighty.MethodSignatures
         {
             Assert.AreEqual(10, interfaceDefinedMethods.SyncOnlyMethods.Count);
 #if KEY_VALUES
-            Assert.AreEqual(70, interfaceDefinedMethods.SyncMethods.Count);
+            Assert.AreEqual(72, interfaceDefinedMethods.SyncMethods.Count);
 #else
-            Assert.AreEqual(69, interfaceDefinedMethods.SyncMethods.Count);
+            Assert.AreEqual(71, interfaceDefinedMethods.SyncMethods.Count);
 #endif
 #if !NET40
 #if KEY_VALUES
-            Assert.AreEqual(136, interfaceDefinedMethods.AsyncMethods.Count);
+            Assert.AreEqual(140, interfaceDefinedMethods.AsyncMethods.Count);
 #else
-            Assert.AreEqual(134, interfaceDefinedMethods.AsyncMethods.Count);
+            Assert.AreEqual(138, interfaceDefinedMethods.AsyncMethods.Count);
 #endif
 #endif
         }
@@ -118,8 +118,33 @@ namespace Mighty.MethodSignatures
         }
 
         [Test]
+        public void SyncMethods_DoNotContainCancellationToken()
+        {
+            interfaceDefinedMethods
+                .SyncMethods
+                .DoNotContainParamType(cancellationTokenType);
+        }
+
+        [Test]
+        [Ignore("Not implemented")]
+        public void AsyncMethods_HaveCancellationTokenAndNonCancellationTokenVariants()
+        {
+        }
+
+        [Test]
+        [Ignore("Not implemented")]
         public void SyncMethods_HaveDbConnectionAndNonDbConnectionVariants()
         {
+#if false
+            var hasDbConnection = interfaceDefinedMethods
+                                    .SyncMethods
+                                    .Where(m =>
+                                        m.Name != OpenConnection &&
+                                        m.Name != KeyValues)
+                                    .GroupBy(m => m.ContainsParamType(dbConnectionType));
+
+            Assert.AreEqual(hasDbConnection[false].Count(), )
+
             List<MethodInfo> dbConnectionMethods = new List<MethodInfo>();
             List<MethodInfo> nonDbConnectionMethods = new List<MethodInfo>();
             interfaceDefinedMethods
@@ -134,6 +159,7 @@ namespace Mighty.MethodSignatures
             nonDbConnectionMethods.ForEach(m => {
                 var o = m;
             });
+#endif
         }
     }
 }

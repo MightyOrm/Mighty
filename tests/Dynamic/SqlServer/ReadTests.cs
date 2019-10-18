@@ -310,6 +310,17 @@ namespace Mighty.Dynamic.Tests.SqlServer
 
 
         [Test]
+        public void Paged_WhereSpecification_WithParams()
+        {
+            var soh = new SalesOrderHeader();
+            var page3 = soh.PagedWithParams(currentPage: 3, where: "SalesOrderNumber LIKE @son", inParams: new { son = "SO4%" });
+            var pageItems = ((IEnumerable<dynamic>)page3.Items).ToList();
+            Assert.AreEqual(20, pageItems.Count);
+            Assert.AreEqual(6341, page3.TotalRecords);
+        }
+
+
+        [Test]
         public void Paged_OrderBySpecification()
         {
             var soh = new SalesOrderHeader();

@@ -135,6 +135,17 @@ namespace Mighty.Dynamic.Tests.Oracle
 
 
         [Test]
+        public async Task Paged_WhereSpecification_WithParams()
+        {
+            var depts = new Department(ProviderName);
+            var page4 = await depts.PagedWithParamsAsync(currentPage: 4, where: "LOC = :loc", inParams: new { loc = "Somewhere" });
+            var pageItems = ((IEnumerable<dynamic>)page4.Items).ToList();
+            Assert.AreEqual(0, pageItems.Count); // also testing being after last page
+            Assert.AreEqual(47, page4.TotalRecords);
+        }
+
+
+        [Test]
         public async Task Paged_OrderBySpecification()
         {
             var depts = new Department(ProviderName);

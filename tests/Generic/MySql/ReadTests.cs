@@ -293,6 +293,17 @@ namespace Mighty.Generic.Tests.MySql
 
 
         [Test]
+        public void Paged_WhereSpecification_WithParams()
+        {
+            var films = new Films(ProviderName);
+            var page11 = films.PagedWithParams(currentPage: 11, where: "description LIKE @description", inParams: new { description = "%the%" });
+            var pageItems = page11.Items.ToList();
+            Assert.AreEqual(1, pageItems.Count); // also testing being on last page
+            Assert.AreEqual(201, page11.TotalRecords);
+        }
+
+
+        [Test]
         public void Paged_OrderBySpecification()
         {
             var films = new Films(ProviderName);

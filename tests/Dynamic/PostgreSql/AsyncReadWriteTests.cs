@@ -155,6 +155,17 @@ namespace Mighty.Dynamic.Tests.PostgreSql
 
 
         [Test]
+        public async Task Paged_WhereSpecification_WithParams()
+        {
+            var customers = new Customer();
+            var page3 = await customers.PagedWithParamsAsync(currentPage: 3, where: "companyname LIKE :companyname", inParams: new { companyname = "%a%" });
+            var pageItems = ((IEnumerable<dynamic>)page3.Items).ToList();
+            Assert.AreEqual(20, pageItems.Count);
+            Assert.AreEqual(72, page3.TotalRecords);
+        }
+
+
+        [Test]
         public async Task Paged_OrderBySpecification()
         {
             var customers = new Customer();

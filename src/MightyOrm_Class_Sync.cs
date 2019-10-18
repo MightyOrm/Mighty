@@ -261,7 +261,7 @@ namespace Mighty
         }
 
         /// <summary>
-        /// Return paged results from arbitrary select statement.
+        /// Return paged results from arbitrary select statement with support for named parameters.
         /// </summary>
         /// <param name="columns">Column spec</param>
         /// <param name="tableNameOrJoinSpec">A table name, or a complete join specification (i.e. anything you can SELECT FROM in SQL)</param>
@@ -269,6 +269,10 @@ namespace Mighty
         /// <param name="where">WHERE clause</param>
         /// <param name="pageSize">Page size</param>
         /// <param name="currentPage">Current page</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
         /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered input parameters</param>
         /// <returns>The result of the paged query. Result properties are Items, TotalPages, and TotalRecords.</returns>
@@ -277,12 +281,16 @@ namespace Mighty
         /// can pass "SELECT columns" instead of columns.
         /// TO DO: Possibly cancel the above, it makes no sense from a UI pov!
         /// </remarks>
-        override public PagedResults<T> PagedFromSelect(
+        override public PagedResults<T> PagedFromSelectWithParams(
             string tableNameOrJoinSpec,
             string orderBy,
             string columns = null,
             string where = null,
             int pageSize = 20, int currentPage = 1,
+            object inParams = null,
+            object outParams = null,
+            object ioParams = null,
+            object returnParams = null,
             DbConnection connection = null,
             params object[] args)
         {
@@ -292,9 +300,23 @@ namespace Mighty
             orderBy = DataContract.Map(AutoMap.OrderBy, orderBy);
             var pagingQueryPair = Plugin.BuildPagingQueryPair(columns, tableNameOrJoinSpec, orderBy, where, limit, offset);
             var result = new PagedResults<T>();
-            result.TotalRecords = Convert.ToInt32(Scalar(pagingQueryPair.CountQuery, args: args));
+            result.TotalRecords = Convert.ToInt32(ScalarWithParams(
+                pagingQueryPair.CountQuery,
+                inParams,
+                outParams,
+                ioParams,
+                returnParams,
+                connection,
+                args));
             result.TotalPages = (result.TotalRecords + pageSize - 1) / pageSize;
-            result.Items = Query(pagingQueryPair.PagingQuery, args: args).ToList();
+            result.Items = QueryWithParams(
+                pagingQueryPair.PagingQuery,
+                inParams,
+                outParams,
+                ioParams,
+                returnParams,
+                connection,
+                args).ToList();
             return result;
         }
 

@@ -418,6 +418,41 @@ namespace Mighty.Interfaces
             params object[] args);
 
         /// <summary>
+        /// Return paged results from arbitrary select statement with support for named parameters.
+        /// </summary>
+        /// <param name="columns">Column spec</param>
+        /// <param name="tableNameOrJoinSpec">A table name, or a complete join specification (i.e. anything you can SELECT FROM in SQL)</param>
+        /// <param name="orderBy">ORDER BY clause</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="pageSize">Page size</param>
+        /// <param name="currentPage">Current page</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered input parameters</param>
+        /// <returns>The result of the paged query. Result properties are Items, TotalPages, and TotalRecords.</returns>
+        /// <remarks>
+        /// In this one instance, because of the connection to the underlying logic of these queries, the user
+        /// can pass "SELECT columns" instead of columns.
+        /// TO DO: Possibly cancel the above, it makes no sense from a UI pov!
+        /// </remarks>
+        abstract public PagedResults<T> PagedFromSelectWithParams(
+            string tableNameOrJoinSpec,
+            string orderBy,
+            string columns = null,
+            string where = null,
+            int pageSize = 20,
+            int currentPage = 1,
+            object inParams = null,
+            object outParams = null,
+            object ioParams = null,
+            object returnParams = null,
+            DbConnection connection = null,
+            params object[] args);
+
+        /// <summary>
         /// Yield return values for single or multiple resultsets.
         /// </summary>
         /// <typeparam name="X">Use with <typeparamref name="T"/> for single or <see cref="IEnumerable{T}"/> for multiple</typeparam>
@@ -810,7 +845,7 @@ namespace Mighty.Interfaces
         /// <param name="args">Auto-numbered input parameters</param>
         /// <returns>The result of the paged query. Result properties are Items, TotalPages, and TotalRecords.</returns>
         /// <remarks>
-        /// `columns` parameter is not placed first because it's an override to something we may have alread provided in the constructor,
+        /// <paramref name="columns"/> parameter is not placed first because it's an override to something we may have alread provided in the constructor,
         /// so we don't want the user to have to non-fluently re-type it, or else type null, every time.
         /// </remarks>
         abstract public PagedResults<T> Paged(
@@ -819,6 +854,38 @@ namespace Mighty.Interfaces
             string where = null,
             int pageSize = 20,
             int currentPage = 1,
+            DbConnection connection = null,
+            params object[] args);
+
+        /// <summary>
+        /// Table-specific paging with support for named parameters; there is also a data wrapper version of paging <see cref="PagedFromSelect"/>.
+        /// </summary>
+        /// <param name="orderBy">You may provide orderBy, if you don't it will try to order by PK and will produce an exception if there is no PK defined.</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="columns">Columns to return</param>
+        /// <param name="pageSize">Page size</param>
+        /// <param name="currentPage">Current page</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
+        /// <param name="connection">Optional connection to use</param>
+        /// <param name="args">Auto-numbered input parameters</param>
+        /// <returns>The result of the paged query. Result properties are Items, TotalPages, and TotalRecords.</returns>
+        /// <remarks>
+        /// <paramref name="columns"/> parameter is not placed first because it's an override to something we may have alread provided in the constructor,
+        /// so we don't want the user to have to non-fluently re-type it, or else type null, every time.
+        /// </remarks>
+        abstract public PagedResults<T> PagedWithParams(
+            string orderBy = null,
+            string columns = null,
+            string where = null,
+            int pageSize = 20,
+            int currentPage = 1,
+            object inParams = null,
+            object outParams = null,
+            object ioParams = null,
+            object returnParams = null,
             DbConnection connection = null,
             params object[] args);
 

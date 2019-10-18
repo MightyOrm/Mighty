@@ -328,6 +328,17 @@ namespace Mighty.Generic.Tests.SqlServer
 
 
         [Test]
+        public async Task Paged_WhereSpecification_WithParams()
+        {
+            var soh = new SalesOrderHeaders();
+            var page3 = await soh.PagedWithParamsAsync(currentPage: 3, where: "SalesOrderNumber LIKE @son", inParams: new { son = "SO4%" });
+            var pageItems = page3.Items.ToList();
+            Assert.AreEqual(20, pageItems.Count);
+            Assert.AreEqual(6341, page3.TotalRecords);
+        }
+
+
+        [Test]
         public async Task Paged_OrderBySpecification()
         {
             var soh = new SalesOrderHeaders();

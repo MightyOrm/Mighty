@@ -320,6 +320,18 @@ namespace Mighty.Generic.Tests.MySql
 
 
         [Test]
+        public async Task Paged_WhereSpecification_WithParams()
+        {
+            var films = new Films(ProviderName);
+            // no order by, and paged queries logically must have an order by; this will order on PK
+            var page11 = await films.PagedWithParamsAsync(currentPage: 11, where: "description LIKE @description", inParams: new { description = "%the%" });
+            var pageItems = page11.Items.ToList();
+            Assert.AreEqual(1, pageItems.Count); // also testing being on last page
+            Assert.AreEqual(201, page11.TotalRecords);
+        }
+
+
+        [Test]
         public async Task Paged_OrderBySpecification()
         {
             var films = new Films(ProviderName);

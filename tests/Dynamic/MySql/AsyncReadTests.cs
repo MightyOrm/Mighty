@@ -469,6 +469,17 @@ namespace Mighty.Dynamic.Tests.MySql
 
 
         [Test]
+        public async Task Paged_WhereSpecification_WithParams()
+        {
+            var film = new Film(ProviderName);
+            var page11 = await film.PagedWithParamsAsync(currentPage: 11, where: "description LIKE @description", inParams: new { description = "%the%" });
+            var pageItems = page11.Items.ToList();
+            Assert.AreEqual(1, pageItems.Count); // also testing being on last page
+            Assert.AreEqual(201, page11.TotalRecords);
+        }
+
+
+        [Test]
         public async Task Paged_OrderBySpecification()
         {
             var film = new Film(ProviderName);

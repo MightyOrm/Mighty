@@ -34,26 +34,26 @@ namespace Mighty.Dynamic.Tests.X
         {
 #if NETFRAMEWORK
 #if !NET40
-            Assert.AreEqual(537, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(551, DataContractStore.Instance.CacheHits);
 #else
-            Assert.AreEqual(258, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(265, DataContractStore.Instance.CacheHits);
 #endif
 #elif NETCOREAPP
 #if NETCOREAPP3_0
 #if DISABLE_DEVART
-            Assert.AreEqual(362, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(372, DataContractStore.Instance.CacheHits);
 #else
             Assert.AreEqual(466, DataContractStore.Instance.CacheHits);
 #endif
 #elif NETCOREAPP2_0
 #if DISABLE_DEVART
-            Assert.AreEqual(331, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(341, DataContractStore.Instance.CacheHits);
 #else
             Assert.AreEqual(466, DataContractStore.Instance.CacheHits);
 #endif
 #else
 #if DISABLE_DEVART
-            Assert.AreEqual(297, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(305, DataContractStore.Instance.CacheHits);
 #else
             Assert.AreEqual(400, DataContractStore.Instance.CacheHits);
 #endif
@@ -123,26 +123,26 @@ namespace Mighty.Generic.Tests.X
         {
 #if NETFRAMEWORK
 #if !NET40
-            Assert.AreEqual(901, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(929, DataContractStore.Instance.CacheHits);
 #else
-            Assert.AreEqual(446, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(460, DataContractStore.Instance.CacheHits);
 #endif
 #elif NETCOREAPP
 #if NETCOREAPP3_0
 #if DISABLE_DEVART
-            Assert.AreEqual(605, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(625, DataContractStore.Instance.CacheHits);
 #else
             Assert.AreEqual(778, DataContractStore.Instance.CacheHits);
 #endif
 #elif NETCOREAPP2_0
 #if DISABLE_DEVART
-            Assert.AreEqual(574, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(594, DataContractStore.Instance.CacheHits);
 #else
             Assert.AreEqual(778, DataContractStore.Instance.CacheHits);
 #endif
 #else
 #if DISABLE_DEVART
-            Assert.AreEqual(502, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(518, DataContractStore.Instance.CacheHits);
 #else
             Assert.AreEqual(674, DataContractStore.Instance.CacheHits);
 #endif
