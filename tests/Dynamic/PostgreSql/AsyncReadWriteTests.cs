@@ -137,9 +137,10 @@ namespace Mighty.Dynamic.Tests.PostgreSql
             var customers = new Customer();
             // no order by, and paged queries logically must have an order by; this will order on PK
             var page2 = await customers.PagedAsync(currentPage: 2, pageSize: 10);
-            var pageItems = ((IEnumerable<dynamic>)page2.Items).ToList();
-            Assert.AreEqual(10, pageItems.Count);
+            Assert.AreEqual(10, page2.Items.Count);
             Assert.AreEqual(91, page2.TotalRecords);
+            Assert.AreEqual(2, page2.CurrentPage);
+            Assert.AreEqual(10, page2.PageSize);
         }
 
 

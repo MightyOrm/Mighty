@@ -312,6 +312,8 @@ namespace Mighty
                 returnParams,
                 connection,
                 args).ToList();
+            result.CurrentPage = currentPage;
+            result.PageSize = pageSize;
             return result;
         }
 

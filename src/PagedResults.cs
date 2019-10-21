@@ -17,6 +17,16 @@ namespace Mighty
         public List<T> Items;
 
         /// <summary>
+        /// Current page
+        /// </summary>
+        public int CurrentPage;
+
+        /// <summary>
+        /// Page size
+        /// </summary>
+        public int PageSize;
+
+        /// <summary>
         /// The total number of pages available
         /// </summary>
         public int TotalRecords;

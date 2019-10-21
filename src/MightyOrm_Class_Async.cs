@@ -527,6 +527,8 @@ namespace Mighty
                 connection,
                 args).ConfigureAwait(false);
             result.Items = await items.ToListAsync(cancellationToken).ConfigureAwait(false);
+            result.CurrentPage = currentPage;
+            result.PageSize = pageSize;
             return result;
         }
 
