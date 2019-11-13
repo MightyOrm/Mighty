@@ -1,7 +1,7 @@
 # ![logo](https://mightyorm.github.io/Mighty/assets/realfavicon/favicon-32x32.png) Mighty
 
 [![NuGet](https://img.shields.io/nuget/v/Mighty.svg)](https://nuget.org/packages/Mighty)
-[![Documentation](https://img.shields.io/badge/-Documentation-f52a62.svg)](https://mightyorm.github.io/Mighty/)
+[![Documentation](https://img.shields.io/badge/Documentation-f52a62.svg)](https://mightyorm.github.io/Mighty/)
 [![Change Log](https://img.shields.io/badge/Change%20Log-green)](CHANGELOG.md)
 
 Available for:
@@ -156,3 +156,10 @@ Mighty also has a `PagedFromSelect` method which, apart from just doing what it 
  - PostgreSQL
  - Oracle
  - SQLite
+
+## Documentation
+
+For the rest of the documentation for Mighty, please 
+[![Click Here](https://img.shields.io/badge/Click%20Here-f52a62.svg)](https://mightyorm.github.io/Mighty/).
+
+For the change log, please [![Click Here](https://img.shields.io/badge/Click%20Here-green)](CHANGELOG.md).
