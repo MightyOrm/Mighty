@@ -159,7 +159,6 @@ Mighty also has a `PagedFromSelect` method which, apart from just doing what it 
 
 ## Documentation
 
-For the rest of the documentation for Mighty, please 
-[![Click Here](https://img.shields.io/badge/Click%20Here-f52a62.svg)](https://mightyorm.github.io/Mighty/).
+Here is the rest of the [![Documentation](https://img.shields.io/badge/Documentation-f52a62.svg)](https://mightyorm.github.io/Mighty/) for Mighty.
 
-For the change log, please [![Click Here](https://img.shields.io/badge/Click%20Here-green)](CHANGELOG.md).
+Here is the [![Change Log](https://img.shields.io/badge/Change%20Log-green)](CHANGELOG.md).
