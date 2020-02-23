@@ -35,6 +35,15 @@ CREATE TABLE [dbo].[Products]
 ) ON [PRIMARY]
 GO
 
+CREATE TABLE [dbo].[EnumTestTable]
+(
+	[EnumTestID] [int] IDENTITY(1,1) NOT NULL,
+	[ByteField] [tinyint] NOT NULL,
+	[ShortField] [smallint] NOT NULL,
+	[IntField] [int] NOT NULL
+) ON [PRIMARY]
+GO
+
 -- ###############################################################################################################
 -- Create statements for Primary key constraints, Foreign key constraints, Unique constraints and Default Values
 -- ###############################################################################################################
@@ -61,6 +70,14 @@ ALTER TABLE [dbo].[Products] WITH NOCHECK
         [ProductID] 
     ) ON [PRIMARY]
 GO
+
+ALTER TABLE [dbo].[EnumTestTable] WITH NOCHECK 
+    ADD CONSTRAINT [PK_EnumTestTable] PRIMARY KEY CLUSTERED 
+    ( 
+        [EnumTestID] 
+    ) ON [PRIMARY]
+GO
+
 -- ----------------------------------------------------------------------------------------------------------------
 -- Unique constraints for schema 'dbo'
 -- ----------------------------------------------------------------------------------------------------------------
@@ -108,5 +125,6 @@ CREATE PROCEDURE [dbo].[pr_clearAll]
 AS
 DELETE FROM Products;
 DELETE FROM Categories;
+DELETE FROM EnumTestTable;
 
 GO

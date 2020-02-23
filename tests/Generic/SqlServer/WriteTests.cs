@@ -1,13 +1,10 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Data;
-using System.Dynamic;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using Mighty.Generic.Tests.SqlServer.TableClasses;
+
 using NUnit.Framework;
+
+using Mighty.Generic.Tests.SqlServer.TableClasses;
 
 namespace Mighty.Generic.Tests.SqlServer
 {
@@ -89,7 +86,7 @@ namespace Mighty.Generic.Tests.SqlServer
         {
             // first insert 2 categories and 4 products, one for each category
             var categories = new Categories();
-            var insertedCategory1 = categories.Insert(new {CategoryName = "Category 1", Description = "Cat 1 desc"});
+            var insertedCategory1 = categories.Insert(new { CategoryName = "Category 1", Description = "Cat 1 desc" });
             int category1ID = insertedCategory1.CategoryID;
             Assert.IsTrue(category1ID > 0);
             var insertedCategory2 = categories.Insert(new { CategoryName = "Category 2", Description = "Cat 2 desc" });
@@ -97,15 +94,15 @@ namespace Mighty.Generic.Tests.SqlServer
             Assert.IsTrue(category2ID > 0);
 
             var products = new Products();
-            for(int i = 0; i < 4; i++)
+            for (int i = 0; i < 4; i++)
             {
                 var category = i % 2 == 0 ? insertedCategory1 : insertedCategory2;
-                var p = products.Insert(new {ProductName = "Prod" + i, category.CategoryID});
+                var p = products.Insert(new { ProductName = "Prod" + i, category.CategoryID });
                 Assert.IsTrue(p.ProductID > 0);
             }
-            var allCat1Products = products.All(where:"WHERE CategoryID=@0", args:category1ID).ToArray();
+            var allCat1Products = products.All(where: "WHERE CategoryID=@0", args: category1ID).ToArray();
             Assert.AreEqual(2, allCat1Products.Length);
-            foreach(var p in allCat1Products)
+            foreach (var p in allCat1Products)
             {
                 Assert.AreEqual(category1ID, p.CategoryID);
                 p.CategoryID = category2ID;
@@ -127,7 +124,7 @@ namespace Mighty.Generic.Tests.SqlServer
             Assert.IsTrue(category2ID > 0);
 
             Assert.AreEqual(1, categories.Delete(category1ID), "Delete should affect 1 row");
-            var categoriesFromDB = categories.All(where:"CategoryName=@0", args:(string)insertedCategory2.CategoryName).ToList();
+            var categoriesFromDB = categories.All(where: "CategoryName=@0", args: (string)insertedCategory2.CategoryName).ToList();
             Assert.AreEqual(1, categoriesFromDB.Count);
             Assert.AreEqual(category2ID, categoriesFromDB[0].CategoryID);
         }
@@ -149,6 +146,44 @@ namespace Mighty.Generic.Tests.SqlServer
             var categoriesFromDB = categories.All(where: "CategoryName=@0", args: (string)insertedCategory2.CategoryName).ToList();
             Assert.AreEqual(0, categoriesFromDB.Count);
         }
+
+
+#if !(NETCOREAPP1_0 || NETCOREAPP1_1)
+        [Test]
+        public void ReadWrite_Enum()
+        {
+            var db = new EnumTests();
+            var values = new {
+                ByteField = EnumTest.MyByteEnum.value_3,
+                ShortField = EnumTest.MyShortEnum.value_6,
+                IntField = EnumTest.MyIntEnum.value_9
+            };
+            var item = db.New(values);
+            Assert.That(item.ID, Is.EqualTo(0));
+            Assert.That((int)item.ByteField, Is.EqualTo(3));
+            Assert.That((int)item.ShortField, Is.EqualTo(6));
+            Assert.That((int)item.IntField, Is.EqualTo(9));
+            db.Save(item);
+            Assert.That(item.ID, Is.Not.EqualTo(0));
+            var reloaded = db.Single("EnumTestID = @0", item.ID);
+            Assert.That(reloaded.ByteField, Is.EqualTo(item.ByteField));
+            Assert.That(reloaded.ShortField, Is.EqualTo(item.ShortField));
+            Assert.That(reloaded.IntField, Is.EqualTo(item.IntField));
+        }
+
+
+        [Test]
+        public void ReadWrite_IntsIntoEnums()
+        {
+            var db = new EnumTests();
+            var intValues = new { ByteField = 4, ShortField = 7, IntField = 10 };
+            var item = db.Insert(intValues);
+            var reloaded = db.Single("EnumTestID = @0", item.ID);
+            Assert.That((int)reloaded.ByteField, Is.EqualTo(intValues.ByteField));
+            Assert.That((int)reloaded.ShortField, Is.EqualTo(intValues.ShortField));
+            Assert.That((int)reloaded.IntField, Is.EqualTo(intValues.IntField));
+        }
+#endif
 
 
         [OneTimeTearDown]

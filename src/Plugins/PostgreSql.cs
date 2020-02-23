@@ -39,7 +39,7 @@ namespace Mighty.Plugins
         #endregion
 
         #region Table info
-        override public IEnumerable<dynamic> PostProcessTableMetaData(IEnumerable<dynamic> rawTableMetaData)
+        override public List<dynamic> PostProcessTableMetaData(IEnumerable<dynamic> rawTableMetaData)
         {
             List<dynamic> results = new List<object>();
             foreach (ExpandoObject columnInfo in rawTableMetaData)

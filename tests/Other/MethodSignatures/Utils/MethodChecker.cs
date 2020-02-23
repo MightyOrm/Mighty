@@ -1,5 +1,5 @@
 ﻿using System;
-#if !NET40 && !NETCOREAPP3_0
+#if !NET40 && !NETCOREAPP3_0 || NETCOREAPP3_1
 using Dasync.Collections;
 #endif
 using System.Collections.Generic;
@@ -268,7 +268,7 @@ namespace Mighty.MethodSignatures
                     case MightyMethodType.Query:
 #if !NET40
                         if (isAsync)
-#if NETCOREAPP3_0
+#if NETCOREAPP3_0 || NETCOREAPP3_1
                             returnType = typeof(Task<IAsyncEnumerable<T>>);
 #else
                             // this is ambiguous without the namespace in netcoreapp2_0
@@ -282,7 +282,7 @@ namespace Mighty.MethodSignatures
                     case MightyMethodType.QueryMultiple:
 #if !NET40
                         if (isAsync)
-#if NETCOREAPP3_0
+#if NETCOREAPP3_0 || NETCOREAPP3_1
                             returnType = typeof(Task<IAsyncEnumerable<IAsyncEnumerable<T>>>); // throw new NotImplementedException("AsyncMultipleResultSets<T> not implemented yet");
 #else
                             // this is ambiguous without the namespace in netcoreapp2_0

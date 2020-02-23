@@ -39,8 +39,8 @@ namespace Mighty
         /// connection string itself and provider name are looked up in the ConnectionStrings section of the .config file.
         /// </param>
         /// <param name="tableName">Table name</param>
-        /// <param name="primaryKeys">Either single primary key column/field name, or comma separated list of names for compound PK</param>
-        /// <param name="valueField">Value column/field name, for lookup tables</param>
+        /// <param name="primaryKeys">Either single primary key member name, or comma separated list of names for compound PK</param>
+        /// <param name="valueField">Value member name, for lookup tables</param>
         /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
         /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
         /// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
@@ -79,7 +79,7 @@ namespace Mighty
         /// connection string itself and provider name are looked up in the ConnectionStrings section of the .config file.
         /// </param>
         /// <param name="tableName">Table name</param>
-        /// <param name="primaryKeys">Either single primary key column/field name, or comma separated list of names for compound PK</param>
+        /// <param name="primaryKeys">Either single primary key member name, or comma separated list of names for compound PK</param>
         /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
         /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
         /// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
@@ -150,8 +150,8 @@ namespace Mighty
         /// connection string itself and provider name are looked up in the ConnectionStrings section of the .config file.
         /// </param>
         /// <param name="tableName">Override the table name (defaults to using T class name)</param>
-        /// <param name="primaryKeys">Either single primary key column/field name, or comma separated list of names for compound PK</param>
-        /// <param name="valueField">Value column/field name, for lookup tables</param>
+        /// <param name="primaryKeys">Either single primary key member name, or comma separated list of names for compound PK</param>
+        /// <param name="valueField">Value member name, for lookup tables</param>
         /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
         /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
         /// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
@@ -189,7 +189,7 @@ namespace Mighty
         /// connection string itself and provider name are looked up in the ConnectionStrings section of the .config file.
         /// </param>
         /// <param name="table">Override the table name (defaults to using T class name)</param>
-        /// <param name="primaryKeys">Either single primary key column/field name, or comma separated list of names for compound PK</param>
+        /// <param name="primaryKeys">Either single primary key member name, or comma separated list of names for compound PK</param>
         /// <param name="sequence">Optional sequence name for PK inserts on sequence-based DBs; or, optionally override
         /// identity retrieval function for identity-based DBs (e.g. specify "@@IDENTITY" here for SQL Server CE). As a special case,
         /// send an empty string (i.e. not the default value of null) to turn off identity support on identity-based DBs.</param>
@@ -401,7 +401,7 @@ namespace Mighty
         // Only methods with a non-trivial implementation are here, the rest are in the MightyOrm_Redirects file.
         #region MircoORM interface
         /// <summary>
-        /// Make a new item from the passed-in name-value collection.
+        /// Make a new item, with optional passed-in name-value collection as initialiser.
         /// </summary>
         /// <param name="nameValues">The name-value collection</param>
         /// <param name="addNonPresentAsDefaults">
@@ -416,10 +416,10 @@ namespace Mighty
             Dictionary<string, object> columnNameToValue = new Dictionary<string, object>();
             foreach (var nvtInfo in nvtEnumerator)
             {
-                string columnName = SqlNamingMapper.ColumnNameMapping(typeof(T), nvtInfo.Name);
-                DataContractMemberInfo columnInfo;
-                if (!DataContract.TryGetDataMemberInfo(columnName, out columnInfo)) continue;
-                columnNameToValue.Add(columnName, nvtInfo.Value);
+                if (DataContract.TryGetColumnName(nvtInfo.Name, out string columnName))
+                {
+                    columnNameToValue.Add(columnName, nvtInfo.Value);
+                }
             }
             object item;
             IDictionary<string, object> newItemDictionary = null;
@@ -814,7 +814,7 @@ namespace Mighty
                 if (nvt.Name == null || PrimaryKeyInfo.IsKey(name))
                 {
                     nKeys++;
-                    if (value == null || value == nvt.Type.GetDefaultValue())
+                    if (value == null || value.Equals(nvt.Type.GetDefaultValue()))
                     {
                         nDefaultKeyValues++;
                     }

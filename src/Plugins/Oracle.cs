@@ -76,7 +76,7 @@ namespace Mighty.Plugins
                 tableOwner != null ? string.Format(" AND OWNER = {0}", PrefixParameterName("1")) : "");
         }
 
-        override public IEnumerable<dynamic> PostProcessTableMetaData(IEnumerable<dynamic> rawTableMetaData)
+        override public List<dynamic> PostProcessTableMetaData(IEnumerable<dynamic> rawTableMetaData)
         {
             List<dynamic> results = new List<object>();
             foreach (dynamic columnInfo in rawTableMetaData)

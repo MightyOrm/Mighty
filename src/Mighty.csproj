@@ -3,14 +3,15 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard1.6;netstandard2.0;netstandard2.1;net40;net45</TargetFrameworks>
 	<PackageId>Mighty</PackageId>
-    <Version>3.0.7-alpha</Version>
+    <Version>3.1.0</Version>
     <Authors>Mike Beaton</Authors>
     <Owners>MightyOrm</Owners>
     <Description>A new small, happy, dynamic micro-ORM and general purpose .NET data access wrapper.
 
 Based on and highly compatible with Massive, but now with:
 
-* .NET Core 1.0, 1.1, 2.0, 3.0 (as well as .NET Framework 4.0+)
+* .NET Core 1.0+, 2.0+ and 3.0+
+* .NET Framework 4.0+, 4.5+
 * Stored procedure support
 * Parameter names and directions (where you need it; automatic parameter naming as in Massive still works as before)
 * Transaction support
@@ -19,7 +20,7 @@ Based on and highly compatible with Massive, but now with:
 * Simultaneous access to more then one database provider
 </Description>
     <PackageIconUrl>https://avatars3.githubusercontent.com/u/26790220?v=3&amp;s=200</PackageIconUrl>
-    <Copyright>Copyright (c) 2017-2019 Mike Beaton</Copyright>
+    <Copyright>Copyright (c) 2017-2020 Mike Beaton</Copyright>
     <PackageProjectUrl>https://github.com/MightyOrm/MightyOrm</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/MightyOrm/MightyOrm/blob/master/LICENSE</PackageLicenseUrl>
 	<PackageTags>micro-ORM, microORM, ORM, SQL, data access, data access wrapper, Mighty, MightyOrm, Massive, ADO.NET</PackageTags>
