@@ -311,6 +311,17 @@ namespace Mighty.DataContracts
         }
 
         /// <summary>
+        /// Try to convert member name to column name (respecting all attribute and mapper mappings)
+        /// </summary>
+        /// <param name="memberName">The local data item field or property name</param>
+        /// <param name="columnName">The matching database column name</param>
+        /// <returns></returns>
+        public bool TryGetColumnName(string memberName, out string columnName)
+        {
+            return MemberNameToColumnName.TryGetValue(memberName, out columnName);
+        }
+
+        /// <summary>
         /// Look up <see cref="DataContractMemberInfo"/> from database column name
         /// </summary>
         /// <param name="columnName">The database column name</param>

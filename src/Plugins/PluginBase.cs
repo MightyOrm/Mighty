@@ -283,7 +283,7 @@ namespace Mighty.Plugins
         /// <remarks>
         /// TO DO: Just make the inner conversion function part of the plugin, not the loop.
         /// </remarks>
-        virtual public IEnumerable<dynamic> PostProcessTableMetaData(IEnumerable<dynamic> results)
+        virtual public List<dynamic> PostProcessTableMetaData(IEnumerable<dynamic> results)
         {
             return results.ToList();
         }
@@ -506,14 +506,14 @@ namespace Mighty.Plugins
 
 #if (NETCOREAPP || NETSTANDARD)
         /// <summary>
-        /// Does this command require a wrapping transaction? This is required for come cursor-specific commands on some databases.
+        /// Does this command require a wrapping transaction? This is required for some cursor-specific commands on some databases.
         /// If required Mighty will only create a new transaction if a user transaction is not already in place.
         /// </summary>
         /// <param name="cmd">The command to check</param>
         /// <returns></returns>
 #else
         /// <summary>
-        /// Does this command require a wrapping transaction? This is required for come cursor-specific commands on some databases.
+        /// Does this command require a wrapping transaction? This is required for some cursor-specific commands on some databases.
         /// If required Mighty will only create a new transaction if a user transaction or <see cref="System.Transactions.TransactionScope"/> is not already in place.
         /// </summary>
         /// <param name="cmd">The command to check</param>

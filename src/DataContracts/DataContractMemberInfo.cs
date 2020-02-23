@@ -97,18 +97,30 @@ namespace Mighty.DataContracts
                 throw new Exception($"Expected {DeclaringType.FullName}.{Name} to be a field or a property");
             }
 
-            if (value != null)
+            if (value != null && value.GetType() != t)
             {
                 // Force successful conversion from T? to T
-                // Also coerces some other types such as int to byte (e.g. database has ((1)) as default value for bit)
+                // Also coerces some other types such as int to byte or bool (e.g. database has ((1)) as default value for bit)
+#if !NETSTANDARD1_6
+                // Also now supports reading from integer to enum (writing already worked)
+                Type e = null;
+                if (t.IsEnum)
+                {
+                    e = t;
+                    t = t.GetEnumUnderlyingType();
+                }
+                else
+#endif
                 if (t
 #if !NETFRAMEWORK
-                .GetTypeInfo()
+                    .GetTypeInfo()
 #endif
-                .IsGenericType && t.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
+                    .IsGenericType &&
+                    t.GetGenericTypeDefinition().Equals(typeof(Nullable<>)))
                 {
                     t = Nullable.GetUnderlyingType(t);
                 }
+
                 try
                 {
                     value = Convert.ChangeType(value, t);
@@ -117,6 +129,13 @@ namespace Mighty.DataContracts
                 {
                     throw new FormatException($"Cannot convert {value.GetType().Name} value for {DeclaringType.Name}.{Name} to {t.Name}");
                 }
+
+#if !NETSTANDARD1_6
+                if (e != null)
+                {
+                    value = Enum.ToObject(e, value);
+                }
+#endif
             }
 
             Field?.SetValue(obj, value);

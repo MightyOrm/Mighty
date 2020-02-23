@@ -122,7 +122,7 @@ namespace Mighty.Dynamic.Tests.MySql
             var film = new Film(ProviderName);
             var allRows = await film.AllAsync();
             var count = 0;
-#if NETCOREAPP3_0
+#if NETCOREAPP3_0 || NETCOREAPP3_1
             await foreach (var r in allRows )
             {
                 count++;

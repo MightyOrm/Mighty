@@ -93,6 +93,10 @@ namespace Mighty.DataContracts
             }
             unprocessedMetaData = (IEnumerable<dynamic>)db.Query(sql, key.BareTableName, key.TableOwner);
             var postProcessedMetaData = key.Plugin.PostProcessTableMetaData(unprocessedMetaData);
+            if (postProcessedMetaData.Count == 0)
+            {
+                throw new InvalidOperationException($"Cannot find any meta-data for table {(key.TableOwner == null ? "" : $"{key.TableOwner }.")}{key.BareTableName} in database");
+            }
             return FilterTableMetaData(key, postProcessedMetaData);
         }
 
