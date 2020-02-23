@@ -3,19 +3,19 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard1.6;netstandard2.0;netstandard2.1;net40;net45</TargetFrameworks>
 	<PackageId>Mighty</PackageId>
-    <Version>3.1.0</Version>
+    <Version>3.1.1</Version>
     <Authors>Mike Beaton</Authors>
     <Owners>MightyOrm</Owners>
     <Description>A new small, happy, dynamic micro-ORM and general purpose .NET data access wrapper.
 
 Based on and highly compatible with Massive, but now with:
 
-* .NET Core 1.0+, 2.0+ and 3.0+
-* .NET Framework 4.0+, 4.5+
-* Stored procedure support
-* Parameter names and directions (where you need it; automatic parameter naming as in Massive still works as before)
-* Transaction support
-* Cursors (on Oracle and PostgreSQL; cursors are not designed to be passed out to client code on other databases)
+* .NET Core 1.0+, 2.0+ and 3.0+ (with continuing support for .NET Framework 4.0+ and 4.5+)
+* Optional strong typing (with continuing full support for dynamic types)
+* Full stored procedure support
+* Parameter names and directions (where you need it; automatic parameter naming as in Massive still works just as before)
+* Full transaction support
+* Cursor support on Oracle and PostgreSQL (cursors are not designed to be passed out to client code on any other supported databases)
 * Multiple result sets
 * Simultaneous access to more then one database provider
 </Description>
