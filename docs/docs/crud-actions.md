@@ -15,6 +15,7 @@ nav_order: 5
 Table-specific instances of `MightyOrm` also support CRUD actions (insert, update, delete).
 
 No additional set up is required, all these examples are self-contained and work just as they are.
+All these methods also have variants which accept any reasonable arrary or enumerable of items to update multiple rows.
 
 ## Update
 
