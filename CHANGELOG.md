@@ -1,5 +1,10 @@
 # Mighty Change Log
 
+## 3.1.0
+
+- Allow reading from database into enum members (despite C# not being keen to allow this!)
+- Related minor fixes
+
 ## 3.0.6
 
 - Update to .NET Core 3.0 final
