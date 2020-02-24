@@ -97,6 +97,8 @@ List<ImportantItem> GetItemsBelongingToParent(int parentId)
     List<ImportantItem> items;
     dynamic results;
 
+    var db = new MightyOrm<ImportantItem>(_connectionString);
+
     // this is the way to get query results AND output param results in Mighty
     using (var cmd = db.CreateCommandWithParams(
         "GetImportantItems",
