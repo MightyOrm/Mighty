@@ -1,5 +1,9 @@
 # Mighty Change Log
 
+## 3.1.1
+
+- Minor updates to NuGet package description only
+
 ## 3.1.0
 
 - Allow reading from database into enum members (despite C# not being keen to allow this!)
