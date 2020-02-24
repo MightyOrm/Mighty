@@ -89,7 +89,7 @@ when executing a command with parameters.
 
 If you use a `Query...` variant in Mighty, you get the query results but not the param results. If you use an `Execute...` varaint you get the param results, but not the query results.
 
-It's a bit fiddly (because of the constraint just described above), but you can also get both. Here is an example which shows how to do it:
+It's a bit fiddly (it has to be, both for the reason above and for another reason described just below), but you can also get both. Here is an example of how to do it:
 
 ``` c#
 List<ImportantItem> GetItemsBelongingToParent(int parentId)
@@ -124,6 +124,10 @@ List<ImportantItem> GetItemsBelongingToParent(int parentId)
     return items;
 }
 ```
+
+As you can see in the example above, there's another - even more fundamental - issue here. We can't combine the output, io and return parameters into the return value from a Mighty `Query...` method even if we wanted to;
+because *the query hasn't happened by the time we return*! This is a [fundamental decision in Mighty](ienumerables-in-mighty) (adopted, happily, from Massive), so for this reason getting the param results from a query has
+to be a separate call which you, the programmer, do once you know that you have consumed (or started to consume) the query results.
 
 ## SQL Injection
 
