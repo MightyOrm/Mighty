@@ -1,10 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Data.Common;
-using System.Text;
+using System.Collections.Concurrent;
 
 using Mighty.Mapping;
-using Mighty.Plugins;
 
 namespace Mighty.DataContracts
 {
@@ -34,7 +31,7 @@ namespace Mighty.DataContracts
         /// <summary>
         /// The store
         /// </summary>
-        private readonly Dictionary<DataContractKey, DataContract> store = new Dictionary<DataContractKey, DataContract>();
+        private readonly ConcurrentDictionary<DataContractKey, DataContract> store = new ConcurrentDictionary<DataContractKey, DataContract>();
 
         /// <summary>
         /// Cache hits
@@ -65,18 +62,12 @@ namespace Mighty.DataContracts
         internal DataContract Get(bool IsGeneric, Type type, string columns, SqlNamingMapper mapper)
         {
             DataContractKey key = new DataContractKey(IsGeneric, type, columns, mapper);
-            DataContract value;
-            if (store.TryGetValue(key, out value))
-            {
-                CacheHits++;
-            }
-            else
-            {
+            CacheHits++;
+            return store.GetOrAdd(key, k => {
+                CacheHits--;
                 CacheMisses++;
-                value = new DataContract(key);
-                store.Add(key, value);
-            }
-            return value;
+                return new DataContract(k);
+            });
         }
     }
 }
