@@ -1,5 +1,9 @@
 # Mighty Change Log
 
+## 3.1.2
+
+- Convert DataContractStore and TableMetaDataStore from Dictionary to ConcurrentDictionary
+
 ## 3.1.1
 
 - Minor updates to NuGet package description only
