@@ -64,7 +64,7 @@ namespace Mighty.DataContracts
         public readonly Func<Type, string, bool> IgnoreColumn;
 
         /// <summary>
-        /// If the instance of Mighty is dynamic and there is no column spec, then there is no need
+        /// When the instance of Mighty is dynamic and there is no column spec, then there is no need
         /// to store a mapping.
         /// </summary>
         public readonly bool DynamicNullContract;
