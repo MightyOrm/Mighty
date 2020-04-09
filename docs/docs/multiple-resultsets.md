@@ -13,8 +13,8 @@ We now properly support strongly typed multiple result sets:
 ```c#
 var db = new MightyOrm(connectionString);
 var now = DateTime.Now;
-using (var multiple = db.ExecuteMultipleFromProcedure("procPurchaseReport",
-    inParams: new { StartDate = now.AddMonths(6), EndDate = now })
+using (var multiple = db.QueryMultipleFromProcedure("procPurchaseReport",
+    inParams: new { StartDate = now.AddMonths(6), EndDate = now }))
 {
     multiple.NextResultSet();
     foreach (var summary in multiple.CurrentResultSet.ResultsAs<ReportSummary>())
