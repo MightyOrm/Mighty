@@ -3,6 +3,7 @@
 ## 3.1.2
 
 - Convert DataContractStore and TableMetaDataStore from Dictionary to ConcurrentDictionary
+- Fix bug in DataContractKey.Equals
 
 ## 3.1.1
 
