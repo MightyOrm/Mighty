@@ -82,6 +82,7 @@ namespace Mighty.DataContracts
                 bool foundControlledColumn;
                 bool foundRenamedColumn;
 
+                // These two don't need to be ConcurrentDictionary - they can't be written to concurrently (they are set up in the constructor then not modified), even though they may be read concurrently
                 ColumnNameToMemberInfo = new Dictionary<string, DataContractMemberInfo>(Key.DatabaseTableSettings.CaseSensitiveColumnMapping ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
                 MemberNameToColumnName = new Dictionary<string, string>(Key.DatabaseTableSettings.CaseSensitiveColumnMapping ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
 
@@ -357,18 +358,18 @@ namespace Mighty.DataContracts
         /// This will search in all and only managed data members, including managed non-public members,
         /// which is what we want.
         /// </summary>
-        /// <param name="fieldNname">Name of field or property</param>
+        /// <param name="fieldName">Name of field or property</param>
         /// <param name="what">Short description of what is being looked for, for exception message</param>
         /// <returns></returns>
-        public MemberInfo GetMember(string fieldNname, string what = null)
+        public MemberInfo GetMember(string fieldName, string what = null)
         {
-            var member = ColumnNameToMemberInfo.Values.Where(m => m.Member.Name == fieldNname).FirstOrDefault();
+            var member = ColumnNameToMemberInfo.Values.Where(m => m.Member.Name == fieldName).FirstOrDefault();
             if (member == null)
             {
                 throw new InvalidOperationException(
                     string.Format(
                         "Cannot find field or property named {0}{1} in {2} (must be exact match, including case)",
-                        fieldNname,
+                        fieldName,
                         what == null ? "" : $" for {what}",
                         Key.DataItemType.FullName));
             }

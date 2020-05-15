@@ -1,7 +1,7 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Data.Common;
-using System.Text;
 
 using Mighty.ConnectionProviders;
 using Mighty.Plugins;
@@ -28,15 +28,12 @@ namespace Mighty.DataContracts
         /// <summary>
         /// Private constructor
         /// </summary>
-        private TableMetaDataStore()
-        {
-            Flush();
-        }
+        private TableMetaDataStore() {}
 
         /// <summary>
         /// The store
         /// </summary>
-        private Dictionary<TableMetaDataKey, IEnumerable<dynamic>> store;
+        private ConcurrentDictionary<TableMetaDataKey, IEnumerable<dynamic>> store = new ConcurrentDictionary<TableMetaDataKey, IEnumerable<dynamic>>();
 
         /// <summary>
         /// Cache hits
@@ -53,7 +50,7 @@ namespace Mighty.DataContracts
         /// </summary>
         public void Flush()
         {
-            store = new Dictionary<TableMetaDataKey, IEnumerable<dynamic>>();
+            store.Clear();
         }
 
         internal IEnumerable<dynamic> Get(
@@ -67,18 +64,12 @@ namespace Mighty.DataContracts
                 Plugin, Factory, ConnectionString,
                 BareTableName, TableOwner, DataContract
             );
-            IEnumerable<dynamic> value;
-            if (store.TryGetValue(key, out value))
-            {
-                CacheHits++;
-            }
-            else
-            {
+            CacheHits++;
+            return store.GetOrAdd(key, k => {
+                CacheHits--;
                 CacheMisses++;
-                value = LoadTableMetaData(IsGeneric, key, Mighty);
-                store.Add(key, value);
-            }
-            return value;
+                return LoadTableMetaData(IsGeneric, k, Mighty);
+            });
         }
 
         private IEnumerable<dynamic> LoadTableMetaData(bool isGeneric, TableMetaDataKey key, object Mighty)

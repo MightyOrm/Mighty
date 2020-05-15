@@ -64,7 +64,7 @@ namespace Mighty.DataContracts
         public readonly Func<Type, string, bool> IgnoreColumn;
 
         /// <summary>
-        /// If the instance of Mighty is dynamic and there is no column spec, then there is no need
+        /// When the instance of Mighty is dynamic and there is no column spec, then there is no need
         /// to store a mapping.
         /// </summary>
         public readonly bool DynamicNullContract;
@@ -189,31 +189,29 @@ namespace Mighty.DataContracts
             if (!(obj is DataContractKey)) return false;
             var other = (DataContractKey)obj;
 
-            bool y;
+            if (IsGeneric != other.IsGeneric) return false;
 
             if (IsGeneric)
             {
-                // And the contract for generic instances does not depend on the column spec
-                y = DataItemType == other.DataItemType;
+                // The contract for generic instances does not depend on the column spec
+                if (DataItemType != other.DataItemType) return false;
             }
             else
             {
                 // For dynamic types the only things that can affect the mapping are the column mapping, if any,
                 // and the final DatabaseTableSettings (which is included below anyway), but not the item type per se.
-                y = DynamicColumnSpec == other.DynamicColumnSpec;
+                if (DynamicColumnSpec != other.DynamicColumnSpec) return false;
             }
 
-            y = y &&
-                DatabaseTableSettings.Equals(other.DatabaseTableSettings);
+            if (!DatabaseTableSettings.Equals(other.DatabaseTableSettings)) return false;
 
-            y = y &&
-                HasMapperColumnsMapping == other.HasMapperColumnsMapping &&
-                (!HasMapperColumnsMapping ||
-                    (ColumnName == other.ColumnName &&
-                     ColumnDataDirection == other.ColumnDataDirection &&
-                     IgnoreColumn == other.IgnoreColumn));
+            if (HasMapperColumnsMapping != other.HasMapperColumnsMapping) return false;
 
-            return y;
+            return (!HasMapperColumnsMapping || (
+                ColumnName == other.ColumnName &&
+                ColumnDataDirection == other.ColumnDataDirection &&
+                IgnoreColumn == other.IgnoreColumn)
+            );
         }
     }
 }
