@@ -66,6 +66,12 @@ Based on and highly compatible with Massive, but now with:
     <DefineConstants>NETCOREAPP;NETCOREAPP3_0</DefineConstants>
   </PropertyGroup>
 
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>MightyTests</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp1.0'">
     <PackageReference Include="AsyncEnumerator" Version="3.1.0" />
     <PackageReference Include="System.Collections.Specialized" Version="4.3.0" />
