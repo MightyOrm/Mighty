@@ -82,6 +82,7 @@ namespace Mighty.DataContracts
                 bool foundControlledColumn;
                 bool foundRenamedColumn;
 
+                // These two don't need to be ConcurrentDictionary - they can't be written to concurrently (they are set up in the constructor then not modified), even though they may be read concurrently
                 ColumnNameToMemberInfo = new Dictionary<string, DataContractMemberInfo>(Key.DatabaseTableSettings.CaseSensitiveColumnMapping ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
                 MemberNameToColumnName = new Dictionary<string, string>(Key.DatabaseTableSettings.CaseSensitiveColumnMapping ? StringComparer.Ordinal : StringComparer.OrdinalIgnoreCase);
 
