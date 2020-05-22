@@ -418,7 +418,7 @@ namespace Mighty.Dynamic.Tests.MySql
             using (CancellationTokenSource cts = new CancellationTokenSource())
             {
                 var film = new Film(ProviderName);
-                var allRows = await film.QueryAsync("SELECT * FROM sakila.film", cts.Token);
+                var allRows = await film.QueryAsync(cts.Token, "SELECT * FROM sakila.film");
                 int count = 0;
                 Assert.ThrowsAsync<TaskCanceledException>(async () =>
                 {
@@ -451,9 +451,10 @@ namespace Mighty.Dynamic.Tests.MySql
             var film = new Film(ProviderName);
             // no order by, and paged queries logically must have an order by; this will order on PK
             var page2 = await film.PagedAsync(currentPage: 2, pageSize: 30);
-            var pageItems = page2.Items.ToList();
-            Assert.AreEqual(30, pageItems.Count);
+            Assert.AreEqual(30, page2.Items.Count);
             Assert.AreEqual(1000, page2.TotalRecords);
+            Assert.AreEqual(2, page2.CurrentPage);
+            Assert.AreEqual(30, page2.PageSize);
         }
 
 
@@ -462,6 +463,17 @@ namespace Mighty.Dynamic.Tests.MySql
         {
             var film = new Film(ProviderName);
             var page11 = await film.PagedAsync(currentPage: 11, where: "description LIKE @0", args: "%the%");
+            var pageItems = page11.Items.ToList();
+            Assert.AreEqual(1, pageItems.Count); // also testing being on last page
+            Assert.AreEqual(201, page11.TotalRecords);
+        }
+
+
+        [Test]
+        public async Task Paged_WhereSpecification_WithParams()
+        {
+            var film = new Film(ProviderName);
+            var page11 = await film.PagedWithParamsAsync(currentPage: 11, where: "description LIKE @description", inParams: new { description = "%the%" });
             var pageItems = page11.Items.ToList();
             Assert.AreEqual(1, pageItems.Count); // also testing being on last page
             Assert.AreEqual(201, page11.TotalRecords);

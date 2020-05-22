@@ -275,9 +275,10 @@ namespace Mighty.Generic.Tests.MySql
             var films = new Films(ProviderName);
             // no order by, and paged queries logically must have an order by; this will order on PK
             var page2 = films.Paged(currentPage: 2, pageSize: 30);
-            var pageItems = page2.Items.ToList();
-            Assert.AreEqual(30, pageItems.Count);
+            Assert.AreEqual(30, page2.Items.Count);
             Assert.AreEqual(1000, page2.TotalRecords);
+            Assert.AreEqual(2, page2.CurrentPage);
+            Assert.AreEqual(30, page2.PageSize);
         }
 
 
@@ -286,6 +287,17 @@ namespace Mighty.Generic.Tests.MySql
         {
             var films = new Films(ProviderName);
             var page11 = films.Paged(currentPage: 11, where: "description LIKE @0", args: "%the%");
+            var pageItems = page11.Items.ToList();
+            Assert.AreEqual(1, pageItems.Count); // also testing being on last page
+            Assert.AreEqual(201, page11.TotalRecords);
+        }
+
+
+        [Test]
+        public void Paged_WhereSpecification_WithParams()
+        {
+            var films = new Films(ProviderName);
+            var page11 = films.PagedWithParams(currentPage: 11, where: "description LIKE @description", inParams: new { description = "%the%" });
             var pageItems = page11.Items.ToList();
             Assert.AreEqual(1, pageItems.Count); // also testing being on last page
             Assert.AreEqual(201, page11.TotalRecords);

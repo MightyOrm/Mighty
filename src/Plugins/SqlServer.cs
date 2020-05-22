@@ -1,5 +1,6 @@
 using System;
 using System.Data.Common;
+using System.Reflection;
 
 namespace Mighty.Plugins
 {
@@ -35,6 +36,37 @@ namespace Mighty.Plugins
 
         #region Keys and sequences
         override public string IdentityRetrievalFunction { get; protected set; } = "SCOPE_IDENTITY()";
+        #endregion
+
+        #region DbCommand
+        private static PropertyInfo InnerConnectionProperty;
+        private static PropertyInfo CurrentTransactionProperty;
+        private static PropertyInfo ParentTransactionProperty;
+
+        /// <summary>
+        /// Enlist the command to the transaction on the current connection, if any
+        /// </summary>
+        /// <param name="mighty"></param>
+        /// <param name="command"></param>
+        /// <param name="connection"></param>
+        override public void SetProviderSpecificCommandProperties<T>(MightyOrm<T> mighty, DbCommand command, DbConnection connection = null)
+        {
+            if (connection == null ||
+                command.Transaction != null ||
+                !mighty.SqlServerAutoEnlistCommandsToTransactions) return;
+            if (InnerConnectionProperty == null)
+                InnerConnectionProperty = connection.GetType().GetProperty("InnerConnection", BindingFlags.NonPublic | BindingFlags.Instance);
+            var innerConnection = InnerConnectionProperty.GetValue(connection, null);
+            if (CurrentTransactionProperty == null)
+                CurrentTransactionProperty = innerConnection.GetType().GetProperty("CurrentTransaction", BindingFlags.NonPublic | BindingFlags.Instance);
+            var currentTransaction = CurrentTransactionProperty.GetValue(innerConnection, null);
+            if (currentTransaction == null) return;
+            if (ParentTransactionProperty == null)
+                ParentTransactionProperty = currentTransaction.GetType().GetProperty("Parent", BindingFlags.NonPublic | BindingFlags.Instance);
+            DbTransaction transaction = (DbTransaction)ParentTransactionProperty.GetValue(currentTransaction, null);
+            if (transaction != null)
+                command.Transaction = transaction;
+        }
         #endregion
 
         #region Prefix/deprefix parameters

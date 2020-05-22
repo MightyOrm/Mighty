@@ -76,9 +76,10 @@ namespace Mighty.Generic.Tests.PostgreSql
             var customers = new Customers();
             // no order by, and paged queries logically must have an order by; this will order on PK
             var page2 = customers.Paged(currentPage: 2, pageSize: 10);
-            var pageItems = page2.Items.ToList();
-            Assert.AreEqual(10, pageItems.Count);
+            Assert.AreEqual(10, page2.Items.Count);
             Assert.AreEqual(91, page2.TotalRecords);
+            Assert.AreEqual(2, page2.CurrentPage);
+            Assert.AreEqual(10, page2.PageSize);
         }
 
 
@@ -87,6 +88,17 @@ namespace Mighty.Generic.Tests.PostgreSql
         {
             var customers = new Customers();
             var page3 = customers.Paged(currentPage: 3, where: "companyname LIKE :0", args: "%a%");
+            var pageItems = page3.Items.ToList();
+            Assert.AreEqual(20, pageItems.Count);
+            Assert.AreEqual(72, page3.TotalRecords);
+        }
+
+
+        [Test]
+        public void Paged_WhereSpecification_WithParams()
+        {
+            var customers = new Customers();
+            var page3 = customers.PagedWithParams(currentPage: 3, where: "companyname LIKE :companyname", inParams: new { companyname = "%a%" });
             var pageItems = page3.Items.ToList();
             Assert.AreEqual(20, pageItems.Count);
             Assert.AreEqual(72, page3.TotalRecords);

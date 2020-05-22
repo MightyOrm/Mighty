@@ -393,8 +393,10 @@ namespace Mighty.Plugins
         /// <summary>
         /// Set any provider specific properties which are required to make this database perform as expected by Mighty.
         /// </summary>
+        /// <param name="mighty">Parent Mighty instance</param>
         /// <param name="command">The command to execute</param>
-        virtual public void SetProviderSpecificCommandProperties(DbCommand command) { }
+        /// <param name="connection">Optional connection to use</param>
+        virtual public void SetProviderSpecificCommandProperties<T>(MightyOrm<T> mighty, DbCommand command, DbConnection connection = null) where T : class, new() { }
         #endregion
 
         #region Prefix/deprefix parameters

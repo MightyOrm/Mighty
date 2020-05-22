@@ -97,7 +97,7 @@ namespace Mighty.Plugins
 #endregion
 
 #region DbCommand
-        override public void SetProviderSpecificCommandProperties(DbCommand command)
+        override public void SetProviderSpecificCommandProperties<T>(MightyOrm<T> mighty, DbCommand command, DbConnection connection = null)
         {
             // these setting values and their comments are taken directly from Massive - see CREDITS file;
             // the approach to setting them via a dynamic is different from what used to be in Massive

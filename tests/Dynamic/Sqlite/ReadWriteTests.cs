@@ -104,10 +104,11 @@ namespace Mighty.Dynamic.Tests.Sqlite
             var albums = new Album();
             // no order by, and paged queries logically must have an order by; this will order on PK
             var page3 = albums.Paged(currentPage: 3, pageSize: 13);
-            var pageItems = ((IEnumerable<dynamic>)page3.Items).ToList();
-            Assert.AreEqual(13, pageItems.Count);
-            Assert.AreEqual(27, pageItems[0].AlbumId);
+            Assert.AreEqual(13, page3.Items.Count);
+            Assert.AreEqual(27, page3.Items[0].AlbumId);
             Assert.AreEqual(347, page3.TotalRecords);
+            Assert.AreEqual(3, page3.CurrentPage);
+            Assert.AreEqual(13, page3.PageSize);
         }
 
 
@@ -116,6 +117,18 @@ namespace Mighty.Dynamic.Tests.Sqlite
         {
             var albums = new Album();
             var page2 = albums.Paged(currentPage: 2, where: "Title LIKE @0", args: "%the%");
+            var pageItems = ((IEnumerable<dynamic>)page2.Items).ToList();
+            Assert.AreEqual(20, pageItems.Count);
+            Assert.AreEqual(105, pageItems[0].AlbumId);
+            Assert.AreEqual(80, page2.TotalRecords);
+        }
+
+
+        [Test]
+        public void Paged_WhereSpecification_WithParams()
+        {
+            var albums = new Album();
+            var page2 = albums.PagedWithParams(currentPage: 2, where: "Title LIKE @Title", inParams: new { Title = "%the%" });
             var pageItems = ((IEnumerable<dynamic>)page2.Items).ToList();
             Assert.AreEqual(20, pageItems.Count);
             Assert.AreEqual(105, pageItems[0].AlbumId);

@@ -9,7 +9,9 @@ using System.Text;
 using System.Transactions;
 #endif
 
+#if NETFRAMEWORK
 using Mighty.ConnectionProviders;
+#endif
 using Mighty.DataContracts;
 using Mighty.Interfaces;
 using Mighty.Parameters;
@@ -135,9 +137,10 @@ namespace Mighty
         /// <param name="items">The item or items</param>
         /// <returns>The list of modified items</returns>
         /// <remarks>Here and in <see cref="UpsertItemPK"/> we always return the modified original object where possible</remarks>
-        internal IEnumerable<T> ActionOnItems(OrmAction action, DbConnection connection, IEnumerable<object> items)
+        internal List<T> ActionOnItems(OrmAction action, DbConnection connection, IEnumerable<object> items)
         {
-            return ActionOnItemsWithOutput(action, connection, items).Item2;
+            ActionOnItemsWithOutput(out int affectedCount, out List<T> modifiedItems, action, connection, items);
+            return modifiedItems;
         }
 
         /// <summary>
@@ -145,27 +148,28 @@ namespace Mighty
         /// An <see cref="IEnumerable{T}"/> of *modified* items is returned; the modification is to update the primary key to the correct new value for inserted items.
         /// If the input item does not support field writes/inserts as needed then an <see cref="ExpandoObject"/> corresponding to the updated item is returned instead.
         /// </summary>
+        /// <param name="affectedCount">Returns number of items affected</param>
+        /// <param name="modifiedItems">Returns modified items</param>
         /// <param name="action">The ORM action</param>
         /// <param name="connection">The connection to use</param>
         /// <param name="items">The item or items</param>
         /// <returns>The list of modified items</returns>
         /// <remarks>Here and in <see cref="UpsertItemPK"/> we always return the modified original object where possible</remarks>
-        internal Tuple<int, IEnumerable<T>> ActionOnItemsWithOutput(OrmAction action, DbConnection connection, IEnumerable<object> items)
+        internal void ActionOnItemsWithOutput(out int affectedCount, out List<T> modifiedItems, OrmAction action, DbConnection connection, IEnumerable<object> items)
         {
-            List<T> modifiedItems = null;
+            modifiedItems = null;
             if (action == OrmAction.Insert)
             {
                 modifiedItems = new List<T>();
             }
-            int count = 0;
-            int affected = 0;
+            affectedCount = 0;
             ValidateAction(items, action);
             foreach (var item in items)
             {
                 if (Validator.ShouldPerformAction(item, action))
                 {
                     object result;
-                    affected += ActionOnItem(out result, action, item, connection);
+                    affectedCount += ActionOnItem(out result, action, item, connection);
                     if (action == OrmAction.Insert)
                     {
                         var modified = result ?? item;
@@ -177,9 +181,7 @@ namespace Mighty
                     }
                     Validator.HasPerformedAction(item, action);
                 }
-                count++;
             }
-            return new Tuple<int, IEnumerable<T>>(affected, modifiedItems);
         }
 
 #if KEY_VALUES
@@ -259,40 +261,59 @@ namespace Mighty
         }
 
         /// <summary>
-        /// Return paged results from arbitrary select statement.
+        /// Return paged results from arbitrary select statement with support for named parameters.
         /// </summary>
-        /// <param name="columns">Column spec</param>
+        /// <param name="columns">Column spec (here, you can pass "[column-list]" or "SELECT [column-list]")</param>
         /// <param name="tableNameOrJoinSpec">A table name, or a complete join specification (i.e. anything you can SELECT FROM in SQL)</param>
         /// <param name="orderBy">ORDER BY clause</param>
         /// <param name="where">WHERE clause</param>
         /// <param name="pageSize">Page size</param>
         /// <param name="currentPage">Current page</param>
+        /// <param name="inParams">Named input parameters</param>
+        /// <param name="outParams">Named output parameters</param>
+        /// <param name="ioParams">Named input-output parameters</param>
+        /// <param name="returnParams">Named return parameters</param>
         /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered input parameters</param>
         /// <returns>The result of the paged query. Result properties are Items, TotalPages, and TotalRecords.</returns>
-        /// <remarks>
-        /// In this one instance, because of the connection to the underlying logic of these queries, the user
-        /// can pass "SELECT columns" instead of columns.
-        /// TO DO: Possibly cancel the above, it makes no sense from a UI pov!
-        /// </remarks>
-        override public PagedResults<T> PagedFromSelect(
+        override public PagedResults<T> PagedFromSelectWithParams(
             string tableNameOrJoinSpec,
             string orderBy,
             string columns = null,
             string where = null,
             int pageSize = 20, int currentPage = 1,
+            object inParams = null,
+            object outParams = null,
+            object ioParams = null,
+            object returnParams = null,
             DbConnection connection = null,
             params object[] args)
         {
             int limit = pageSize;
             int offset = (currentPage - 1) * pageSize;
-            columns = DataContract.Map(AutoMap.Columns, columns) ?? DefaultColumns;
-            orderBy = DataContract.Map(AutoMap.OrderBy, orderBy);
+            columns = columns == null ? DefaultColumns : DataContract.Map(AutoMap.Columns, columns.Unthingify("SELECT"));
+            orderBy = orderBy == null ? null : DataContract.Map(AutoMap.OrderBy, orderBy.Unthingify("ORDER BY"));
             var pagingQueryPair = Plugin.BuildPagingQueryPair(columns, tableNameOrJoinSpec, orderBy, where, limit, offset);
             var result = new PagedResults<T>();
-            result.TotalRecords = Convert.ToInt32(Scalar(pagingQueryPair.CountQuery, args: args));
+            result.TotalRecords = Convert.ToInt32(ScalarWithParams(
+                pagingQueryPair.CountQuery,
+                inParams,
+                outParams,
+                ioParams,
+                returnParams,
+                connection,
+                args));
             result.TotalPages = (result.TotalRecords + pageSize - 1) / pageSize;
-            result.Items = Query(pagingQueryPair.PagingQuery, args: args);
+            result.Items = QueryWithParams(
+                pagingQueryPair.PagingQuery,
+                inParams,
+                outParams,
+                ioParams,
+                returnParams,
+                connection,
+                args).ToList();
+            result.CurrentPage = currentPage;
+            result.PageSize = pageSize;
             return result;
         }
 
@@ -327,13 +348,17 @@ namespace Mighty
         /// <summary>
         /// Yield return values for single or multiple resultsets.
         /// </summary>
-        /// <typeparam name="X">Use with <typeparamref name="T"/> for single or <see cref="IEnumerable{T}"/> for multiple</typeparam>
+        /// <typeparam name="X">Use with <typeparamref name="T"/> for single or <see cref="EnumerableResultSet{T}"/> for multiple</typeparam>
         /// <param name="command">The command to execute</param>
         /// <param name="behavior">The command behaviour</param>
-        /// <param name="connection">Optional conneciton to use</param>
+        /// <param name="connection">Optional connection to use</param>
         /// <param name="outerReader">The outer reader when this is a call to the inner reader in QueryMultiple</param>
         /// <returns></returns>
-        override protected IEnumerable<X> QueryNWithParams<X>(DbCommand command, CommandBehavior behavior = CommandBehavior.Default, DbConnection connection = null, DbDataReader outerReader = null)
+        override protected internal IEnumerable<X> QueryNWithParams<X>(
+            DbCommand command,
+            CommandBehavior behavior = CommandBehavior.Default,
+            DbConnection connection = null,
+            DbDataReader outerReader = null)
         {
             using (command)
             {
@@ -360,14 +385,14 @@ namespace Mighty
                     {
                         using (var reader = (outerReader == null ? Plugin.ExecuteDereferencingReader(command, behavior, connection ?? localConn) : null))
                         {
-                            if (typeof(X) == typeof(IEnumerable<T>))
+                            if (typeof(X) == typeof(EnumerableResultSet<T>))
                             {
                                 // query multiple pattern
                                 do
                                 {
                                     // cast is required because compiler doesn't see that we've just checked that X is IEnumerable<T>
                                     // first three params carefully chosen so as to avoid lots of checks about outerReader in the code above in this method
-                                    yield return (X)QueryNWithParams<T>(null, (CommandBehavior)(-1), connection ?? localConn, reader);
+                                    yield return (X)((IEnumerable<T>)new EnumerableResultSet<T>(this, connection ?? localConn, reader));
                                 }
                                 while (reader.NextResult());
                             }
@@ -401,6 +426,7 @@ namespace Mighty
                                         var columnName = useReader.GetName(i);
                                         if (string.IsNullOrEmpty(columnName))
                                         {
+                                            // TO DO: This should just cleanly be ignored, here and in the async code
                                             throw new InvalidOperationException("Cannot autopopulate from anonymous column");
                                         }
                                         if (!IsGeneric)
@@ -408,12 +434,12 @@ namespace Mighty
                                             // For dynamics, create fields using the case that comes back from the database
                                             // TO DO: Test how this is working now in Oracle
                                             // leaves as null if no match
-                                            DataContract.TryGetDataMemberName(columnName, out columnNames[i], DataDirection.Read);
+                                            DataContract.TryGetDataMemberName(columnName, out columnNames[i], DataDirection.ReadFromDatabase);
                                         }
                                         else
                                         {
                                             // leaves as null if no match
-                                            DataContract.TryGetDataMemberInfo(columnName, out memberInfo[i], DataDirection.Read);
+                                            DataContract.TryGetDataMemberInfo(columnName, out memberInfo[i], DataDirection.ReadFromDatabase);
                                         }
                                     }
                                     while (useReader.Read())
@@ -475,7 +501,7 @@ namespace Mighty
         private int ActionOnItem(out object modified, OrmAction originalAction, object item, DbConnection connection)
         {
             OrmAction revisedAction;
-            DbCommand command = CreateActionCommand(originalAction, item, out revisedAction);
+            DbCommand command = CreateActionCommand(originalAction, item, out revisedAction, connection);
             command.Connection = connection;
             if (revisedAction == OrmAction.Insert && PrimaryKeyInfo.SequenceNameOrIdentityFunction != null)
             {

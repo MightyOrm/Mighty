@@ -267,9 +267,10 @@ namespace Mighty
 
             // Use the user global default for the specific generic type, followed by the user global default for untyped Mighty,
             // followed by the default default.
-            // Note that these are not passed in to the constructor, but unlike the above four these two do have public setters.
+            // Note that these are not passed in to the constructor, but unlike the above four these three do have public setters.
             NpgsqlAutoDereferenceCursors = GlobalNpgsqlAutoDereferenceCursors ?? MightyOrm.GlobalNpgsqlAutoDereferenceCursors ?? true;
             NpgsqlAutoDereferenceFetchSize = GlobalNpgsqlAutoDereferenceFetchSize ?? MightyOrm.GlobalNpgsqlAutoDereferenceFetchSize ?? 10000;
+            SqlServerAutoEnlistCommandsToTransactions = GlobalSqlServerAutoEnlistCommandsToTransactions ?? MightyOrm.GlobalSqlServerAutoEnlistCommandsToTransactions ?? true;
 
             SetupConnection(intialConnectionString, connectionProvider);
 
@@ -586,12 +587,13 @@ namespace Mighty
         /// Create command, setting any provider specific features which we assume elsewhere.
         /// </summary>
         /// <param name="sql">The command SQL</param>
+        /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
-        internal DbCommand CreateCommand(string sql)
+        internal DbCommand CreateCommand(string sql, DbConnection connection = null)
         {
             var command = Factory.CreateCommand();
             command = DataProfiler.CommandWrapping(command);
-            Plugin.SetProviderSpecificCommandProperties(command);
+            Plugin.SetProviderSpecificCommandProperties(this, command, connection);
             command.CommandText = sql;
             return command;
         }
@@ -635,7 +637,7 @@ namespace Mighty
             params object[] args)
         {
             bool hasRowCountParams = false;
-            var command = CreateCommand(sql);
+            var command = CreateCommand(sql, connection);
             command.Connection = connection;
             if (isProcedure) command.CommandType = CommandType.StoredProcedure;
             AddParams(command, args);
@@ -697,11 +699,12 @@ namespace Mighty
         /// <param name="item">The item which contains the update values</param>
         /// <param name="updateNameValuePairs">The columns to update (with values as SQL params)</param>
         /// <param name="whereNameValuePairs">The columns which specify what to update (with values as SQL params)</param>
+        /// <param name="connection">Optional connection to use (may be null)</param>
         /// <returns></returns>
-        private DbCommand CreateUpdateCommand(object item, List<string> updateNameValuePairs, List<string> whereNameValuePairs)
+        private DbCommand CreateUpdateCommand(object item, List<string> updateNameValuePairs, List<string> whereNameValuePairs, DbConnection connection)
         {
             string sql = Plugin.BuildUpdate(TableName, string.Join(", ", updateNameValuePairs), string.Join(" AND ", whereNameValuePairs));
-            return CreateCommandWithParams(sql, inParams: item);
+            return CreateCommandWithParams(sql, inParams: item, connection: connection);
         }
 
         /// <summary>
@@ -711,8 +714,9 @@ namespace Mighty
         /// <param name="insertNames">The names of the columns to update</param>
         /// <param name="insertValues">The values (as SQL parameters) of the columns to update</param>
         /// <param name="pkFilter">The PK filter setting</param>
+        /// <param name="connection">Optional connection to use (may be null)</param>
         /// <returns></returns>
-        private DbCommand CreateInsertCommand(object item, List<string> insertNames, List<string> insertValues, PkFilter pkFilter)
+        private DbCommand CreateInsertCommand(object item, List<string> insertNames, List<string> insertValues, PkFilter pkFilter, DbConnection connection)
         {
             string sql = Plugin.BuildInsert(TableName, string.Join(", ", insertNames), string.Join(", ", insertValues));
             if (PrimaryKeyInfo.SequenceNameOrIdentityFunction != null)
@@ -721,7 +725,7 @@ namespace Mighty
                        (Plugin.IsSequenceBased ? Plugin.BuildCurrvalSelect(PrimaryKeyInfo.SequenceNameOrIdentityFunction) : string.Format("SELECT {0}", PrimaryKeyInfo.SequenceNameOrIdentityFunction)) +
                        ";";
             }
-            var command = CreateCommand(sql);
+            var command = CreateCommand(sql, connection);
             AddNamedParams(command, item, pkFilter: pkFilter);
             if (PrimaryKeyInfo.SequenceNameOrIdentityFunction != null)
             {
@@ -735,11 +739,12 @@ namespace Mighty
         /// </summary>
         /// <param name="item">The item containg the param values</param>
         /// <param name="whereNameValuePairs">The column names (and values as SQL params) specifying what to delete</param>
+        /// <param name="connection">Optional connection to use (may be null)</param>
         /// <returns></returns>
-        private DbCommand CreateDeleteCommand(object item, List<string> whereNameValuePairs)
+        private DbCommand CreateDeleteCommand(object item, List<string> whereNameValuePairs, DbConnection connection)
         {
             string sql = Plugin.BuildDelete(TableName, string.Join(" AND ", whereNameValuePairs));
-            var command = CreateCommand(sql);
+            var command = CreateCommand(sql, connection);
             AddNamedParams(command, item, pkFilter: PkFilter.KeysOnly);
             return command;
         }
@@ -750,8 +755,9 @@ namespace Mighty
         /// <param name="originalAction">The action</param>
         /// <param name="item">The item</param>
         /// <param name="revisedAction">The original action unless that was <see cref="OrmAction.Save"/>, in which case this will become <see cref="OrmAction.Insert"/> or <see cref="OrmAction.Update"/></param>
+        /// <param name="connection">Optional connection to use (may be null)</param>
         /// <returns></returns>
-        private DbCommand CreateActionCommand(OrmAction originalAction, object item, out OrmAction revisedAction)
+        private DbCommand CreateActionCommand(OrmAction originalAction, object item, out OrmAction revisedAction, DbConnection connection)
         {
             DbCommand command;
 
@@ -881,7 +887,7 @@ namespace Mighty
             switch (revisedAction)
             {
                 case OrmAction.Update:
-                    command = CreateUpdateCommand(argsItem, updateNameValuePairs, whereNameValuePairs);
+                    command = CreateUpdateCommand(argsItem, updateNameValuePairs, whereNameValuePairs, connection);
                     break;
 
                 case OrmAction.Insert:
@@ -894,11 +900,11 @@ namespace Mighty
                     }
                     // TO DO: Hang on, we've got a different check here from SequenceNameOrIdentityFunction != null;
                     // either one or other is right, or else some exceptions should be thrown if they come apart.
-                    command = CreateInsertCommand(argsItem, insertNames, insertValues, nDefaultKeyValues > 0 ? PkFilter.NoKeys : PkFilter.DoNotFilter);
+                    command = CreateInsertCommand(argsItem, insertNames, insertValues, nDefaultKeyValues > 0 ? PkFilter.NoKeys : PkFilter.DoNotFilter, connection);
                     break;
 
                 case OrmAction.Delete:
-                    command = CreateDeleteCommand(argsItem, whereNameValuePairs);
+                    command = CreateDeleteCommand(argsItem, whereNameValuePairs, connection);
                     break;
 
                 default:

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Mighty.Generic.Tests.MySql.TableClasses;
 using NUnit.Framework;
 
-namespace Mighty.Other
+namespace Mighty.Globals
 {
     [TestFixture]
     public class Globals

@@ -79,10 +79,11 @@ namespace Mighty.Generic.Tests.Sqlite
             var albums = new Albums();
             // no order by, and paged queries logically must have an order by; this will order on PK
             var page3 = await albums.PagedAsync(currentPage: 3, pageSize: 13);
-            var pageItems = page3.Items.ToList();
-            Assert.AreEqual(13, pageItems.Count);
-            Assert.AreEqual(27, pageItems[0].AlbumId);
+            Assert.AreEqual(13, page3.Items.Count);
+            Assert.AreEqual(27, page3.Items[0].AlbumId);
             Assert.AreEqual(347, page3.TotalRecords);
+            Assert.AreEqual(3, page3.CurrentPage);
+            Assert.AreEqual(13, page3.PageSize);
         }
 
 
@@ -91,6 +92,18 @@ namespace Mighty.Generic.Tests.Sqlite
         {
             var albums = new Albums();
             var page2 = await albums.PagedAsync(currentPage: 2, where: "Title LIKE @0", args: "%the%");
+            var pageItems = page2.Items.ToList();
+            Assert.AreEqual(20, pageItems.Count);
+            Assert.AreEqual(105, pageItems[0].AlbumId);
+            Assert.AreEqual(80, page2.TotalRecords);
+        }
+
+
+        [Test]
+        public async Task Paged_WhereSpecification_WithParams()
+        {
+            var albums = new Albums();
+            var page2 = await albums.PagedWithParamsAsync(currentPage: 2, where: "Title LIKE @Title", inParams: new { Title = "%the%" });
             var pageItems = page2.Items.ToList();
             Assert.AreEqual(20, pageItems.Count);
             Assert.AreEqual(105, pageItems[0].AlbumId);

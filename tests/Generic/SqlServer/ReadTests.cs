@@ -385,9 +385,10 @@ namespace Mighty.Generic.Tests.SqlServer
             var soh = new SalesOrderHeaders();
             // no order by, and paged queries logically must have an order by; this will order on PK
             var page2 = soh.Paged(currentPage: 2, pageSize: 30);
-            var pageItems = page2.Items.ToList();
-            Assert.AreEqual(30, pageItems.Count);
+            Assert.AreEqual(30, page2.Items.Count);
             Assert.AreEqual(31465, page2.TotalRecords);
+            Assert.AreEqual(2, page2.CurrentPage);
+            Assert.AreEqual(30, page2.PageSize);
         }
 
 
@@ -396,6 +397,17 @@ namespace Mighty.Generic.Tests.SqlServer
         {
             var soh = new SalesOrderHeaders();
             var page3 = soh.Paged(currentPage: 3, where: "SalesOrderNumber LIKE @0", args: "SO4%");
+            var pageItems = page3.Items.ToList();
+            Assert.AreEqual(20, pageItems.Count);
+            Assert.AreEqual(6341, page3.TotalRecords);
+        }
+
+
+        [Test]
+        public void Paged_WhereSpecification_WithParams()
+        {
+            var soh = new SalesOrderHeaders();
+            var page3 = soh.PagedWithParams(currentPage: 3, where: "SalesOrderNumber LIKE @son", inParams: new { son = "SO4%" });
             var pageItems = page3.Items.ToList();
             Assert.AreEqual(20, pageItems.Count);
             Assert.AreEqual(6341, page3.TotalRecords);

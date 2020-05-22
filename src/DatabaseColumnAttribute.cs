@@ -40,7 +40,11 @@ namespace Mighty
         /// to disable that apply [<see cref="DatabaseTableAttribute"/>(autoMap: <see cref="AutoMap.Off"/>)] to the class.
         /// </param>
         /// <param name="direction">Experimental: The database column direction</param>
-        /// <param name="sqlTransform">Experimental: In auto-generated SQL the column will selected as "{<paramref name="sqlTransform"/>} AS {<paramref name="name"/>}"</param>
+        /// <param name="sqlTransform">In Mighty-generated SQL the column will selected as "{<paramref name="sqlTransform"/>} AS {<paramref name="name"/>}" (can only work when Mighty is generating the SQL to fetch the column from a table or view; cannot transform a column returned from a stored procedure)</param>
+        /// <remarks>
+        /// TO DO: Given the above, do we want to do <paramref name="sqlTransform"/> this way? (Or at all?)
+        /// Probably still yes, noting that we can *rename* with name anyway.
+        /// </remarks>
         public DatabaseColumnAttribute(string name = null, DataDirection direction = default, string sqlTransform = null)
         {
             this.Name = name;

@@ -269,7 +269,7 @@ namespace Mighty.Generic.Tests.MySql
             using (CancellationTokenSource cts = new CancellationTokenSource())
             {
                 var films = new Films(ProviderName);
-                var allRows = await films.QueryAsync("SELECT * FROM sakila.film", cts.Token);
+                var allRows = await films.QueryAsync(cts.Token, "SELECT * FROM sakila.film");
                 int count = 0;
                 Assert.ThrowsAsync<TaskCanceledException>(async () =>
                 {
@@ -302,9 +302,10 @@ namespace Mighty.Generic.Tests.MySql
             var films = new Films(ProviderName);
             // no order by, and paged queries logically must have an order by; this will order on PK
             var page2 = await films.PagedAsync(currentPage: 2, pageSize: 30);
-            var pageItems = page2.Items.ToList();
-            Assert.AreEqual(30, pageItems.Count);
+            Assert.AreEqual(30, page2.Items.Count);
             Assert.AreEqual(1000, page2.TotalRecords);
+            Assert.AreEqual(2, page2.CurrentPage);
+            Assert.AreEqual(30, page2.PageSize);
         }
 
         [Test]
@@ -313,6 +314,18 @@ namespace Mighty.Generic.Tests.MySql
             var films = new Films(ProviderName);
             // no order by, and paged queries logically must have an order by; this will order on PK
             var page11 = await films.PagedAsync(currentPage: 11, where: "description LIKE @0", args: "%the%");
+            var pageItems = page11.Items.ToList();
+            Assert.AreEqual(1, pageItems.Count); // also testing being on last page
+            Assert.AreEqual(201, page11.TotalRecords);
+        }
+
+
+        [Test]
+        public async Task Paged_WhereSpecification_WithParams()
+        {
+            var films = new Films(ProviderName);
+            // no order by, and paged queries logically must have an order by; this will order on PK
+            var page11 = await films.PagedWithParamsAsync(currentPage: 11, where: "description LIKE @description", inParams: new { description = "%the%" });
             var pageItems = page11.Items.ToList();
             Assert.AreEqual(1, pageItems.Count); // also testing being on last page
             Assert.AreEqual(201, page11.TotalRecords);

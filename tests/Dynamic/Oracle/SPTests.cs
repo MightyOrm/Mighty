@@ -151,21 +151,24 @@ namespace Mighty.Dynamic.Tests.Oracle
         public void QueryMultipleFromTwoOutputCursors()
         {
             var db = new SPTestsDatabase(ProviderName);
-            // Oracle procedure two cursor output variables
-            var twoSets = db.QueryMultipleFromProcedure("tworesults", outParams: new { prc1 = new Cursor(), prc2 = new Cursor() });
-            int sets = 0;
             int[] counts = new int[2];
-            foreach(var set in twoSets)
+            // Oracle procedure two cursor output variables
+            using (var twoSets = db.QueryMultipleFromProcedure("tworesults", outParams: new { prc1 = new Cursor(), prc2 = new Cursor() }))
             {
-                foreach(var item in set)
+                Assert.IsTrue(twoSets.NextResultSet());
+                foreach (var item in twoSets.CurrentResultSet)
                 {
-                    counts[sets]++;
-                    if(sets == 0) Assert.AreEqual(typeof(string), item.ENAME.GetType());
-                    else Assert.AreEqual(typeof(string), item.DNAME.GetType());
+                    counts[0]++;
+                    Assert.AreEqual(typeof(string), item.ENAME.GetType());
                 }
-                sets++;
+                Assert.IsTrue(twoSets.NextResultSet());
+                foreach (var item in twoSets.CurrentResultSet)
+                {
+                    counts[1]++;
+                    Assert.AreEqual(typeof(string), item.DNAME.GetType());
+                }
+                Assert.IsFalse(twoSets.NextResultSet());
             }
-            Assert.AreEqual(2, sets);
             Assert.AreEqual(14, counts[0]);
             Assert.AreEqual(60, counts[1]);
         }

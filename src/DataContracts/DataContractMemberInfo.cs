@@ -75,7 +75,7 @@ namespace Mighty.DataContracts
         /// <param name="value">The value to write</param>
         public void SetValue(object obj, object value)
         {
-            if (DataDirection != 0 && (DataDirection & DataDirection.Write) == 0)
+            if (DataDirection != 0 && (DataDirection & DataDirection.ReadFromDatabase) == 0)
             {
                 throw new InvalidOperationException(
                     $"Cannot write to {this}, write disabled by {nameof(DatabaseColumnAttribute)} {nameof(DataDirection)} setting.");
@@ -127,7 +127,13 @@ namespace Mighty.DataContracts
                 }
                 catch (FormatException)
                 {
-                    throw new FormatException($"Cannot convert {value.GetType().Name} value for {DeclaringType.Name}.{Name} to {t.Name}");
+                    var type = value.GetType();
+                    string displayValue = value.ToString();
+                    if (type == typeof(string))
+                    {
+                        displayValue = $"\"{displayValue}\"";
+                    }
+                    throw new FormatException($"Cannot convert non-null {value.GetType().Name} value {displayValue} from database to {t.Name} for {DeclaringType.Name}.{Name}");
                 }
 
 #if !NETSTANDARD1_6
@@ -149,7 +155,7 @@ namespace Mighty.DataContracts
         /// <returns></returns>
         public object GetValue(object obj)
         {
-            if (DataDirection != 0 && (DataDirection & DataDirection.Read) == 0)
+            if (DataDirection != 0 && (DataDirection & DataDirection.WriteToDatabase) == 0)
             {
                 throw new InvalidOperationException(
                     $"Cannot read from {this}, read disabled by {nameof(DatabaseColumnAttribute)} {nameof(DataDirection)} setting.");

@@ -9,9 +9,6 @@ using Mighty.Mapping;
 using Mighty.Profiling;
 using Mighty.Validation;
 
-// <summary>
-// TO DO: Not sure about putting this in a separate namespace, but maybe best to hide the mockable version?
-// </summary>
 namespace Mighty.Interfaces
 {
     // NEW new:
@@ -35,14 +32,23 @@ namespace Mighty.Interfaces
     // Uses abstract class, not interface, because the semantics of interface mean it can never have anything added to it!
     // (See ... MS document about DB classes; SO post about intefaces)
     //
-    // Notes:
+    // Rules for argument positions:
     //    - Any params type argument is always last (it has to be)
-    //    - DbConnection is always last (or last before a params argument, if any), except in the Single-with-columns overload, where it needs to be where
-    //      it is to play the very useful dual role of also disambiguating calls to this overload from calls to the simpler overload without columns.
-    //    - All database parameters (i.e. everything sent to the DB via args, inParams or ioParams) are always passed in as true database
-    //      parameters under all circumstances - they are never interpolated into SQL - so they can never be used for _direct_ SQL injection.
-    //      So assuming you aren't building any SQL to execute yourself within the DB, from the values passed in, then strings etc. which are
-    //      passed in will not need any escaping to be safe.
+    //    - In any method signature with no optional parameters before params args, then a new overload is created
+    //      with a non-optional DbConnection just before the params args
+    //         o *** Except in the Single-with-columns overload, where DbConnection being where it is plays the very
+    //               useful dual role of also disambiguating calls to this overload from calls to the simpler overload
+    //               without columns.
+    //    - In any method signature with some optional parameters, then DbConnection is just added as another optional
+    //      parameter, just before params args
+
+    //    - When adding CancellationToken, we just always make two variants, one without CancellationToken (i.e. same
+    //      signature as the Sync version), and one with CancellationToken as the compulsory first argument
+    //
+    // All database parameters (i.e. everything sent to the DB via args, inParams or ioParams) are always passed in as true database
+    // parameters under all circumstances - they are never interpolated into SQL - so they can never be used for _direct_ SQL injection.
+    // So assuming you aren't building any SQL to execute yourself within the DB, from the values passed in, then strings etc. which are
+    // passed in will not need any escaping to be safe.
     //
     // NB Mighty is dynamic-focussed, so even when you are using MightyOrm<T> instead of MightyOrm (which is like MightyOrm<dynamic>), the
     // T determines the output type, but not the input type (which can be of type T, but can also be any of the various arbitrary objects
@@ -72,6 +78,15 @@ namespace Mighty.Interfaces
         /// How many rows at a time should we fetch if auto-dereferencing cursors on the Npgsql ADO.NET driver? (Default value 10,000.) (See Mighty documentation.)
         /// </summary>
         abstract public int NpgsqlAutoDereferenceFetchSize { get; set; }
+        #endregion
+
+        #region Sql Server auto-join commands to any transaction
+        /// <summary>
+        /// Should we automatically enlist all commands to any transaction on any connection provided?
+        /// SQL Server does not do this automatically even though other ADO.NET providers do.
+        /// (Default value true.)
+        /// </summary>
+        abstract public bool SqlServerAutoEnlistCommandsToTransactions { get; set; }
         #endregion
 
         #region Properties

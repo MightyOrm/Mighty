@@ -120,46 +120,40 @@ namespace Mighty.Dynamic.Tests.SqlServer
             Assert.AreEqual(5, testResult.x);
         }
 
-        /// <remarks>
-        /// See comments on IsCursor() in Massive.SqlServer.cs
-        /// </remarks>
         [Test]
         public void DereferenceCursor()
         {
-            // There is probably no situation in which it would make sense to do this (a procedure returning a cursor should be for use by another
-            // procedure only - if at all); the remarks above and the example immediately below document why this is the wrong thing to do.
+            // Split the results into multiple result sets for a test
             var db = new SPTestsDatabase();
-            var SQL = "DECLARE @MyCursor CURSOR;\r\n" +
-                      "EXEC dbo.uspCurrencyCursor @CurrencyCursor = @MyCursor OUTPUT;\r\n" +
-                      "WHILE(@@FETCH_STATUS = 0)\r\n" +
-                      "BEGIN;\r\n" +
-                      "\tFETCH NEXT FROM @MyCursor;\r\n" +
-                      "END;\r\n" +
-                      "CLOSE @MyCursor;\r\n" +
-                      "DEALLOCATE @MyCursor;\r\n";
-            dynamic resultSets = db.QueryMultiple(SQL);
-            int count = 0;
-            foreach(var results in resultSets)
+            var SQL = @"DECLARE @MyCursor CURSOR;
+EXEC dbo.uspCurrencyCursor @CurrencyCursor = @MyCursor OUTPUT;
+WHILE(@@FETCH_STATUS = 0)
+BEGIN;
+    FETCH NEXT FROM @MyCursor;
+END;
+CLOSE @MyCursor;
+DEALLOCATE @MyCursor;";
+            int totalRows = 0;
+            int totalResultSets = 0;
+            using (var results = db.QueryMultiple(SQL))
             {
-                foreach(var item in results)
+                while (results.NextResultSet())
                 {
-                    count++;
-                    Assert.AreEqual(typeof(string), item.CurrencyCode.GetType());
-                    Assert.AreEqual(typeof(string), item.Name.GetType());
+                    totalResultSets++;
+                    int count = 0;
+                    foreach (var item in results.CurrentResultSet)
+                    {
+                        Assert.AreEqual(typeof(string), item.CurrencyCode.GetType());
+                        Assert.AreEqual(typeof(string), item.Name.GetType());
+                        count++;
+                        totalRows++;
+                    }
+                    // query really does return empty last resultset for some reason, it's not Mighty!
+                    Assert.AreEqual(totalResultSets <= 105 ? 1 : 0, count);
                 }
             }
-            Assert.AreEqual(105, count);
-
-            // An example of the correct way to do it
-            dynamic fastResults = db.QueryFromProcedure("uspCurrencySelect");
-            int fastCount = 0;
-            foreach(var item in fastResults)
-            {
-                fastCount++;
-                Assert.AreEqual(typeof(string), item.CurrencyCode.GetType());
-                Assert.AreEqual(typeof(string), item.Name.GetType());
-            }
-            Assert.AreEqual(105, fastCount);
+            Assert.AreEqual(105, totalRows);
+            Assert.AreEqual(106, totalResultSets);
         }
 
         [Test]

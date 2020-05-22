@@ -34,26 +34,26 @@ namespace Mighty.Dynamic.Tests.X
         {
 #if NETFRAMEWORK
 #if !NET40
-            Assert.AreEqual(537, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(551, DataContractStore.Instance.CacheHits);
 #else
-            Assert.AreEqual(258, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(265, DataContractStore.Instance.CacheHits);
 #endif
 #elif NETCOREAPP
 #if NETCOREAPP3_0 || NETCOREAPP3_1
 #if DISABLE_DEVART
-            Assert.AreEqual(362, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(372, DataContractStore.Instance.CacheHits);
 #else
             Assert.AreEqual(466, DataContractStore.Instance.CacheHits);
 #endif
 #elif NETCOREAPP2_0
 #if DISABLE_DEVART
-            Assert.AreEqual(331, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(341, DataContractStore.Instance.CacheHits);
 #else
             Assert.AreEqual(466, DataContractStore.Instance.CacheHits);
 #endif
 #else
 #if DISABLE_DEVART
-            Assert.AreEqual(297, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(305, DataContractStore.Instance.CacheHits);
 #else
             Assert.AreEqual(400, DataContractStore.Instance.CacheHits);
 #endif
@@ -123,26 +123,26 @@ namespace Mighty.Generic.Tests.X
         {
 #if NETFRAMEWORK
 #if !NET40
-            Assert.AreEqual(895, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(931, DataContractStore.Instance.CacheHits);
 #else
-            Assert.AreEqual(440, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(462, DataContractStore.Instance.CacheHits);
 #endif
 #elif NETCOREAPP
 #if NETCOREAPP3_0 || NETCOREAPP3_1
 #if DISABLE_DEVART
-            Assert.AreEqual(599, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(627, DataContractStore.Instance.CacheHits);
 #else
             Assert.AreEqual(778, DataContractStore.Instance.CacheHits);
 #endif
 #elif NETCOREAPP2_0
 #if DISABLE_DEVART
-            Assert.AreEqual(568, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(596, DataContractStore.Instance.CacheHits);
 #else
             Assert.AreEqual(778, DataContractStore.Instance.CacheHits);
 #endif
 #else
 #if DISABLE_DEVART
-            Assert.AreEqual(494, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(518, DataContractStore.Instance.CacheHits);
 #else
             Assert.AreEqual(674, DataContractStore.Instance.CacheHits);
 #endif
@@ -155,15 +155,15 @@ namespace Mighty.Generic.Tests.X
         {
 #if NETFRAMEWORK
 #if !NET40
-            Assert.AreEqual(20, DataContractStore.Instance.CacheMisses);
+            Assert.AreEqual(22, DataContractStore.Instance.CacheMisses);
 #else
-            Assert.AreEqual(19, DataContractStore.Instance.CacheMisses);
+            Assert.AreEqual(21, DataContractStore.Instance.CacheMisses);
 #endif
 #elif NETCOREAPP
-#if !(NETCOREAPP1_0 || NETCOREAPP1_1)
-            Assert.AreEqual(19, DataContractStore.Instance.CacheMisses);
+#if NETCOREAPP2_0 || NETCOREAPP3_0 || NETCOREAPP3_1
+            Assert.AreEqual(21, DataContractStore.Instance.CacheMisses);
 #else
-            Assert.AreEqual(16, DataContractStore.Instance.CacheMisses);
+            Assert.AreEqual(18, DataContractStore.Instance.CacheMisses);
 #endif
 #endif
         }
