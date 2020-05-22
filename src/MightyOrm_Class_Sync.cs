@@ -407,6 +407,7 @@ namespace Mighty
                                         var columnName = useReader.GetName(i);
                                         if (string.IsNullOrEmpty(columnName))
                                         {
+                                            // TO DO: This should just cleanly be ignored, here and in the async code
                                             throw new InvalidOperationException("Cannot autopopulate from anonymous column");
                                         }
                                         if (!IsGeneric)
