@@ -730,7 +730,7 @@ namespace Mighty.Interfaces
         /// <remarks>
         /// <see cref="DbConnection"/> arg coming early (not just before params) in this one case is really useful, because
         /// it avoids any ambiguity between the `columns` and `orderBy` strings and any params string args;
-        /// i.e. Single("WHERE Title=@0", "Star Wars") is definitely a param, not and order by.
+        /// i.e. Single("WHERE Title=@0", "Star Wars") is definitely a param, not an order by.
         /// TO DO: Test! Why isn't null, string, string still treated as params? Or maybe it is, but that's okay.
         /// </remarks>
         abstract public T Single(
