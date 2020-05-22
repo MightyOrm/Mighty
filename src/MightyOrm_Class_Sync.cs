@@ -294,7 +294,7 @@ namespace Mighty
             var result = new PagedResults<T>();
             result.TotalRecords = Convert.ToInt32(Scalar(pagingQueryPair.CountQuery, args: args));
             result.TotalPages = (result.TotalRecords + pageSize - 1) / pageSize;
-            result.Items = Query(pagingQueryPair.PagingQuery, args: args);
+            result.Items = Query(pagingQueryPair.PagingQuery, args: args).ToList();
             return result;
         }
 
