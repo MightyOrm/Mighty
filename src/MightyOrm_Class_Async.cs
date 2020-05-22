@@ -669,12 +669,12 @@ namespace Mighty
                                                 // For dynamics, create fields using the case that comes back from the database
                                                 // TO DO: Test how this is working now in Oracle
                                                 // leaves as null if no match
-                                                DataContract.TryGetDataMemberName(columnName, out columnNames[i], DataDirection.Read);
+                                                DataContract.TryGetDataMemberName(columnName, out columnNames[i], DataDirection.ReadFromDatabase);
                                             }
                                             else
                                             {
                                                 // leaves as null if no match
-                                                DataContract.TryGetDataMemberInfo(columnName, out memberInfo[i], DataDirection.Read);
+                                                DataContract.TryGetDataMemberInfo(columnName, out memberInfo[i], DataDirection.ReadFromDatabase);
                                             }
                                         }
                                         while (await useReader.ReadAsync(cancellationToken).ConfigureAwait(false))
