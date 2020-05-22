@@ -121,7 +121,7 @@ namespace Mighty
         /// <returns></returns>
         /// <remarks>
         /// Static, so can't be made part of any kind of interface, even though we want this on the generic and dynamic versions.
-        /// I think this requires new because of the conflict with the MightyOrm&lt;T&gt; version.
+        /// I think this requires new because of the conflict with the <see cref="MightyOrm{T}"/> version.
         /// TO DO: check.
         /// </remarks>
         new static public MightyOrm Open(string connectionString = null)
