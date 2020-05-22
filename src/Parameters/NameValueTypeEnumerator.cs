@@ -188,6 +188,9 @@ namespace Mighty.Parameters
                 yield break;
             }
 
+            // TO DO: Even though this is most similar to (and in a way 'replaces', for managed types) the next and last
+            // enumerator, maybe it should be moved to the top since it will probably be called very often.
+            //
             // Detect if the object type is T and only if it is do a loop over T's stored set of members instead, which
             // reflects columns and bindingFlags. So values obtained from any POCO type except T will always use public
             // members only, but values obtained from T will use whatever members are managed by Mighty - perfect!
@@ -195,6 +198,10 @@ namespace Mighty.Parameters
             {
                 foreach (DataContractMemberInfo member in _dataContract.ColumnNameToMemberInfo.Values)
                 {
+                    if (_direction == null ||
+                        (_direction != ParameterDirection.Input && _direction != ParameterDirection.Output) ||
+                        (_direction == ParameterDirection.Input && (member.DataDirection == 0 || (member.DataDirection & DataDirection.WriteToDatabase) != 0)) ||
+                        (_direction == ParameterDirection.Output && (member.DataDirection == 0 || (member.DataDirection & DataDirection.ReadFromDatabase) != 0)))
                     yield return new LazyNameValueTypeInfo(member.Name, () => member.GetValue(_o), member.MemberType);
                 }
                 yield break;
