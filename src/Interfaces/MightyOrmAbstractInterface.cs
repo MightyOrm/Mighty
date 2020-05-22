@@ -80,6 +80,15 @@ namespace Mighty.Interfaces
         abstract public int NpgsqlAutoDereferenceFetchSize { get; set; }
         #endregion
 
+        #region Sql Server auto-join commands to any transaction
+        /// <summary>
+        /// Should we automatically enlist all commands to any transaction on any connection provided?
+        /// SQL Server does not do this automatically even though other ADO.NET providers do.
+        /// (Default value true.)
+        /// </summary>
+        abstract public bool SqlServerAutoEnlistCommandsToTransactions { get; set; }
+        #endregion
+
         #region Properties
         /// <summary>
         /// Connection string

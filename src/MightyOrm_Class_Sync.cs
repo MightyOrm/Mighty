@@ -482,7 +482,7 @@ namespace Mighty
         private int ActionOnItem(out object modified, OrmAction originalAction, object item, DbConnection connection)
         {
             OrmAction revisedAction;
-            DbCommand command = CreateActionCommand(originalAction, item, out revisedAction);
+            DbCommand command = CreateActionCommand(originalAction, item, out revisedAction, connection);
             command.Connection = connection;
             if (revisedAction == OrmAction.Insert && PrimaryKeyInfo.SequenceNameOrIdentityFunction != null)
             {

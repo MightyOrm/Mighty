@@ -653,7 +653,7 @@ namespace Mighty
             DbConnection connection,
             params object[] args)
         {
-            using (var command = CreateCommandWithParams(sql, args: args))
+            using (var command = CreateCommandWithParams(sql, connection: connection, args: args))
             {
                 return await ExecuteAsync(command, connection).ConfigureAwait(false);
             }
@@ -673,7 +673,7 @@ namespace Mighty
             DbConnection connection,
             params object[] args)
         {
-            using (var command = CreateCommandWithParams(sql, args: args))
+            using (var command = CreateCommandWithParams(sql, connection: connection, args: args))
             {
                 return await ExecuteAsync(cancellationToken, command, connection).ConfigureAwait(false);
             }
@@ -727,6 +727,7 @@ namespace Mighty
         {
             var retval = CreateCommandWithParamsAndRowCountCheck(sql,
                 inParams, outParams, ioParams, returnParams,
+                connection: connection,
                 args: args);
             using (retval.Item1)
             {
@@ -789,6 +790,7 @@ namespace Mighty
             var retval = CreateCommandWithParamsAndRowCountCheck(spName,
                 inParams, outParams, ioParams, returnParams,
                 isProcedure: true,
+                connection: connection,
                 args: args);
             using (retval.Item1)
             {
@@ -896,6 +898,7 @@ namespace Mighty
         {
             using (var command = CreateCommandWithParams(sql,
                 inParams, outParams, ioParams, returnParams,
+                connection: connection,
                 args: args))
             {
                 return await ScalarAsync(command, connection).ConfigureAwait(false);
@@ -926,6 +929,7 @@ namespace Mighty
         {
             using (var command = CreateCommandWithParams(sql,
                 inParams, outParams, ioParams, returnParams,
+                connection: connection,
                 args: args))
             {
                 return await ScalarAsync(cancellationToken, command, connection).ConfigureAwait(false);
@@ -951,6 +955,7 @@ namespace Mighty
             using (var command = CreateCommandWithParams(spName,
                 inParams, outParams, ioParams, returnParams,
                 isProcedure: true,
+                connection: connection,
                 args: args))
             {
                 return await ScalarAsync(command, connection).ConfigureAwait(false);
@@ -982,6 +987,7 @@ namespace Mighty
             using (var command = CreateCommandWithParams(spName,
                 inParams, outParams, ioParams, returnParams,
                 isProcedure: true,
+                connection: connection,
                 args: args))
             {
                 return await ScalarAsync(cancellationToken, command, connection).ConfigureAwait(false);
@@ -1015,7 +1021,7 @@ namespace Mighty
             CancellationToken cancellationToken = default,
             params object[] args)
         {
-            var command = CreateCommandWithParams(sql, inParams, outParams, ioParams, returnParams, isProcedure, null, args);
+            var command = CreateCommandWithParams(sql, inParams, outParams, ioParams, returnParams, isProcedure, connection, args);
             return await QueryNWithParamsAsync<X>(command, cancellationToken, behavior, connection);
         }
         #endregion

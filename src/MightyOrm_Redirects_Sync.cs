@@ -319,7 +319,7 @@ namespace Mighty
             DbConnection connection,
             params object[] args)
         {
-            using (var command = CreateCommandWithParams(sql, args: args))
+            using (var command = CreateCommandWithParams(sql, connection: connection, args: args))
             {
                 return Execute(command, connection);
             }
@@ -347,6 +347,7 @@ namespace Mighty
         {
             var retval = CreateCommandWithParamsAndRowCountCheck(sql,
                 inParams, outParams, ioParams, returnParams,
+                connection: connection,
                 args: args);
             using (retval.Item1)
             {
@@ -383,6 +384,7 @@ namespace Mighty
             var retval = CreateCommandWithParamsAndRowCountCheck(spName,
                 inParams, outParams, ioParams, returnParams,
                 isProcedure: true,
+                connection: connection,
                 args: args);
             using (retval.Item1)
             {
@@ -455,6 +457,7 @@ namespace Mighty
         {
             using (var command = CreateCommandWithParams(sql,
             inParams, outParams, ioParams, returnParams,
+            connection: connection,
             args: args))
             {
                 return Scalar(command, connection);
@@ -484,6 +487,7 @@ namespace Mighty
             using (var command = CreateCommandWithParams(spName,
             inParams, outParams, ioParams, returnParams,
             isProcedure: true,
+            connection: connection,
             args: args))
             {
                 return Scalar(command, connection);
@@ -515,7 +519,7 @@ namespace Mighty
             DbConnection connection = null,
             params object[] args)
         {
-            var command = CreateCommandWithParams(sql, inParams, outParams, ioParams, returnParams, isProcedure, null, args);
+            var command = CreateCommandWithParams(sql, inParams, outParams, ioParams, returnParams, isProcedure, connection, args);
             return QueryNWithParams<X>(command, behavior, connection);
         }
         #endregion

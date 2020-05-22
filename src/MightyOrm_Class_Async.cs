@@ -742,7 +742,7 @@ namespace Mighty
             DbConnection connection)
         {
             OrmAction revisedAction;
-            DbCommand command = CreateActionCommand(originalAction, item, out revisedAction);
+            DbCommand command = CreateActionCommand(originalAction, item, out revisedAction, connection);
             command.Connection = connection;
             if (revisedAction == OrmAction.Insert && PrimaryKeyInfo.SequenceNameOrIdentityFunction != null)
             {
