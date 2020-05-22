@@ -11,10 +11,10 @@ namespace Mighty.Globals
     [TestFixture]
     public class Globals
     {
-        // TO DO: Should really add some tests for the defaults ordering of everything else,
+        // TO DO: Should really add some tests for the defaults priorities of everything else,
         // but they are all done exactly the same way.
         [Test]
-        public void NpgsqlSettings_DefaultsOrdering()
+        public void NpgsqlSettings_DefaultsPriorities()
         {
             var db1 = new MightyOrm();
             var db2 = new MightyOrm<Film>();
