@@ -10,6 +10,11 @@ namespace Mighty.MethodSignatures
 {
     public static partial class ObjectExtensions
     {
+        /// <summary>
+        /// Assert that none in a list of methods has a param of a given type
+        /// </summary>
+        /// <param name="methods"></param>
+        /// <param name="t"></param>
         public static void DoNotContainParamType(this IEnumerable<MethodInfo> methods, Type t)
         {
             methods.ForEach(m => {
@@ -20,17 +25,35 @@ namespace Mighty.MethodSignatures
             });
         }
 
+        /// <summary>
+        /// Returns <c>true</c> iff this method has at least one param of the specified type
+        /// </summary>
+        /// <param name="method"></param>
+        /// <param name="t"></param>
+        /// <returns></returns>
         public static bool ContainsParamType(this MethodInfo method, Type t)
         {
             var param = method.GetParameters().Where(p => t == p.ParameterType).FirstOrDefault();
             return param != null;
         }
 
+        /// <summary>
+        /// enumerable for each
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="enumerable"></param>
+        /// <param name="action"></param>
         public static void ForEach<T>(this IEnumerable<T> enumerable, Action<T> action)
         {
             foreach (var item in enumerable) action(item);
         }
 
+        /// <summary>
+        /// Split a camel case name into its separate words
+        /// </summary>
+        /// <param name="str"></param>
+        /// <param name="enforceFirstUpper"></param>
+        /// <returns></returns>
         public static List<string> CamelCaseSplit(this string str, bool enforceFirstUpper = true)
         {
             if (str == null) return null;
@@ -72,6 +95,11 @@ namespace Mighty.MethodSignatures
             return results;
         }
 
+        /// <summary>
+        /// Produce a more quickly readble, friendly type name
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
         public static string FriendlyName(this Type type)
         {
 #if NET40
@@ -99,6 +127,12 @@ namespace Mighty.MethodSignatures
 #endif
         }
 
+        /// <summary>
+        /// Confirm that the parameter types in a <see cref="ParameterInfo"/> array match the specified array of types
+        /// </summary>
+        /// <param name="us"></param>
+        /// <param name="them"></param>
+        /// <returns></returns>
         public static bool Matches(this ParameterInfo[] us, Type[] them)
         {
             int count = us.Count();

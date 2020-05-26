@@ -19,15 +19,39 @@ namespace Mighty.MethodSignatures
     {
         private Type mightyType;
 
+        /// <summary>
+        /// TO DO: we're not doing any checks on these yet...
+        /// </summary>
         public readonly List<PropertyInfo> Properties;
 
+        /// <summary>
+        /// Static methods on this instance
+        /// </summary>
         public readonly List<MethodInfo> StaticMethods;
+
+        /// <summary>
+        /// Methods which, from their name, are expected to be sync only (no async variant)
+        /// </summary>
         public readonly List<MethodInfo> SyncOnlyMethods;
+
+        /// <summary>
+        /// Sync methods on this instace
+        /// </summary>
         public readonly List<MethodInfo> SyncMethods;
 #if !NET40
+        /// <summary>
+        /// Async methods on this instace
+        /// </summary>
         public readonly List<MethodInfo> AsyncMethods;
 #endif
 
+        /// <summary>
+        /// Check all fields, properties and methods on a given Mighty class/interface.
+        /// Populate the public lists of methods according to what is found.
+        /// (Some sanity check tests are carried out while this is being doing.)
+        /// </summary>
+        /// <param name="isAbstract">Is this an abstract interface?</param>
+        /// <param name="isVirtual">Is this is a virtual class?</param>
         public MethodChecker(bool isAbstract, bool isVirtual)
         {
             mightyType = typeof(M);
@@ -39,13 +63,14 @@ namespace Mighty.MethodSignatures
             AsyncMethods = new List<MethodInfo>();
 #endif
 
-            // no fields expected
+            // enforce no public fields present
             var fields = mightyType.GetFields();
             Assert.AreEqual(0, fields.Length);
 
-            // not sure what we're going to test here
+            // populating the public property info, but not yet testing it
             Properties = mightyType.GetProperties().Where(p => p.DeclaringType == mightyType).ToList();
 
+            // populate the method info lists...
             foreach (var method in mightyType.GetMethods().Where(m => m.DeclaringType == mightyType && !m.IsSpecialName))
             {
                 if (method.IsAbstract != isAbstract)
@@ -92,9 +117,27 @@ namespace Mighty.MethodSignatures
 #endif
                 else SyncMethods.Add(method);
             }
+
+            // and sort the lists, because it's going to be very useful for comparing one list to another...
+            // I think...
+            // If we do sort them, then sort by method name then by parameter type short names, that will be
+            // enough.
+            // ...
         }
 
-        public void CheckMethod(
+        /// <summary>
+        /// Parse an individual method, determining which known <see cref="MightyMethodType"/> it has.
+        /// Exception - test fail - if any method doesn't have a known method type.
+        /// Also already does various checks, including that all the method return types make sense
+        /// for the known method types.
+        /// </summary>
+        /// <param name="methodType"></param>
+        /// <param name="isAsync"></param>
+        /// <param name="isSyncOnly"></param>
+        /// <param name="withParams"></param>
+        /// <param name="fromProcedure"></param>
+        /// <param name="method"></param>
+        private void CheckMethod(
             out MightyMethodType methodType,
 #if !NET40
             out bool isAsync,
@@ -107,7 +150,7 @@ namespace Mighty.MethodSignatures
 #if NET40
             bool isAsync;
 #endif
-            Type returnType;
+            isAsync = false;
             isSyncOnly = false;
             withParams = false;
             fromProcedure = false;
@@ -117,8 +160,7 @@ namespace Mighty.MethodSignatures
                 int wordCount = words.Count;
                 int lastWord = 0;
 
-                isAsync = (words[words.Count - 1] == "Async");
-                if (isAsync)
+                if (words[wordCount - 1] == "Async")
                 {
                     isAsync = true;
                     wordCount--;
@@ -258,67 +300,70 @@ namespace Mighty.MethodSignatures
 
             if (methodType != MightyMethodType._Illegal)
             {
+                Type expectedReturnType;
+
                 switch (methodType)
                 {
                     case MightyMethodType.Single:
-                        if (isAsync) returnType = typeof(Task<T>);
-                        else returnType = typeof(T);
+                        if (isAsync) expectedReturnType = typeof(Task<T>);
+                        else expectedReturnType = typeof(T);
                         break;
 
                     case MightyMethodType.Query:
 #if !NET40
                         if (isAsync)
 #if NETCOREAPP3_0 || NETCOREAPP3_1
-                            returnType = typeof(Task<IAsyncEnumerable<T>>);
+                            expectedReturnType = typeof(Task<IAsyncEnumerable<T>>);
 #else
                             // this is ambiguous without the namespace in netcoreapp2_0
-                            returnType = typeof(Task<Dasync.Collections.IAsyncEnumerable<T>>);
+                            expectedReturnType = typeof(Task<Dasync.Collections.IAsyncEnumerable<T>>);
 #endif
                         else
 #endif
-                            returnType = typeof(IEnumerable<T>);
+                            expectedReturnType = typeof(IEnumerable<T>);
                         break;
 
                     case MightyMethodType.QueryMultiple:
 #if !NET40
                         if (isAsync)
+                            // TO DO: AsyncMultipleResultSets<T>
 #if NETCOREAPP3_0 || NETCOREAPP3_1
-                            returnType = typeof(Task<IAsyncEnumerable<IAsyncEnumerable<T>>>); // throw new NotImplementedException("AsyncMultipleResultSets<T> not implemented yet");
+                            expectedReturnType = typeof(Task<IAsyncEnumerable<IAsyncEnumerable<T>>>); // throw new NotImplementedException("AsyncMultipleResultSets<T> not implemented yet");
 #else
                             // this is ambiguous without the namespace in netcoreapp2_0
-                            returnType = typeof(Task<Dasync.Collections.IAsyncEnumerable<Dasync.Collections.IAsyncEnumerable<T>>>); // throw new NotImplementedException("AsyncMultipleResultSets<T> not implemented yet");
+                            expectedReturnType = typeof(Task<Dasync.Collections.IAsyncEnumerable<Dasync.Collections.IAsyncEnumerable<T>>>); // throw new NotImplementedException("AsyncMultipleResultSets<T> not implemented yet");
 #endif
                         else
 #endif
-                            returnType = typeof(MultipleResultSets<T>);
+                            expectedReturnType = typeof(MultipleResultSets<T>);
                         break;
 
                     case MightyMethodType.Execute:
                         if (withParams || fromProcedure)
                         {
-                            if (isAsync) returnType = typeof(Task<object>);
-                            else returnType = typeof(object);
+                            if (isAsync) expectedReturnType = typeof(Task<object>);
+                            else expectedReturnType = typeof(object);
                         }
                         else
                         {
-                            if (isAsync) returnType = typeof(Task<int>);
-                            else returnType = typeof(int);
+                            if (isAsync) expectedReturnType = typeof(Task<int>);
+                            else expectedReturnType = typeof(int);
                         }
                         break;
 
                     case MightyMethodType.Scalar:
-                        if (isAsync) returnType = typeof(Task<object>);
-                        else returnType = typeof(object);
+                        if (isAsync) expectedReturnType = typeof(Task<object>);
+                        else expectedReturnType = typeof(object);
                         break;
 
                     case MightyMethodType.Aggregate:
-                        if (isAsync) returnType = typeof(Task<object>);
-                        else returnType = typeof(object);
+                        if (isAsync) expectedReturnType = typeof(Task<object>);
+                        else expectedReturnType = typeof(object);
                         break;
 
                     case MightyMethodType.Paged:
-                        if (isAsync) returnType = typeof(Task<PagedResults<T>>);
-                        else returnType = typeof(PagedResults<T>);
+                        if (isAsync) expectedReturnType = typeof(Task<PagedResults<T>>);
+                        else expectedReturnType = typeof(PagedResults<T>);
                         break;
 
                     case MightyMethodType.Insert:
@@ -326,76 +371,79 @@ namespace Mighty.MethodSignatures
                         if (methodParams.Matches(new Type[] { typeof(object), typeof(DbConnection) }) ||
                             methodParams.Matches(new Type[] { typeof(CancellationToken), typeof(object), typeof(DbConnection) }))
                         {
-                            if (isAsync) returnType = typeof(Task<T>);
-                            else returnType = typeof(T);
+                            if (isAsync) expectedReturnType = typeof(Task<T>);
+                            else expectedReturnType = typeof(T);
                         }
                         else
                         {
-                            if (isAsync) returnType = typeof(Task<List<T>>);
-                            else returnType = typeof(List<T>);
+                            if (isAsync) expectedReturnType = typeof(Task<List<T>>);
+                            else expectedReturnType = typeof(List<T>);
                         }
                         break;
 
                     case MightyMethodType.Delete:
                     case MightyMethodType.Save:
                     case MightyMethodType.Update:
-                        if (isAsync) returnType = typeof(Task<int>);
-                        else returnType = typeof(int);
+                        if (isAsync) expectedReturnType = typeof(Task<int>);
+                        else expectedReturnType = typeof(int);
                         break;
 
 #if KEY_VALUES
                     case MightyMethodType.KeyValues:
-                        if (isAsync) returnType = typeof(Task<IDictionary<string, string>>);
-                        else returnType = typeof(IDictionary<string, string>);
+                        if (isAsync) expectedReturnType = typeof(Task<IDictionary<string, string>>);
+                        else expectedReturnType = typeof(IDictionary<string, string>);
                         break;
 #endif
 
                     case MightyMethodType.OpenConnection:
-                        if (isAsync) returnType = typeof(Task<DbConnection>);
-                        else returnType = typeof(DbConnection);
+                        if (isAsync) expectedReturnType = typeof(Task<DbConnection>);
+                        else expectedReturnType = typeof(DbConnection);
                         break;
 
                     case MightyMethodType.CreateCommand:
-                        returnType = typeof(DbCommand);
+                        expectedReturnType = typeof(DbCommand);
                         break;
 
                     case MightyMethodType.ResultsAsExpando:
-                        returnType = typeof(object);
+                        expectedReturnType = typeof(object);
                         break;
 
                     case MightyMethodType.New:
-                        returnType = typeof(T);
+                        expectedReturnType = typeof(T);
                         break;
 
                     case MightyMethodType.GetColumnInfo:
-                        returnType = typeof(object);
+                        expectedReturnType = typeof(object);
                         break;
 
                     case MightyMethodType.IsValid:
-                        returnType = typeof(List<object>); // hmmm
+                        expectedReturnType = typeof(List<object>); // hmmm
                         break;
 
                     case MightyMethodType.HasPrimaryKey:
-                        returnType = typeof(bool);
+                        expectedReturnType = typeof(bool);
                         break;
 
                     case MightyMethodType.GetPrimaryKey:
-                        returnType = typeof(object);
+                        expectedReturnType = typeof(object);
                         break;
 
                     case MightyMethodType.Factory:
-                        returnType = mightyType;
+                        expectedReturnType = mightyType;
                         break;
 
                     default:
                         throw new Exception($"Unexpected method type {methodType} in {nameof(CheckMethod)}");
                 }
-                var methodReturnType = method.ReturnType;
-                if (methodReturnType != returnType)
+
+                var actualReturnType = method.ReturnType;
+                if (actualReturnType != expectedReturnType)
                 {
-                    throw new InvalidOperationException($"Incorrect return type {methodReturnType.FriendlyName()} instead of {returnType.FriendlyName()} for method {method.Name} in {mightyType.FriendlyName()}");
+                    throw new InvalidOperationException($"Incorrect return type {actualReturnType.FriendlyName()} instead of {expectedReturnType.FriendlyName()} for method {method.Name} in {mightyType.FriendlyName()}");
                 }
             }
+
+            // throw exception if we haven't been able to parse this as a known method type
             if (methodType == MightyMethodType._Illegal)
             {
                 throw new InvalidOperationException($"Illegal method name {method.Name}");

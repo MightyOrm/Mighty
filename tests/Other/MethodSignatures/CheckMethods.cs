@@ -18,6 +18,10 @@ namespace Mighty.MethodSignatures
         private readonly MethodChecker<MightyOrm, dynamic> dynamicMightyDefinedMethods;
         private readonly MethodChecker<MightyOrm<CheckMethods>, CheckMethods> genericMightyDefinedMethods;
 
+        /// <summary>
+        /// This initialisation already does a lot of sanity checks as to whether the found methods on
+        /// each interface are as expected.
+        /// </summary>
         public CheckMethods()
         {
             interfaceDefinedMethods = new MethodChecker<MightyOrmAbstractInterface<CheckMethods>, CheckMethods>(true, true);
@@ -25,6 +29,9 @@ namespace Mighty.MethodSignatures
             genericMightyDefinedMethods = new MethodChecker<MightyOrm<CheckMethods>, CheckMethods>(false, true);
         }
 
+        /// <summary>
+        /// Expecting the factory methods inherited from Massive, and nothing else.
+        /// </summary>
         [Test]
         public void StaticFactoryMethods_Present()
         {
@@ -33,6 +40,9 @@ namespace Mighty.MethodSignatures
             Assert.AreEqual(1, genericMightyDefinedMethods.StaticMethods.Count);
         }
 
+        /// <summary>
+        /// Not expecting any additional methods to be defined on <see cref="MightyOrm"/> itself.
+        /// </summary>
         [Test]
         public void MightyOrm_IsJustMightyOrmDynamic()
         {
@@ -43,6 +53,11 @@ namespace Mighty.MethodSignatures
 #endif
         }
 
+        /// <summary>
+        /// As in the case of the cache tests, it's a bit of extra effort to keep these up to
+        /// date, but it's probably worth it, as a sanity check that any changes you have to make
+        /// here correspond only to changes you intended to make.
+        /// </summary>
         [Test]
         public void Interface_MethodCounts()
         {
@@ -61,6 +76,11 @@ namespace Mighty.MethodSignatures
 #endif
         }
 
+        /// <summary>
+        /// We don't want the generic class to have any public methods that are not on the abstract interface.
+        /// (This is only checking the total counts at this point, but assuming that the class implements the
+        /// abstract interface, that is all we need to check.)
+        /// </summary>
         [Test]
         public void GenericClass_NoExtraMethods()
         {
@@ -77,6 +97,9 @@ namespace Mighty.MethodSignatures
         private static readonly Type dbConnectionType = typeof(DbConnection);
         private static readonly Type cancellationTokenType = typeof(CancellationToken);
 
+        /// <summary>
+        /// We have three CreateCommand variants.
+        /// </summary>
         [Test]
         public void SyncOnlyMethods_CreateCommandCount()
         {
@@ -90,6 +113,8 @@ namespace Mighty.MethodSignatures
         /// Sync only methods do not have a <see cref="DbConnection"/> param, except for two of
         /// the three variants of <see cref="MightyOrm{T}.CreateCommand(string, DbConnection)"/>
         /// (as just checked above), which do.
+        /// Because all other sync methods which have a <see cref="DbConnection"/> also have an async variant
+        /// (and so are not sync ONLY, as it is meant here).
         /// </remarks>
         [Test]
         public void SyncOnlyMethods_DoNotContainDbConnection()
@@ -109,6 +134,9 @@ namespace Mighty.MethodSignatures
                     .Where(m => m.Name.StartsWith(OpenConnection)).Count());
         }
 
+        /// <summary>
+        /// Sync-only methods must not contain a <see cref="CancellationToken"/>
+        /// </summary>
         [Test]
         public void SyncOnlyMethods_DoNotContainCancellationToken()
         {
@@ -117,6 +145,9 @@ namespace Mighty.MethodSignatures
                 .DoNotContainParamType(cancellationTokenType);
         }
 
+        /// <summary>
+        /// Sync methods must not contain a <see cref="CancellationToken"/>
+        /// </summary>
         [Test]
         public void SyncMethods_DoNotContainCancellationToken()
         {
@@ -125,12 +156,34 @@ namespace Mighty.MethodSignatures
                 .DoNotContainParamType(cancellationTokenType);
         }
 
+        /// <summary>
+        /// All sync methods must have two async variants (one with and one without a <see cref="CancellationToken"/>),
+        /// and vice versa.
+        /// </summary>
+        /// <remarks>
+        /// We've already checked the method return types when gathering the lists, so here we only need to check
+        /// that the parameters correspond.
+        /// </remarks>
+        [Test]
+        [Ignore("Not implemented")]
+        public void SyncAndAsyncMethods_Correspond()
+        {
+        }
+
+        /// <summary>
+        /// All async methods must have a <see cref="CancellationToken"/> and non-<see cref="CancellationToken"/> variant,
+        /// and the <see cref="CancellationToken"/> must occur in the right place in the args list.
+        /// </summary>
         [Test]
         [Ignore("Not implemented")]
         public void AsyncMethods_HaveCancellationTokenAndNonCancellationTokenVariants()
         {
         }
 
+        /// <summary>
+        /// All sync methods must have a <see cref="DbCommand"/> and non-<see cref="DbCommand"/> variant,
+        /// and the <see cref="DbCommand"/> must occur in the right place in the args list.
+        /// </summary>
         [Test]
         [Ignore("Not implemented")]
         public void SyncMethods_HaveDbConnectionAndNonDbConnectionVariants()
