@@ -109,17 +109,21 @@ namespace Mighty.MethodSignatures
             MightyMethodType methodType = MightyMethodType._Illegal;
             MightyParamsType paramsType = MightyParamsType.Normal;
             bool isSyncOnly = false;
+#if !NET40
             bool isAsync = false;
+#endif
 
             var words = method.Name.CamelCaseSplit();
             int wordCount = words.Count;
             int lastWord = 0;
 
+#if !NET40
             if (words[wordCount - 1] == "Async")
             {
                 isAsync = true;
                 wordCount--;
             }
+#endif
 
             // set the method type from word[0] if possible (may still be overridden);
             // if not, identify it by hand
@@ -212,13 +216,6 @@ namespace Mighty.MethodSignatures
                 if (method.IsStatic != (methodType == MightyMethodType.Factory))
                     throw new InvalidOperationException($"{(methodType == MightyMethodType.Factory ? "" : "Only ")}Mighty factory method must be static at method {method.Name} in {mightyType.FriendlyName()}");
 
-#if NET40
-                if (isAsync)
-                {
-                    throw new InvalidOperationException($"Async {methodType} method {method.Name} always illegal in .NET Framework 4.0");
-                }
-#endif
-
                 if (methodType == MightyMethodType.New ||
                     methodType == MightyMethodType.CreateCommand ||
                     methodType == MightyMethodType.ResultsAsExpando ||
@@ -274,7 +271,9 @@ namespace Mighty.MethodSignatures
             MightySyncType syncType;
             if (method.IsStatic) syncType = MightySyncType.Static;
             else if (isSyncOnly) syncType = MightySyncType.SyncOnly;
+#if !NET40
             else if (isAsync) syncType = MightySyncType.Async;
+#endif
             else syncType = MightySyncType.Sync;
 
             return new MightyMethodInfo() {
@@ -293,8 +292,12 @@ namespace Mighty.MethodSignatures
             switch (methodInfo.methodType)
             {
                 case MightyMethodType.Single:
-                    if (methodInfo.syncType == MightySyncType.Async) expectedReturnType = typeof(Task<T>);
-                    else expectedReturnType = typeof(T);
+#if !NET40
+                    if (methodInfo.syncType == MightySyncType.Async)
+                        expectedReturnType = typeof(Task<T>);
+                    else
+#endif
+                        expectedReturnType = typeof(T);
                     break;
 
                 case MightyMethodType.Query:
@@ -329,29 +332,49 @@ namespace Mighty.MethodSignatures
                 case MightyMethodType.Execute:
                     if (methodInfo.paramsType != MightyParamsType.Normal)
                     {
-                        if (methodInfo.syncType == MightySyncType.Async) expectedReturnType = typeof(Task<object>);
-                        else expectedReturnType = typeof(object);
+#if !NET40
+                        if (methodInfo.syncType == MightySyncType.Async)
+                            expectedReturnType = typeof(Task<object>);
+                        else
+#endif
+                            expectedReturnType = typeof(object);
                     }
                     else
                     {
-                        if (methodInfo.syncType == MightySyncType.Async) expectedReturnType = typeof(Task<int>);
-                        else expectedReturnType = typeof(int);
+#if !NET40
+                        if (methodInfo.syncType == MightySyncType.Async)
+                            expectedReturnType = typeof(Task<int>);
+                        else
+#endif
+                            expectedReturnType = typeof(int);
                     }
                     break;
 
                 case MightyMethodType.Scalar:
-                    if (methodInfo.syncType == MightySyncType.Async) expectedReturnType = typeof(Task<object>);
-                    else expectedReturnType = typeof(object);
+#if !NET40
+                    if (methodInfo.syncType == MightySyncType.Async)
+                        expectedReturnType = typeof(Task<object>);
+                    else
+#endif
+                        expectedReturnType = typeof(object);
                     break;
 
                 case MightyMethodType.Aggregate:
-                    if (methodInfo.syncType == MightySyncType.Async) expectedReturnType = typeof(Task<object>);
-                    else expectedReturnType = typeof(object);
+#if !NET40
+                    if (methodInfo.syncType == MightySyncType.Async)
+                        expectedReturnType = typeof(Task<object>);
+                    else
+#endif
+                        expectedReturnType = typeof(object);
                     break;
 
                 case MightyMethodType.Paged:
-                    if (methodInfo.syncType == MightySyncType.Async) expectedReturnType = typeof(Task<PagedResults<T>>);
-                    else expectedReturnType = typeof(PagedResults<T>);
+#if !NET40
+                    if (methodInfo.syncType == MightySyncType.Async)
+                        expectedReturnType = typeof(Task<PagedResults<T>>);
+                    else
+#endif
+                        expectedReturnType = typeof(PagedResults<T>);
                     break;
 
                 case MightyMethodType.Insert:
@@ -359,33 +382,53 @@ namespace Mighty.MethodSignatures
                     if (methodParams.Matches(new Type[] { typeof(object), typeof(DbConnection) }) ||
                         methodParams.Matches(new Type[] { typeof(CancellationToken), typeof(object), typeof(DbConnection) }))
                     {
-                        if (methodInfo.syncType == MightySyncType.Async) expectedReturnType = typeof(Task<T>);
-                        else expectedReturnType = typeof(T);
+#if !NET40
+                        if (methodInfo.syncType == MightySyncType.Async)
+                            expectedReturnType = typeof(Task<T>);
+                        else
+#endif
+                            expectedReturnType = typeof(T);
                     }
                     else
                     {
-                        if (methodInfo.syncType == MightySyncType.Async) expectedReturnType = typeof(Task<List<T>>);
-                        else expectedReturnType = typeof(List<T>);
+#if !NET40
+                        if (methodInfo.syncType == MightySyncType.Async)
+                            expectedReturnType = typeof(Task<List<T>>);
+                        else
+#endif
+                            expectedReturnType = typeof(List<T>);
                     }
                     break;
 
                 case MightyMethodType.Delete:
                 case MightyMethodType.Save:
                 case MightyMethodType.Update:
-                    if (methodInfo.syncType == MightySyncType.Async) expectedReturnType = typeof(Task<int>);
-                    else expectedReturnType = typeof(int);
+#if !NET40
+                    if (methodInfo.syncType == MightySyncType.Async)
+                        expectedReturnType = typeof(Task<int>);
+                    else
+#endif
+                        expectedReturnType = typeof(int);
                     break;
 
 #if KEY_VALUES
                 case MightyMethodType.KeyValues:
-                    if (methodInfo.syncType == MightySyncType.Async) expectedReturnType = typeof(Task<IDictionary<string, string>>);
-                    else expectedReturnType = typeof(IDictionary<string, string>);
+#if !NET40
+                    if (methodInfo.syncType == MightySyncType.Async)
+                        expectedReturnType = typeof(Task<IDictionary<string, string>>);
+                    else
+#endif
+                        expectedReturnType = typeof(IDictionary<string, string>);
                     break;
 #endif
 
                 case MightyMethodType.OpenConnection:
-                    if (methodInfo.syncType == MightySyncType.Async) expectedReturnType = typeof(Task<DbConnection>);
-                    else expectedReturnType = typeof(DbConnection);
+#if !NET40
+                    if (methodInfo.syncType == MightySyncType.Async)
+                        expectedReturnType = typeof(Task<DbConnection>);
+                    else
+#endif
+                        expectedReturnType = typeof(DbConnection);
                     break;
 
                 case MightyMethodType.CreateCommand:

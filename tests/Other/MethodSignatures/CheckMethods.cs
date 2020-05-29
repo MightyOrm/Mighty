@@ -72,7 +72,9 @@ namespace Mighty.MethodSignatures
         {
             Assert.AreEqual(0, dynamicDefinedMethods[MightySyncType.SyncOnly].MethodCount);
             Assert.AreEqual(0, dynamicDefinedMethods[MightySyncType.Sync].MethodCount);
+#if !NET40
             Assert.AreEqual(0, dynamicDefinedMethods[MightySyncType.Async].MethodCount);
+#endif
         }
 
         /// <summary>
@@ -89,9 +91,11 @@ namespace Mighty.MethodSignatures
             Assert.AreEqual(
                 interfaceDefinedMethods[MightySyncType.Sync].MethodCount,
                 genericDefinedMethods[MightySyncType.Sync].MethodCount);
+#if !NET40
             Assert.AreEqual(
                 interfaceDefinedMethods[MightySyncType.Async].MethodCount,
                 genericDefinedMethods[MightySyncType.Async].MethodCount);
+#endif
         }
 
 
@@ -133,17 +137,15 @@ namespace Mighty.MethodSignatures
                 71,
 #endif
                 interfaceDefinedMethods[MightySyncType.Sync].MethodCount);
+#if !NET40
             Assert.AreEqual(
-#if NET40
-                0,
-#else
 #if KEY_VALUES
-                140,
+                144,
 #else
-                138,
-#endif
+                142,
 #endif
                 interfaceDefinedMethods[MightySyncType.Async].MethodCount);
+#endif
         }
 
         private const string CreateCommand = "CreateCommand";
@@ -404,6 +406,7 @@ namespace Mighty.MethodSignatures
             }
         }
 
+#if !NET40
         /// <summary>
         /// All sync methods must have an async variant without a <see cref="CancellationToken"/>
         /// </summary>
@@ -445,5 +448,6 @@ namespace Mighty.MethodSignatures
             // and confirm that nothing with a CancellationToken was left unmatched
             Assert.That(asyncMethodsWithToken.mightyMethods.Count, Is.EqualTo(0), $"Expected no unmatched methods with a {cancellationTokenType.Name}");
         }
+#endif
     }
 }

@@ -9,6 +9,8 @@ namespace Mighty.MethodSignatures
         Static,     // static methods (only expecting sync methods here)
         SyncOnly,   // methods intended to be sync-only (no async variant is intended to exists)
         Sync,       // sync-async methods, sync variant
+#if !NET40
         Async,      // sync-async methods, async variant
+#endif
     }
 }
