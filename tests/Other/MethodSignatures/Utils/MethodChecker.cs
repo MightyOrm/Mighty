@@ -24,23 +24,9 @@ namespace Mighty.MethodSignatures
         private Type mightyType;
 
         /// <summary>
-        /// TO DO: we're not doing any checks on these yet...
+        /// Mighty methods indexable by various types
         /// </summary>
-        private readonly List<PropertyInfo> Properties;
-
-        /// <summary>
-        /// Nested gathering of Mighty methods
-        /// </summary>
-        public readonly
-            MethodTreeNode<MightySyncType,
-                MethodTreeNode<MightyMethodType,
-                    MethodTreeNode<MightyParamsType,
-                        MethodTreeNode<MightyVariantType,
-                            List<MethodInfo>
-                        >
-                    >
-                >
-            > methodTree;
+        public readonly MightyMethodList methodList;
 
         /// <summary>
         /// Check all fields, properties and methods on a given Mighty class/interface.
@@ -53,61 +39,47 @@ namespace Mighty.MethodSignatures
         {
             mightyType = typeof(M);
 
-            // Initialise our nested dictionary of dictionaries of ... of lists
-            methodTree = new
-                MethodTreeNode<MightySyncType,
-                    MethodTreeNode<MightyMethodType,
-                        MethodTreeNode<MightyParamsType,
-                            MethodTreeNode<MightyVariantType,
-                                List<MethodInfo>
-                            >
-                        >
-                    >
-                >();
-
             // enforce no public fields present
             var fields = mightyType.GetFields();
             Assert.AreEqual(0, fields.Length);
 
-            // TO DO: populating the public property info, but not yet testing it
-            Properties = mightyType.GetProperties().Where(p => p.DeclaringType == mightyType).ToList();
+            // TO DO: test some stuff on the properties
+            //Properties = mightyType.GetProperties().Where(p => p.DeclaringType == mightyType).ToList();
 
             // populate the method info lists...
-            foreach (var method in mightyType.GetMethods().Where(m => m.DeclaringType == mightyType && !m.IsSpecialName))
-            {
-                if (method.IsAbstract != isAbstract)
-                {
-                    throw new InvalidOperationException($"Methods in {mightyType.Name} must {(isAbstract ? "" : "not ")}be abstract (method: {method.Name})");
-                }
-                if (!method.IsStatic && method.IsVirtual != isVirtual)
-                {
-                    throw new InvalidOperationException($"Methods in {mightyType.Name} must {(isVirtual ? "" : "not ")}be virtual (method: {method.Name})");
-                }
-
-                var methodInfo = CheckMethod(method);
-
-                foreach (var param in method.GetParameters())
-                {
-#if !NET40
-                    // this is just a sanity check that both of these flags are the same for everything we're doing
-                    // (AFAIK they can't be different in C#, but if they can be, we need to understand why and work
-                    // out which one to use)
-                    if (param.HasDefaultValue != param.IsOptional)
+            methodList = new MightyMethodList(
+                mightyType
+                .GetMethods()
+                .Where(m => m.DeclaringType == mightyType && !m.IsSpecialName)
+                .Select(method =>
                     {
-                        throw new InvalidOperationException("Unhandled param configuration");
-                    }
+                        if (method.IsAbstract != isAbstract)
+                        {
+                            throw new InvalidOperationException($"Methods in {mightyType.Name} must {(isAbstract ? "" : "not ")}be abstract (method: {method.Name})");
+                        }
+
+                        if (!method.IsStatic && method.IsVirtual != isVirtual)
+                        {
+                            throw new InvalidOperationException($"Methods in {mightyType.Name} must {(isVirtual ? "" : "not ")}be virtual (method: {method.Name})");
+                        }
+
+                        foreach (var param in method.GetParameters())
+                        {
+#if !NET40
+                            // this is just a sanity check that both of these flags are the same for everything we're doing
+                            // (AFAIK they can't be different in C#, but if they can be, we need to understand why and work
+                            // out which one to use)
+                            if (param.HasDefaultValue != param.IsOptional)
+                            {
+                                throw new InvalidOperationException("Unhandled param configuration");
+                            }
 #endif
-                }
+                        }
 
-                // stick discovered method into correct list
-                methodTree[methodInfo.syncType][methodInfo.methodType][methodInfo.paramsType][methodInfo.variantType].Add(method);
-            }
-
-            // and sort the lists, because it's going to be very useful for comparing one list to another...
-            // I think...
-            // If we do sort them, then sort by method name then by parameter type short names, that will be
-            // enough.
-            // ...
+                        return ParseMethod(method);
+                    }
+                )
+            );
         }
 
         /// <summary>
@@ -117,7 +89,7 @@ namespace Mighty.MethodSignatures
         /// for the known method types.
         /// </summary>
         /// <param name="method"></param>
-        private MightyMethodInfo CheckMethod(MethodInfo method)
+        private MightyMethodInfo ParseMethod(MethodInfo method)
         {
             var methodInfo = DetermineMethodInfo(method);
 
@@ -152,6 +124,8 @@ namespace Mighty.MethodSignatures
                 wordCount--;
             }
 
+            // set the method type from word[0] if possible (may still be overridden);
+            // if not, identify it by hand
             if (Enum.TryParse(words[0], out methodType))
             {
                 if (methodType == MightyMethodType.Query && wordCount > 1 && words[1] == "Multiple")
@@ -284,11 +258,9 @@ namespace Mighty.MethodSignatures
                 }
             }
 
-            // treating the enum as flags here
-            MightyVariantType variantType = (MightyVariantType)(
-                (method.ContainsParamType(typeof(DbConnection)) ? 1 : 0) |
-                (method.ContainsParamType(typeof(CancellationToken)) ? 2 : 0)
-            );
+            MightyVariantType variantType =
+                (method.ContainsParamType(typeof(DbConnection)) ? MightyVariantType.DbConnection : MightyVariantType.None) |
+                (method.ContainsParamType(typeof(CancellationToken)) ? MightyVariantType.CancellationToken : MightyVariantType.None);
 
             MightySyncType syncType;
             if (method.IsStatic) syncType = MightySyncType.Static;
@@ -440,28 +412,49 @@ namespace Mighty.MethodSignatures
                     break;
 
                 default:
-                    throw new Exception($"Unexpected method type {methodInfo.methodType} in {nameof(CheckMethod)}");
+                    throw new Exception($"Unexpected method type {methodInfo.methodType} in {nameof(ParseMethod)}");
             }
 
             return expectedReturnType;
         }
 
-        /// <summary>
-        /// Indexing this <see cref="MethodChecker{M, T}"/> object indexes the contained method tree
-        /// </summary>
-        /// <param name="key"></param>
-        /// <returns></returns>
-        public MethodTreeNode<MightyMethodType,
-                    MethodTreeNode<MightyParamsType,
-                        MethodTreeNode<MightyVariantType,
-                            List<MethodInfo>
-                        >
-                    >
-                > this[MightySyncType key]
+        public MightyMethodList this[MightyMethodType type]
         {
             get
             {
-                return methodTree[key];
+                return methodList[type];
+            }
+        }
+
+        public MightyMethodList this[MightySyncType type]
+        {
+            get
+            {
+                return methodList[type];
+            }
+        }
+
+        public MightyMethodList this[MightyParamsType type]
+        {
+            get
+            {
+                return methodList[type];
+            }
+        }
+
+        public MightyMethodList this[MightyVariantType type]
+        {
+            get
+            {
+                return methodList[type];
+            }
+        }
+
+        public MightyMethodList this[Func<MightyMethodInfo, bool> filter]
+        {
+            get
+            {
+                return methodList[filter];
             }
         }
     }

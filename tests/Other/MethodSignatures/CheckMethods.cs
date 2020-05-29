@@ -8,15 +8,18 @@ using System.Linq;
 using System.Reflection;
 using System.Collections.Generic;
 using System.Threading;
+using NUnit.Framework.Constraints;
 
 namespace Mighty.MethodSignatures
 {
     [TestFixture]
     public class CheckMethods
     {
-        private readonly MethodChecker<MightyOrmAbstractInterface<CheckMethods>, CheckMethods> interfaceDefinedMethods;
-        private readonly MethodChecker<MightyOrm, dynamic> dynamicMightyDefinedMethods;
-        private readonly MethodChecker<MightyOrm<CheckMethods>, CheckMethods> genericMightyDefinedMethods;
+        private readonly MethodChecker<MightyOrmAbstractInterface<TestGeneric>, TestGeneric> interfaceDefinedMethods;
+        private readonly MethodChecker<MightyOrm, dynamic> dynamicDefinedMethods;
+        private readonly MethodChecker<MightyOrm<TestGeneric>, TestGeneric> genericDefinedMethods;
+
+        public class TestGeneric { }
 
         /// <summary>
         /// This initialisation stage already does quite a lot of sanity checking as to whether the methods on
@@ -25,9 +28,9 @@ namespace Mighty.MethodSignatures
         public CheckMethods()
         {
             // we are also using CheckMethods here as just a placeholder type
-            interfaceDefinedMethods = new MethodChecker<MightyOrmAbstractInterface<CheckMethods>, CheckMethods>(true, true);
-            dynamicMightyDefinedMethods = new MethodChecker<MightyOrm, dynamic>(false, false);
-            genericMightyDefinedMethods = new MethodChecker<MightyOrm<CheckMethods>, CheckMethods>(false, true);
+            interfaceDefinedMethods = new MethodChecker<MightyOrmAbstractInterface<TestGeneric>, TestGeneric>(true, true);
+            dynamicDefinedMethods = new MethodChecker<MightyOrm, dynamic>(false, false);
+            genericDefinedMethods = new MethodChecker<MightyOrm<TestGeneric>, TestGeneric>(false, true);
         }
 
         /// <summary>
@@ -37,8 +40,8 @@ namespace Mighty.MethodSignatures
         public void StaticFactoryMethods_Present()
         {
             Assert.AreEqual(0, interfaceDefinedMethods[MightySyncType.Static].MethodCount);
-            Assert.AreEqual(1, dynamicMightyDefinedMethods[MightySyncType.Static].MethodCount);
-            Assert.AreEqual(1, genericMightyDefinedMethods[MightySyncType.Static].MethodCount);
+            Assert.AreEqual(1, dynamicDefinedMethods[MightySyncType.Static].MethodCount);
+            Assert.AreEqual(1, genericDefinedMethods[MightySyncType.Static].MethodCount);
         }
 
         /// <summary>
@@ -48,9 +51,9 @@ namespace Mighty.MethodSignatures
         [Test]
         public void MightyOrm_IsJustMightyOrmDynamic()
         {
-            Assert.AreEqual(0, dynamicMightyDefinedMethods[MightySyncType.SyncOnly].MethodCount);
-            Assert.AreEqual(0, dynamicMightyDefinedMethods[MightySyncType.Sync].MethodCount);
-            Assert.AreEqual(0, dynamicMightyDefinedMethods[MightySyncType.Async].MethodCount);
+            Assert.AreEqual(0, dynamicDefinedMethods[MightySyncType.SyncOnly].MethodCount);
+            Assert.AreEqual(0, dynamicDefinedMethods[MightySyncType.Sync].MethodCount);
+            Assert.AreEqual(0, dynamicDefinedMethods[MightySyncType.Async].MethodCount);
         }
 
         /// <summary>
@@ -63,23 +66,42 @@ namespace Mighty.MethodSignatures
         {
             Assert.AreEqual(
                 interfaceDefinedMethods[MightySyncType.SyncOnly].MethodCount,
-                genericMightyDefinedMethods[MightySyncType.SyncOnly].MethodCount);
+                genericDefinedMethods[MightySyncType.SyncOnly].MethodCount);
             Assert.AreEqual(
                 interfaceDefinedMethods[MightySyncType.Sync].MethodCount,
-                genericMightyDefinedMethods[MightySyncType.Sync].MethodCount);
+                genericDefinedMethods[MightySyncType.Sync].MethodCount);
             Assert.AreEqual(
                 interfaceDefinedMethods[MightySyncType.Async].MethodCount,
-                genericMightyDefinedMethods[MightySyncType.Async].MethodCount);
+                genericDefinedMethods[MightySyncType.Async].MethodCount);
+        }
+
+
+        /// <summary>
+        /// Confirm that all the hand coded method types were actually found
+        /// </summary>
+        [Test]
+        public void AllMethodTypes_ArePresent()
+        {
+            foreach (MightyMethodType type in Enum.GetValues(typeof(MightyMethodType)))
+            {
+                // illegal methods obviously not supposed to be present; factory method not present on interface (and checked for in tests above)
+                Assert.That(
+                    interfaceDefinedMethods[type].MethodCount,
+                    (type == MightyMethodType._Illegal || type == MightyMethodType.Factory) ?
+                        (Constraint)Is.EqualTo(0) :
+                        (Constraint)Is.GreaterThan(0)
+                );
+            }
         }
 
         /// <summary>
-        /// As in the case of the caching tests, it's a bit of extra effort to keep these numbers in this test
+        /// As in the case of the caching tests, it's a bit of extra effort to keep the numbers in this test
         /// up to date but it's probably worth it as a sanity check that any changes required here correspond
         /// only to intended changes elsewhere.
         /// </summary>
         /// <remarks>
-        /// Given the comments on the two tests just above, in all other methods below here it makes sense to
-        /// treat the abstract interface methods as the canonical set of methods for all remaining checks.
+        /// Given the comments on the tests above, in all other methods below it makes sense to treat
+        /// the abstract interface methods as the canonical set of methods for all remaining tests.
         /// </remarks>
         [Test]
         public void Interface_MethodCounts()
@@ -107,7 +129,7 @@ namespace Mighty.MethodSignatures
 
         private const string CreateCommand = "CreateCommand";
         private const string OpenConnection = "OpenConnection";
-        private const string KeyValues = "KeyValues";
+
         private static readonly Type dbConnectionType = typeof(DbConnection);
         private static readonly Type cancellationTokenType = typeof(CancellationToken);
 
@@ -170,76 +192,116 @@ namespace Mighty.MethodSignatures
         }
 
         /// <summary>
-        /// All sync methods must have two async variants (one with and one without a <see cref="CancellationToken"/>),
-        /// and vice versa, and the <see cref="CancellationToken"/> must occur in the right place in the args list.
+        /// For all methods which have one or other of <see cref="DbConnection"/> and <see cref="CancellationToken"/>,
+        /// these should always (with one intentional exception!) occur in a consistent order within the parameters.
+        /// </summary>
+        /// <remarks>
+        /// As now implemented (Mighty v4+):
+        ///  - <see cref="CancellationToken"/> if present is always the first parameter
+        ///  - <see cref="DbConnection"/> if present is always the last parameter before any `params` arguments
+        ///         (with one exception for one variant of Single/SingleAsync, where putting it elsewhere
+        ///         makes it possible to disambiguate another argment)
+        /// </remarks>
+        [Test]
+        public void DbConnectionAndCancellationToken_OccurInTheRightPlace()
+        {
+            var objArray = typeof(object[]);
+            var variantMethods = interfaceDefinedMethods[mi => mi.variantType != 0];
+            foreach (var method in variantMethods)
+            {
+                int posDbConnection = -1;
+                int posCancellationToken = -1;
+                bool hasParamsArguments = false;
+                var theParams = method.GetParameters();
+                int lastParam = theParams.Length - 1;
+                for (int i = 0; i < theParams.Length; i++)
+                {
+                    var param = theParams[i];
+                    if (i == lastParam &&
+#if NET40
+                        param.ParameterType == objArray
+#else
+                        param.GetCustomAttribute(typeof(ParamArrayAttribute)) != null
+#endif
+                    )
+                    {
+                        hasParamsArguments = true;
+                    }
+                    else if (param.ParameterType == dbConnectionType)
+                    {
+                        posDbConnection = i;
+                    }
+                    else if (param.ParameterType == cancellationTokenType)
+                    {
+                        posCancellationToken = i;
+                    }
+
+                    Assert.That(hasParamsArguments, Is.EqualTo(param.ParameterType == objArray), "If this fails the current NET40 'params' argument identification code probably will not work");
+                }
+
+                if (posCancellationToken != -1)
+                {
+                    Assert.That(posCancellationToken, Is.EqualTo(0), $"position of {nameof(CancellationToken)} parameter in {method}");
+                }
+
+                if (posDbConnection != -1)
+                {
+                    var expectedPos = hasParamsArguments ? lastParam - 1 : lastParam;
+
+                    // The one exception in the position of DbConnection, as documented in the comments on the methods themselves
+                    if ((method.Name == "Single" || method.Name == "SingleAsync") &&
+                        theParams[posCancellationToken + 1].Name == "where" &&
+                        theParams[posCancellationToken + 3].Name == "orderBy")
+                    {
+                        expectedPos = posCancellationToken + 2;
+                    }
+
+                    Assert.That(posDbConnection, Is.EqualTo(expectedPos), $"position of {nameof(DbConnection)} parameter in {method}");
+                }
+            }
+        }
+
+        /// <summary>
+        /// All sync methods must have an async variant without a <see cref="CancellationToken"/>
         /// </summary>
         /// <remarks>
         /// We've already checked the method return types when gathering the lists, so here we only need to check
         /// that the parameters correspond.
         /// </remarks>
         [Test]
-        [Ignore("Not implemented")]
         public void SyncAndAsyncMethods_Correspond()
         {
+            var syncMethods = interfaceDefinedMethods[MightySyncType.Sync];
+            var asyncMethodsWithoutToken = interfaceDefinedMethods[MightySyncType.Async][mi => (mi.variantType & MightyVariantType.CancellationToken) == 0];
+            Assert.Fail();
         }
 
         /// <summary>
-        /// *** May not need this given the above? ***
-        /// All async methods must have a <see cref="CancellationToken"/> and non-<see cref="CancellationToken"/> variant,
-        /// and the <see cref="CancellationToken"/> must occur in the right place in the args list.
+        /// All async methods must have a <see cref="CancellationToken"/> and non-<see cref="CancellationToken"/> variant.
         /// </summary>
         [Test]
-        [Ignore("Not implemented")]
         public void AsyncMethods_HaveCancellationTokenAndNonCancellationTokenVariants()
         {
+            var asyncMethodsWithoutToken = interfaceDefinedMethods[MightySyncType.Async][mi => (mi.variantType & MightyVariantType.CancellationToken) == 0];
+            var asyncMethodsWithToken = interfaceDefinedMethods[MightySyncType.Async][mi => (mi.variantType & MightyVariantType.CancellationToken) == MightyVariantType.CancellationToken];
+            Assert.Fail();
         }
 
         /// <summary>
-        /// All sync methods must have a <see cref="DbConnection"/> and non-<see cref="DbConnection"/> variant,
-        /// and the <see cref="DbConnection"/> must occur in the right place in the args list.
+        /// All sync methods must have a <see cref="DbConnection"/> and non-<see cref="DbConnection"/> variant.
         /// </summary>
         [Test]
-        [Ignore("Not implemented")]
         public void SyncMethods_HaveDbConnectionAndNonDbConnectionVariants()
         {
-#if false
-            var hasDbConnection = interfaceDefinedMethods
-                                    .SyncMethods
-                                    .Where(m =>
-                                        m.Name != OpenConnection &&
-                                        m.Name != KeyValues)
-                                    .GroupBy(m => m.ContainsParamType(dbConnectionType));
-
-            Assert.AreEqual(hasDbConnection[false].Count(), )
-
-            List<MethodInfo> dbConnectionMethods = new List<MethodInfo>();
-            List<MethodInfo> nonDbConnectionMethods = new List<MethodInfo>();
-            interfaceDefinedMethods
-                .SyncMethods
-                .Where(m =>
-                    m.Name != OpenConnection &&
-                    m.Name != KeyValues)
-                .ForEach(m => {
-                    if (m.ContainsParamType(dbConnectionType)) dbConnectionMethods.Add(m);
-                    else nonDbConnectionMethods.Add(m);
-                });
-            nonDbConnectionMethods.ForEach(m => {
-                var o = m;
-            });
-#endif
-        }
-
-        /// <summary>
-        /// Confirm that all the hand coded method types were actually found
-        /// </summary>
-        /// <remarks>
-        /// TO DO: I think <see cref="MightyMethodType.Insert"/> isn't currently being found, for a start. What's going on?
-        /// </remarks>
-        [Test]
-        [Ignore("Not implemented")]
-        public void AllMethodTypes_ArePresent()
-        {
-
+            // TO DO:
+            // okay, we need to confirm that DbConnection is in a standard place, and that
+            // at least the ones without connection have a with connection variant
+            // (not all the ones with connection have a without connection variant, as basically
+            // when there are enough optional params already, it doesn't make anything simpler for
+            // anyone to have a without connection variant)
+            var syncMethodsWithoutDbConnection = interfaceDefinedMethods[MightySyncType.Sync][MightyVariantType.None];
+            var syncMethodsWithDbConnection = interfaceDefinedMethods[MightySyncType.Sync][MightyVariantType.DbConnection];
+            Assert.Fail();
         }
     }
 }
