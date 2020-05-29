@@ -18,9 +18,6 @@ namespace Mighty.MethodSignatures
 {
     public class MethodChecker<M, T> where T : class, new()
     {
-        private static readonly Type dbConnectionType = typeof(DbConnection);
-        private static readonly Type cancellationTokenType = typeof(CancellationToken);
-
         private Type mightyType;
 
         /// <summary>
@@ -258,9 +255,21 @@ namespace Mighty.MethodSignatures
                 }
             }
 
-            MightyVariantType variantType =
-                (method.ContainsParamType(typeof(DbConnection)) ? MightyVariantType.DbConnection : MightyVariantType.None) |
-                (method.ContainsParamType(typeof(CancellationToken)) ? MightyVariantType.CancellationToken : MightyVariantType.None);
+            MightyVariantType variantType = MightyVariantType.None;
+            foreach (var param in method.GetParameters())
+            {
+                if (param.ParameterType == typeof(DbConnection))
+                {
+                    variantType |= MightyVariantType.DbConnection;
+                    Assert.That(param.Name, Is.EqualTo("connection"), $"{typeof(DbConnection)} parameter name");
+                }
+
+                if (param.ParameterType == typeof(CancellationToken))
+                {
+                    variantType |= MightyVariantType.CancellationToken;
+                    Assert.That(param.Name, Is.EqualTo("cancellationToken"), $"{typeof(CancellationToken)} parameter name");
+                }
+            }
 
             MightySyncType syncType;
             if (method.IsStatic) syncType = MightySyncType.Static;

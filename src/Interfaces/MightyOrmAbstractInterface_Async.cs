@@ -1567,23 +1567,26 @@ namespace Mighty.Interfaces
         /// <param name="columns">Columns to return</param>
         /// <param name="limit">Maximum number of items to return</param>
         /// <param name="args">Auto-numbered input parameters</param>
+        /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
         abstract public Task<IAsyncEnumerable<T>> AllAsync(
             string where = null,
             string orderBy = null,
             string columns = null,
             int limit = 0,
+            DbConnection connection = null,
             params object[] args);
 
         /// <summary>
         /// Get <see cref="IEnumerable{T}"/> of items from the current table with WHERE and TOP/LIMIT specification.
         /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="where">WHERE clause</param>
         /// <param name="orderBy">ORDER BY clause</param>
         /// <param name="columns">Columns to return</param>
         /// <param name="limit">Maximum number of items to return</param>
         /// <param name="args">Auto-numbered input parameters</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
         abstract public Task<IAsyncEnumerable<T>> AllAsync(
             CancellationToken cancellationToken,
@@ -1591,6 +1594,7 @@ namespace Mighty.Interfaces
             string orderBy = null,
             string columns = null,
             int limit = 0,
+            DbConnection connection = null,
             params object[] args);
 
         /// <summary>
@@ -1600,28 +1604,32 @@ namespace Mighty.Interfaces
         /// <param name="orderBy">ORDER BY clause</param>
         /// <param name="columns">Columns to return</param>
         /// <param name="limit">Maximum number of items to return</param>
+        /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
         abstract public Task<IAsyncEnumerable<T>> AllAsync(
             object whereParams = null,
             string orderBy = null,
             string columns = null,
-            int limit = 0);
+            int limit = 0,
+            DbConnection connection = null);
 
         /// <summary>
         /// Get <see cref="IEnumerable{T}"/> of items from the current table with primary key or name-value where specification and TOP/LIMIT specification.
         /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
         /// <param name="orderBy">ORDER BY clause</param>
         /// <param name="columns">Columns to return</param>
         /// <param name="limit">Maximum number of items to return</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
         abstract public Task<IAsyncEnumerable<T>> AllAsync(
             CancellationToken cancellationToken,
             object whereParams = null,
             string orderBy = null,
             string columns = null,
-            int limit = 0);
+            int limit = 0,
+            DbConnection connection = null);
 
         /// <summary>
         /// Get <see cref="IEnumerable{T}"/> of items from the current table with WHERE and TOP/LIMIT specification and support for named parameters.

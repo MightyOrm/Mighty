@@ -851,6 +851,7 @@ namespace Mighty
         /// <param name="orderBy">ORDER BY clause</param>
         /// <param name="columns">Columns to return</param>
         /// <param name="limit">Maximum number of items to return</param>
+        /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered input parameters</param>
         /// <returns></returns>
         override public IEnumerable<T> All(
@@ -858,9 +859,10 @@ namespace Mighty
             string orderBy = null,
             string columns = null,
             int limit = 0,
+            DbConnection connection = null,
             params object[] args)
         {
-            return AllWithParams(where, orderBy, columns, limit, args: args);
+            return AllWithParams(where, orderBy, columns, limit, connection: connection, args: args);
         }
 
         /// <summary>
@@ -870,12 +872,14 @@ namespace Mighty
         /// <param name="orderBy">ORDER BY clause</param>
         /// <param name="columns">Columns to return</param>
         /// <param name="limit">Maximum number of items to return</param>
+        /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
         override public IEnumerable<T> All(
             object whereParams = null,
             string orderBy = null,
             string columns = null,
-            int limit = 0)
+            int limit = 0,
+            DbConnection connection = null)
         {
             Tuple<string, object, object[]> retval = GetWhereSpecFromWhereParams(whereParams);
             if (retval.Item3 != null)
@@ -884,7 +888,8 @@ namespace Mighty
             }
             return AllWithParams(
                 where: retval.Item1, inParams: retval.Item2,
-                orderBy: orderBy, columns: columns, limit: limit);
+                orderBy: orderBy, columns: columns, limit: limit,
+                connection: connection);
         }
 
         /// <summary>

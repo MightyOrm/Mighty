@@ -15,11 +15,30 @@ namespace Mighty.MethodSignatures
     [TestFixture]
     public class CheckMethods
     {
-        private readonly MethodChecker<MightyOrmAbstractInterface<TestGeneric>, TestGeneric> interfaceDefinedMethods;
+        private readonly MethodChecker<MightyOrmAbstractInterface<ExampleGenericClass>, ExampleGenericClass> interfaceDefinedMethods;
         private readonly MethodChecker<MightyOrm, dynamic> dynamicDefinedMethods;
-        private readonly MethodChecker<MightyOrm<TestGeneric>, TestGeneric> genericDefinedMethods;
+        private readonly MethodChecker<MightyOrm<ExampleGenericClass>, ExampleGenericClass> genericDefinedMethods;
 
-        public class TestGeneric { }
+        public class ExampleGenericClass { }
+
+        private static readonly Type objArray = typeof(object[]);
+
+        private bool IsParamsArg(ParameterInfo param, MethodInfo method)
+        {
+
+            bool retval;
+#if NET40
+            retval = param.ParameterType == objArray; // this isn't definitive, we could add check for .Name == "args" (but it still wouldn't be definitive)
+#else
+            retval = param.GetCustomAttribute(typeof(ParamArrayAttribute)) != null; // this is definitive
+            Assert.That(retval, Is.EqualTo(param.ParameterType == objArray), "If this fails the current NET40 'params' argument identification code probably will not work");
+            if (retval && param.Name != "args" && param.Name != "items")
+            {
+                throw new Exception($"Mighty 'params' arguments should all be named 'args' or 'items' in {method}");
+            }
+#endif
+            return retval;
+        }
 
         /// <summary>
         /// This initialisation stage already does quite a lot of sanity checking as to whether the methods on
@@ -28,9 +47,9 @@ namespace Mighty.MethodSignatures
         public CheckMethods()
         {
             // we are also using CheckMethods here as just a placeholder type
-            interfaceDefinedMethods = new MethodChecker<MightyOrmAbstractInterface<TestGeneric>, TestGeneric>(true, true);
+            interfaceDefinedMethods = new MethodChecker<MightyOrmAbstractInterface<ExampleGenericClass>, ExampleGenericClass>(true, true);
             dynamicDefinedMethods = new MethodChecker<MightyOrm, dynamic>(false, false);
-            genericDefinedMethods = new MethodChecker<MightyOrm<TestGeneric>, TestGeneric>(false, true);
+            genericDefinedMethods = new MethodChecker<MightyOrm<ExampleGenericClass>, ExampleGenericClass>(false, true);
         }
 
         /// <summary>
@@ -205,7 +224,6 @@ namespace Mighty.MethodSignatures
         [Test]
         public void DbConnectionAndCancellationToken_OccurInTheRightPlace()
         {
-            var objArray = typeof(object[]);
             var variantMethods = interfaceDefinedMethods[mi => mi.variantType != 0];
             foreach (var method in variantMethods)
             {
@@ -217,13 +235,7 @@ namespace Mighty.MethodSignatures
                 for (int i = 0; i < theParams.Length; i++)
                 {
                     var param = theParams[i];
-                    if (i == lastParam &&
-#if NET40
-                        param.ParameterType == objArray
-#else
-                        param.GetCustomAttribute(typeof(ParamArrayAttribute)) != null
-#endif
-                    )
+                    if (i == lastParam && IsParamsArg(param, method))
                     {
                         hasParamsArguments = true;
                     }
@@ -235,8 +247,6 @@ namespace Mighty.MethodSignatures
                     {
                         posCancellationToken = i;
                     }
-
-                    Assert.That(hasParamsArguments, Is.EqualTo(param.ParameterType == objArray), "If this fails the current NET40 'params' argument identification code probably will not work");
                 }
 
                 if (posCancellationToken != -1)
@@ -262,6 +272,139 @@ namespace Mighty.MethodSignatures
         }
 
         /// <summary>
+        /// Confirm that all methods without param of type <paramref name="additionalParamType"/> have an exact variant
+        /// with a param of that type in the right place.
+        /// If <paramref name="additionalParamType"/> is <c>null</c>, then just directly compare the method signatures.
+        /// At the same time, as it makes the next part of the tests easier, remove any matched methods from the original
+        /// 'with' list.
+        /// </summary>
+        /// <param name="wihtout">List without the param</param>
+        /// <param name="with">List where items hopefully with the param are to be found</param>
+        /// <param name="additionalParamType">The param type</param>
+        /// <param name="filter">Optional filter, if present only check methods for which filter is <c>true</c></param>
+        /// <param name="compareMethodNames">Optional way to compare method names, if not present they must just be the same</param>
+        private void CompareMethodVariants(
+            List<MightyMethodInfo> without,
+            List<MightyMethodInfo> with,
+            Type additionalParamType = null,
+            Func<MightyMethodInfo, bool> filter = null,
+            Func<string, string, bool> compareMethodNames = null)
+        {
+            for (int k = 0; k < without.Count; k++)
+            {
+                var mmi = without[k];
+
+                if (filter != null && !filter(mmi)) continue;
+
+                var method = mmi.method;
+                var theParams = method.GetParameters();
+
+                int insertAt;
+                if (additionalParamType == dbConnectionType)
+                {
+                    if (theParams.Length == 0)
+                    {
+                        // and will currently break the code below
+                        throw new Exception("Not meant to be getting any zero parameter methods through to this line");
+                    }
+
+                    insertAt = theParams.Length;
+                    if (IsParamsArg(theParams[insertAt - 1], method)) insertAt--;
+                }
+                else if (additionalParamType == cancellationTokenType)
+                {
+                    insertAt = 0;
+                }
+                else if (additionalParamType == null)
+                {
+                    // will never be triggered
+                    insertAt = theParams.Length;
+                }
+                else
+                {
+                    throw new Exception($"Unsupported {nameof(additionalParamType)} = {additionalParamType}");
+                }
+
+                bool match = false;
+                for (int i = 0; i < with.Count; i++)
+                {
+                    var otherMethod = with[i].method;
+                    if (compareMethodNames != null ? compareMethodNames(method.Name, otherMethod.Name) : method.Name == otherMethod.Name)
+                    {
+                        var otherParams = otherMethod.GetParameters();
+                        if (theParams.Length + (additionalParamType != null ? 1 : 0) == otherParams.Length)
+                        {
+                            match = true;
+                            for (int j = 0; j < theParams.Length; j++)
+                            {
+                                var match1 = theParams[j];
+                                var match2 = otherParams[j + (j >= insertAt ? 1 : 0)];
+                                if (match1.Name != match2.Name || match1.ParameterType != match2.ParameterType)
+                                {
+                                    match = false;
+                                    break;
+                                }
+                            }
+                            if (match && additionalParamType != null)
+                            {
+                                if (otherParams[insertAt].ParameterType != additionalParamType)
+                                {
+                                    match = false;
+                                }
+                                else
+                                {
+                                    Assert.That(otherParams[insertAt].IsOptional, Is.EqualTo(false), $"Expection non-optional {additionalParamType.Name} param when matching to method no {additionalParamType.Name} param");
+                                }
+                            }
+                        }
+                    }
+                    if (match)
+                    {
+                        // remove it, so that the ones to check next are only the ones that didn't match here
+                        with.RemoveAt(i);
+                        break;
+                    }
+                }
+                if (!match)
+                {
+                    Assert.Fail($"No {(additionalParamType != null ? additionalParamType.Name : "async")} variant for {method}");
+                }
+            }
+        }
+
+        /// <summary>
+        /// All sync methods with no <see cref="DbConnection"/> param must have an exact variant but with <see cref="DbConnection"/>.
+        /// It is not the case that all the methods with <see cref="DbConnection"/> must have a variant without - but in that case
+        /// at least the <see cref="DbConnection"/> param should always be optional.
+        /// </summary>
+        [Test]
+        public void SyncMethods_HaveDbConnectionAndNonDbConnectionVariants()
+        {
+            var syncMethodsWithoutDbConnection = interfaceDefinedMethods[MightySyncType.Sync][MightyVariantType.None];
+            var syncMethodsWithDbConnection = interfaceDefinedMethods[MightySyncType.Sync][MightyVariantType.DbConnection];
+
+            // first confirm that all methods without DbConnection have an exact variant but with DbConnection
+            CompareMethodVariants(
+                syncMethodsWithoutDbConnection.mightyMethods,
+                syncMethodsWithDbConnection.mightyMethods,
+                dbConnectionType,
+                // no DbConnection variant expected or required for these types
+                mmi => !(
+                    mmi.methodType == MightyMethodType.OpenConnection
+#if KEY_VALUES
+                    || mmi.methodType == MightyMethodType.KeyValues
+#endif
+                )
+            );
+
+            // now confirm that all the remaining methods at least have the DbConnection param as optional
+            foreach (var method in syncMethodsWithDbConnection)
+            {
+                Assert.That(method.GetParameters().Where(p => p.ParameterType == dbConnectionType).FirstOrDefault().IsOptional, $"{nameof(DbConnection)} param in unmatched methods must be optional");
+            }
+        }
+
+        /// <summary>
         /// All sync methods must have an async variant without a <see cref="CancellationToken"/>
         /// </summary>
         /// <remarks>
@@ -273,7 +416,15 @@ namespace Mighty.MethodSignatures
         {
             var syncMethods = interfaceDefinedMethods[MightySyncType.Sync];
             var asyncMethodsWithoutToken = interfaceDefinedMethods[MightySyncType.Async][mi => (mi.variantType & MightyVariantType.CancellationToken) == 0];
-            Assert.Fail();
+
+            // confirm that all sync methods have an exact async variant without a CancellationToken
+            CompareMethodVariants(
+                syncMethods.mightyMethods,
+                asyncMethodsWithoutToken.mightyMethods,
+                compareMethodNames: (s, a) => a == s + "Async");
+
+            // and confirm that no unmatched async methods are left
+            Assert.That(asyncMethodsWithoutToken.mightyMethods.Count, Is.EqualTo(0), $"Expected no unmatched async methods");
         }
 
         /// <summary>
@@ -284,24 +435,15 @@ namespace Mighty.MethodSignatures
         {
             var asyncMethodsWithoutToken = interfaceDefinedMethods[MightySyncType.Async][mi => (mi.variantType & MightyVariantType.CancellationToken) == 0];
             var asyncMethodsWithToken = interfaceDefinedMethods[MightySyncType.Async][mi => (mi.variantType & MightyVariantType.CancellationToken) == MightyVariantType.CancellationToken];
-            Assert.Fail();
-        }
 
-        /// <summary>
-        /// All sync methods must have a <see cref="DbConnection"/> and non-<see cref="DbConnection"/> variant.
-        /// </summary>
-        [Test]
-        public void SyncMethods_HaveDbConnectionAndNonDbConnectionVariants()
-        {
-            // TO DO:
-            // okay, we need to confirm that DbConnection is in a standard place, and that
-            // at least the ones without connection have a with connection variant
-            // (not all the ones with connection have a without connection variant, as basically
-            // when there are enough optional params already, it doesn't make anything simpler for
-            // anyone to have a without connection variant)
-            var syncMethodsWithoutDbConnection = interfaceDefinedMethods[MightySyncType.Sync][MightyVariantType.None];
-            var syncMethodsWithDbConnection = interfaceDefinedMethods[MightySyncType.Sync][MightyVariantType.DbConnection];
-            Assert.Fail();
+            // confirm that all methods without a CancellationToken have an exact variant but with a CancellationToken
+            CompareMethodVariants(
+                asyncMethodsWithoutToken.mightyMethods,
+                asyncMethodsWithToken.mightyMethods,
+                cancellationTokenType);
+
+            // and confirm that nothing with a CancellationToken was left unmatched
+            Assert.That(asyncMethodsWithToken.mightyMethods.Count, Is.EqualTo(0), $"Expected no unmatched methods with a {cancellationTokenType.Name}");
         }
     }
 }

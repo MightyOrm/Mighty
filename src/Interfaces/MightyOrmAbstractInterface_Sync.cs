@@ -771,6 +771,7 @@ namespace Mighty.Interfaces
         /// <param name="orderBy">ORDER BY clause</param>
         /// <param name="columns">Columns to return</param>
         /// <param name="limit">Maximum number of items to return</param>
+        /// <param name="connection">Optional connection to use</param>
         /// <param name="args">Auto-numbered input parameters</param>
         /// <returns></returns>
         abstract public IEnumerable<T> All(
@@ -778,7 +779,7 @@ namespace Mighty.Interfaces
             string orderBy = null,
             string columns = null,
             int limit = 0,
-            // TO DO: This has been left out, and should FAIL when I've put in tests for this!
+            DbConnection connection = null,
             params object[] args);
 
         /// <summary>
@@ -788,14 +789,14 @@ namespace Mighty.Interfaces
         /// <param name="orderBy">ORDER BY clause</param>
         /// <param name="columns">Columns to return</param>
         /// <param name="limit">Maximum number of items to return</param>
+        /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
         abstract public IEnumerable<T> All(
             object whereParams = null,
             string orderBy = null,
             string columns = null,
-            int limit = 0
-            // TO DO: This has been left out, and should FAIL when I've put in tests for this!
-            );
+            int limit = 0,
+            DbConnection connection = null);
 
         /// <summary>
         /// Get <see cref="IEnumerable{T}"/> of items from the current table with WHERE and TOP/LIMIT specification and support for named parameters.
