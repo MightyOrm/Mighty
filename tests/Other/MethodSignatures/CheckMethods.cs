@@ -19,76 +19,90 @@ namespace Mighty.MethodSignatures
         private readonly MethodChecker<MightyOrm<CheckMethods>, CheckMethods> genericMightyDefinedMethods;
 
         /// <summary>
-        /// This initialisation already does a lot of sanity checks as to whether the found methods on
-        /// each interface are as expected.
+        /// This initialisation stage already does quite a lot of sanity checking as to whether the methods on
+        /// each class/interface are as expected.
         /// </summary>
         public CheckMethods()
         {
+            // we are also using CheckMethods here as just a placeholder type
             interfaceDefinedMethods = new MethodChecker<MightyOrmAbstractInterface<CheckMethods>, CheckMethods>(true, true);
             dynamicMightyDefinedMethods = new MethodChecker<MightyOrm, dynamic>(false, false);
             genericMightyDefinedMethods = new MethodChecker<MightyOrm<CheckMethods>, CheckMethods>(false, true);
         }
 
         /// <summary>
-        /// Expecting the factory methods inherited from Massive, and nothing else.
+        /// In terms of static methods, we are expecting the factory method inherited from Massive and nothing else.
         /// </summary>
         [Test]
         public void StaticFactoryMethods_Present()
         {
-            Assert.AreEqual(0, interfaceDefinedMethods.StaticMethods.Count);
-            Assert.AreEqual(1, dynamicMightyDefinedMethods.StaticMethods.Count);
-            Assert.AreEqual(1, genericMightyDefinedMethods.StaticMethods.Count);
+            Assert.AreEqual(0, interfaceDefinedMethods[MightySyncType.Static].MethodCount);
+            Assert.AreEqual(1, dynamicMightyDefinedMethods[MightySyncType.Static].MethodCount);
+            Assert.AreEqual(1, genericMightyDefinedMethods[MightySyncType.Static].MethodCount);
         }
 
         /// <summary>
-        /// Not expecting any additional methods to be defined on <see cref="MightyOrm"/> itself.
+        /// We are not expecting any additional methods to be defined on <see cref="MightyOrm"/> (for dynamic type) itself,
+        /// they should all be defined in what it derives from, i.e. <see cref="MightyOrm{T}"/> with a T of dynamic.
         /// </summary>
         [Test]
         public void MightyOrm_IsJustMightyOrmDynamic()
         {
-            Assert.AreEqual(0, dynamicMightyDefinedMethods.SyncOnlyMethods.Count);
-            Assert.AreEqual(0, dynamicMightyDefinedMethods.SyncMethods.Count);
-#if !NET40
-            Assert.AreEqual(0, dynamicMightyDefinedMethods.AsyncMethods.Count);
-#endif
+            Assert.AreEqual(0, dynamicMightyDefinedMethods[MightySyncType.SyncOnly].MethodCount);
+            Assert.AreEqual(0, dynamicMightyDefinedMethods[MightySyncType.Sync].MethodCount);
+            Assert.AreEqual(0, dynamicMightyDefinedMethods[MightySyncType.Async].MethodCount);
         }
 
         /// <summary>
-        /// As in the case of the cache tests, it's a bit of extra effort to keep these up to
-        /// date, but it's probably worth it, as a sanity check that any changes you have to make
-        /// here correspond only to changes you intended to make.
-        /// </summary>
-        [Test]
-        public void Interface_MethodCounts()
-        {
-            Assert.AreEqual(10, interfaceDefinedMethods.SyncOnlyMethods.Count);
-#if KEY_VALUES
-            Assert.AreEqual(72, interfaceDefinedMethods.SyncMethods.Count);
-#else
-            Assert.AreEqual(71, interfaceDefinedMethods.SyncMethods.Count);
-#endif
-#if !NET40
-#if KEY_VALUES
-            Assert.AreEqual(140, interfaceDefinedMethods.AsyncMethods.Count);
-#else
-            Assert.AreEqual(138, interfaceDefinedMethods.AsyncMethods.Count);
-#endif
-#endif
-        }
-
-        /// <summary>
-        /// We don't want the generic class to have any public methods that are not on the abstract interface.
-        /// (This is only checking the total counts at this point, but assuming that the class implements the
-        /// abstract interface, that is all we need to check.)
+        /// We don't expect the generic class to have any public methods that are not on the abstract interface.
+        /// This test only checks the total counts, but assuming that the class actually implements the abstract interface,
+        /// that is all we need to check (we must have as many methods, we just need to check that we don't have more).
         /// </summary>
         [Test]
         public void GenericClass_NoExtraMethods()
         {
-            Assert.AreEqual(interfaceDefinedMethods.SyncOnlyMethods.Count, genericMightyDefinedMethods.SyncOnlyMethods.Count);
-            Assert.AreEqual(interfaceDefinedMethods.SyncMethods.Count, genericMightyDefinedMethods.SyncMethods.Count);
-#if !NET40
-            Assert.AreEqual(interfaceDefinedMethods.AsyncMethods.Count, genericMightyDefinedMethods.AsyncMethods.Count);
+            Assert.AreEqual(
+                interfaceDefinedMethods[MightySyncType.SyncOnly].MethodCount,
+                genericMightyDefinedMethods[MightySyncType.SyncOnly].MethodCount);
+            Assert.AreEqual(
+                interfaceDefinedMethods[MightySyncType.Sync].MethodCount,
+                genericMightyDefinedMethods[MightySyncType.Sync].MethodCount);
+            Assert.AreEqual(
+                interfaceDefinedMethods[MightySyncType.Async].MethodCount,
+                genericMightyDefinedMethods[MightySyncType.Async].MethodCount);
+        }
+
+        /// <summary>
+        /// As in the case of the caching tests, it's a bit of extra effort to keep these numbers in this test
+        /// up to date but it's probably worth it as a sanity check that any changes required here correspond
+        /// only to intended changes elsewhere.
+        /// </summary>
+        /// <remarks>
+        /// Given the comments on the two tests just above, in all other methods below here it makes sense to
+        /// treat the abstract interface methods as the canonical set of methods for all remaining checks.
+        /// </remarks>
+        [Test]
+        public void Interface_MethodCounts()
+        {
+            Assert.AreEqual(10, interfaceDefinedMethods[MightySyncType.SyncOnly].MethodCount);
+            Assert.AreEqual(
+#if KEY_VALUES
+                72,
+#else
+                71,
 #endif
+                interfaceDefinedMethods[MightySyncType.Sync].MethodCount);
+            Assert.AreEqual(
+#if NET40
+                0,
+#else
+#if KEY_VALUES
+                140,
+#else
+                138,
+#endif
+#endif
+                interfaceDefinedMethods[MightySyncType.Async].MethodCount);
         }
 
         private const string CreateCommand = "CreateCommand";
@@ -104,8 +118,7 @@ namespace Mighty.MethodSignatures
         public void SyncOnlyMethods_CreateCommandCount()
         {
             Assert.AreEqual(3,
-                interfaceDefinedMethods
-                    .SyncOnlyMethods
+                interfaceDefinedMethods[MightySyncType.SyncOnly]
                     .Where(m => m.Name.StartsWith(CreateCommand)).Select(m => m).Count());
         }
 
@@ -119,18 +132,20 @@ namespace Mighty.MethodSignatures
         [Test]
         public void SyncOnlyMethods_DoNotContainDbConnection()
         {
-            interfaceDefinedMethods
-                .SyncOnlyMethods
+            interfaceDefinedMethods[MightySyncType.SyncOnly]
                 .Where(m => !m.Name.StartsWith(CreateCommand))
                 .DoNotContainParamType(dbConnectionType);
         }
 
+        /// <summary>
+        /// We expect just one OpenConnection method.
+        /// TO DO: Do we want `StartsWith` here, and in the test above?
+        /// </summary>
         [Test]
         public void SyncMethods_OpenConnectionCount()
         {
             Assert.AreEqual(1,
-                interfaceDefinedMethods
-                    .SyncMethods
+                interfaceDefinedMethods[MightySyncType.Sync]
                     .Where(m => m.Name.StartsWith(OpenConnection)).Count());
         }
 
@@ -140,8 +155,7 @@ namespace Mighty.MethodSignatures
         [Test]
         public void SyncOnlyMethods_DoNotContainCancellationToken()
         {
-            interfaceDefinedMethods
-                .SyncOnlyMethods
+            interfaceDefinedMethods[MightySyncType.SyncOnly]
                 .DoNotContainParamType(cancellationTokenType);
         }
 
@@ -151,14 +165,13 @@ namespace Mighty.MethodSignatures
         [Test]
         public void SyncMethods_DoNotContainCancellationToken()
         {
-            interfaceDefinedMethods
-                .SyncMethods
+            interfaceDefinedMethods[MightySyncType.Sync]
                 .DoNotContainParamType(cancellationTokenType);
         }
 
         /// <summary>
         /// All sync methods must have two async variants (one with and one without a <see cref="CancellationToken"/>),
-        /// and vice versa.
+        /// and vice versa, and the <see cref="CancellationToken"/> must occur in the right place in the args list.
         /// </summary>
         /// <remarks>
         /// We've already checked the method return types when gathering the lists, so here we only need to check
@@ -171,6 +184,7 @@ namespace Mighty.MethodSignatures
         }
 
         /// <summary>
+        /// *** May not need this given the above? ***
         /// All async methods must have a <see cref="CancellationToken"/> and non-<see cref="CancellationToken"/> variant,
         /// and the <see cref="CancellationToken"/> must occur in the right place in the args list.
         /// </summary>
@@ -181,8 +195,8 @@ namespace Mighty.MethodSignatures
         }
 
         /// <summary>
-        /// All sync methods must have a <see cref="DbCommand"/> and non-<see cref="DbCommand"/> variant,
-        /// and the <see cref="DbCommand"/> must occur in the right place in the args list.
+        /// All sync methods must have a <see cref="DbConnection"/> and non-<see cref="DbConnection"/> variant,
+        /// and the <see cref="DbConnection"/> must occur in the right place in the args list.
         /// </summary>
         [Test]
         [Ignore("Not implemented")]
@@ -213,6 +227,19 @@ namespace Mighty.MethodSignatures
                 var o = m;
             });
 #endif
+        }
+
+        /// <summary>
+        /// Confirm that all the hand coded method types were actually found
+        /// </summary>
+        /// <remarks>
+        /// TO DO: I think <see cref="MightyMethodType.Insert"/> isn't currently being found, for a start. What's going on?
+        /// </remarks>
+        [Test]
+        [Ignore("Not implemented")]
+        public void AllMethodTypes_ArePresent()
+        {
+
         }
     }
 }
