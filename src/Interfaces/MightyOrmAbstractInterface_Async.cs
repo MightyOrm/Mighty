@@ -1860,6 +1860,30 @@ namespace Mighty.Interfaces
         /// and objects with non-default primary keys are updated.
         /// </summary>
         /// <param name="items">The items</param>
+        /// <returns></returns>
+        abstract public Task<int> SaveAsync(
+            IEnumerable<object> items);
+
+        /// <summary>
+        /// Save array or other <see cref="IEnumerable"/> of items.
+        /// 'Save' means
+        /// objects with missing or default primary keys are inserted
+        /// and objects with non-default primary keys are updated.
+        /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <param name="items">The items</param>
+        /// <returns></returns>
+        abstract public Task<int> SaveAsync(
+            CancellationToken cancellationToken,
+            IEnumerable<object> items);
+
+        /// <summary>
+        /// Save array or other <see cref="IEnumerable"/> of items.
+        /// 'Save' means
+        /// objects with missing or default primary keys are inserted
+        /// and objects with non-default primary keys are updated.
+        /// </summary>
+        /// <param name="items">The items</param>
         /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
         abstract public Task<int> SaveAsync(
@@ -2012,6 +2036,24 @@ namespace Mighty.Interfaces
             CancellationToken cancellationToken,
             DbConnection connection,
             params object[] items);
+
+        /// <summary>
+        /// Update array or other <see cref="IEnumerable"/> of items.
+        /// </summary>
+        /// <param name="items">The items</param>
+        /// <returns></returns>
+        abstract public Task<int> UpdateAsync(
+            IEnumerable<object> items);
+
+        /// <summary>
+        /// Update array or other <see cref="IEnumerable"/> of items.
+        /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <param name="items">The items</param>
+        /// <returns></returns>
+        abstract public Task<int> UpdateAsync(
+            CancellationToken cancellationToken,
+            IEnumerable<object> items);
 
         /// <summary>
         /// Update array or other <see cref="IEnumerable"/> of items.

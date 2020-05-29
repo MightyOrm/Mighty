@@ -2099,6 +2099,36 @@ namespace Mighty
         /// and objects with non-default primary keys are updated.
         /// </summary>
         /// <param name="items">The items</param>
+        /// <returns></returns>
+        override public async Task<int> SaveAsync(
+            IEnumerable<object> items)
+        {
+            return (await ActionOnItemsWithOutputAsync(OrmAction.Save, null, items).ConfigureAwait(false)).Item1;
+        }
+
+        /// <summary>
+        /// Save array or other <see cref="IEnumerable"/> of items.
+        /// 'Save' means
+        /// objects with missing or default primary keys are inserted
+        /// and objects with non-default primary keys are updated.
+        /// </summary>
+        /// <param name="items">The items</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns></returns>
+        override public async Task<int> SaveAsync(
+            CancellationToken cancellationToken,
+            IEnumerable<object> items)
+        {
+            return (await ActionOnItemsWithOutputAsync(OrmAction.Save, null, items, cancellationToken).ConfigureAwait(false)).Item1;
+        }
+
+        /// <summary>
+        /// Save array or other <see cref="IEnumerable"/> of items.
+        /// 'Save' means
+        /// objects with missing or default primary keys are inserted
+        /// and objects with non-default primary keys are updated.
+        /// </summary>
+        /// <param name="items">The items</param>
         /// <param name="connection">Optional connection to use</param>
         /// <returns></returns>
         override public async Task<int> SaveAsync(
@@ -2292,6 +2322,30 @@ namespace Mighty
             params object[] items)
         {
             return (await ActionOnItemsWithOutputAsync(OrmAction.Update, connection, items, cancellationToken).ConfigureAwait(false)).Item1;
+        }
+
+        /// <summary>
+        /// Update array or other <see cref="IEnumerable"/> of items.
+        /// </summary>
+        /// <param name="items">The items</param>
+        /// <returns></returns>
+        override public async Task<int> UpdateAsync(
+            IEnumerable<object> items)
+        {
+            return (await ActionOnItemsWithOutputAsync(OrmAction.Update, null, items).ConfigureAwait(false)).Item1;
+        }
+
+        /// <summary>
+        /// Update array or other <see cref="IEnumerable"/> of items.
+        /// </summary>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <param name="items">The items</param>
+        /// <returns></returns>
+        override public async Task<int> UpdateAsync(
+            CancellationToken cancellationToken,
+            IEnumerable<object> items)
+        {
+            return (await ActionOnItemsWithOutputAsync(OrmAction.Update, null, items, cancellationToken).ConfigureAwait(false)).Item1;
         }
 
         /// <summary>
