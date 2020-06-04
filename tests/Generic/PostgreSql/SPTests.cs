@@ -32,7 +32,7 @@ namespace Mighty.Generic.Tests.PostgreSql
             int count = 0;
             foreach(var employee in employees)
             {
-                Console.WriteLine(employee.firstname + " " + employee.lastname);
+                MDebug.WriteLine(employee.firstname + " " + employee.lastname);
                 count++;
             }
             Assert.AreEqual(9, count);
@@ -53,7 +53,7 @@ namespace Mighty.Generic.Tests.PostgreSql
                 var employees = db.Query("SELECT * FROM cursor_employees()");
                 foreach(var employee in employees)
                 {
-                    Console.WriteLine(employee.firstname + " " + employee.lastname);
+                    MDebug.WriteLine(employee.firstname + " " + employee.lastname);
                     count++;
                 }
                 scope.Complete();
@@ -71,7 +71,7 @@ namespace Mighty.Generic.Tests.PostgreSql
             int count = 0;
             foreach(var employee in employees)
             {
-                Console.WriteLine(employee.firstname + " " + employee.lastname);
+                MDebug.WriteLine(employee.firstname + " " + employee.lastname);
                 count++;
             }
             Assert.AreEqual(9, count);

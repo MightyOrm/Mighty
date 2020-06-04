@@ -25,7 +25,7 @@ namespace Mighty.Generic.Tests.Sqlite
             Assert.AreEqual(347, allRows.Count);
             foreach(var a in allRows)
             {
-                Console.WriteLine("{0} {1}", a.AlbumId, a.Title);
+                MDebug.WriteLine("{0} {1}", a.AlbumId, a.Title);
             }
         }
 

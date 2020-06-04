@@ -53,7 +53,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
             var people = await db.QueryFromProcedureAsync("uspGetEmployeeManagers", new { BusinessEntityID = 35 });
             int count = 0;
             await people.ForEachAsync(person => {
-                Console.WriteLine(person.FirstName + " " + person.LastName);
+                MDebug.WriteLine(person.FirstName + " " + person.LastName);
                 count++;
             });
             Assert.AreEqual(3, count);

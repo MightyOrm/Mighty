@@ -174,7 +174,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
             int count = 0;
             foreach(var innerRecord in setOfRecords)
             {
-                Console.WriteLine(innerRecord.sum + "\t|\t" + innerRecord.product);
+                MDebug.WriteLine(innerRecord.sum + "\t|\t" + innerRecord.product);
                 count++;
             }
             Assert.AreEqual(4, count);
@@ -191,7 +191,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
             int count = 0;
             foreach(var employee in employees)
             {
-                Console.WriteLine(employee.firstname + " " + employee.lastname);
+                MDebug.WriteLine(employee.firstname + " " + employee.lastname);
                 count++;
             }
             Assert.AreEqual(9, count);
@@ -212,7 +212,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
                 var employees = db.Query("SELECT * FROM cursor_employees()");
                 foreach(var employee in employees)
                 {
-                    Console.WriteLine(employee.firstname + " " + employee.lastname);
+                    MDebug.WriteLine(employee.firstname + " " + employee.lastname);
                     count++;
                 }
                 scope.Complete();
@@ -230,7 +230,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
             int count = 0;
             foreach(var employee in employees)
             {
-                Console.WriteLine(employee.firstname + " " + employee.lastname);
+                MDebug.WriteLine(employee.firstname + " " + employee.lastname);
                 count++;
             }
             Assert.AreEqual(9, count);
@@ -553,7 +553,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
             //var resultLargeProcTest = db.QueryFromProcedure("lump2", returnParams: new { abc = new Cursor() });
             //foreach (var item in resultLargeProcTest)
             //{
-            //    Console.WriteLine(item.id);
+            //    MDebug.WriteLine(item.id);
             //    break;
             //}
 
@@ -570,7 +570,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
             //        var singleItemTest = db.QueryWithParams($@"FETCH 5000000 FROM ""{result.abc}"";", connection: conn);
             //        foreach (var item in singleItemTest)
             //        {
-            //            Console.WriteLine(item.id);
+            //            MDebug.WriteLine(item.id);
             //            break;
             //        }
             //         NB plain Execute() did NOT take a connection, and changing this MIGHT be an API breaking change??? TEST...!

@@ -25,7 +25,7 @@ namespace Mighty.Generic.Tests.PostgreSql
             Assert.AreEqual(91, allRows.Count);
             foreach(var c in allRows)
             {
-                Console.WriteLine("{0} {1}", c.customerid, c.companyname);
+                MDebug.WriteLine("{0} {1}", c.customerid, c.companyname);
             }
         }
 

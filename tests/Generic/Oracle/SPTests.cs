@@ -67,7 +67,7 @@ namespace Mighty.Generic.Tests.Oracle
             int count = 0;
             foreach(var employee in employees)
             {
-                Console.WriteLine(employee.EMPNO + " " + employee.ENAME);
+                MDebug.WriteLine(employee.EMPNO + " " + employee.ENAME);
                 count++;
             }
             Assert.AreEqual(3, count);
@@ -83,7 +83,7 @@ namespace Mighty.Generic.Tests.Oracle
             int count = 0;
             foreach(var employee in moreEmployees)
             {
-                Console.WriteLine(employee.EMPNO + " " + employee.ENAME);
+                MDebug.WriteLine(employee.EMPNO + " " + employee.ENAME);
                 count++;
             }
             Assert.AreEqual(14, count);

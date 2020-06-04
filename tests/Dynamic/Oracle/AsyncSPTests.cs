@@ -124,7 +124,7 @@ namespace Mighty.Dynamic.Tests.Oracle
             var employees = await db.QueryFromProcedureAsync("get_dept_emps", inParams: new { p_DeptNo = 10 }, returnParams: new { v_rc = new Cursor() });
             int count = 0;
             await employees.ForEachAsync(employee => {
-                Console.WriteLine(employee.EMPNO + " " + employee.ENAME);
+                MDebug.WriteLine(employee.EMPNO + " " + employee.ENAME);
                 count++;
             });
             Assert.AreEqual(3, count);
@@ -139,7 +139,7 @@ namespace Mighty.Dynamic.Tests.Oracle
             var moreEmployees = await db.QueryFromProcedureAsync("myproc", outParams: new { prc = new Cursor() });
             int count = 0;
             await moreEmployees.ForEachAsync(employee => {
-                Console.WriteLine(employee.EMPNO + " " + employee.ENAME);
+                MDebug.WriteLine(employee.EMPNO + " " + employee.ENAME);
                 count++;
             });
             Assert.AreEqual(14, count);
