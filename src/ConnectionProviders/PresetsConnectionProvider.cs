@@ -12,16 +12,15 @@ namespace Mighty.ConnectionProviders
             DatabasePluginType = databasePluginType;
         }
 
-        // fluent API
-        override public ConnectionProvider Init(string connectionString)
+        /// <remarks>
+        ///  - fluent API
+        ///  - this is an internal class used when we need to create a new, related instance of Mighty for internal use only, in the odd
+        ///    occasional situation where the current instance can't quite do what is needed, and so the exact settings required are
+        ///    passed in to the constructor; if the user has set global connection string or provider name settings then these will be
+        ///    passed in to this Init call, but should just be ignored
+        /// </remarks>
+        override public ConnectionProvider Init(string connectionString, string providerName)
         {
-            if (connectionString != null)
-            {
-                // we have to ignore this - setting a GlobalConnectionString will result in that being passed in to here -
-                // and we don't want to disable a general purpose connection provider from possibly taking a connection string
-                // (so we don't want Mighty to not try to use GlobalConnectionString just because we have a connectionProvider, I don't think)
-                ////throw new InvalidOperationException($"{nameof(PresetsConnectionProvider)} does not support non-null {nameof(connectionString)}");
-            }
             return this;
         }
     }

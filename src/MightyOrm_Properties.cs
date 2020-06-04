@@ -79,6 +79,11 @@ namespace Mighty
         static public string GlobalConnectionString { get; set; }
 
         /// <summary>
+        /// Allows setting a global provider name (used by default if nothing else set; set it on untyped <see cref="MightyOrm"/> to set it everywhere).
+        /// </summary>
+        static public string GlobalProviderName { get; set; }
+
+        /// <summary>
         /// Allows setting a global validator (used by default if nothing else set; set it on untyped <see cref="MightyOrm"/> to set it everywhere).
         /// </summary>
         static public Validator GlobalValidator { get; set; }

@@ -38,7 +38,14 @@ namespace Mighty.ConnectionProviders
         /// or a name by which a connection string can be looked up elsewhere. (But note that your
         /// connection provider can just ignore this input parameter if it needs to.)
         /// </param>
+        /// <param name="providerName">
+        /// The provider name. This must be set somewhere in order for Mighty to load the database
+        /// specific code which it has in order to make its behaviour consistent between databases.
+        /// This can either be provided: here; in the connection string using ProviderName=;
+        /// in .NET Framework only (but not .NET Core) it will be loaded from the connection string
+        /// settings in the config file, if a connection string name is passed in <paramref name="connectionStringOrName"/>.
+        /// </param>
         /// <returns></returns>
-        abstract public ConnectionProvider Init(string connectionStringOrName);
+        abstract public ConnectionProvider Init(string connectionStringOrName, string providerName);
     }
 }

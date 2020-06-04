@@ -19,8 +19,13 @@ namespace Mighty.ConnectionProviders
         }
 #endif
 
-        // fluent API
-        override public ConnectionProvider Init(string connectionString)
+        /// <remarks>
+        ///  - fluent API
+        ///  - I think that we do want to find (and remove if present) the provider name in the connection string, even if
+        ///    the user has passed in a providerName which will then override it; note that the ConfigFileConnectionProvider
+        ///    has already been tried at this point (.NET Framework only)
+        /// </remarks>
+        override public ConnectionProvider Init(string connectionString, string providerName)
         {
             const string ProviderName = "ProviderName";
             string _providerName = null;
@@ -58,6 +63,10 @@ namespace Mighty.ConnectionProviders
                     , ex);
                 }
             }
+
+            // overwrite the work we've just done with the passed in value if present (see remarks at start of method)
+            _providerName = providerName ?? _providerName;
+
             if (_providerName == null)
             {
                 throw new InvalidOperationException($"Cannot find {ProviderName}=... in connection string passed to MightyOrm"

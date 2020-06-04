@@ -8,17 +8,17 @@ namespace Mighty.ConnectionProviders
     internal class ConfigFileConnectionProvider : ConnectionProvider
     {
         // fluent API
-        override public ConnectionProvider Init(string connectionStringName)
+        override public ConnectionProvider Init(string connectionStringName, string providerName)
         {
             ConnectionStringSettings connectionStringSettings = GetConnectionStringSettings(connectionStringName);
             if (connectionStringSettings != null)
             {
                 ConnectionString = connectionStringSettings.ConnectionString;
-                string providerName = connectionStringSettings.ProviderName;
-                if (providerName != null)
+                string finalProviderName = providerName ?? connectionStringSettings.ProviderName;
+                if (finalProviderName != null)
                 {
-                    DatabasePluginType = MightyProviderFactories.GetDatabasePluginAsType(providerName);
-                    ProviderFactoryInstance = DbProviderFactories.GetFactory(providerName);
+                    DatabasePluginType = MightyProviderFactories.GetDatabasePluginAsType(finalProviderName);
+                    ProviderFactoryInstance = DbProviderFactories.GetFactory(finalProviderName);
                 }
             }
             return this;

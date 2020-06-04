@@ -49,6 +49,8 @@ namespace Mighty
         /// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
         /// <param name="profiler">Optional SQL profiler</param>
         /// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyOrm)</param>
+        /// <param name="providerName">Provider name may be passed here, or may be set by adding ProviderName= in the connectionString parameter, or in .NET Framework only
+        /// (but not .NET Core) may be found in the config file if a connection string name is passed in the connectionString parameter</param>
         /// <remarks>
         /// What about the SQL Profiler? Should this (really) go into here as a parameter?
         /// ALL column names in the above are pre-mapped C# names, not post-mapped SQL names, where you have a mapper which makes them different.
@@ -62,11 +64,12 @@ namespace Mighty
                          Validator validator = null,
                          SqlNamingMapper mapper = null,
                          DataProfiler profiler = null,
-                         ConnectionProvider connectionProvider = null)
+                         ConnectionProvider connectionProvider = null,
+                         string providerName = null)
         {
             Init(connectionString, tableName, primaryKeys,
                 valueField,
-                sequence, columns, validator, mapper, profiler, connectionProvider);
+                sequence, columns, validator, mapper, profiler, connectionProvider, providerName);
         }
 #else
         /// <summary>
@@ -88,6 +91,8 @@ namespace Mighty
         /// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
         /// <param name="profiler">Optional SQL profiler</param>
         /// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyOrm)</param>
+        /// <param name="providerName">Provider name may be passed here, or may be set by adding ProviderName= in the connectionString parameter, or in .NET Framework only
+        /// (but not .NET Core) may be found in the config file if a connection string name is passed in the connectionString parameter</param>
         /// <remarks>
         /// What about the SQL Profiler? Should this (really) go into here as a parameter?
         /// ALL column names in the above are pre-mapped C# names, not post-mapped SQL names, where you have a mapper which makes them different.
@@ -100,10 +105,11 @@ namespace Mighty
                          Validator validator = null,
                          SqlNamingMapper mapper = null,
                          DataProfiler profiler = null,
-                         ConnectionProvider connectionProvider = null)
+                         ConnectionProvider connectionProvider = null,
+                         string providerName = null)
         {
             Init(connectionString, tableName, primaryKeys,
-                sequence, columns, validator, mapper, profiler, connectionProvider);
+                sequence, columns, validator, mapper, profiler, connectionProvider, providerName);
         }
 #endif
         #endregion
@@ -118,17 +124,19 @@ namespace Mighty
         /// On .NET Framework (but not .NET Core) this can instead be a connection string name, in which case the
         /// connection string itself and provider name are looked up in the ConnectionStrings section of the .config file.
         /// </param>
+        /// <param name="providerName">Provider name may be passed here, or may be set by adding ProviderName= in the connectionString parameter, or in .NET Framework only
+        /// (but not .NET Core) may be found in the config file if a connection string name is passed in the connectionString parameter</param>
         /// <returns></returns>
         /// <remarks>
         /// Static, so can't be made part of any kind of interface, even though we want this on the generic and dynamic versions.
         /// I think this requires new because of the conflict with the <see cref="MightyOrm{T}"/> version.
         /// TO DO: check.
         /// </remarks>
-        new static public MightyOrm Open(string connectionString = null)
+        new static public MightyOrm Open(string connectionString = null, string providerName = null)
         {
             return new MightyOrm(connectionString);
         }
-#endregion
+        #endregion
 
     }
 
@@ -160,6 +168,8 @@ namespace Mighty
         /// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
         /// <param name="profiler">Optional SQL profiler</param>
         /// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyOrm)</param>
+        /// <param name="providerName">Provider name may be passed here, or may be set by adding ProviderName= in the connectionString parameter, or in .NET Framework only
+        /// (but not .NET Core) may be found in the config file if a connection string name is passed in the connectionString parameter</param>
         public MightyOrm(string connectionString = null,
                          string tableName = null,
                          string primaryKeys = null,
@@ -169,14 +179,15 @@ namespace Mighty
                          Validator validator = null,
                          SqlNamingMapper mapper = null,
                          DataProfiler profiler = null,
-                         ConnectionProvider connectionProvider = null)
+                         ConnectionProvider connectionProvider = null,
+                         string providerName = null)
         {
             // If this has been called as part of constructing MightyOrm (non-generic), then return immediately and let that constructor do all the work
             if (this is MightyOrm) return;
             IsGeneric = true;
             Init(connectionString, tableName, primaryKeys,
                 valueField,
-                sequence, columns, validator, mapper, profiler, connectionProvider);
+                sequence, columns, validator, mapper, profiler, connectionProvider, providerName);
         }
 #else
         /// <summary>
@@ -198,6 +209,8 @@ namespace Mighty
         /// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
         /// <param name="profiler">Optional SQL profiler</param>
         /// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyOrm)</param>
+        /// <param name="providerName">Provider name may be passed here, or may be set by adding ProviderName= in the connectionString parameter, or in .NET Framework only
+        /// (but not .NET Core) may be found in the config file if a connection string name is passed in the connectionString parameter</param>
         public MightyOrm(string connectionString = null,
                          string table = null,
                          string primaryKeys = null,
@@ -206,13 +219,14 @@ namespace Mighty
                          Validator validator = null,
                          SqlNamingMapper mapper = null,
                          DataProfiler profiler = null,
-                         ConnectionProvider connectionProvider = null)
+                         ConnectionProvider connectionProvider = null,
+                         string providerName = null)
         {
             // If this has been called as part of constructing MightyOrm (non-generic), then return immediately and let that constructor do all the work
             if (this is MightyOrm) return;
             IsGeneric = true;
             Init(connectionString, table, primaryKeys,
-                sequence, columns, validator, mapper, profiler, connectionProvider);
+                sequence, columns, validator, mapper, profiler, connectionProvider, providerName);
         }
 #endif
         #endregion
@@ -227,13 +241,15 @@ namespace Mighty
         /// On .NET Framework (but not .NET Core) this can instead be a connection string name, in which case the
         /// connection string itself and provider name are looked up in the ConnectionStrings section of the .config file.
         /// </param>
+        /// <param name="providerName">Provider name may be passed here, or may be set by adding ProviderName= in the connectionString parameter, or in .NET Framework only
+        /// (but not .NET Core) may be found in the config file if a connection string name is passed in the connectionString parameter</param>
         /// <returns></returns>
         /// <remarks>Static, so can't be defined anywhere but here.</remarks>
-        static public MightyOrm<T> Open(string connectionString = null)
+        static public MightyOrm<T> Open(string connectionString = null, string providerName = null)
         {
-            return new MightyOrm<T>(connectionString);
+            return new MightyOrm<T>(connectionString, providerName: providerName);
         }
-#endregion
+        #endregion
 
 #region Shared initialiser
         // sequence is for sequence-based databases (Oracle, PostgreSQL); there is no default sequence, specify either null or empty string to disable and manually specify your PK values;
@@ -242,7 +258,7 @@ namespace Mighty
         // keys is a comma separated list; if it has more than one column, you cannot specify sequence or keyRetrievalFunction
         // (if neither sequence nor keyRetrievalFunction are set (which is always the case for compound primary keys), you MUST specify non-null, non-default values for every column in your primary key
         // before saving an object)
-        internal void Init(string xconnectionString,
+        internal void Init(string _connectionString,
                          string tableName,
                          string primaryKeys,
 #if KEY_VALUES
@@ -250,20 +266,22 @@ namespace Mighty
 #endif
                          string sequence,
                          string columns,
-                         Validator xvalidator,
-                         SqlNamingMapper xmapper,
-                         DataProfiler xprofiler,
-                         ConnectionProvider connectionProvider)
+                         Validator _validator,
+                         SqlNamingMapper _mapper,
+                         DataProfiler _profiler,
+                         ConnectionProvider connectionProvider,
+                         string _providerName)
         {
             // Use the passed in item, followed by the user global default for the specific generic type, followed by
             // the user global default for untyped Mighty, followed by the default default.
             // (The second and third of these refer to the same value for dynamically typed Mighty, but not for generically typed Mighty.)
             // A null connectionString still makes sense in .NET Framework, where ConfigFileConnectionProvider will then
             // use the first user connection string from the .config file.
-            string intialConnectionString = xconnectionString ?? GlobalConnectionString ?? MightyOrm.GlobalConnectionString ?? null;
-            Validator = xvalidator ?? GlobalValidator ?? MightyOrm.GlobalValidator ?? new NullValidator();
-            DataProfiler = xprofiler ?? GlobalDataProfiler ?? MightyOrm.GlobalDataProfiler ?? new DataProfiler();
-            SqlNamingMapper = xmapper ?? GlobalSqlNamingMapper ?? MightyOrm.GlobalSqlNamingMapper ?? new SqlNamingMapper();
+            string initialConnectionString = _connectionString ?? GlobalConnectionString ?? MightyOrm.GlobalConnectionString ?? null;
+            string initialProviderName = _providerName ?? GlobalProviderName ?? MightyOrm.GlobalProviderName ?? null;
+            Validator = _validator ?? GlobalValidator ?? MightyOrm.GlobalValidator ?? new NullValidator();
+            DataProfiler = _profiler ?? GlobalDataProfiler ?? MightyOrm.GlobalDataProfiler ?? new DataProfiler();
+            SqlNamingMapper = _mapper ?? GlobalSqlNamingMapper ?? MightyOrm.GlobalSqlNamingMapper ?? new SqlNamingMapper();
 
             // Use the user global default for the specific generic type, followed by the user global default for untyped Mighty,
             // followed by the default default.
@@ -272,7 +290,7 @@ namespace Mighty
             NpgsqlAutoDereferenceFetchSize = GlobalNpgsqlAutoDereferenceFetchSize ?? MightyOrm.GlobalNpgsqlAutoDereferenceFetchSize ?? 10000;
             SqlServerAutoEnlistCommandsToTransactions = GlobalSqlServerAutoEnlistCommandsToTransactions ?? MightyOrm.GlobalSqlServerAutoEnlistCommandsToTransactions ?? true;
 
-            SetupConnection(intialConnectionString, connectionProvider);
+            SetupConnection(initialConnectionString, initialProviderName, connectionProvider);
 
             Type mappingClass;
             if (IsGeneric)
@@ -346,13 +364,13 @@ namespace Mighty
             }
         }
 
-        private void SetupConnection(string connectionString, ConnectionProvider connectionProvider)
+        private void SetupConnection(string connectionString, string providerName, ConnectionProvider connectionProvider)
         {
             if (connectionProvider == null)
             {
 #if NETFRAMEWORK
                 // try using the string sent in as a connection string name from the config file; revert to pure connection string if it is not there
-                connectionProvider = new ConfigFileConnectionProvider().Init(connectionString);
+                connectionProvider = new ConfigFileConnectionProvider().Init(connectionString, providerName);
                 if (connectionProvider.ConnectionString == null)
 #endif
                 {
@@ -360,12 +378,12 @@ namespace Mighty
 #if NETFRAMEWORK
                         .UsedAfterConfigFile()
 #endif
-                        .Init(connectionString);
+                        .Init(connectionString, providerName);
                 }
             }
             else
             {
-                connectionProvider.Init(connectionString);
+                connectionProvider.Init(connectionString, providerName);
             }
 
             ConnectionString = connectionProvider.ConnectionString;
