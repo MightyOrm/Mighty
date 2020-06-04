@@ -41,6 +41,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.2" />
     <PackageReference Include="NUnit" Version="3.12.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.15.1" />
+    <PackageReference Include="NUnitLite" Version="3.12.0" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.7.0" />
     <PackageReference Include="Npgsql" Version="3.2.2" />
@@ -69,6 +70,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.9.2" />
     <PackageReference Include="NUnit" Version="3.12.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.15.1" />
+    <PackageReference Include="NUnitLite" Version="3.12.0" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.7.0" />
     <PackageReference Include="Npgsql" Version="4.1.1" />
@@ -84,6 +86,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.3.0" />
     <PackageReference Include="NUnit" Version="3.12.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.15.1" />
+    <PackageReference Include="NUnitLite" Version="3.12.0" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.7.0" />
     <PackageReference Include="Npgsql" Version="4.1.1" />
@@ -99,6 +102,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.3.0" />
     <PackageReference Include="NUnit" Version="3.12.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.15.1" />
+    <PackageReference Include="NUnitLite" Version="3.12.0" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.7.0" />
     <PackageReference Include="Npgsql" Version="4.1.1" />
@@ -124,6 +128,7 @@
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.3.0" />
     <PackageReference Include="NUnit" Version="3.12.0" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.15.1" />
+    <PackageReference Include="NUnitLite" Version="3.12.0" />
     <PackageReference Include="System.Data.SQLite" version="1.0.111" />
     <PackageReference Include="AsyncEnumerator" Version="3.1.0" />
   </ItemGroup>
@@ -133,6 +138,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <!--PackageReference Include="Mighty" Version="4.0.0-alpha-1" /-->
     <ProjectReference Include="..\src\Mighty.csproj" />
   </ItemGroup>
 

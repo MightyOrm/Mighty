@@ -6,6 +6,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Mighty", "src\Mighty.csproj
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "MightyTests", "tests\MightyTests.csproj", "{442A0DA0-14D9-46D5-9064-F134D435A715}"
 EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestRunner", "test_runner\TestRunner.csproj", "{3D7B92C9-93B9-41AB-89F4-409CDD164950}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -40,6 +42,18 @@ Global
 		{442A0DA0-14D9-46D5-9064-F134D435A715}.Release|x64.Build.0 = Release|Any CPU
 		{442A0DA0-14D9-46D5-9064-F134D435A715}.Release|x86.ActiveCfg = Release|Any CPU
 		{442A0DA0-14D9-46D5-9064-F134D435A715}.Release|x86.Build.0 = Release|Any CPU
+		{3D7B92C9-93B9-41AB-89F4-409CDD164950}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{3D7B92C9-93B9-41AB-89F4-409CDD164950}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{3D7B92C9-93B9-41AB-89F4-409CDD164950}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{3D7B92C9-93B9-41AB-89F4-409CDD164950}.Debug|x64.Build.0 = Debug|Any CPU
+		{3D7B92C9-93B9-41AB-89F4-409CDD164950}.Debug|x86.ActiveCfg = Debug|Any CPU
+		{3D7B92C9-93B9-41AB-89F4-409CDD164950}.Debug|x86.Build.0 = Debug|Any CPU
+		{3D7B92C9-93B9-41AB-89F4-409CDD164950}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{3D7B92C9-93B9-41AB-89F4-409CDD164950}.Release|Any CPU.Build.0 = Release|Any CPU
+		{3D7B92C9-93B9-41AB-89F4-409CDD164950}.Release|x64.ActiveCfg = Release|Any CPU
+		{3D7B92C9-93B9-41AB-89F4-409CDD164950}.Release|x64.Build.0 = Release|Any CPU
+		{3D7B92C9-93B9-41AB-89F4-409CDD164950}.Release|x86.ActiveCfg = Release|Any CPU
+		{3D7B92C9-93B9-41AB-89F4-409CDD164950}.Release|x86.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
