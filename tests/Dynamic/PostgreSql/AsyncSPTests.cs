@@ -177,7 +177,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
             var setOfRecords = await db.QueryFromProcedureAsync("sum_n_product_with_tab", new { x = 10 });
             int count = 0;
             await setOfRecords.ForEachAsync(innerRecord => {
-                Console.WriteLine(innerRecord.sum + "\t|\t" + innerRecord.product);
+                MDebug.WriteLine(innerRecord.sum + "\t|\t" + innerRecord.product);
                 count++;
             });
             Assert.AreEqual(4, count);
@@ -193,7 +193,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
             var employees = await db.QueryFromProcedureAsync("cursor_employees", outParams: new { refcursor = new Cursor() });
             int count = 0;
             await employees.ForEachAsync(employee => {
-                Console.WriteLine(employee.firstname + " " + employee.lastname);
+                MDebug.WriteLine(employee.firstname + " " + employee.lastname);
                 count++;
             });
             Assert.AreEqual(9, count);
@@ -213,7 +213,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
                 Assert.ThrowsAsync<TaskCanceledException>(async () =>
                 {
                     await employees.ForEachAsync(employee => {
-                        Console.WriteLine(employee.firstname + " " + employee.lastname);
+                        MDebug.WriteLine(employee.firstname + " " + employee.lastname);
                         count++;
                         if (count == 5)
                         {
@@ -241,7 +241,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
                     var employees = await db.QueryAsync("SELECT * FROM cursor_employees()", conn);
                     await employees.ForEachAsync(employee =>
                     {
-                        Console.WriteLine(employee.firstname + " " + employee.lastname);
+                        MDebug.WriteLine(employee.firstname + " " + employee.lastname);
                         count++;
                     });
                     //scope.Complete();
@@ -261,7 +261,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
             var employees = await db.QueryWithParamsAsync("SELECT * FROM cursor_employees()", outParams: new { abc = new Cursor() });
             int count = 0;
             await employees.ForEachAsync(employee => {
-                Console.WriteLine(employee.firstname + " " + employee.lastname);
+                MDebug.WriteLine(employee.firstname + " " + employee.lastname);
                 count++;
             });
             Assert.AreEqual(9, count);
@@ -599,7 +599,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
             //var resultLargeProcTest = await db.QueryFromProcedureAsync("lump2", returnParams: new { abc = new Cursor() });
             //foreach (var item in resultLargeProcTest)
             //{
-            //    Console.WriteLine(item.id);
+            //    MDebug.WriteLine(item.id);
             //    break;
             //}
 
@@ -616,7 +616,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
             //        var singleItemTest = await db.QueryWithParamsAsync($@"FETCH 5000000 FROM ""{result.abc}"";", connection: conn);
             //        foreach (var item in singleItemTest)
             //        {
-            //            Console.WriteLine(item.id);
+            //            MDebug.WriteLine(item.id);
             //            break;
             //        }
             //         NB plain Execute() did NOT take a connection, and changing this MIGHT be an API breaking change??? TEST...!

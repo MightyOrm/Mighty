@@ -34,7 +34,7 @@ namespace Mighty.Generic.Tests.PostgreSql
             var employees = await db.QueryFromProcedureAsync("cursor_employees", outParams: new { refcursor = new Cursor() });
             int count = 0;
             await employees.ForEachAsync(employee => {
-                Console.WriteLine(employee.firstname + " " + employee.lastname);
+                MDebug.WriteLine(employee.firstname + " " + employee.lastname);
                 count++;
             });
             Assert.AreEqual(9, count);
@@ -56,7 +56,7 @@ namespace Mighty.Generic.Tests.PostgreSql
                     var employees = await db.QueryAsync("SELECT * FROM cursor_employees()", conn);
                     await employees.ForEachAsync(employee =>
                     {
-                        Console.WriteLine(employee.firstname + " " + employee.lastname);
+                        MDebug.WriteLine(employee.firstname + " " + employee.lastname);
                         count++;
                     });
                     trans.Commit();
@@ -74,7 +74,7 @@ namespace Mighty.Generic.Tests.PostgreSql
             var employees = await db.QueryWithParamsAsync("SELECT * FROM cursor_employees()", outParams: new { abc = new Cursor() });
             int count = 0;
             await employees.ForEachAsync(employee => {
-                Console.WriteLine(employee.firstname + " " + employee.lastname);
+                MDebug.WriteLine(employee.firstname + " " + employee.lastname);
                 count++;
             });
             Assert.AreEqual(9, count);
