@@ -423,7 +423,8 @@ namespace Mighty.Dynamic.Tests.MySql
                 Assert.ThrowsAsync<TaskCanceledException>(async () =>
                 {
                     await allRows.ForEachAsync(async row => {
-                        await Console.Out.WriteLineAsync($"{row.film_id}");
+                        await Task.Delay(0);
+                        Console.WriteLine($"{row.film_id}");
                         count++;
                         if (count == 10)
                         {
