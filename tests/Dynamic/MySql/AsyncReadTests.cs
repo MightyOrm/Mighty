@@ -424,7 +424,7 @@ namespace Mighty.Dynamic.Tests.MySql
                 {
                     await allRows.ForEachAsync(async row => {
                         await Task.Delay(0);
-                        Console.WriteLine($"{row.film_id}");
+                        MDebug.WriteLine($"{row.film_id}");
                         count++;
                         if (count == 10)
                         {
