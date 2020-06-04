@@ -28,15 +28,11 @@ namespace MightyTests.Profiling
                 wrapped,
                 (method, command, behavior) =>
                 {
-#if DEBUG
-#if NET40
-                    Console.WriteLine("-----");
-                    Console.WriteLine(command.CommandText);
-#else
+#if false
                     Debug.WriteLine("-----");
                     Debug.WriteLine(command.CommandText);
 #endif
-#endif
+
                     DbCommandMethodCounts[method]++;
                 });
         }
