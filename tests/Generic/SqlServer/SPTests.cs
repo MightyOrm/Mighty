@@ -26,7 +26,7 @@ namespace Mighty.Generic.Tests.SqlServer
             int count = 0;
             foreach(var person in people)
             {
-                Console.WriteLine(person.FirstName + " " + person.LastName);
+                MDebug.WriteLine(person.FirstName + " " + person.LastName);
                 count++;
             }
             Assert.AreEqual(3, count);
