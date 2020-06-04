@@ -45,7 +45,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
             Assert.AreEqual(91, allRows.Count);
             foreach(var c in allRows)
             {
-                Console.WriteLine("{0} {1}", c.customerid, c.companyname);
+                MDebug.WriteLine("{0} {1}", c.customerid, c.companyname);
             }
         }
 
@@ -74,7 +74,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
                 // does not throw TaskCanceledException
                 Assert.DoesNotThrowAsync(async () => {
                     await allRows.ForEachAsync(c => {
-                        Console.WriteLine("{0} {1}", c.customerid, c.companyname);
+                        MDebug.WriteLine("{0} {1}", c.customerid, c.companyname);
                         count++;
                         if (count == 11)
                         {

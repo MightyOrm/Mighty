@@ -59,7 +59,7 @@ namespace Mighty.Dynamic.Tests.Sqlite
             Assert.AreEqual(347, allRows.Count);
             foreach(var a in allRows)
             {
-                Console.WriteLine("{0} {1}", a.AlbumId, a.Title);
+                MDebug.WriteLine("{0} {1}", a.AlbumId, a.Title);
             }
         }
 
@@ -74,7 +74,7 @@ namespace Mighty.Dynamic.Tests.Sqlite
                 int count = 0;
                 Assert.ThrowsAsync<TaskCanceledException>(async () => {
                     await allRows.ForEachAsync(a => {
-                        Console.WriteLine("{0} {1}", a.AlbumId, a.Title);
+                        MDebug.WriteLine("{0} {1}", a.AlbumId, a.Title);
                         count++;
                         if (count == 12)
                         {

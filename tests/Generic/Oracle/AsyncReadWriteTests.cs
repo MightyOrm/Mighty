@@ -45,7 +45,7 @@ namespace Mighty.Generic.Tests.Oracle
             Assert.AreEqual(60, allRows.Count);
             foreach (var d in allRows)
             {
-                Console.WriteLine("{0} {1} {2}", d.DEPTNO, d.DNAME, d.LOC);
+                MDebug.WriteLine("{0} {1} {2}", d.DEPTNO, d.DNAME, d.LOC);
             }
         }
 
@@ -60,7 +60,7 @@ namespace Mighty.Generic.Tests.Oracle
                 int count = 0;
                 Assert.ThrowsAsync<TaskCanceledException>(async () => {
                     await allRows.ForEachAsync(d => {
-                        Console.WriteLine("{0} {1} {2}", d.DEPTNO, d.DNAME, d.LOC);
+                        MDebug.WriteLine("{0} {1} {2}", d.DEPTNO, d.DNAME, d.LOC);
                         count++;
                         if (count == 14)
                         {
