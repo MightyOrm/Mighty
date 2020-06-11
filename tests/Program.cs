@@ -12,9 +12,9 @@ using MightyTests;
 
 namespace Mighty.Generic.Tests.NUnit.ConsoleRunner
 {
-    class Program
+    public class Program
     {
-        static int Main(string[] args)
+        public static int Main(string[] args)
         {
             // Okay, this runs all the tests in the NUnit test runner.
 #if !NETCOREAPP1_1
