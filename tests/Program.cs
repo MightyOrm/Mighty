@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if RELEASE
+using System;
 
 #if !NETCOREAPP1_1
 using System.Reflection;
@@ -32,3 +33,4 @@ namespace Mighty.Generic.Tests.NUnit.ConsoleRunner
         }
     }
 }
+#endif
