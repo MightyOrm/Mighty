@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-	<!-- NB Oracle tests require setting Test/Test Settings/Default Processor Architecture to x64 if x64 version is installed -->
+    <!-- NB Oracle tests require setting Test/Test Settings/Default Processor Architecture to x64 if x64 version is installed -->
     <TargetFrameworks>netcoreapp1.0;netcoreapp1.1;netcoreapp2.0;netcoreapp3.0;netcoreapp3.1;net40;net45</TargetFrameworks>
     <PackageId>MightyTests</PackageId>
     <PackageVersion>3.1.0-tests3</PackageVersion>
@@ -12,7 +12,8 @@
     <Copyright>Copyright (c) 2017-2020 Mike Beaton</Copyright>
     <PackageProjectUrl>https://github.com/MightyOrm/MightyOrm</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/MightyOrm/MightyOrm/blob/master/LICENSE</PackageLicenseUrl>
-	<PackageTags>micro-ORM, microORM, ORM, SQL, data access, data access wrapper, Mighty, MightyOrm, Massive, ADO.NET</PackageTags>  </PropertyGroup>
+    <PackageTags>micro-ORM, microORM, ORM, SQL, data access, data access wrapper, Mighty, MightyOrm, Massive, ADO.NET</PackageTags>
+  </PropertyGroup>
 
   <PropertyGroup>	
     <PlatformTarget>AnyCPU</PlatformTarget>	
