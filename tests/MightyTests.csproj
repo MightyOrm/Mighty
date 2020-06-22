@@ -43,10 +43,18 @@
     <DefineConstants>NETCOREAPP;NETCOREAPP3_0</DefineConstants>
   </PropertyGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp1.0'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp1.0' And '$(Configuration)' == 'Debug'">
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0" />
     <PackageReference Include="NUnit" Version="3.6.1" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.8.0-alpha1" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp1.0' And '$(Configuration)' == 'Release'">
+    <PackageReference Include="NUnit" Version="3.6.1" />
+    <PackageReference Include="NUnitLite" Version="3.6.1" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp1.0'">
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.4.3" />
     <PackageReference Include="Npgsql" Version="3.2.2" />
@@ -54,12 +62,19 @@
     <PackageReference Include="Microsoft.Data.SQLite" Version="1.1.0" />
     <PackageReference Include="System.Collections.Specialized" Version="4.3.0" />
     <PackageReference Include="AsyncEnumerator" Version="3.0.2-beta" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp1.1' And '$(Configuration)' == 'Debug'">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0" />
+    <PackageReference Include="NUnit" Version="3.8.1" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.9.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp1.1' And '$(Configuration)' == 'Release'">
+    <PackageReference Include="NUnit" Version="3.8.1" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp1.1'">
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0" />
-    <PackageReference Include="NUnit" Version="3.8.1" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.9.0" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.4.3" />
     <PackageReference Include="Npgsql" Version="3.2.2" />
@@ -67,12 +82,20 @@
     <PackageReference Include="Microsoft.Data.SQLite" Version="1.1.0" />
     <PackageReference Include="System.Collections.Specialized" Version="4.3.0" />
     <PackageReference Include="AsyncEnumerator" Version="3.0.2-beta" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0' And '$(Configuration)' == 'Debug'">
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0" />
+    <PackageReference Include="NUnit" Version="3.8.1" />
+    <PackageReference Include="NUnit3TestAdapter" Version="3.9.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0' And '$(Configuration)' == 'Release'">
+    <PackageReference Include="NUnit" Version="3.8.1" />
+    <PackageReference Include="NUnitLite" Version="3.8.1" />
   </ItemGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0" />
-    <PackageReference Include="NUnit" Version="3.8.1" />
-    <PackageReference Include="NUnit3TestAdapter" Version="3.9.0" />
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.4.3" />
     <PackageReference Include="Npgsql" Version="3.2.2" />
@@ -82,10 +105,18 @@
     <PackageReference Include="AsyncEnumerator" Version="3.0.2-beta" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0' And '$(Configuration)' == 'Debug'">
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0" />
     <PackageReference Include="NUnit" Version="3.8.1" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.9.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0' And '$(Configuration)' == 'Release'">
+    <PackageReference Include="NUnit" Version="3.8.1" />
+    <PackageReference Include="NUnitLite" Version="3.8.1" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
     <PackageReference Include="System.Data.SqlClient" Version="4.4.3" />
     <PackageReference Include="Npgsql" Version="3.2.2" />
@@ -103,12 +134,20 @@
     <PackageReference Include="System.Data.SQLite" version="1.0.105" />
   </ItemGroup>
 
-  <ItemGroup Condition="'$(TargetFramework)' == 'net45'">
-    <Reference Include="Microsoft.CSharp" />
-    <Reference Include="System.Transactions" />
+  <ItemGroup Condition="'$(TargetFramework)' == 'net45' And '$(Configuration)' == 'Debug'">
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="15.0.0" />
     <PackageReference Include="NUnit" Version="3.6.1" />
     <PackageReference Include="NUnit3TestAdapter" Version="3.8.0-alpha1" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net45' And '$(Configuration)' == 'Release'">
+    <PackageReference Include="NUnit" Version="3.6.1" />
+    <PackageReference Include="NUnitLite" Version="3.6.1" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'net45'">
+    <Reference Include="Microsoft.CSharp" />
+    <Reference Include="System.Transactions" />
     <PackageReference Include="System.Data.SQLite" version="1.0.105" />
     <PackageReference Include="AsyncEnumerator" Version="3.0.2-beta" />
   </ItemGroup>
