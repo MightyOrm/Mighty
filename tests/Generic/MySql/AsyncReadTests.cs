@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !NET40
+using System;
 using System.Collections;
 using System.Collections.Async;
 using System.Collections.Generic;
@@ -398,3 +399,4 @@ namespace Mighty.Generic.Tests.MySql
         }
     }
 }
+#endif

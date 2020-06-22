@@ -1,4 +1,5 @@
-﻿using System;
+﻿#if !NET40
+using System;
 using System.Collections.Async;
 using System.Collections.Generic;
 using System.Data;
@@ -192,3 +193,4 @@ namespace Mighty.Dynamic.Tests.Sqlite
         }
     }
 }
+#endif

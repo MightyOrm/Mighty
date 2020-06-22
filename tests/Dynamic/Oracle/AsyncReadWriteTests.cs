@@ -1,4 +1,5 @@
-﻿#if !(NETCOREAPP || NETSTANDARD)
+﻿#if !NET40
+#if !(NETCOREAPP || NETSTANDARD)
 using System;
 using System.Data;
 using System.Collections.Async;
@@ -264,4 +265,5 @@ namespace Mighty.Dynamic.Tests.Oracle
         }
     }
 }
+#endif
 #endif
