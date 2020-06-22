@@ -118,8 +118,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Mighty" Version="3.0.6" />
-    <!--ProjectReference Include="..\src\Mighty.csproj" /-->
+    <ProjectReference Include="..\src\Mighty.csproj" />
   </ItemGroup>
 
   <ItemGroup>
