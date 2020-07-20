@@ -39,3 +39,28 @@ BEGIN
     DELETE FROM Categories;
 END //
 DELIMITER ;
+
+CREATE TABLE `bittest` (
+  `id` smallint(5) unsigned NOT NULL AUTO_INCREMENT,
+  `tinyint_one` tinyint(1) NOT NULL,
+  `tinyint_three` tinyint(3) unsigned NOT NULL,
+  `tinyint_bool` bool NOT NULL,
+  `bit_one` bit(1) NOT NULL,
+  `bit_two` bit(2) NOT NULL,
+  `bit_eight` bit(8) NOT NULL,
+  `bit_sixtyfour` bit(64) NOT NULL,
+  PRIMARY KEY (`id`)
+);
+
+INSERT INTO `bittest` (
+  `tinyint_one`,
+  `tinyint_three`,
+  `tinyint_bool`,
+  `bit_one`,
+  `bit_two`,
+  `bit_eight`,
+  `bit_sixtyfour`
+)
+VALUES (0,0,0,0,0,0,0),
+(1,1,1,1,1,1,1),
+(2,2,2,0,2,2,2);
