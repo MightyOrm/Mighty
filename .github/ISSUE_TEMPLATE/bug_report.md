@@ -19,7 +19,7 @@ assignees: ''
 **.NET version (e.g. .NET Core 3.1, .NET Framework 4.5, etc.)**
 ...
 
-**The problem (what happened, with any relevant code fragments)**
+**What happened (with any relevant code fragments)**
 ...
 
 **What should have happened**
