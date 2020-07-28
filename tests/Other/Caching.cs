@@ -39,23 +39,17 @@ namespace Mighty.Dynamic.Tests.X
             Assert.AreEqual(260, DataContractStore.Instance.CacheHits);
 #endif
 #elif NETCOREAPP
-#if NETCOREAPP3_0 || NETCOREAPP3_1
+#if !(NETCOREAPP1_0 || NETCOREAPP1_1)
 #if DISABLE_DEVART
             Assert.AreEqual(363, DataContractStore.Instance.CacheHits);
 #else
-            Assert.AreEqual(466, DataContractStore.Instance.CacheHits);
-#endif
-#elif NETCOREAPP2_0
-#if DISABLE_DEVART
-            Assert.AreEqual(332, DataContractStore.Instance.CacheHits);
-#else
-            Assert.AreEqual(466, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(467, DataContractStore.Instance.CacheHits);
 #endif
 #else
 #if DISABLE_DEVART
             Assert.AreEqual(298, DataContractStore.Instance.CacheHits);
 #else
-            Assert.AreEqual(400, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(402, DataContractStore.Instance.CacheHits);
 #endif
 #endif
 #endif
@@ -128,23 +122,17 @@ namespace Mighty.Generic.Tests.X
             Assert.AreEqual(443, DataContractStore.Instance.CacheHits);
 #endif
 #elif NETCOREAPP
-#if NETCOREAPP3_0 || NETCOREAPP3_1
+#if !(NETCOREAPP1_0 || NETCOREAPP1_1)
 #if DISABLE_DEVART
             Assert.AreEqual(600, DataContractStore.Instance.CacheHits);
 #else
-            Assert.AreEqual(778, DataContractStore.Instance.CacheHits);
-#endif
-#elif NETCOREAPP2_0
-#if DISABLE_DEVART
-            Assert.AreEqual(569, DataContractStore.Instance.CacheHits);
-#else
-            Assert.AreEqual(778, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(782, DataContractStore.Instance.CacheHits);
 #endif
 #else
 #if DISABLE_DEVART
             Assert.AreEqual(495, DataContractStore.Instance.CacheHits);
 #else
-            Assert.AreEqual(674, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(677, DataContractStore.Instance.CacheHits);
 #endif
 #endif
 #endif
@@ -185,7 +173,7 @@ namespace Mighty.Generic.Tests.X
 #if DISABLE_DEVART
             Assert.AreEqual(47, TableMetaDataStore.Instance.CacheHits);
 #else
-            Assert.AreEqual(68, TableMetaDataStore.Instance.CacheHits);
+            Assert.AreEqual(69, TableMetaDataStore.Instance.CacheHits);
 #endif
 #else
 #if DISABLE_DEVART
@@ -206,13 +194,13 @@ namespace Mighty.Generic.Tests.X
 #if DISABLE_DEVART
             Assert.AreEqual(17, TableMetaDataStore.Instance.CacheMisses);
 #else
-            Assert.AreEqual(21, TableMetaDataStore.Instance.CacheMisses);
+            Assert.AreEqual(24, TableMetaDataStore.Instance.CacheMisses);
 #endif
 #else
 #if DISABLE_DEVART
             Assert.AreEqual(15, TableMetaDataStore.Instance.CacheMisses);
 #else
-            Assert.AreEqual(20, TableMetaDataStore.Instance.CacheMisses);
+            Assert.AreEqual(22, TableMetaDataStore.Instance.CacheMisses);
 #endif
 #endif
         }

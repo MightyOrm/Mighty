@@ -16,7 +16,7 @@ using NUnit.Framework;
 namespace Mighty.Generic.Tests.MySql
 {
     [TestFixture("MySql.Data.MySqlClient")]
-#if !DISABLE_DEVART // Devart works fine on .NET Core, but I want to get a version to test with without paying $100 p/a!
+#if !DISABLE_DEVART
     [TestFixture("Devart.Data.MySql")]
 #endif
     public class AsyncReadTests

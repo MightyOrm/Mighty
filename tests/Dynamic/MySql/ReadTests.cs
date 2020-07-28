@@ -10,7 +10,7 @@ using Mighty.Dynamic.Tests.MySql.TableClasses;
 namespace Mighty.Dynamic.Tests.MySql
 {
     [TestFixture("MySql.Data.MySqlClient")]
-#if !DISABLE_DEVART // Devart works fine on .NET Core, but I want to get a version to test with without paying $100 p/a!
+#if !DISABLE_DEVART
     [TestFixture("Devart.Data.MySql")]
 #endif
     public class ReadTests
@@ -31,7 +31,7 @@ namespace Mighty.Dynamic.Tests.MySql
         public void Guid_Arg()
         {
             // MySQL has native Guid parameter support, but the SELECT output is a string
-            var db = new MightyOrm(string.Format(TestConstants.ReadTestConnection, ProviderName));
+            var db = new MightyOrm(WhenDevart.AddLicenseKey(TestConstants.ReadTestConnection, ProviderName));
             var guid = Guid.NewGuid();
             dynamic item;
             using (var command = db.CreateCommand("SELECT @0 AS val", null, guid))
@@ -411,7 +411,7 @@ namespace Mighty.Dynamic.Tests.MySql
         [Test]
         public void BoolTypes()
         {
-            var db = new MightyOrm(string.Format(TestConstants.WriteTestConnection, ProviderName), "bittest");
+            var db = new MightyOrm(WhenDevart.AddLicenseKey(TestConstants.WriteTestConnection, ProviderName), "bittest");
             var m = db.TableMetaData;
             var results = db.All();
             foreach (var result in results)

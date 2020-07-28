@@ -16,7 +16,7 @@ using NUnit.Framework;
 namespace Mighty.Dynamic.Tests.MySql
 {
     [TestFixture("MySql.Data.MySqlClient")]
-#if !DISABLE_DEVART // Devart works fine on .NET Core, but I want to get a version to test with without paying $100 p/a!
+#if !DISABLE_DEVART
     [TestFixture("Devart.Data.MySql")]
 #endif
     public class AsyncReadTests
@@ -36,7 +36,7 @@ namespace Mighty.Dynamic.Tests.MySql
         [Test]
         public async Task Use_GlobalConnectionString()
         {
-            MightyOrm.GlobalConnectionString = string.Format(TestConstants.ReadTestConnection, ProviderName);
+            MightyOrm.GlobalConnectionString = WhenDevart.AddLicenseKey(TestConstants.ReadTestConnection, ProviderName);
             dynamic film = new MightyOrm(tableName: "sakila.film");
             var singleInstance = await film.SingleAsync(new { film_id = 43 });
             Assert.AreEqual(43, singleInstance.film_id);
@@ -47,7 +47,7 @@ namespace Mighty.Dynamic.Tests.MySql
         public async Task Guid_Arg()
         {
             // MySQL has native Guid parameter support, but the SELECT output is a string
-            var db = new MightyOrm(string.Format(TestConstants.ReadTestConnection, ProviderName));
+            var db = new MightyOrm(WhenDevart.AddLicenseKey(TestConstants.ReadTestConnection, ProviderName));
             var guid = Guid.NewGuid();
             dynamic item;
             using (var command = db.CreateCommand("SELECT @0 AS val", null, guid))
