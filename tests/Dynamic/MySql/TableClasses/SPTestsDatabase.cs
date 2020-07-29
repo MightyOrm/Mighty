@@ -8,7 +8,7 @@ namespace Mighty.Dynamic.Tests.MySql.TableClasses
 {
     public class SPTestsDatabase : MightyOrm
     {
-        public SPTestsDatabase(string providerName) : base(string.Format(TestConstants.ReadTestConnection, providerName), tableName: "")
+        public SPTestsDatabase(string providerName) : base(WhenDevart.AddLicenseKey(TestConstants.ReadTestConnection, providerName), tableName: "")
         {
         }
     }

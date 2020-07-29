@@ -1,18 +1,16 @@
 ﻿using System;
-using System.Collections;
 using System.Collections.Generic;
 using System.Data;
-using System.Dynamic;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using Mighty.Dynamic.Tests.MySql.TableClasses;
+
 using NUnit.Framework;
+
+using Mighty.Dynamic.Tests.MySql.TableClasses;
 
 namespace Mighty.Dynamic.Tests.MySql
 {
     [TestFixture("MySql.Data.MySqlClient")]
-#if !DISABLE_DEVART // Devart works fine on .NET Core, but I want to get a version to test with without paying $100 p/a!
+#if !DISABLE_DEVART
     [TestFixture("Devart.Data.MySql")]
 #endif
     public class ReadTests
@@ -33,7 +31,7 @@ namespace Mighty.Dynamic.Tests.MySql
         public void Guid_Arg()
         {
             // MySQL has native Guid parameter support, but the SELECT output is a string
-            var db = new MightyOrm(string.Format(TestConstants.ReadTestConnection, ProviderName));
+            var db = new MightyOrm(WhenDevart.AddLicenseKey(TestConstants.ReadTestConnection, ProviderName));
             var guid = Guid.NewGuid();
             dynamic item;
             using (var command = db.CreateCommand("SELECT @0 AS val", null, guid))
@@ -420,6 +418,75 @@ namespace Mighty.Dynamic.Tests.MySql
 
             var pkValue = film.GetPrimaryKey(toValidate);
             Assert.AreEqual(45, pkValue);
+        }
+
+        [Test]
+        public void BoolTypes()
+        {
+            var db = new MightyOrm(WhenDevart.AddLicenseKey(TestConstants.WriteTestConnection, ProviderName), "bittest");
+            var m = db.TableMetaData;
+            var results = db.All();
+            foreach (var result in results)
+            {
+                if (ProviderName == "Devart.Data.MySql")
+                {
+                    // I am not sure that what Devart is doing here for different sizes of TINYINT makes any sense?
+                    // (c.f. the test called Function_Call_Byte())
+                    // bool/boolean is just an alias for tinyint(1)
+                    Assert.That(result.tinyint_one.GetType(), Is.EqualTo(typeof(short)), "tinyint_one");
+                    Assert.That(result.tinyint_three.GetType(), Is.EqualTo(typeof(byte)), "tinyint_three");
+                    Assert.That(result.tinyint_bool.GetType(), Is.EqualTo(typeof(short)), "tinyint_bool");
+
+                    // bit(1) is a special case in Devart (which seems to have changed at some point: https://forums.devart.com/viewtopic.php?t=19967)
+                    Assert.That(result.bit_one.GetType(), Is.EqualTo(typeof(bool)), "bit_one");
+
+                    // all other bit sizes come back as long
+                    Assert.That(result.bit_two.GetType(), Is.EqualTo(typeof(long)), "bit_two");
+                    Assert.That(result.bit_eight.GetType(), Is.EqualTo(typeof(long)), "bit_eight");
+                    Assert.That(result.bit_sixtyfour.GetType(), Is.EqualTo(typeof(long)), "bit_sixtyfour");
+
+                    // check the actual bool value
+                    Assert.That(result.bit_one, Is.EqualTo(result.id == 2), "bit_one");
+
+                    // check all other values
+                    Assert.That(result.tinyint_one, Is.EqualTo(result.id - 1), "tinyint_one");
+                    Assert.That(result.tinyint_three, Is.EqualTo(result.id - 1), "tinyint_three");
+                    Assert.That(result.tinyint_bool, Is.EqualTo(result.id - 1), "tinyint_bool");
+
+                    Assert.That(result.bit_two, Is.EqualTo(result.id - 1), "bit_two");
+                    Assert.That(result.bit_eight, Is.EqualTo(result.id - 1), "bit_eight");
+                    Assert.That(result.bit_sixtyfour, Is.EqualTo(result.id - 1), "bit_sixtyfour");
+                }
+                else if (ProviderName == "MySql.Data.MySqlClient")
+                {
+                    // this makes sense: TINYINT(1) and its aliases BOOL and BOOLEAN come back as bool, other sizes of TINYINT as byte
+                    Assert.That(result.tinyint_one.GetType(), Is.EqualTo(typeof(bool)), "tinyint_one");
+                    Assert.That(result.tinyint_three.GetType(), Is.EqualTo(typeof(byte)), "tinyint_three");
+                    Assert.That(result.tinyint_bool.GetType(), Is.EqualTo(typeof(bool)), "tinyint_bool");
+
+                    // all sizes of BIT come back as ulong in MySql.Data.MySqlClient
+                    Assert.That(result.bit_one.GetType(), Is.EqualTo(typeof(ulong)), "bit_one");
+                    Assert.That(result.bit_two.GetType(), Is.EqualTo(typeof(ulong)), "bit_two");
+                    Assert.That(result.bit_eight.GetType(), Is.EqualTo(typeof(ulong)), "bit_eight");
+                    Assert.That(result.bit_sixtyfour.GetType(), Is.EqualTo(typeof(ulong)), "bit_sixtyfour");
+
+                    // check the actual bool values
+                    Assert.That(result.tinyint_bool, Is.EqualTo(result.id != 1), "tinyint_bool");
+                    Assert.That(result.tinyint_one, Is.EqualTo(result.id != 1), "tinyint_one");
+
+                    // check all other values
+                    Assert.That(result.tinyint_three, Is.EqualTo(result.id - 1), "tinyint_three");
+
+                    Assert.That(result.bit_one, Is.EqualTo(result.id == 2 ? 1 : 0), "bit_one");
+                    Assert.That(result.bit_two, Is.EqualTo(result.id - 1), "bit_two");
+                    Assert.That(result.bit_eight, Is.EqualTo(result.id - 1), "bit_eight");
+                    Assert.That(result.bit_sixtyfour, Is.EqualTo(result.id - 1), "bit_sixtyfour");
+                }
+                else
+                {
+                    Assert.That(false, $"Unexpected provider name \"{ProviderName}\"");
+                }
+            }
         }
     }
 }

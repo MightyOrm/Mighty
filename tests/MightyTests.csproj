@@ -22,19 +22,19 @@
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp1.1'">
-    <DefineConstants>NETCOREAPP;NETCOREAPP1_1;DISABLE_DEVART</DefineConstants>
+    <DefineConstants>NETCOREAPP;NETCOREAPP1_1;_DISABLE_DEVART</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
-    <DefineConstants>NETCOREAPP;NETCOREAPP2_0;DISABLE_DEVART</DefineConstants>
+    <DefineConstants>NETCOREAPP;NETCOREAPP2_0;_DISABLE_DEVART</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
-    <DefineConstants>NETCOREAPP;NETCOREAPP3_0;DISABLE_DEVART</DefineConstants>
+    <DefineConstants>NETCOREAPP;NETCOREAPP3_0;_DISABLE_DEVART</DefineConstants>
   </PropertyGroup>
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
-    <DefineConstants>NETCOREAPP;NETCOREAPP3_1;DISABLE_DEVART</DefineConstants>
+    <DefineConstants>NETCOREAPP;NETCOREAPP3_1;_DISABLE_DEVART</DefineConstants>
   </PropertyGroup>
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp1.0'">
@@ -131,6 +131,16 @@
     <PackageReference Include="NUnitLite" Version="3.12.0" />
     <PackageReference Include="System.Data.SQLite" version="1.0.111" />
     <PackageReference Include="AsyncEnumerator" Version="3.1.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Remove="devart.core.license.key" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="devart.core.license.key">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>

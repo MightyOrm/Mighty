@@ -14,7 +14,7 @@ using Mighty.Mapping;
 namespace Mighty.Dynamic.Tests.MySql
 {
     [TestFixture("MySql.Data.MySqlClient")]
-#if !DISABLE_DEVART // Devart works fine on .NET Core, but I want to get a version to test with without paying $100 p/a!
+#if !DISABLE_DEVART
     [TestFixture("Devart.Data.MySql")]
 #endif
     public class WriteTests
@@ -94,7 +94,7 @@ namespace Mighty.Dynamic.Tests.MySql
             // Apply some quick crazy-ass mapping... to an ExpandoObject :-)
             // Remember, we're mapping from crazy fake 'class' names to the sensible underlying column names
             var categories = new MightyOrm(
-                string.Format(TestConstants.WriteTestConnection, ProviderName),
+                WhenDevart.AddLicenseKey(TestConstants.WriteTestConnection, ProviderName),
                 "MassiveWriteTests.Categories",
                 primaryKeys: "MYCATEGORYID",
                 columns: "MYCATEGORYID, TheName, ItsADescription",
@@ -194,7 +194,7 @@ namespace Mighty.Dynamic.Tests.MySql
         [OneTimeTearDown]
         public void CleanUp()
         {
-            var db = new MightyOrm(string.Format(TestConstants.WriteTestConnection, ProviderName));
+            var db = new MightyOrm(WhenDevart.AddLicenseKey(TestConstants.WriteTestConnection, ProviderName));
             db.ExecuteProcedure("pr_clearAll");
         }
     }

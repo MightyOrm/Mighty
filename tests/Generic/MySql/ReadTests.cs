@@ -1,18 +1,14 @@
 ﻿using System;
-using System.Collections;
-using System.Collections.Generic;
-using System.Data;
-using System.Dynamic;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using Mighty.Generic.Tests.MySql.TableClasses;
+
 using NUnit.Framework;
+
+using Mighty.Generic.Tests.MySql.TableClasses;
 
 namespace Mighty.Generic.Tests.MySql
 {
     [TestFixture("MySql.Data.MySqlClient")]
-#if !DISABLE_DEVART // Devart works fine on .NET Core, but I want to get a version to test with without paying $100 p/a!
+#if !DISABLE_DEVART
     [TestFixture("Devart.Data.MySql")]
 #endif
     public class ReadTests
@@ -392,6 +388,28 @@ namespace Mighty.Generic.Tests.MySql
 
             var pkValue = films.GetPrimaryKey(toValidate);
             Assert.AreEqual(45, pkValue);
+        }
+
+        public class BitTest
+        {
+            public int id;
+            public bool tinyint_bool; // 0, 1, 2 => false, true, true
+            public bool tinyint_one; // 0, 1, 2 => false, true, true
+            public bool bit_one; // 0, 1, 0 => false, true, false
+        }
+
+        [Test]
+        public void BoolTypes()
+        {
+            var db = new MightyOrm<BitTest>(string.Format(TestConstants.WriteTestConnection, ProviderName));
+            var results = db.All();
+            foreach (var result in results)
+            {
+                // check all the bool values, which - note - come out the same on either driver
+                Assert.That(result.tinyint_bool, Is.EqualTo(result.id != 1), "tinyint_bool");
+                Assert.That(result.tinyint_one, Is.EqualTo(result.id != 1), "tinyint_one");
+                Assert.That(result.bit_one, Is.EqualTo(result.id == 2), "bit_one");
+            }
         }
     }
 }

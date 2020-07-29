@@ -1,18 +1,18 @@
-﻿#if !NET40 && !NETCOREAPP2_0 // TO DO: Why is AsyncEnumerator ForEachAsync not available in .NET Core 2.0 (when it is in 1.0, 1.1 and 3.0)?
+﻿#if !NET40
 using System;
-using System.Data;
-using System.Dynamic;
-using Dasync.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using System.Dynamic;
+using System.Threading.Tasks;
+using System.Threading;
 #if !NETCOREAPP
 using System.Transactions;
 #endif
-using Mighty.Dynamic.Tests.PostgreSql.TableClasses;
+
+using Dasync.Collections;
+
 using NUnit.Framework;
-using System.Threading.Tasks;
-using System.Threading;
+
+using Mighty.Dynamic.Tests.PostgreSql.TableClasses;
 
 namespace Mighty.Dynamic.Tests.PostgreSql
 {
@@ -268,7 +268,17 @@ namespace Mighty.Dynamic.Tests.PostgreSql
         }
 
         // Test various dereferencing patters (more relevant since we are coding this ourselves)
-        private async Task CheckMultiResultSetStructureAsync(IAsyncEnumerable<IAsyncEnumerable<dynamic>> results, int count0 = 1, int count1 = 1, bool breakTest = false, bool idTest = false)
+        private async Task CheckMultiResultSetStructureAsync(
+#if NETCOREAPP2_0
+            Dasync.Collections.
+#endif
+            IAsyncEnumerable<
+#if NETCOREAPP2_0
+                Dasync.Collections.
+#endif
+                IAsyncEnumerable<dynamic>
+            > results,
+            int count0 = 1, int count1 = 1, bool breakTest = false, bool idTest = false)
         {
             int sets = 0;
             int[] counts = new int[2];
