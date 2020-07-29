@@ -72,7 +72,7 @@ namespace Mighty.XAllTests.SqlProfiling
             Assert.AreEqual(214, ((MightyTestsSqlProfiler)MightyOrm.GlobalDataProfiler).DbCommandMethodCounts[DbCommandMethod.ExecuteScalar]);
 #endif
 #elif NETCOREAPP
-#if NETCOREAPP2_0 || NETCOREAPP3_0 || NETCOREAPP3_1
+#if !(NETCOREAPP1_0 || NETCOREAPP1_1)
 #if DISABLE_DEVART
             Assert.AreEqual(283, ((MightyTestsSqlProfiler)MightyOrm.GlobalDataProfiler).DbCommandMethodCounts[DbCommandMethod.ExecuteScalar]);
 #else

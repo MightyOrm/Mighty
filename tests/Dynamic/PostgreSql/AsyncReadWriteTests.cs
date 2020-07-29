@@ -49,7 +49,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
             }
         }
 
-#if !NETCOREAPP2_0 && !NETCOREAPP3_0 && !NETCOREAPP3_1
+#if NETFRAMEWORK || NETCOREAPP1_0 || NETCOREAPP1_1
         /// <summary>
         /// This is documenting a bug in Npgsql; if it changes, we can remove the extra code we've added to
         /// <see cref="Mighty.Npgsql.NpgsqlDereferencingReader"/> to make it respond to cancellations even though the Npgsql objects don't.
