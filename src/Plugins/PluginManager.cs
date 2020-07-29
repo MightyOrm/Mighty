@@ -37,6 +37,7 @@ namespace Mighty.Plugins
         static public void RegisterPlugin(Type pluginType)
         {
             // no incorrect type exception here - a perfectly meaningful exception will be thrown as soon as Mighty tries to use this
+            // TO DO: add a test for this
             InstalledPluginTypes.Add(pluginType);
         }
 
