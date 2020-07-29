@@ -28,7 +28,7 @@ namespace Mighty.Plugins
 
         /// <summary>
         /// Register a new database plugin for use with the <see cref="ConnectionProviders.PureConnectionStringProvider"/>.
-        /// (NB If are plan to pass the type of your own database plugin via your own subclass of
+        /// (NB If you plan to pass the type of your own database plugin via your own subclass of
         /// <see cref="ConnectionProviders.ConnectionProvider"/> then you do not need to register here;
         /// this registers unknown plugins for use with Mighty's "ProviderName=..." in ConnectionString feature.)
         /// <remarks>TO DO: This approach can be tested by registering an existing plugin with a silly name...</remarks>
