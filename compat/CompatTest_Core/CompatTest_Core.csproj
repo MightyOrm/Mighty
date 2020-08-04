@@ -1,0 +1,24 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+	<!-- netcoreapp1.1 lacks nUnitLite -->
+    <TargetFrameworks>netcoreapp1.0;netcoreapp2.0;netcoreapp3.0;netcoreapp3.1</TargetFrameworks>
+  </PropertyGroup>
+
+  <PropertyGroup>
+    <PlatformTarget>AnyCPU</PlatformTarget>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Content Include="devart.core.license.key">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Mighty" Version="4.0.0-alpha-2" />
+    <PackageReference Include="MightyTests" Version="4.0.0-alpha-tests3" />
+  </ItemGroup>
+
+</Project>
