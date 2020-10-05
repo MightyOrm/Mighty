@@ -1,5 +1,9 @@
 # Mighty Change Log
 
+## 3.1.3
+
+Prevent .NET Core ProviderName support getting confused by extra spacing in the connection string
+
 ## 3.1.2
 
 - Convert DataContractStore and TableMetaDataStore from Dictionary to ConcurrentDictionary
