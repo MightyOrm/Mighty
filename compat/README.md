@@ -24,7 +24,7 @@ This solution is split into two projects, for .NET Core and Framework, because I
 when trying to build executable files of both types in one project, and this goes away when building just one or the other.
 It seems as if this must be a (VS?) bug, since you can certainly build DLLs of both types in one project.
 
-### Showing progess
+### Showing progress
 
 When running these tests, add the command line argument `--labels=All` to make the NUnit test runner show more of what is going on.
 Command line args are just passed on by our code, it is the NUnit code which is responding to this argument.
