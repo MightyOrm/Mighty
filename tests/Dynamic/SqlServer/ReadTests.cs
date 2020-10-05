@@ -14,6 +14,20 @@ namespace Mighty.Dynamic.Tests.SqlServer
     [TestFixture]
     public class ReadTests
     {
+#if NETCOREAPP
+        [Test]
+        public void WorksWithSpacedConnectionString()
+        {
+            var providerName = "ProviderName";
+            var from = $"{providerName}=";
+            var to = $" {providerName} = ";
+            Assert.That(TestConstants.ReadTestConnection.Contains(from));
+            var db = new MightyOrm(TestConstants.ReadTestConnection.Replace(from, to));
+            var item = db.SingleFromQuery("SELECT 1 AS a");
+            Assert.That(item.a, Is.EqualTo(1));
+        }
+#endif
+
         [Test]
         public void Guid_Arg()
         {
