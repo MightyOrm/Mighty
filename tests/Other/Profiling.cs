@@ -24,13 +24,13 @@ namespace Mighty.XAllTests.SqlProfiling
 #if DISABLE_DEVART
             Assert.AreEqual(1214, ((MightyTestsSqlProfiler)MightyOrm.GlobalDataProfiler).DbCommandMethodCounts[DbCommandMethod.ExecuteDbDataReader]);
 #else
-            Assert.AreEqual(1350, ((MightyTestsSqlProfiler)MightyOrm.GlobalDataProfiler).DbCommandMethodCounts[DbCommandMethod.ExecuteDbDataReader]);
+            Assert.AreEqual(1351, ((MightyTestsSqlProfiler)MightyOrm.GlobalDataProfiler).DbCommandMethodCounts[DbCommandMethod.ExecuteDbDataReader]);
 #endif
 #else
 #if DISABLE_DEVART
-            Assert.AreEqual(1142, ((MightyTestsSqlProfiler)MightyOrm.GlobalDataProfiler).DbCommandMethodCounts[DbCommandMethod.ExecuteDbDataReader]);
+            Assert.AreEqual(1143, ((MightyTestsSqlProfiler)MightyOrm.GlobalDataProfiler).DbCommandMethodCounts[DbCommandMethod.ExecuteDbDataReader]);
 #else
-            Assert.AreEqual(1278, ((MightyTestsSqlProfiler)MightyOrm.GlobalDataProfiler).DbCommandMethodCounts[DbCommandMethod.ExecuteDbDataReader]);
+            Assert.AreEqual(1279, ((MightyTestsSqlProfiler)MightyOrm.GlobalDataProfiler).DbCommandMethodCounts[DbCommandMethod.ExecuteDbDataReader]);
 #endif
 #endif
 #endif

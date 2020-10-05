@@ -43,13 +43,13 @@ namespace Mighty.Dynamic.Tests.X
 #if DISABLE_DEVART
             Assert.AreEqual(373, DataContractStore.Instance.CacheHits);
 #else
-            Assert.AreEqual(479, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(480, DataContractStore.Instance.CacheHits);
 #endif
 #else
 #if DISABLE_DEVART
-            Assert.AreEqual(306, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(307, DataContractStore.Instance.CacheHits);
 #else
-            Assert.AreEqual(412, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(413, DataContractStore.Instance.CacheHits);
 #endif
 #endif
 #endif
@@ -126,13 +126,13 @@ namespace Mighty.Generic.Tests.X
 #if DISABLE_DEVART
             Assert.AreEqual(628, DataContractStore.Instance.CacheHits);
 #else
-            Assert.AreEqual(814, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(815, DataContractStore.Instance.CacheHits);
 #endif
 #else
 #if DISABLE_DEVART
-            Assert.AreEqual(519, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(520, DataContractStore.Instance.CacheHits);
 #else
-            Assert.AreEqual(705, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(706, DataContractStore.Instance.CacheHits);
 #endif
 #endif
 #endif

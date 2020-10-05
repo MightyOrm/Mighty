@@ -42,9 +42,9 @@ namespace Mighty.ConnectionProviders
                         if (!string.IsNullOrEmpty(configPair))
                         {
                             var keyValuePair = configPair.Split('=');
-                            if (ProviderName.Equals(keyValuePair[0], StringComparison.OrdinalIgnoreCase))
+                            if (ProviderName.Equals(keyValuePair[0].Trim(), StringComparison.OrdinalIgnoreCase))
                             {
-                                _providerName = keyValuePair[1];
+                                _providerName = keyValuePair[1].Trim();
                             }
                             else
                             {
