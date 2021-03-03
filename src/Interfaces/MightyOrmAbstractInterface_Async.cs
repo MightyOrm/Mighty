@@ -37,7 +37,7 @@ namespace Mighty.Interfaces
 
     // Abstract class 'interface' for the ORM and ADO.NET Data Access Wrapper methods.
     // Uses abstract class, not interface, because the semantics of interface mean it can never have anything added to it!
-    // (See ... MS document about DB classes; SO post about intefaces)
+    // (See ... MS document about DB classes; SO post about interfaces)
     //
     // Notes:
     //    - Any params type argument is always last (it has to be)
