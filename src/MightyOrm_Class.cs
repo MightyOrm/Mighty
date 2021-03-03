@@ -128,7 +128,7 @@ namespace Mighty
         {
             return new MightyOrm(connectionString);
         }
-#endregion
+        #endregion
 
     }
 
@@ -233,9 +233,9 @@ namespace Mighty
         {
             return new MightyOrm<T>(connectionString);
         }
-#endregion
+        #endregion
 
-#region Shared initialiser
+        #region Shared initialiser
         // sequence is for sequence-based databases (Oracle, PostgreSQL); there is no default sequence, specify either null or empty string to disable and manually specify your PK values;
         // for non-sequence-based databases, in unusual cases, you may specify this to specify an alternative key retrieval function
         // (e.g. for example to use @@IDENTITY instead of SCOPE_IDENTITY(), in the case of SQL Server CE)
@@ -578,10 +578,10 @@ namespace Mighty
         {
             return PrimaryKeyInfo.GetPrimaryKey(item, alwaysArray);
         }
-#endregion
+        #endregion
 
         // Only methods with a non-trivial implementation are here, the rest are in the DataAccessWrapper abstract class.
-#region DataAccessWrapper interface
+        #region DataAccessWrapper interface
         /// <summary>
         /// Create command, setting any provider specific features which we assume elsewhere.
         /// </summary>

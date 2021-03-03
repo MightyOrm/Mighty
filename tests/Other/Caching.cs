@@ -34,22 +34,22 @@ namespace Mighty.Dynamic.Tests.X
         {
 #if NETFRAMEWORK
 #if !NET40
-            Assert.AreEqual(539, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(550, DataContractStore.Instance.CacheHits);
 #else
-            Assert.AreEqual(260, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(264, DataContractStore.Instance.CacheHits);
 #endif
 #elif NETCOREAPP
 #if !(NETCOREAPP1_0 || NETCOREAPP1_1)
 #if DISABLE_DEVART
             Assert.AreEqual(363, DataContractStore.Instance.CacheHits);
 #else
-            Assert.AreEqual(468, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(477, DataContractStore.Instance.CacheHits);
 #endif
 #else
 #if DISABLE_DEVART
-            Assert.AreEqual(299, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(304, DataContractStore.Instance.CacheHits);
 #else
-            Assert.AreEqual(403, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(410, DataContractStore.Instance.CacheHits);
 #endif
 #endif
 #endif
@@ -117,22 +117,22 @@ namespace Mighty.Generic.Tests.X
         {
 #if NETFRAMEWORK
 #if !NET40
-            Assert.AreEqual(898, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(910, DataContractStore.Instance.CacheHits);
 #else
-            Assert.AreEqual(443, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(447, DataContractStore.Instance.CacheHits);
 #endif
 #elif NETCOREAPP
 #if !(NETCOREAPP1_0 || NETCOREAPP1_1)
 #if DISABLE_DEVART
             Assert.AreEqual(600, DataContractStore.Instance.CacheHits);
 #else
-            Assert.AreEqual(783, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(793, DataContractStore.Instance.CacheHits);
 #endif
 #else
 #if DISABLE_DEVART
-            Assert.AreEqual(496, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(502, DataContractStore.Instance.CacheHits);
 #else
-            Assert.AreEqual(678, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(686, DataContractStore.Instance.CacheHits);
 #endif
 #endif
 #endif

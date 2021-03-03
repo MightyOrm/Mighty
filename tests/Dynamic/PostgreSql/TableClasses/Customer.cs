@@ -14,7 +14,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql.TableClasses
 
 
         public Customer(bool includeSchema) :
-            base(TestConstants.ReadWriteTestConnection, includeSchema ? "public.customers" : "customers", "customerid")
+            base(string.Format(TestConstants.ReadWriteTestConnection, TestConstants.ProviderName), includeSchema ? "public.customers" : "customers", "customerid")
         {
         }
     }

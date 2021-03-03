@@ -94,7 +94,7 @@ namespace Mighty.Dynamic.Tests.MySql
             // Apply some quick crazy-ass mapping... to an ExpandoObject :-)
             // Remember, we're mapping from crazy fake 'class' names to the sensible underlying column names
             var categories = new MightyOrm(
-                WhenDevart.AddLicenseKey(TestConstants.WriteTestConnection, ProviderName),
+                string.Format(WhenDevart.AddLicenseKey(ProviderName, TestConstants.WriteTestConnection), ProviderName),
                 "MassiveWriteTests.Categories",
                 primaryKeys: "MYCATEGORYID",
                 columns: "MYCATEGORYID, TheName, ItsADescription",
@@ -194,7 +194,7 @@ namespace Mighty.Dynamic.Tests.MySql
         [OneTimeTearDown]
         public void CleanUp()
         {
-            var db = new MightyOrm(WhenDevart.AddLicenseKey(TestConstants.WriteTestConnection, ProviderName));
+            var db = new MightyOrm(string.Format(WhenDevart.AddLicenseKey(ProviderName, TestConstants.WriteTestConnection), ProviderName));
             db.ExecuteProcedure("pr_clearAll");
         }
     }

@@ -8,7 +8,10 @@ namespace Mighty.Dynamic.Tests.PostgreSql.TableClasses
 {
     public class SPTestsDatabase : MightyOrm
     {
-        public SPTestsDatabase() : base(TestConstants.ReadWriteTestConnection)
+        public SPTestsDatabase(bool providerNameOnly = false)
+            : base(providerNameOnly ?
+                  $"ProviderName={TestConstants.ProviderName}" :
+                  string.Format(TestConstants.ReadWriteTestConnection, TestConstants.ProviderName))
         {
         }
     }

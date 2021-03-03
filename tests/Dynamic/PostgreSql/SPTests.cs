@@ -180,7 +180,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
             Assert.AreEqual(4, count);
         }
 
-#region Dereferencing tests
+        #region Dereferencing tests
         [Test]
         public void DereferenceCursorOutputParameter()
         {
@@ -303,7 +303,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
             var resultCTestToBreak = db.QueryMultipleFromProcedure("cbreaktest", ioParams: new { c1 = new Cursor(), c2 = new Cursor() });
             CheckMultiResultSetStructure(resultCTestToBreak, breakTest: true);
         }
-#endregion
+        #endregion
 
         [Test]
         public void QueryFromMixedCursorOutput()
@@ -327,10 +327,20 @@ namespace Mighty.Dynamic.Tests.PostgreSql
         }
 
         [Test]
-        public void InputCursors_BeginTransaction()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void InputCursors_BeginTransaction(bool explicitConnection)
         {
-            var db = new SPTestsDatabase();
-            using(var conn = db.OpenConnection())
+            var db = new SPTestsDatabase(explicitConnection);
+            if (explicitConnection)
+            {
+                MightyTests.ConnectionStringUtils.CheckConnectionStringRequiredForOpenConnection(db);
+            }
+            using (var conn = db.OpenConnection(
+                explicitConnection ?
+                    MightyTests.ConnectionStringUtils.GetConnectionString(TestConstants.ReadWriteTestConnection, TestConstants.ProviderName) :
+                    null
+                    ))
             {
                 // cursors in PostgreSQL must share a transaction (not just a connection, as in Oracle)
                 using(var trans = conn.BeginTransaction())

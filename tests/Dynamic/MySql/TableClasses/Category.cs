@@ -13,7 +13,7 @@ namespace Mighty.Dynamic.Tests.MySql.TableClasses
 
 
         public Category(string providerName, bool includeSchema) :
-            base(WhenDevart.AddLicenseKey(TestConstants.WriteTestConnection, providerName), includeSchema ? "MassiveWriteTests.Categories" : "Categories", "CategoryID")
+            base(string.Format(WhenDevart.AddLicenseKey(providerName, TestConstants.WriteTestConnection), providerName), includeSchema ? "MassiveWriteTests.Categories" : "Categories", "CategoryID")
         {
         }
     }

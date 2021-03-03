@@ -21,7 +21,7 @@ namespace Mighty.Dynamic.Tests.PostgreSql
         public void Guid_Arg()
         {
             // PostgreSQL has true Guid type support
-            var db = new MightyOrm(TestConstants.ReadWriteTestConnection);
+            var db = new MightyOrm(string.Format(TestConstants.ReadWriteTestConnection, TestConstants.ProviderName));
             var guid = Guid.NewGuid();
             dynamic item;
             using (var command = db.CreateCommand("SELECT @0 AS val", null, guid))

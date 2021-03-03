@@ -217,9 +217,25 @@ namespace Mighty
         /// <returns></returns>
         override public DbConnection OpenConnection()
         {
+            return OpenConnection(null);
+        }
+
+        /// <summary>
+        /// Creates a new DbConnection. You do not normally need to call this! (MightyOrm normally manages its own
+        /// connections. Create a connection here and pass it on to other MightyOrm commands only in non-standard use
+        /// cases where you need to explicitly manage transactions or share connections, e.g. when using explicit cursors.)
+        /// </summary>
+        /// <param name="connectionString">Connection string to use</param>
+        /// <returns></returns>
+        override public DbConnection OpenConnection(string connectionString)
+        {
+            if (string.IsNullOrEmpty(ConnectionString) && string.IsNullOrEmpty(connectionString))
+            {
+                throw new InvalidOperationException($"open connection needed to proceed, but no connection object and no connection string available");
+            }
             var connection = Factory.CreateConnection();
             connection = DataProfiler.ConnectionWrapping(connection);
-            connection.ConnectionString = ConnectionString;
+            connection.ConnectionString = string.IsNullOrEmpty(connectionString) ? ConnectionString : connectionString;
             connection.Open();
             return connection;
         }

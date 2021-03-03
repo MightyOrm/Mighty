@@ -224,23 +224,33 @@ namespace Mighty.Dynamic.Tests.Oracle
         /// This is based on Oracle demo code: https://blogs.oracle.com/oraclemagazine/cursor-in-cursor-out
         /// </remarks>
         [Test]
-        public void PassingCursorInputParameter()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void PassingCursorInputParameter(bool explicitConnection)
         {
-            var db = new SPTestsDatabase(ProviderName);
+            var db = new SPTestsDatabase(ProviderName, explicitConnection);
+            if (explicitConnection)
+            {
+                MightyTests.ConnectionStringUtils.CheckConnectionStringRequiredForOpenConnection(db);
+            }
             // To share cursors between commands in Oracle the commands must use the same connection
-            using(var conn = db.OpenConnection())
+            using(var conn = db.OpenConnection(
+                explicitConnection ?
+                    MightyTests.ConnectionStringUtils.GetConnectionString(TestConstants.ReadWriteTestConnection, ProviderName) :
+                    null
+                ))
             {
                 var res1 = db.ExecuteWithParams("begin open :p_rc for select * from emp where deptno = 10; end;", outParams: new { p_rc = new Cursor() }, connection: conn);
                 Assert.AreEqual(typeof(Cursor), res1.p_rc.GetType());
                 Assert.AreEqual("OracleRefCursor", ((Cursor)res1.p_rc).CursorRef.GetType().Name);
 
-                db.Execute("delete from processing_result");
+                db.Execute("delete from processing_result", connection: conn);
 
                 // oracle demo code takes the input cursor and writes the results to `processing_result` table
                 var res2 = db.ExecuteProcedure("cursor_in_out.process_cursor", inParams: new { p_cursor = res1.p_rc }, connection: conn);
                 Assert.AreEqual(0, ((IDictionary<string, object>)res2).Count);
 
-                var processedRows = db.Query("select * from processing_result").ToList();
+                var processedRows = db.Query("select * from processing_result", connection: conn).ToList();
                 Assert.AreEqual(3, processedRows.Count);
             }
         }

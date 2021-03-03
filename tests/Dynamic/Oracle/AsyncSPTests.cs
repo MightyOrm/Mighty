@@ -1,13 +1,13 @@
 ﻿#if (NETFRAMEWORK && !NET40) || (NETCOREAPP && !(NETCOREAPP1_0 || NETCOREAPP1_1))
 using System;
-using System.Data;
-using Dasync.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Mighty.Dynamic.Tests.Oracle.TableClasses;
-using NUnit.Framework;
 using System.Threading.Tasks;
+
+using Dasync.Collections;
+
+using NUnit.Framework;
+
+using Mighty.Dynamic.Tests.Oracle.TableClasses;
 
 namespace Mighty.Dynamic.Tests.Oracle
 {
@@ -215,28 +215,36 @@ namespace Mighty.Dynamic.Tests.Oracle
             Assert.AreEqual(2, mixedDirect.num2);
         }
 
-
         /// <remarks>
         /// This is based on Oracle demo code: https://blogs.oracle.com/oraclemagazine/cursor-in-cursor-out
         /// </remarks>
         [Test]
-        public async Task PassingCursorInputParameter()
+        [TestCase(false)]
+        [TestCase(true)]
+        public async Task PassingCursorInputParameter(bool explicitConnection)
         {
-            var db = new SPTestsDatabase(ProviderName);
+            var db = new SPTestsDatabase(ProviderName, explicitConnection);
+            if (explicitConnection)
+            {
+                MightyTests.ConnectionStringUtils.CheckConnectionStringRequiredForOpenConnectionAsync(db);
+            }
             // To share cursors between commands in Oracle the commands must use the same connection
-            using (var conn = await db.OpenConnectionAsync())
+            using (var conn = await db.OpenConnectionAsync(
+                explicitConnection ?
+                    MightyTests.ConnectionStringUtils.GetConnectionString(TestConstants.ReadWriteTestConnection, ProviderName) :
+                    null))
             {
                 var res1 = await db.ExecuteWithParamsAsync("begin open :p_rc for select * from emp where deptno = 10; end;", outParams: new { p_rc = new Cursor() }, connection: conn);
                 Assert.AreEqual(typeof(Cursor), res1.p_rc.GetType());
                 Assert.AreEqual("OracleRefCursor", ((Cursor)res1.p_rc).CursorRef.GetType().Name);
 
-                await db.ExecuteAsync("delete from processing_result");
+                await db.ExecuteAsync("delete from processing_result", connection: conn);
 
                 // oracle demo code takes the input cursor and writes the results to `processing_result` table
                 var res2 = await db.ExecuteProcedureAsync("cursor_in_out.process_cursor", inParams: new { p_cursor = res1.p_rc }, connection: conn);
                 Assert.AreEqual(0, ((IDictionary<string, object>)res2).Count);
 
-                var processedRows = await (await db.QueryAsync("select * from processing_result")).ToListAsync();
+                var processedRows = await (await db.QueryAsync("select * from processing_result", connection: conn)).ToListAsync();
                 Assert.AreEqual(3, processedRows.Count);
             }
         }

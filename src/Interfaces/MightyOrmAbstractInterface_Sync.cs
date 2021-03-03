@@ -29,6 +29,15 @@ namespace Mighty.Interfaces
         abstract public DbConnection OpenConnection();
 
         /// <summary>
+        /// Creates a new DbConnection. You do not normally need to call this! (MightyOrm normally manages its own
+        /// connections. Create a connection here and pass it on to other MightyOrm commands only in non-standard use
+        /// cases where you need to explicitly manage transactions or share connections, e.g. when using explicit cursors.)
+        /// </summary>
+        /// <param name="connectionString">Connection string to use</param>
+        /// <returns></returns>
+        abstract public DbConnection OpenConnection(string connectionString);
+
+        /// <summary>
         /// Get <see cref="IEnumerable{T}"/> of items returned by database command.
         /// </summary>
         /// <param name="command">The command to execute</param>
@@ -939,6 +948,6 @@ namespace Mighty.Interfaces
         /// <returns></returns>
         abstract public IDictionary<string, string> KeyValues(string orderBy = null);
 #endif
-#endregion
+        #endregion
     }
 }

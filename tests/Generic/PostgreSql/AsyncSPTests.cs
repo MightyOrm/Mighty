@@ -42,14 +42,24 @@ namespace Mighty.Generic.Tests.PostgreSql
 
 
         [Test]
-        public async Task DereferenceFromQuery_ManualWrapping()
+        [TestCase(false)]
+        [TestCase(true)]
+        public async Task DereferenceFromQuery_ManualWrapping(bool explicitConnection)
         {
-            var db = new Employees();
+            var db = new Employees(explicitConnection);
+            if (explicitConnection)
+            {
+                MightyTests.ConnectionStringUtils.CheckConnectionStringRequiredForOpenConnectionAsync(db);
+            }
             // without a cursor param, nothing will trigger the wrapping transaction support in Massive
             // so in this case we need to add the wrapping transaction manually (with TransactionScope or
             // BeginTransaction, see other examples in this file)
             int count = 0;
-            using (var conn = await db.OpenConnectionAsync())
+            using (var conn = await db.OpenConnectionAsync(
+                explicitConnection ?
+                    MightyTests.ConnectionStringUtils.GetConnectionString(TestConstants.ReadWriteTestConnection, TestConstants.ProviderName) :
+                    null
+                    ))
             {
                 using (var trans = conn.BeginTransaction())
                 {

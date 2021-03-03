@@ -19,7 +19,7 @@ namespace Mighty.Dynamic.Tests.MySql
         // Note also, the .NET Core 1.0 Devart tests definitely did pass originally using the time-limited
         // Devart trial license, and so presumably (especially since they're all still working in the other
         // .NET Core versions) would pass if whatever the .NET Core 1.0 Devart license problem is, was fixed.
-        public static string AddLicenseKey(string connectionString, string providerName)
+        public static string AddLicenseKey(string providerName, string connectionString)
         {
 #if NETCOREAPP
             const string devartProvider = "Devart.Data.MySql";
@@ -47,9 +47,7 @@ namespace Mighty.Dynamic.Tests.MySql
                 connectionString = $"{connectionString};LicenseKey={licenseKey}";
             }
 #endif
-
-                        // insert provider name in connection string
-                        return string.Format(connectionString, providerName);
+            return connectionString;
         }
     }
 }

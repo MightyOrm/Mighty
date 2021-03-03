@@ -18,7 +18,7 @@ namespace Mighty.Dynamic.Tests.MySql
         private readonly string ProviderName = "Devart.Data.MySql";
 
         // Massive style calls to some examples from https://www.devart.com/dotconnect/mysql/docs/Parameters.html#inoutparams
-#region Devart Examples
+        #region Devart Examples
 
         /// <remarks>
         /// Demonstrates that this Devart-specific syntax is possible in Massive;
@@ -26,11 +26,21 @@ namespace Mighty.Dynamic.Tests.MySql
         /// since you have to do so much manually.
         /// </remarks>
         [Test]
-        public void Devart_ParameterCheck()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void Devart_ParameterCheck(bool explicitConnection)
         {
-            var db = new SPTestsDatabase(ProviderName);
+            var db = new SPTestsDatabase(ProviderName, explicitConnection);
+            if (explicitConnection)
+            {
+                MightyTests.ConnectionStringUtils.CheckConnectionStringRequiredForOpenConnection(db);
+            }
             dynamic result;
-            using (var connection = db.OpenConnection())
+            using (var connection = db.OpenConnection(
+                explicitConnection ?
+                    MightyTests.ConnectionStringUtils.GetConnectionString(TestConstants.ReadTestConnection, ProviderName) :
+                    null
+                    ))
             {
                 using (var command = db.CreateCommandWithParams("testproc_in_out", isProcedure: true, connection: connection))
                 {
@@ -39,13 +49,13 @@ namespace Mighty.Dynamic.Tests.MySql
                     // Devart-specific: makes a round-trip to the database to fetch the parameter names
                     command.Prepare();
                     command.Parameters["param1"].Value = 10;
-                    db.Execute(command);
+                    db.Execute(command, connection: connection);
                     result = db.ResultsAsExpando(command);
                 }
             }
             Assert.AreEqual(20, result.param2);
         }
-#endregion
+        #endregion
     }
 }
 #endif

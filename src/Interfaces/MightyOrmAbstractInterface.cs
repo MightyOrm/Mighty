@@ -141,12 +141,12 @@ namespace Mighty.Interfaces
         /// Table meta data (filtered to be only for columns specified by the generic type T, or by consturctor `columns`, if present)
         /// </summary>
         abstract public IEnumerable<dynamic> TableMetaData { get; }
-#endregion
+        #endregion
 
         // 'Interface' for the general purpose data access wrapper methods (i.e. the ones which can be used
         // even if no table has been specified).
         // All versions which simply redirect to other versions are defined here, not in the main class.
-#region Non-table specific methods
+        #region Non-table specific methods
         /// <summary>
         /// Create a <see cref="DbCommand"/> ready for use with Mighty.
         /// Manually creating commands is an advanced use-case; standard Mighty methods create and dispose
@@ -203,9 +203,9 @@ namespace Mighty.Interfaces
         /// <param name="cmd">The command</param>
         /// <returns></returns>
         abstract public dynamic ResultsAsExpando(DbCommand cmd);
-#endregion
+        #endregion
 
-#region Table specific methods
+        #region Table specific methods
         /// <summary>
         /// Return a new item populated with defaults which correctly reflect the defaults of the current database table, if any.
         /// </summary>
@@ -258,6 +258,6 @@ namespace Mighty.Interfaces
         /// <param name="alwaysArray">If true return object[] of 1 item, even for simple PK</param>
         /// <returns></returns>
         abstract public object GetPrimaryKey(object item, bool alwaysArray = false);
-#endregion
+        #endregion
     }
 }

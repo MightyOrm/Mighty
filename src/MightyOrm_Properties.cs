@@ -135,6 +135,6 @@ namespace Mighty
         /// true for generic instantiation; false if dynamically typed instantiation
         /// </summary>
         override public bool IsGeneric { get; protected set; }
-#endregion
+        #endregion
     }
 }

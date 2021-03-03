@@ -139,7 +139,7 @@ namespace Mighty.Dynamic.Tests.MySql
 
 
         // Massive style calls to some examples from https://www.devart.com/dotconnect/mysql/docs/Parameters.html#inoutparams
-#region Devart Examples
+        #region Devart Examples
         [Test]
         public async Task In_Out_Params_SQL()
         {
@@ -174,7 +174,7 @@ namespace Mighty.Dynamic.Tests.MySql
             var result = await db.ExecuteProcedureAsync("testproc_inout", ioParams: new { param1 = 10 });
             Assert.AreEqual(20, result.param1);
         }
-#endregion
+        #endregion
     }
 }
 #endif
