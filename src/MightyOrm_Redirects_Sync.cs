@@ -880,6 +880,18 @@ namespace Mighty
         }
 
         /// <summary>
+        /// Insert single item.
+        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
+        /// </summary>
+        /// <param name="item">The item to insert, in any reasonable format (for MightyOrm&lt;T&gt; this includes, but is not limited to, in instance of type T)</param>
+        /// <param name="connection">The connection to use</param>
+        /// <returns>The item sent in but with the primary key populated</returns>
+        override public T Insert(object item, DbConnection connection)
+        {
+            return ActionOnItems(OrmAction.Insert, connection, new object[] { item }).FirstOrDefault();
+        }
+
+        /// <summary>
         /// Insert one or more items.
         /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>

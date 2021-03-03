@@ -1836,6 +1836,31 @@ namespace Mighty
         }
 
         /// <summary>
+        /// Insert single item.
+        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
+        /// </summary>
+        /// <param name="item">The item to insert, in any reasonable format (for MightyOrm&lt;T&gt; this includes, but is not limited to, in instance of type T)</param>
+        /// <param name="connection">The connection to use</param>
+        /// <returns>The item sent in but with the primary key populated</returns>
+        override public async Task<T> InsertAsync(object item, DbConnection connection)
+        {
+            return (await ActionOnItemsAsync(OrmAction.Insert, connection, new object[] { item }).ConfigureAwait(false)).FirstOrDefault();
+        }
+
+        /// <summary>
+        /// Insert single item.
+        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
+        /// </summary>
+        /// <param name="item">The item to insert, in any reasonable format (for MightyOrm&lt;T&gt; this includes, but is not limited to, in instance of type T)</param>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns>The item sent in but with the primary key populated</returns>
+        override public async Task<T> InsertAsync(object item, DbConnection connection, CancellationToken cancellationToken)
+        {
+            return (await ActionOnItemsAsync(OrmAction.Insert, connection, new object[] { item }, cancellationToken).ConfigureAwait(false)).FirstOrDefault();
+        }
+
+        /// <summary>
         /// Insert one or more items.
         /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>
