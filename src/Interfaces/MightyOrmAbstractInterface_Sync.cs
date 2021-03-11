@@ -657,6 +657,21 @@ namespace Mighty.Interfaces
             params object[] args);
 
         /// <summary>
+        /// Get <see cref="IEnumerable{T}"/> of items from the current table with WHERE and TOP/LIMIT specification.
+        /// </summary>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="orderBy">ORDER BY clause</param>
+        /// <param name="columns">Columns to return</param>
+        /// <param name="limit">Maximum number of items to return</param>
+        /// <param name="args">Auto-numbered input parameters</param>
+        /// <returns></returns>
+        abstract public IEnumerable<T> All(
+            DbConnection connection,
+            string where = null, string orderBy = null, string columns = null, int limit = 0,
+            params object[] args);
+
+        /// <summary>
         /// Get <see cref="IEnumerable{T}"/> of items from the current table with primary key or name-value where specification and TOP/LIMIT specification.
         /// </summary>
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
@@ -665,6 +680,19 @@ namespace Mighty.Interfaces
         /// <param name="limit">Maximum number of items to return</param>
         /// <returns></returns>
         abstract public IEnumerable<T> All(
+            object whereParams = null, string orderBy = null, string columns = null, int limit = 0);
+
+        /// <summary>
+        /// Get <see cref="IEnumerable{T}"/> of items from the current table with primary key or name-value where specification and TOP/LIMIT specification.
+        /// </summary>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
+        /// <param name="orderBy">ORDER BY clause</param>
+        /// <param name="columns">Columns to return</param>
+        /// <param name="limit">Maximum number of items to return</param>
+        /// <returns></returns>
+        abstract public IEnumerable<T> All(
+            DbConnection connection,
             object whereParams = null, string orderBy = null, string columns = null, int limit = 0);
 
         /// <summary>
@@ -802,6 +830,21 @@ namespace Mighty.Interfaces
         /// <param name="items">The items</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
         abstract public IEnumerable<T> Insert(DbConnection connection, IEnumerable<object> items);
+
+        /// <summary>
+        /// Update single item.
+        /// </summary>
+        /// <param name="item">The item</param>
+        /// <returns></returns>
+        abstract public int Update(object item);
+
+        /// <summary>
+        /// Update single item.
+        /// </summary>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="item">The item</param>
+        /// <returns></returns>
+        abstract public int Update(object item, DbConnection connection);
 
         /// <summary>
         /// Update one or more items.

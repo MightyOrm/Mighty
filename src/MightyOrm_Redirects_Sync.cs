@@ -768,6 +768,24 @@ namespace Mighty
         }
 
         /// <summary>
+        /// Get <see cref="IEnumerable{T}"/> of items from the current table with WHERE and TOP/LIMIT specification.
+        /// </summary>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="where">WHERE clause</param>
+        /// <param name="orderBy">ORDER BY clause</param>
+        /// <param name="columns">Columns to return</param>
+        /// <param name="limit">Maximum number of items to return</param>
+        /// <param name="args">Auto-numbered input parameters</param>
+        /// <returns></returns>
+        override public IEnumerable<T> All(
+            DbConnection connection,
+            string where = null, string orderBy = null, string columns = null, int limit = 0,
+            params object[] args)
+        {
+            return AllWithParams(where, orderBy, columns, limit, connection: connection, args: args);
+        }
+
+        /// <summary>
         /// Get <see cref="IEnumerable{T}"/> of items from the current table with primary key or name-value where specification and TOP/LIMIT specification.
         /// </summary>
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
@@ -786,6 +804,30 @@ namespace Mighty
             return AllWithParams(
                 where: retval.Item1, inParams: retval.Item2,
                 orderBy: orderBy, columns: columns, limit: limit);
+        }
+
+        /// <summary>
+        /// Get <see cref="IEnumerable{T}"/> of items from the current table with primary key or name-value where specification and TOP/LIMIT specification.
+        /// </summary>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
+        /// <param name="orderBy">ORDER BY clause</param>
+        /// <param name="columns">Columns to return</param>
+        /// <param name="limit">Maximum number of items to return</param>
+        /// <returns></returns>
+        override public IEnumerable<T> All(
+            DbConnection connection,
+            object whereParams = null, string orderBy = null, string columns = null, int limit = 0)
+        {
+            Tuple<string, object, object[]> retval = GetWhereSpecFromWhereParams(whereParams);
+            if (retval.Item3 != null)
+            {
+                throw new InvalidOperationException($"{nameof(whereParams)} in {nameof(All)}(...) should contain names and values but it contained values only. If you want to get a single item by its primary key use {nameof(Single)}(...) instead.");
+            }
+            return AllWithParams(
+                where: retval.Item1, inParams: retval.Item2,
+                orderBy: orderBy, columns: columns, limit: limit,
+                connection: connection);
         }
 
         /// <summary>
@@ -935,6 +977,27 @@ namespace Mighty
         override public IEnumerable<T> Insert(DbConnection connection, IEnumerable<object> items)
         {
             return ActionOnItems(OrmAction.Insert, connection, items);
+        }
+
+        /// <summary>
+        /// Update single item.
+        /// </summary>
+        /// <param name="item">The item</param>
+        /// <returns></returns>
+        override public int Update(object item)
+        {
+            return ActionOnItemsWithOutput(OrmAction.Update, null, new object[] { item }).Item1;
+        }
+
+        /// <summary>
+        /// Update single item.
+        /// </summary>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="item">The item</param>
+        /// <returns></returns>
+        override public int Update(object item, DbConnection connection)
+        {
+            return ActionOnItemsWithOutput(OrmAction.Update, connection, new object[] { item }).Item1;
         }
 
         /// <summary>

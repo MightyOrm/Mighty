@@ -326,7 +326,7 @@ namespace Mighty
         /// <returns></returns>
         override public async Task<DbConnection> OpenConnectionAsync()
         {
-            return await OpenConnectionAsync(null, CancellationToken.None).ConfigureAwait(false);
+            return await OpenConnectionAsync(false).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -338,7 +338,7 @@ namespace Mighty
         /// <returns></returns>
         override public async Task<DbConnection> OpenConnectionAsync(string connectionString)
         {
-            return await OpenConnectionAsync(connectionString, CancellationToken.None).ConfigureAwait(false);
+            return await OpenConnectionAsync(false, CancellationToken.None, connectionString).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -350,7 +350,7 @@ namespace Mighty
         /// <returns></returns>
         override public async Task<DbConnection> OpenConnectionAsync(CancellationToken cancellationToken)
         {
-            return await OpenConnectionAsync(null, CancellationToken.None).ConfigureAwait(false);
+            return await OpenConnectionAsync(false, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -363,9 +363,28 @@ namespace Mighty
         /// <returns></returns>
         override public async Task<DbConnection> OpenConnectionAsync(string connectionString, CancellationToken cancellationToken)
         {
+            return await OpenConnectionAsync(false, cancellationToken, connectionString).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Internal usage only, creates a new DbConnection.
+        /// </summary>
+        /// <param name="isInternal"><cref>true</cref> if called internally</param>
+        /// <param name="connectionString">Connection string to use</param>
+        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
+        /// <returns></returns>
+        internal async Task<DbConnection> OpenConnectionAsync(bool isInternal, CancellationToken cancellationToken = default, string connectionString = null)
+        {
             if (string.IsNullOrEmpty(ConnectionString) && string.IsNullOrEmpty(connectionString))
             {
-                throw new InvalidOperationException($"async open connection needed to proceed, but no connection object and no connection string available");
+                if (isInternal)
+                {
+                    throw new InvalidOperationException("Connection needed to proceed, but no DbConnection object and no per-instance or global connection string available");
+                }
+                else
+                {
+                    throw new InvalidOperationException("No connection string provided, and no per-instance or global connection string available");
+                }
             }
             var connection = Factory.CreateConnection();
             connection = DataProfiler.ConnectionWrapping(connection);
@@ -398,7 +417,7 @@ namespace Mighty
             DbConnection connection = null)
         {
             // using applied only to local connection
-            using (var localConn = ((connection == null) ? await OpenConnectionAsync(cancellationToken).ConfigureAwait(false) : null))
+            using (var localConn = ((connection == null) ? await OpenConnectionAsync(true, cancellationToken).ConfigureAwait(false) : null))
             {
                 command.Connection = connection ?? localConn;
                 return await command.ExecuteNonQueryAsync(cancellationToken);
@@ -429,7 +448,7 @@ namespace Mighty
             DbConnection connection = null)
         {
             // using applied only to local connection
-            using (var localConn = ((connection == null) ? await OpenConnectionAsync(cancellationToken).ConfigureAwait(false) : null))
+            using (var localConn = ((connection == null) ? await OpenConnectionAsync(true, cancellationToken).ConfigureAwait(false) : null))
             {
                 command.Connection = connection ?? localConn;
                 return await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
@@ -592,7 +611,7 @@ namespace Mighty
                         behavior = CommandBehavior.SingleResult;
                     }
                     // using is applied only to locally generated connection
-                    using (var localConn = (connection == null ? await OpenConnectionAsync(cancellationToken).ConfigureAwait(false) : null))
+                    using (var localConn = (connection == null ? await OpenConnectionAsync(true, cancellationToken).ConfigureAwait(false) : null))
                     {
                         if (command != null)
                         {

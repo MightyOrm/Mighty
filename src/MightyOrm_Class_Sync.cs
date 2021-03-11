@@ -217,7 +217,7 @@ namespace Mighty
         /// <returns></returns>
         override public DbConnection OpenConnection()
         {
-            return OpenConnection(null);
+            return OpenConnection(false);
         }
 
         /// <summary>
@@ -229,9 +229,27 @@ namespace Mighty
         /// <returns></returns>
         override public DbConnection OpenConnection(string connectionString)
         {
+            return OpenConnection(false, connectionString);
+        }
+
+        /// <summary>
+        /// Internal usage only, creates a new DbConnection.
+        /// </summary>
+        /// <param name="isInternal"><cref>true</cref> if called internally</param>
+        /// <param name="connectionString">Connection string to use</param>
+        /// <returns></returns>
+        internal DbConnection OpenConnection(bool isInternal, string connectionString = null)
+        {
             if (string.IsNullOrEmpty(ConnectionString) && string.IsNullOrEmpty(connectionString))
             {
-                throw new InvalidOperationException($"open connection needed to proceed, but no connection object and no connection string available");
+                if (isInternal)
+                {
+                    throw new InvalidOperationException("Connection needed to proceed, but no DbConnection object and no per-instance or global connection string available");
+                }
+                else
+                {
+                    throw new InvalidOperationException("No connection string provided, and no per-instance or global connection string available");
+                }
             }
             var connection = Factory.CreateConnection();
             connection = DataProfiler.ConnectionWrapping(connection);
@@ -250,7 +268,7 @@ namespace Mighty
             DbConnection connection = null)
         {
             // using applied only to local connection
-            using (var localConn = ((connection == null) ? OpenConnection() : null))
+            using (var localConn = ((connection == null) ? OpenConnection(true) : null))
             {
                 command.Connection = connection ?? localConn;
                 return command.ExecuteNonQuery();
@@ -267,7 +285,7 @@ namespace Mighty
             DbConnection connection = null)
         {
             // using applied only to local connection
-            using (var localConn = ((connection == null) ? OpenConnection() : null))
+            using (var localConn = ((connection == null) ? OpenConnection(true) : null))
             {
                 command.Connection = connection ?? localConn;
                 return command.ExecuteScalar();
@@ -359,7 +377,7 @@ namespace Mighty
                     behavior = CommandBehavior.SingleResult;
                 }
                 // using is applied only to locally generated connection
-                using (var localConn = (connection == null ? OpenConnection() : null))
+                using (var localConn = (connection == null ? OpenConnection(true) : null))
                 {
                     if (command != null)
                     {
