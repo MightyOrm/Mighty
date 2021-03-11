@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Mighty.Generic.Tests.SqlServer.TableClasses
 {
@@ -20,7 +17,7 @@ namespace Mighty.Generic.Tests.SqlServer.TableClasses
 
 
         public People(bool includeSchema) :
-            base(TestConstants.ReadTestConnection, includeSchema ? "dbo.People" : "People", "PersonID")
+            base(string.Format(TestConstants.ReadTestConnection, TestConstants.ProviderName), includeSchema ? "dbo.People" : "People", "PersonID")
         {
         }
     }

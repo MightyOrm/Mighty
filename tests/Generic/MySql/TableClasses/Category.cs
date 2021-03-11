@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Mighty.Generic.Tests.MySql.TableClasses
 {
@@ -14,13 +11,19 @@ namespace Mighty.Generic.Tests.MySql.TableClasses
 
     public class Categories : MightyOrm<Category>
     {
-        public Categories(string providerName) : this(providerName, true)
+        public Categories(string providerName, bool explicitConnection = false) : this(providerName, true, explicitConnection)
         {
         }
 
 
-        public Categories(string providerName, bool includeSchema) :
-            base(string.Format(TestConstants.WriteTestConnection, providerName), includeSchema ? "MassiveWriteTests.Categories" : "Categories", "CategoryID")
+        public Categories(string providerName, bool includeSchema, bool explicitConnection = false) :
+            base(
+                explicitConnection ?
+                    $"providername={providerName}" :
+                    string.Format(TestConstants.WriteTestConnection, providerName),
+                includeSchema ? "MassiveWriteTests.Categories" : "Categories",
+                "CategoryID"
+                )
         {
         }
     }

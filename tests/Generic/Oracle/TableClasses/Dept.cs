@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Mighty.Generic.Tests.Oracle.TableClasses
 {
@@ -14,13 +11,15 @@ namespace Mighty.Generic.Tests.Oracle.TableClasses
 
     public class Departments : MightyOrm<DEPT>
     {
-        public Departments(string providerName) : this(providerName, true)
+        public Departments(string providerName, bool explicitConnection = false) : this(providerName, true, explicitConnection)
         {
         }
 
 
-        public Departments(string providerName, bool includeSchema) 
-            : base(string.Format(TestConstants.ReadWriteTestConnection, providerName), includeSchema ? "SCOTT.DEPT" : "DEPT", "DEPTNO",
+        public Departments(string providerName, bool includeSchema, bool explicitConnection = false)
+            : base(
+                explicitConnection ? $"ProviderName={providerName}" : string.Format(TestConstants.ReadWriteTestConnection, providerName),
+                includeSchema ? "SCOTT.DEPT" : "DEPT", "DEPTNO",
 #if KEY_VALUES
                   string.Empty,
 #endif

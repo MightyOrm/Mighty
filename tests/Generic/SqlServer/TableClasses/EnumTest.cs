@@ -1,8 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-using Mighty;
 
 namespace Mighty.Generic.Tests.SqlServer.TableClasses
 {
@@ -42,7 +38,7 @@ namespace Mighty.Generic.Tests.SqlServer.TableClasses
 
 
         public EnumTests(bool includeSchema) :
-            base(TestConstants.WriteTestConnection, includeSchema ? "dbo.EnumTestTable" : "EnumTestTable", "ID")
+            base(string.Format(TestConstants.WriteTestConnection, TestConstants.ProviderName), includeSchema ? "dbo.EnumTestTable" : "EnumTestTable", "ID")
         {
         }
     }

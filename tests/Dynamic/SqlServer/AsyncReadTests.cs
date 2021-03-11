@@ -6,9 +6,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Dynamic;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 using Mighty.Dynamic.Tests.SqlServer.TableClasses;
 using NUnit.Framework;
@@ -22,7 +19,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         public async Task Guid_Arg()
         {
             // SQL Server has true Guid type support
-            var db = new MightyOrm(TestConstants.ReadTestConnection);
+            var db = new MightyOrm(string.Format(TestConstants.ReadTestConnection, TestConstants.ProviderName));
             var guid = Guid.NewGuid();
             dynamic item;
             using (var command = db.CreateCommand("SELECT @0 AS val", null, guid))

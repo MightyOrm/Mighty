@@ -3,11 +3,8 @@ using System;
 using System.Collections;
 using Dasync.Collections;
 using System.Collections.Generic;
-using System.Data;
-using System.Dynamic;
+using System.Data.Common;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 using System.Threading.Tasks;
 using Mighty.Generic.Tests.MySql.TableClasses;
 using NUnit.Framework;
@@ -78,27 +75,38 @@ namespace Mighty.Generic.Tests.MySql
 
 
         [Test]
-        public async Task Update_SingleRow()
+        [TestCase(false)]
+        [TestCase(true)]
+        public async Task Update_SingleRow(bool explicitConnection)
         {
-            var categories = new Categories(ProviderName);
-            // insert something to update first. 
-            var inserted = await categories.InsertAsync(new { CategoryName = "Cool stuff", Description = "You know... cool stuff! Cool. n. stuff." });
-            int insertedCategoryID = inserted.CategoryID;
-            Assert.IsTrue(insertedCategoryID > 0);
-            // update it, with a better description
-            inserted.Description = "This is all jolly marvellous";
-            Assert.AreEqual(1, await categories.UpdateAsync(inserted), "Update should have affected 1 row");
-            var updatedRow = await categories.SingleAsync(new { inserted.CategoryID });
-            Assert.IsNotNull(updatedRow);
-            Assert.AreEqual(inserted.CategoryID, Convert.ToInt32(updatedRow.CategoryID)); // convert from uint
-            Assert.AreEqual(inserted.Description, updatedRow.Description);
-            // reset description to NULL
-            updatedRow.Description = null;
-            Assert.AreEqual(1, await categories.UpdateAsync(updatedRow), "Update should have affected 1 row");
-            var newUpdatedRow = await categories.SingleAsync(new { updatedRow.CategoryID });
-            Assert.IsNotNull(newUpdatedRow);
-            Assert.AreEqual(updatedRow.CategoryID, newUpdatedRow.CategoryID);
-            Assert.AreEqual(updatedRow.Description, newUpdatedRow.Description);
+            var categories = new Categories(ProviderName, explicitConnection);
+            DbConnection connection = null;
+            if (explicitConnection)
+            {
+                MightyTests.ConnectionStringUtils.CheckConnectionStringRequiredForOpenConnectionAsync(categories);
+                connection = categories.OpenConnection(MightyTests.ConnectionStringUtils.GetConnectionString(TestConstants.WriteTestConnection, ProviderName));
+            }
+            using (connection)
+            {
+                // insert something to update first. 
+                var inserted = await categories.InsertAsync(new { CategoryName = "Cool stuff", Description = "You know... cool stuff! Cool. n. stuff." }, connection);
+                int insertedCategoryID = inserted.CategoryID;
+                Assert.IsTrue(insertedCategoryID > 0);
+                // update it, with a better description
+                inserted.Description = "This is all jolly marvellous";
+                Assert.AreEqual(1, await categories.UpdateAsync(inserted, connection), "Update should have affected 1 row");
+                var updatedRow = await categories.SingleAsync(new { inserted.CategoryID }, connection: connection);
+                Assert.IsNotNull(updatedRow);
+                Assert.AreEqual(inserted.CategoryID, Convert.ToInt32(updatedRow.CategoryID)); // convert from uint
+                Assert.AreEqual(inserted.Description, updatedRow.Description);
+                // reset description to NULL
+                updatedRow.Description = null;
+                Assert.AreEqual(1, await categories.UpdateAsync(updatedRow, connection), "Update should have affected 1 row");
+                var newUpdatedRow = await categories.SingleAsync(new { updatedRow.CategoryID }, connection: connection);
+                Assert.IsNotNull(newUpdatedRow);
+                Assert.AreEqual(updatedRow.CategoryID, newUpdatedRow.CategoryID);
+                Assert.AreEqual(updatedRow.Description, newUpdatedRow.Description);
+            }
         }
 
 

@@ -1,9 +1,8 @@
 ﻿#if NETFRAMEWORK || (NETCOREAPP && !(NETCOREAPP1_0 || NETCOREAPP1_1))
 using System;
 using System.Data;
-using System.Collections.Generic;
+using System.Data.Common;
 using System.Linq;
-using System.Text;
 using Mighty.Generic.Tests.Oracle.TableClasses;
 using NUnit.Framework;
 
@@ -158,12 +157,23 @@ namespace Mighty.Generic.Tests.Oracle
         }
 
         [Test]
-        public void Insert_SingleRow()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void Insert_SingleRow(bool explicitConnection)
         {
-            var depts = new Departments(ProviderName);
-            var inserted = depts.Insert(new { DNAME = "Massive Dep", LOC = "Beach" });
-            Assert.IsTrue(inserted.DEPTNO > 0);
-            Assert.AreEqual(1, depts.Delete(inserted.DEPTNO));
+            var depts = new Departments(ProviderName, explicitConnection);
+            DbConnection connection = null;
+            if (explicitConnection)
+            {
+                MightyTests.ConnectionStringUtils.CheckConnectionStringRequiredForOpenConnection(depts);
+                connection = depts.OpenConnection(MightyTests.ConnectionStringUtils.GetConnectionString(TestConstants.ReadWriteTestConnection, ProviderName));
+            }
+            using (connection)
+            {
+                var inserted = depts.Insert(new { DNAME = "Massive Dep", LOC = "Beach" }, connection: connection);
+                Assert.IsTrue(inserted.DEPTNO > 0);
+                Assert.AreEqual(1, depts.Delete(inserted.DEPTNO));
+            }
         }
 
 

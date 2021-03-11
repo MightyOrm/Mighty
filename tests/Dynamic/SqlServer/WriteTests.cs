@@ -1,11 +1,8 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Data;
-using System.Dynamic;
+using System.Data.Common;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 using Mighty.Dynamic.Tests.SqlServer.TableClasses;
 using NUnit.Framework;
 
@@ -72,32 +69,47 @@ namespace Mighty.Dynamic.Tests.SqlServer
 
 
         [Test]
-        public void Update_MultipleRows()
+        [TestCase(false)]
+        [TestCase(true)]
+        public void Update_MultipleRows(bool explicitConnection)
         {
             // first insert 2 categories and 4 products, one for each category
-            var categories = new Category();
-            var insertedCategory1 = categories.Insert(new {CategoryName = "Category 1", Description = "Cat 1 desc"});
-            int category1ID = insertedCategory1.CategoryID;
-            Assert.IsTrue(category1ID > 0);
-            var insertedCategory2 = categories.Insert(new { CategoryName = "Category 2", Description = "Cat 2 desc" });
-            int category2ID = insertedCategory2.CategoryID;
-            Assert.IsTrue(category2ID > 0);
+            var categories = new Category(explicitConnection);
+            DbConnection connection = null;
+            if (explicitConnection)
+            {
+                MightyTests.ConnectionStringUtils.CheckConnectionStringRequiredForOpenConnection(categories);
+                connection = categories.OpenConnection(MightyTests.ConnectionStringUtils.GetConnectionString(TestConstants.WriteTestConnection, TestConstants.ProviderName));
+            }
+            using (connection)
+            {
+                var insertedCategory1 = categories.Insert(new { CategoryName = "Category 1", Description = "Cat 1 desc" }, connection);
+                int category1ID = insertedCategory1.CategoryID;
+                Assert.IsTrue(category1ID > 0);
+                var insertedCategory2 = categories.Insert(new { CategoryName = "Category 2", Description = "Cat 2 desc" }, connection);
+                int category2ID = insertedCategory2.CategoryID;
+                Assert.IsTrue(category2ID > 0);
 
-            var products = new Product();
-            for(int i = 0; i < 4; i++)
-            {
-                var category = i % 2 == 0 ? insertedCategory1 : insertedCategory2;
-                var p = products.Insert(new {ProductName = "Prod" + i, category.CategoryID});
-                Assert.IsTrue(p.ProductID > 0);
+                var products = new Product(explicitConnection);
+                if (explicitConnection)
+                {
+                    MightyTests.ConnectionStringUtils.CheckConnectionStringRequiredForOpenConnection(products);
+                }
+                for (int i = 0; i < 4; i++)
+                {
+                    var category = i % 2 == 0 ? insertedCategory1 : insertedCategory2;
+                    var p = products.Insert(new { ProductName = "Prod" + i, category.CategoryID }, connection);
+                    Assert.IsTrue(p.ProductID > 0);
+                }
+                var allCat1Products = products.All(connection, where: "WHERE CategoryID=@0", args: category1ID).ToArray();
+                Assert.AreEqual(2, allCat1Products.Length);
+                foreach (var p in allCat1Products)
+                {
+                    Assert.AreEqual(category1ID, p.CategoryID);
+                    p.CategoryID = category2ID;
+                }
+                Assert.AreEqual(2, products.Save(connection, allCat1Products));
             }
-            var allCat1Products = products.All(where:"WHERE CategoryID=@0", args:category1ID).ToArray();
-            Assert.AreEqual(2, allCat1Products.Length);
-            foreach(var p in allCat1Products)
-            {
-                Assert.AreEqual(category1ID, p.CategoryID);
-                p.CategoryID = category2ID;
-            }
-            Assert.AreEqual(2, products.Save(allCat1Products));
         }
 
 

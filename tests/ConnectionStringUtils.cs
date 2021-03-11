@@ -65,9 +65,14 @@ namespace MightyTests
         internal static string GetConnectionString(string BaseConnectionString, string ProviderName)
         {
 #if NETCOREAPP
-            return BaseConnectionString.Replace(";providerName={0}", "");
+            if (BaseConnectionString.Contains(";providerName={0}")) return BaseConnectionString.Replace(";providerName={0}", "");
+            else if (BaseConnectionString.Contains(";ProviderName={0}")) return BaseConnectionString.Replace(";ProviderName={0}", "");
+            else throw new Exception("Cannot find ProviderName to replace");
 #else
-            return ConfigurationManager.ConnectionStrings[string.Format(BaseConnectionString, ProviderName)].ConnectionString;
+            string name = string.Format(BaseConnectionString, ProviderName);
+            ConnectionStringSettings settings = ConfigurationManager.ConnectionStrings[name];
+            if (settings == null) throw new Exception($"No ConfigurationManager connection string for connection string name \"{name}\"");
+            return settings.ConnectionString;
 #endif
         }
 

@@ -1,10 +1,8 @@
 ﻿#if (NETFRAMEWORK && !NET40) || (NETCOREAPP && !(NETCOREAPP1_0 || NETCOREAPP1_1))
 using System;
-using System.Data;
+using System.Data.Common;
 using Dasync.Collections;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using Mighty.Generic.Tests.Oracle.TableClasses;
 using NUnit.Framework;
 using System.Threading.Tasks;
@@ -188,12 +186,23 @@ namespace Mighty.Generic.Tests.Oracle
 #pragma warning restore CS1998
 
         [Test]
-        public async Task Insert_SingleRow()
+        [TestCase(false)]
+        [TestCase(true)]
+        public async Task Insert_SingleRow(Boolean explicitConnection)
         {
-            var depts = new Departments(ProviderName);
-            var inserted = await depts.InsertAsync(new { DNAME = "Massive Dep", LOC = "Beach" });
-            Assert.IsTrue(inserted.DEPTNO > 0);
-            Assert.AreEqual(1, await depts.DeleteAsync(inserted.DEPTNO));
+            var depts = new Departments(ProviderName, explicitConnection);
+            DbConnection connection = null;
+            if (explicitConnection)
+            {
+                MightyTests.ConnectionStringUtils.CheckConnectionStringRequiredForOpenConnectionAsync(depts);
+                connection = await depts.OpenConnectionAsync(MightyTests.ConnectionStringUtils.GetConnectionString(TestConstants.ReadWriteTestConnection, ProviderName));
+            }
+            using (connection)
+            {
+                var inserted = await depts.InsertAsync(new { DNAME = "Massive Dep", LOC = "Beach" }, connection: connection);
+                Assert.IsTrue(inserted.DEPTNO > 0);
+                Assert.AreEqual(1, await depts.DeleteAsync(inserted.DEPTNO));
+            }
         }
 
 

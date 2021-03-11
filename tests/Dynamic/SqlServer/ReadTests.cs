@@ -4,8 +4,6 @@ using System.Collections.Generic;
 using System.Data;
 using System.Dynamic;
 using System.Linq;
-using System.Runtime.InteropServices;
-using System.Text;
 using Mighty.Dynamic.Tests.SqlServer.TableClasses;
 using NUnit.Framework;
 
@@ -16,13 +14,12 @@ namespace Mighty.Dynamic.Tests.SqlServer
     {
 #if NETCOREAPP
         [Test]
-        public void WorksWithSpacedConnectionString()
+        public void WorksWithSpacedStrangeCaseConnectionString()
         {
-            var providerName = "ProviderName";
-            var from = $"{providerName}=";
-            var to = $" {providerName} = ";
-            Assert.That(TestConstants.ReadTestConnection.Contains(from));
-            var db = new MightyOrm(TestConstants.ReadTestConnection.Replace(from, to));
+            var from = "ProviderName=";
+            var to = " PrOviDernamE =   ";
+            Assert.That(TestConstants.ReadTestConnection.Contains(from), $"{TestConstants.ReadTestConnection} does not contain {from}");
+            var db = new MightyOrm(string.Format(TestConstants.ReadTestConnection.Replace(from, to), TestConstants.ProviderName));
             var item = db.SingleFromQuery("SELECT 1 AS a");
             Assert.That(item.a, Is.EqualTo(1));
         }
@@ -32,7 +29,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         public void Guid_Arg()
         {
             // SQL Server has true Guid type support
-            var db = new MightyOrm(TestConstants.ReadTestConnection);
+            var db = new MightyOrm(string.Format(TestConstants.ReadTestConnection, TestConstants.ProviderName));
             var guid = Guid.NewGuid();
             dynamic item;
             using (var command = db.CreateCommand("SELECT @0 AS val", null, guid))
