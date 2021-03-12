@@ -1,4 +1,6 @@
 ﻿#if !NET40
+#pragma warning disable IDE0079
+#pragma warning disable IDE0063
 using System.Collections.Generic;
 using Dasync.Collections;
 using System.Data;
@@ -1774,59 +1776,67 @@ namespace Mighty
         }
 
         /// <summary>
-        /// Save one or more items.
+        /// Save one or more items specified using C# params arguments (provide one or more comma separated arguments in C# params format, will also accept a single object array).
+        /// </summary>
+        /// <remarks>
         /// 'Save' means
         /// objects with missing or default primary keys are inserted
         /// and objects with non-default primary keys are updated.
-        /// </summary>
-        /// <param name="items">The items</param>
+        /// </remarks>
+        /// <param name="args">The items</param>
         /// <returns></returns>
-        override public async Task<int> SaveAsync(params object[] items)
+        override public async Task<int> SaveAsync(params object[] args)
         {
-            return (await ActionOnItemsWithOutputAsync(OrmAction.Save, null, items).ConfigureAwait(false)).Item1;
+            return (await ActionOnItemsWithOutputAsync(OrmAction.Save, null, args).ConfigureAwait(false)).Item1;
         }
 
         /// <summary>
-        /// Save one or more items.
+        /// Save one or more items specified using C# params arguments (provide one or more comma separated arguments in C# params format, will also accept a single object array).
+        /// </summary>
+        /// <remarks>
         /// 'Save' means
         /// objects with missing or default primary keys are inserted
         /// and objects with non-default primary keys are updated.
-        /// </summary>
-        /// <param name="items">The items</param>
+        /// </remarks>
+        /// <param name="args">The items</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
-        override public async Task<int> SaveAsync(CancellationToken cancellationToken, params object[] items)
+        override public async Task<int> SaveAsync(CancellationToken cancellationToken, params object[] args)
         {
-            return (await ActionOnItemsWithOutputAsync(OrmAction.Save, null, items, cancellationToken).ConfigureAwait(false)).Item1;
+            return (await ActionOnItemsWithOutputAsync(OrmAction.Save, null, args, cancellationToken).ConfigureAwait(false)).Item1;
         }
 
         /// <summary>
-        /// Save one or more items.
+        /// Save one or more items specified using C# params arguments (provide one or more comma separated arguments in C# params format, will also accept a single object array).
+        /// </summary>
+        /// <remarks>
         /// 'Save' means
         /// objects with missing or default primary keys are inserted
         /// and objects with non-default primary keys are updated.
-        /// </summary>
+        /// </remarks>
         /// <param name="connection">The connection to use</param>
-        /// <param name="items">The items</param>
+        /// <param name="args">The items</param>
         /// <returns></returns>
-        override public async Task<int> SaveAsync(DbConnection connection, params object[] items)
+        override public async Task<int> SaveAsync(DbConnection connection, params object[] args)
         {
-            return (await ActionOnItemsWithOutputAsync(OrmAction.Save, connection, items).ConfigureAwait(false)).Item1;
+            return (await ActionOnItemsWithOutputAsync(OrmAction.Save, connection, args).ConfigureAwait(false)).Item1;
         }
 
         /// <summary>
-        /// Save one or more items.
+        /// Save one or more items specified using C# params arguments (provide one or more comma separated arguments in C# params format, will also accept a single object array).
+        /// </summary>
+        /// <remarks>
         /// 'Save' means
         /// objects with missing or default primary keys are inserted
         /// and objects with non-default primary keys are updated.
-        /// </summary>
+        /// </remarks>
         /// <param name="connection">The connection to use</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
-        /// <param name="items">The items</param>
+        /// <param name="args">The items</param>
         /// <returns></returns>
-        override public async Task<int> SaveAsync(DbConnection connection, CancellationToken cancellationToken, params object[] items)
+        override public async Task<int> SaveAsync(DbConnection connection, CancellationToken cancellationToken, params object[] args)
         {
-            return (await ActionOnItemsWithOutputAsync(OrmAction.Save, connection, items, cancellationToken).ConfigureAwait(false)).Item1;
+            return (await ActionOnItemsWithOutputAsync(OrmAction.Save, connection, args, cancellationToken).ConfigureAwait(false)).Item1;
         }
 
         /// <summary>
@@ -1887,7 +1897,7 @@ namespace Mighty
 
         /// <summary>
         /// Insert single item.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
+        /// Call <see cref="NewAsync(object, bool)"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>
         /// <param name="item">The item to insert, in any reasonable format (for MightyOrm&lt;T&gt; this includes, but is not limited to, in instance of type T)</param>
         /// <returns>The item sent in but with the primary key populated</returns>
@@ -1898,7 +1908,7 @@ namespace Mighty
 
         /// <summary>
         /// Insert single item.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
+        /// Call <see cref="NewAsync(object, bool)"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>
         /// <param name="item">The item to insert, in any reasonable format (for MightyOrm&lt;T&gt; this includes, but is not limited to, in instance of type T)</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
@@ -1910,7 +1920,7 @@ namespace Mighty
 
         /// <summary>
         /// Insert single item.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
+        /// Call <see cref="NewAsync(object, bool)"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>
         /// <param name="item">The item to insert, in any reasonable format (for MightyOrm&lt;T&gt; this includes, but is not limited to, in instance of type T)</param>
         /// <param name="connection">The connection to use</param>
@@ -1922,7 +1932,7 @@ namespace Mighty
 
         /// <summary>
         /// Insert single item.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
+        /// Call <see cref="NewAsync(object, bool)"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>
         /// <param name="item">The item to insert, in any reasonable format (for MightyOrm&lt;T&gt; this includes, but is not limited to, in instance of type T)</param>
         /// <param name="connection">The connection to use</param>
@@ -1934,56 +1944,64 @@ namespace Mighty
         }
 
         /// <summary>
-        /// Insert one or more items.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
+        /// Insert one or more items specified using C# params arguments (provide one or more comma separated arguments in C# params format, will also accept a single object array).
         /// </summary>
-        /// <param name="items">The items</param>
+        /// <remarks>
+        /// Call <see cref="NewAsync(object, bool)"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
+        /// </remarks>
+        /// <param name="args">The items</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
-        override public async Task<IEnumerable<T>> InsertAsync(params object[] items)
+        override public async Task<IEnumerable<T>> InsertAsync(params object[] args)
         {
-            return await ActionOnItemsAsync(OrmAction.Insert, null, items).ConfigureAwait(false);
+            return await ActionOnItemsAsync(OrmAction.Insert, null, args).ConfigureAwait(false);
         }
 
         /// <summary>
-        /// Insert one or more items.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
+        /// Insert one or more items specified using C# params arguments (provide one or more comma separated arguments in C# params format, will also accept a single object array).
         /// </summary>
-        /// <param name="items">The items</param>
+        /// <remarks>
+        /// Call <see cref="NewAsync(object, bool)"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
+        /// </remarks>
+        /// <param name="args">The items</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns>The items sent in but with the primary keys populated</returns>
-        override public async Task<IEnumerable<T>> InsertAsync(CancellationToken cancellationToken, params object[] items)
+        override public async Task<IEnumerable<T>> InsertAsync(CancellationToken cancellationToken, params object[] args)
         {
-            return await ActionOnItemsAsync(OrmAction.Insert, null, items, cancellationToken).ConfigureAwait(false);
+            return await ActionOnItemsAsync(OrmAction.Insert, null, args, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
-        /// Insert one or more items.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
+        /// Insert one or more items specified using C# params arguments (provide one or more comma separated arguments in C# params format, will also accept a single object array).
         /// </summary>
+        /// <remarks>
+        /// Call <see cref="NewAsync(object, bool)"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
+        /// </remarks>
         /// <param name="connection">The connection to use</param>
-        /// <param name="items">The items</param>
+        /// <param name="args">The items</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
-        override public async Task<IEnumerable<T>> InsertAsync(DbConnection connection, params object[] items)
+        override public async Task<IEnumerable<T>> InsertAsync(DbConnection connection, params object[] args)
         {
-            return await ActionOnItemsAsync(OrmAction.Insert, connection, items).ConfigureAwait(false);
+            return await ActionOnItemsAsync(OrmAction.Insert, connection, args).ConfigureAwait(false);
         }
 
         /// <summary>
-        /// Insert one or more items.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
+        /// Insert one or more items specified using C# params arguments (provide one or more comma separated arguments in C# params format, will also accept a single object array).
         /// </summary>
+        /// <remarks>
+        /// Call <see cref="NewAsync(object, bool)"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
+        /// </remarks>
         /// <param name="connection">The connection to use</param>
-        /// <param name="items">The items</param>
+        /// <param name="args">The items</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns>The items sent in but with the primary keys populated</returns>
-        override public async Task<IEnumerable<T>> InsertAsync(DbConnection connection, CancellationToken cancellationToken, params object[] items)
+        override public async Task<IEnumerable<T>> InsertAsync(DbConnection connection, CancellationToken cancellationToken, params object[] args)
         {
-            return await ActionOnItemsAsync(OrmAction.Insert, connection, items, cancellationToken).ConfigureAwait(false);
+            return await ActionOnItemsAsync(OrmAction.Insert, connection, args, cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
         /// Insert array or other <see cref="IEnumerable"/> of items.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
+        /// Call <see cref="NewAsync(object, bool)"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>
         /// <param name="items">The items</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
@@ -1994,7 +2012,7 @@ namespace Mighty
 
         /// <summary>
         /// Insert array or other <see cref="IEnumerable"/> of items.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
+        /// Call <see cref="NewAsync(object, bool)"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>
         /// <param name="items">The items</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
@@ -2006,7 +2024,7 @@ namespace Mighty
 
         /// <summary>
         /// Insert array or other <see cref="IEnumerable"/> of items.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
+        /// Call <see cref="NewAsync(object, bool)"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>
         /// <param name="connection">The connection to use</param>
         /// <param name="items">The items</param>
@@ -2018,7 +2036,7 @@ namespace Mighty
 
         /// <summary>
         /// Insert array or other <see cref="IEnumerable"/> of items.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
+        /// Call <see cref="NewAsync(object, bool)"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>
         /// <param name="connection">The connection to use</param>
         /// <param name="items">The items</param>
@@ -2030,91 +2048,47 @@ namespace Mighty
         }
 
         /// <summary>
-        /// Update single item.
+        /// Update one or more items specified using C# params arguments (provide one or more comma separated arguments in C# params format, will also accept a single object array).
         /// </summary>
-        /// <param name="item">The item</param>
+        /// <param name="args">The items</param>
         /// <returns></returns>
-        override public async Task<int> UpdateAsync(object item)
+        override public async Task<int> UpdateAsync(params object[] args)
         {
-            return (await ActionOnItemsWithOutputAsync(OrmAction.Update, null, new object[] { item }).ConfigureAwait(false)).Item1;
+            return (await ActionOnItemsWithOutputAsync(OrmAction.Update, null, args).ConfigureAwait(false)).Item1;
         }
 
         /// <summary>
-        /// Update single item.
+        /// Update one or more items specified using C# params arguments (provide one or more comma separated arguments in C# params format, will also accept a single object array).
         /// </summary>
-        /// <param name="item">The item</param>
+        /// <param name="args">The items</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
-        override public async Task<int> UpdateAsync(object item, CancellationToken cancellationToken)
+        override public async Task<int> UpdateAsync(CancellationToken cancellationToken, params object[] args)
         {
-            return (await ActionOnItemsWithOutputAsync(OrmAction.Update, null, new object[] { item }, cancellationToken).ConfigureAwait(false)).Item1;
+            return (await ActionOnItemsWithOutputAsync(OrmAction.Update, null, args, cancellationToken).ConfigureAwait(false)).Item1;
         }
 
         /// <summary>
-        /// Update single item.
+        /// Update one or more items specified using C# params arguments (provide one or more comma separated arguments in C# params format, will also accept a single object array).
         /// </summary>
         /// <param name="connection">The connection to use</param>
-        /// <param name="item">The item</param>
+        /// <param name="args">The items</param>
         /// <returns></returns>
-        override public async Task<int> UpdateAsync(object item, DbConnection connection)
+        override public async Task<int> UpdateAsync(DbConnection connection, params object[] args)
         {
-            return (await ActionOnItemsWithOutputAsync(OrmAction.Update, connection, new object[] { item }).ConfigureAwait(false)).Item1;
+            return (await ActionOnItemsWithOutputAsync(OrmAction.Update, connection, args).ConfigureAwait(false)).Item1;
         }
 
         /// <summary>
-        /// Update single item.
+        /// Update one or more items specified using C# params arguments (provide one or more comma separated arguments in C# params format, will also accept a single object array).
         /// </summary>
         /// <param name="connection">The connection to use</param>
-        /// <param name="item">The item</param>
+        /// <param name="args">The items</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns></returns>
-        override public async Task<int> UpdateAsync(object item, DbConnection connection, CancellationToken cancellationToken)
+        override public async Task<int> UpdateAsync(DbConnection connection, CancellationToken cancellationToken, params object[] args)
         {
-            return (await ActionOnItemsWithOutputAsync(OrmAction.Update, connection, new object[] { item }, cancellationToken).ConfigureAwait(false)).Item1;
-        }
-
-        /// <summary>
-        /// Update one or more items.
-        /// </summary>
-        /// <param name="items">The items</param>
-        /// <returns></returns>
-        override public async Task<int> UpdateAsync(params object[] items)
-        {
-            return (await ActionOnItemsWithOutputAsync(OrmAction.Update, null, items).ConfigureAwait(false)).Item1;
-        }
-
-        /// <summary>
-        /// Update one or more items.
-        /// </summary>
-        /// <param name="items">The items</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
-        /// <returns></returns>
-        override public async Task<int> UpdateAsync(CancellationToken cancellationToken, params object[] items)
-        {
-            return (await ActionOnItemsWithOutputAsync(OrmAction.Update, null, items, cancellationToken).ConfigureAwait(false)).Item1;
-        }
-
-        /// <summary>
-        /// Update one or more items.
-        /// </summary>
-        /// <param name="connection">The connection to use</param>
-        /// <param name="items">The items</param>
-        /// <returns></returns>
-        override public async Task<int> UpdateAsync(DbConnection connection, params object[] items)
-        {
-            return (await ActionOnItemsWithOutputAsync(OrmAction.Update, connection, items).ConfigureAwait(false)).Item1;
-        }
-
-        /// <summary>
-        /// Update one or more items.
-        /// </summary>
-        /// <param name="connection">The connection to use</param>
-        /// <param name="items">The items</param>
-        /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
-        /// <returns></returns>
-        override public async Task<int> UpdateAsync(DbConnection connection, CancellationToken cancellationToken, params object[] items)
-        {
-            return (await ActionOnItemsWithOutputAsync(OrmAction.Update, connection, items, cancellationToken).ConfigureAwait(false)).Item1;
+            return (await ActionOnItemsWithOutputAsync(OrmAction.Update, connection, args, cancellationToken).ConfigureAwait(false)).Item1;
         }
 
         /// <summary>
@@ -2162,63 +2136,71 @@ namespace Mighty
         }
 
         /// <summary>
-        /// Delete one or more items.
+        /// Delete one or more items specified using C# params arguments (provide one or more comma separated arguments in C# params format, will also accept a single object array).
+        /// </summary>
+        /// <remarks>
         /// Each argument may be (or contain) a value (or values) only, in which case
         /// it specifies the primary key value(s) of the item to delete, or it can be any object containing name-values pairs in which case
         /// it should contain fields with names matching the primary key(s) whose values will specify the item to delete (but it may contain
         /// other fields as well which will be ignored here).
-        /// </summary>
-        /// <param name="items">The items</param>
+        /// </remarks>
+        /// <param name="args">The items</param>
         /// <returns>The number of items affected</returns>
-        override public async Task<int> DeleteAsync(params object[] items)
+        override public async Task<int> DeleteAsync(params object[] args)
         {
-            return (await ActionOnItemsWithOutputAsync(OrmAction.Delete, null, items).ConfigureAwait(false)).Item1;
+            return (await ActionOnItemsWithOutputAsync(OrmAction.Delete, null, args).ConfigureAwait(false)).Item1;
         }
 
         /// <summary>
-        /// Delete one or more items.
+        /// Delete one or more items specified using C# params arguments (provide one or more comma separated arguments in C# params format, will also accept a single object array).
+        /// </summary>
+        /// <remarks>
         /// Each argument may be (or contain) a value (or values) only, in which case
         /// it specifies the primary key value(s) of the item to delete, or it can be any object containing name-values pairs in which case
         /// it should contain fields with names matching the primary key(s) whose values will specify the item to delete (but it may contain
         /// other fields as well which will be ignored here).
-        /// </summary>
-        /// <param name="items">The items</param>
+        /// </remarks>
+        /// <param name="args">The items</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns>The number of items affected</returns>
-        override public async Task<int> DeleteAsync(CancellationToken cancellationToken, params object[] items)
+        override public async Task<int> DeleteAsync(CancellationToken cancellationToken, params object[] args)
         {
-            return (await ActionOnItemsWithOutputAsync(OrmAction.Delete, null, items, cancellationToken).ConfigureAwait(false)).Item1;
+            return (await ActionOnItemsWithOutputAsync(OrmAction.Delete, null, args, cancellationToken).ConfigureAwait(false)).Item1;
         }
 
         /// <summary>
-        /// Delete one or more items.
+        /// Delete one or more items specified using C# params arguments (provide one or more comma separated arguments in C# params format, will also accept a single object array).
+        /// </summary>
+        /// <remarks>
         /// Each argument may be (or contain) a value (or values) only, in which case
         /// it specifies the primary key value(s) of the item to delete, or it can be any object containing name-values pairs in which case
         /// it should contain fields with names matching the primary key(s) whose values will specify the item to delete (but it may contain
         /// other fields as well which will be ignored here).
-        /// </summary>
-        /// <param name="items">The items</param>
+        /// </remarks>
+        /// <param name="args">The items</param>
         /// <param name="connection">The connection to use</param>
         /// <returns>The number of items affected</returns>
-        override public async Task<int> DeleteAsync(DbConnection connection, params object[] items)
+        override public async Task<int> DeleteAsync(DbConnection connection, params object[] args)
         {
-            return (await ActionOnItemsWithOutputAsync(OrmAction.Delete, connection, items).ConfigureAwait(false)).Item1;
+            return (await ActionOnItemsWithOutputAsync(OrmAction.Delete, connection, args).ConfigureAwait(false)).Item1;
         }
 
         /// <summary>
-        /// Delete one or more items.
+        /// Delete one or more items specified using C# params arguments (provide one or more comma separated arguments in C# params format, will also accept a single object array).
+        /// </summary>
+        /// <remarks>
         /// Each argument may be (or contain) a value (or values) only, in which case
         /// it specifies the primary key value(s) of the item to delete, or it can be any object containing name-values pairs in which case
         /// it should contain fields with names matching the primary key(s) whose values will specify the item to delete (but it may contain
         /// other fields as well which will be ignored here).
-        /// </summary>
-        /// <param name="items">The items</param>
+        /// </remarks>
+        /// <param name="args">The items</param>
         /// <param name="connection">The connection to use</param>
         /// <param name="cancellationToken">Async <see cref="CancellationToken"/></param>
         /// <returns>The number of items affected</returns>
-        override public async Task<int> DeleteAsync(DbConnection connection, CancellationToken cancellationToken, params object[] items)
+        override public async Task<int> DeleteAsync(DbConnection connection, CancellationToken cancellationToken, params object[] args)
         {
-            return (await ActionOnItemsWithOutputAsync(OrmAction.Delete, connection, items, cancellationToken).ConfigureAwait(false)).Item1;
+            return (await ActionOnItemsWithOutputAsync(OrmAction.Delete, connection, args, cancellationToken).ConfigureAwait(false)).Item1;
         }
 
         /// <summary>
@@ -2284,7 +2266,7 @@ namespace Mighty
         /// <summary>
         /// Update the row(s) specified by the primary key(s) or WHERE values sent in using the values from the item sent in.
         /// If `keys` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
-        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New"/> with first parameter `partialItem` and second parameter `false` first.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="NewAsync(object, bool)"/> with first parameter `partialItem` and second parameter `false` first.
         /// </summary>
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
@@ -2296,7 +2278,7 @@ namespace Mighty
         /// <summary>
         /// Update the row(s) specified by the primary key(s) or WHERE values sent in using the values from the item sent in.
         /// If `keys` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
-        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New"/> with first parameter `partialItem` and second parameter `false` first.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="NewAsync(object, bool)"/> with first parameter `partialItem` and second parameter `false` first.
         /// </summary>
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
@@ -2309,7 +2291,7 @@ namespace Mighty
         /// <summary>
         /// Update the row(s) specified by the primary key(s) or WHERE values sent in using the values from the item sent in.
         /// If `keys` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
-        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New"/> with first parameter `partialItem` and second parameter `false` first.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="NewAsync(object, bool)"/> with first parameter `partialItem` and second parameter `false` first.
         /// </summary>
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
@@ -2323,7 +2305,7 @@ namespace Mighty
         /// <summary>
         /// Update the row(s) specified by the primary key(s) or WHERE values sent in using the values from the item sent in.
         /// If `keys` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
-        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New"/> with first parameter `partialItem` and second parameter `false` first.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="NewAsync(object, bool)"/> with first parameter `partialItem` and second parameter `false` first.
         /// </summary>
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
@@ -2342,7 +2324,7 @@ namespace Mighty
         /// <summary>
         /// Update all items matching WHERE clause using fields from the item sent in.
         /// If `keys` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
-        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New"/> with first parameter `partialItem` and second parameter `false` first.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="NewAsync(object, bool)"/> with first parameter `partialItem` and second parameter `false` first.
         /// </summary>
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="where">WHERE clause specifying which rows to update</param>
@@ -2362,7 +2344,7 @@ namespace Mighty
         /// <summary>
         /// Update all items matching WHERE clause using fields from the item sent in.
         /// If `keys` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
-        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New"/> with first parameter `partialItem` and second parameter `false` first.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="NewAsync(object, bool)"/> with first parameter `partialItem` and second parameter `false` first.
         /// </summary>
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="where">WHERE clause specifying which rows to update</param>

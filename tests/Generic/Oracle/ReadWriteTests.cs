@@ -172,7 +172,7 @@ namespace Mighty.Generic.Tests.Oracle
             {
                 var inserted = depts.Insert(new { DNAME = "Massive Dep", LOC = "Beach" }, connection: connection);
                 Assert.IsTrue(inserted.DEPTNO > 0);
-                Assert.AreEqual(1, depts.Delete(inserted.DEPTNO));
+                Assert.AreEqual(1, depts.Delete(connection, inserted.DEPTNO));
             }
         }
 

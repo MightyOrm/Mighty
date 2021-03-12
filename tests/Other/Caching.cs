@@ -34,7 +34,7 @@ namespace Mighty.Dynamic.Tests.X
         {
 #if NETFRAMEWORK
 #if !NET40
-            Assert.AreEqual(550, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(562, DataContractStore.Instance.CacheHits);
 #else
             Assert.AreEqual(264, DataContractStore.Instance.CacheHits);
 #endif
@@ -97,12 +97,98 @@ namespace Mighty.Dynamic.Tests.X
         }
 
         [Test]
+        public void SyncCacheHits()
+        {
+#if NETFRAMEWORK
+#if !NET40
+            Assert.AreEqual(0, TableMetaDataStore.Instance.SyncCacheHits);
+#else
+            Assert.AreEqual(0, TableMetaDataStore.Instance.SyncCacheHits);
+#endif
+#elif NETCOREAPP
+#if DISABLE_DEVART
+            Assert.AreEqual(0, TableMetaDataStore.Instance.SyncCacheHits);
+#else
+            Assert.AreEqual(0, TableMetaDataStore.Instance.SyncCacheHits);
+#endif
+#endif
+        }
+
+#if !NET40
+        [Test]
+        public void AsyncCacheHits()
+        {
+#if NETFRAMEWORK
+            Assert.AreEqual(0, TableMetaDataStore.Instance.AsyncCacheHits);
+#elif NETCOREAPP
+#if DISABLE_DEVART
+            Assert.AreEqual(0, TableMetaDataStore.Instance.AsyncCacheHits);
+#else
+            Assert.AreEqual(0, TableMetaDataStore.Instance.AsyncCacheHits);
+#endif
+#endif
+        }
+#endif
+
+        [Test]
+        public void TotalCacheHits()
+        {
+#if !NET40
+            Assert.AreEqual(
+                TableMetaDataStore.Instance.CacheHits,
+                TableMetaDataStore.Instance.SyncCacheHits +
+                TableMetaDataStore.Instance.AsyncCacheHits);
+#else
+            Assert.AreEqual(
+                TableMetaDataStore.Instance.CacheHits,
+                TableMetaDataStore.Instance.SyncCacheHits);
+#endif
+        }
+
+        [Test]
         public void CacheMisses()
         {
 #if DISABLE_DEVART
             Assert.AreEqual(5, TableMetaDataStore.Instance.CacheMisses);
 #else
             Assert.AreEqual(8, TableMetaDataStore.Instance.CacheMisses);
+#endif
+        }
+
+        [Test]
+        public void SyncCacheMisses()
+        {
+#if DISABLE_DEVART
+            Assert.AreEqual(0, TableMetaDataStore.Instance.SyncCacheMisses);
+#else
+            Assert.AreEqual(0, TableMetaDataStore.Instance.SyncCacheMisses);
+#endif
+        }
+
+#if !NET40
+        [Test]
+        public void AsyncCacheMisses()
+        {
+#if DISABLE_DEVART
+            Assert.AreEqual(0, TableMetaDataStore.Instance.AsyncCacheMisses);
+#else
+            Assert.AreEqual(0, TableMetaDataStore.Instance.AsyncCacheMisses);
+#endif
+        }
+#endif
+
+        [Test]
+        public void TotalCacheMisses()
+        {
+#if !NET40
+            Assert.AreEqual(
+                TableMetaDataStore.Instance.CacheMisses,
+                TableMetaDataStore.Instance.SyncCacheMisses +
+                TableMetaDataStore.Instance.AsyncCacheMisses);
+#else
+            Assert.AreEqual(
+                TableMetaDataStore.Instance.CacheMisses,
+                TableMetaDataStore.Instance.SyncCacheMisses);
 #endif
         }
     }

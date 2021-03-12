@@ -24,7 +24,7 @@ namespace Mighty.ConnectionProviders
 
         static internal DbProviderFactory GetFactory(string providerName)
         {
-            string assemblyName = null;
+            string assemblyName;
             var factoryClass = GetProviderFactoryClassName(providerName);
             string[] elements = factoryClass.Split(',');
             string factoryClassName = elements[0];

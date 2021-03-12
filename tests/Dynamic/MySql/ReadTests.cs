@@ -31,7 +31,7 @@ namespace Mighty.Dynamic.Tests.MySql
         public void Guid_Arg()
         {
             // MySQL has native Guid parameter support, but the SELECT output is a string
-            var db = new MightyOrm(string.Format(WhenDevart.AddLicenseKey(ProviderName, TestConstants.ReadTestConnection), ProviderName));
+            var db = new MightyOrm(WhenDevart.AddLicenseKey(ProviderName, string.Format(TestConstants.ReadTestConnection, ProviderName)));
             var guid = Guid.NewGuid();
             dynamic item;
             using (var command = db.CreateCommand("SELECT @0 AS val", null, guid))
@@ -411,8 +411,8 @@ namespace Mighty.Dynamic.Tests.MySql
         [Test]
         public void BoolTypes()
         {
-            var db = new MightyOrm(string.Format(WhenDevart.AddLicenseKey(ProviderName, TestConstants.WriteTestConnection), ProviderName), "bittest");
-            var m = db.TableMetaData;
+            var db = new MightyOrm(WhenDevart.AddLicenseKey(ProviderName, string.Format(TestConstants.WriteTestConnection, ProviderName)), "bittest");
+            //var m = db.TableMetaData;
             var results = db.All();
             foreach (var result in results)
             {

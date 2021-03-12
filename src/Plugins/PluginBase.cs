@@ -1,3 +1,5 @@
+#pragma warning disable IDE0079
+#pragma warning disable IDE0057
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -27,7 +29,6 @@ namespace Mighty.Plugins
         public dynamic Mighty { get; set; }
 
         #region Provider support
-#pragma warning disable IDE0060 // Remove unused parameter
         /// <summary>
         /// Returns the provider factory class name for the known provider(s) for this DB;
         /// should simply return null if the plugin does not know that it can support the
@@ -50,7 +51,6 @@ namespace Mighty.Plugins
             throw new InvalidOperationException(string.Format("{0} should only ever be called on sub-classes of {1}",
                 nameof(GetProviderFactoryClassName), typeof(PluginBase)));
         }
-#pragma warning restore IDE0060
         #endregion
 
         #region SQL

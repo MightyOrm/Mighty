@@ -1,4 +1,6 @@
 ﻿#if (NETFRAMEWORK && !NET40) || (NETCOREAPP && !(NETCOREAPP1_0 || NETCOREAPP1_1))
+#pragma warning disable IDE0079
+#pragma warning disable IDE0063
 using System;
 using System.Data.Common;
 using Dasync.Collections;
@@ -201,7 +203,7 @@ namespace Mighty.Generic.Tests.Oracle
             {
                 var inserted = await depts.InsertAsync(new { DNAME = "Massive Dep", LOC = "Beach" }, connection: connection);
                 Assert.IsTrue(inserted.DEPTNO > 0);
-                Assert.AreEqual(1, await depts.DeleteAsync(inserted.DEPTNO));
+                Assert.AreEqual(1, await depts.DeleteAsync(connection, inserted.DEPTNO));
             }
         }
 

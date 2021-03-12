@@ -79,14 +79,14 @@ namespace Mighty.Dynamic.Tests.MySql
                 Assert.IsTrue(insertedCategoryID > 0);
                 // update it, with a better description
                 inserted.Description = "This is all jolly marvellous";
-                Assert.AreEqual(1, categories.Update(inserted, connection), "Update should have affected 1 row");
-                var updatedRow = categories.Single(new { inserted.CategoryID });
+                Assert.AreEqual(1, categories.Update(connection, inserted), "Update should have affected 1 row");
+                var updatedRow = categories.Single(new { inserted.CategoryID }, connection: connection);
                 Assert.IsNotNull(updatedRow);
                 Assert.AreEqual(inserted.CategoryID, Convert.ToInt32(updatedRow.CategoryID)); // convert from uint
                 Assert.AreEqual(inserted.Description, updatedRow.Description);
                 // reset description to NULL
                 updatedRow.Description = null;
-                Assert.AreEqual(1, categories.Update(updatedRow, connection), "Update should have affected 1 row");
+                Assert.AreEqual(1, categories.Update(connection, updatedRow), "Update should have affected 1 row");
                 var newUpdatedRow = categories.Single(new { updatedRow.CategoryID }, connection: connection);
                 Assert.IsNotNull(newUpdatedRow);
                 Assert.AreEqual(updatedRow.CategoryID, newUpdatedRow.CategoryID);
@@ -101,7 +101,7 @@ namespace Mighty.Dynamic.Tests.MySql
             // Apply some quick crazy-ass mapping... to an ExpandoObject :-)
             // Remember, we're mapping from crazy fake 'class' names to the sensible underlying column names
             var categories = new MightyOrm(
-                string.Format(WhenDevart.AddLicenseKey(ProviderName, TestConstants.WriteTestConnection), ProviderName),
+                WhenDevart.AddLicenseKey(ProviderName, string.Format(TestConstants.WriteTestConnection, ProviderName)),
                 "MassiveWriteTests.Categories",
                 primaryKeys: "MYCATEGORYID",
                 columns: "MYCATEGORYID, TheName, ItsADescription",
@@ -201,7 +201,7 @@ namespace Mighty.Dynamic.Tests.MySql
         [OneTimeTearDown]
         public void CleanUp()
         {
-            var db = new MightyOrm(string.Format(WhenDevart.AddLicenseKey(ProviderName, TestConstants.WriteTestConnection), ProviderName));
+            var db = new MightyOrm(WhenDevart.AddLicenseKey(ProviderName, string.Format(TestConstants.WriteTestConnection, ProviderName)));
             db.ExecuteProcedure("pr_clearAll");
         }
     }

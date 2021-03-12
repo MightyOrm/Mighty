@@ -1,4 +1,6 @@
 ﻿#if !NET40
+#pragma warning disable IDE0079
+#pragma warning disable IDE0063
 using System;
 using Dasync.Collections;
 using System.Collections.Generic;

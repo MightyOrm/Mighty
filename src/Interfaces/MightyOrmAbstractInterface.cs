@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
@@ -138,8 +139,12 @@ namespace Mighty.Interfaces
         abstract public bool IsGeneric { get; protected set; }
 
         /// <summary>
-        /// Table meta data (filtered to be only for columns specified by the generic type T, or by consturctor `columns`, if present)
+        /// Table meta data (filtered to only contain columns specific to generic type T, or to constructor `columns`, if either is present).
         /// </summary>
+        /// <remarks>
+        /// Note that this does a synchronous database SELECT on first access, and the result is then cached.
+        /// Non-locking caching is used: the cached result will be returned after the first such SELECT to complete has finished.
+        /// </remarks>
         abstract public IEnumerable<dynamic> TableMetaData { get; }
         #endregion
 
@@ -206,36 +211,6 @@ namespace Mighty.Interfaces
         #endregion
 
         #region Table specific methods
-        /// <summary>
-        /// Return a new item populated with defaults which correctly reflect the defaults of the current database table, if any.
-        /// </summary>
-        /// <param name="nameValues">Optional name-value collection from which to initialise some or all of the fields</param>
-        /// <param name="addNonPresentAsDefaults">
-        /// When true also include default values for fields not present in <paramref name="nameValues"/>
-        /// but which exist in the defined list of columns for the current table in Mighty
-        /// </param>
-        /// <returns></returns>
-        abstract public T New(object nameValues = null, bool addNonPresentAsDefaults = true);
-
-        /// <summary>
-        /// Get the meta-data for a single column
-        /// </summary>
-        /// <param name="column">Column name</param>
-        /// <param name="ExceptionOnAbsent">If true throw an exception if there is no such column, otherwise return null.</param>
-        /// <returns></returns>
-        abstract public dynamic GetColumnInfo(string column, bool ExceptionOnAbsent = true);
-
-        /// <summary>
-        /// Get the default value for a column.
-        /// </summary>
-        /// <param name="columnName">The column name</param>
-        /// <returns></returns>
-        /// <remarks>
-        /// Although it might look more efficient, GetColumnDefault should not do buffering, as we don't
-        /// want to pass out the same actual object more than once.
-        /// </remarks>
-        abstract public object GetColumnDefault(string columnName);
-
         /// <summary>
         /// Is the passed in item valid against the current validator?
         /// </summary>

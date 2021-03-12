@@ -156,7 +156,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [OneTimeTearDown]
         public async Task CleanUp()
         {
-            var db = new MightyOrm(TestConstants.WriteTestConnection);
+            var db = new MightyOrm(string.Format(TestConstants.WriteTestConnection, TestConstants.ProviderName));
             await db.ExecuteProcedureAsync("pr_clearAll");
         }
     }

@@ -153,7 +153,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [OneTimeTearDown]
         public void CleanUp()
         {
-            var db = new MightyOrm(TestConstants.WriteTestConnection);
+            var db = new MightyOrm(string.Format(TestConstants.WriteTestConnection, TestConstants.ProviderName));
             db.ExecuteProcedure("pr_clearAll");
         }
     }

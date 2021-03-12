@@ -14,6 +14,8 @@ namespace Mighty.Plugins
         // we must use new because there are no overrides on static methods, see e.g. http://stackoverflow.com/q/7839691
         new static public string GetProviderFactoryClassName(string loweredProviderName)
         {
+#pragma warning disable IDE0079
+#pragma warning disable IDE0066
             switch (loweredProviderName)
             {
                 case "npgsql":
@@ -22,6 +24,7 @@ namespace Mighty.Plugins
                 default:
                     return null;
             }
+#pragma warning restore IDE0066
         }
         #endregion
 

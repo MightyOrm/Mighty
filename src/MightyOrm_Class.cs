@@ -1,3 +1,5 @@
+#pragma warning disable IDE0079
+#pragma warning disable IDE0057
 using System;
 using System.Collections.Generic;
 using System.Collections.Specialized;
@@ -384,104 +386,36 @@ namespace Mighty
         private Lazy<IEnumerable<dynamic>> _TableMetaDataLazy;
 
         /// <summary>
-        /// Table meta data
+        /// Table meta data (filtered to only contain columns specific to generic type T, or to constructor `columns`, if either is present).
         /// </summary>
+        /// <remarks>
+        /// Note that this does a synchronous database SELECT on first access, and the result is then cached.
+        /// Non-locking caching is used: the cached result will be returned after the first such SELECT to complete has finished.
+        /// </remarks>
         override public IEnumerable<dynamic> TableMetaData { get { return _TableMetaDataLazy.Value; } }
 
         private void InitTableMetaDataLazyLoader()
         {
-            _TableMetaDataLazy = new Lazy<IEnumerable<dynamic>>(() => TableMetaDataStore.Instance.Get(
-                         IsGeneric, Plugin, Factory, ConnectionString,
-                         BareTableName, TableOwner, DataContract,
-                         this));
+            _TableMetaDataLazy = new Lazy<IEnumerable<dynamic>>(() =>
+            {
+                if (string.IsNullOrEmpty(ConnectionString))
+                {
+#if NET40
+                    throw new InvalidOperationException($"Cannot use {nameof(MightyOrm.TableMetaData)} property on instance of Mighty with no available connection string; provide connection string or use {nameof(MightyOrm.GetTableMetaData)} method instead");
+#else
+                    throw new InvalidOperationException($"Cannot use {nameof(MightyOrm.TableMetaData)} property on instance of Mighty with no available connection string; provide connection string or use {nameof(MightyOrm.GetTableMetaData)} or {nameof(MightyOrm.GetTableMetaDataAsync)} methods instead");
+#endif
+                }
+                return TableMetaDataStore.Instance.Get(
+                    IsGeneric, Plugin, Factory, null,
+                    BareTableName, TableOwner, DataContract,
+                    this);
+            });
         }
         #endregion
 
         // Only methods with a non-trivial implementation are here, the rest are in the MightyOrm_Redirects file.
-        #region MircoORM interface
-        /// <summary>
-        /// Make a new item, with optional passed-in name-value collection as initialiser.
-        /// </summary>
-        /// <param name="nameValues">The name-value collection</param>
-        /// <param name="addNonPresentAsDefaults">
-        /// If true also include default values for fields not present in the collection
-        /// but which exist in columns for the current table in Mighty, which correctly
-        /// reflect the defaults of the current database table.
-        /// </param>
-        /// <returns></returns>
-        override public T New(object nameValues = null, bool addNonPresentAsDefaults = true)
-        {
-            var nvtEnumerator = new NameValueTypeEnumerator(DataContract, nameValues);
-            Dictionary<string, object> columnNameToValue = new Dictionary<string, object>();
-            foreach (var nvtInfo in nvtEnumerator)
-            {
-                if (DataContract.TryGetColumnName(nvtInfo.Name, out string columnName))
-                {
-                    columnNameToValue.Add(columnName, nvtInfo.Value);
-                }
-            }
-            object item;
-            IDictionary<string, object> newItemDictionary = null;
-            if (!IsGeneric)
-            {
-                item = new ExpandoObject();
-                newItemDictionary = ((ExpandoObject)item).ToDictionary();
-            }
-            else
-            {
-                item = new T();
-            }
-            // drive the loop by the actual column names
-            foreach (var columnInfo in TableMetaData)
-            {
-                if (!columnInfo.IS_MIGHTY_COLUMN) continue;
-                string columnName = columnInfo.COLUMN_NAME;
-                object value;
-                if (!columnNameToValue.TryGetValue(columnName, out value))
-                {
-                    if (!addNonPresentAsDefaults) continue;
-                    value = Plugin.GetColumnDefault(columnInfo);
-                }
-                if (value != null)
-                {
-                    if (IsGeneric) DataContract.GetDataMemberInfo(columnName).SetValue(item, value);
-                    else newItemDictionary.Add(columnName, value);
-                }
-            }
-            return (T)item;
-        }
-
-        /// <summary>
-        /// Get the meta-data for a single column
-        /// </summary>
-        /// <param name="column">Column name</param>
-        /// <param name="ExceptionOnAbsent">If true throw an exception if there is no such column, otherwise return null.</param>
-        /// <returns></returns>
-        override public dynamic GetColumnInfo(string column, bool ExceptionOnAbsent = true)
-        {
-            var info = TableMetaData.Where(c => column.Equals(c.COLUMN_NAME, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
-            if (ExceptionOnAbsent && info == null)
-            {
-                throw new InvalidOperationException("Cannot find table info for column name " + column);
-            }
-            return info;
-        }
-
-        /// <summary>
-        /// Get the default value for a column.
-        /// </summary>
-        /// <param name="columnName">The column name</param>
-        /// <returns></returns>
-        /// <remarks>
-        /// Although it might look more efficient, GetColumnDefault should not do buffering, as we don't
-        /// want to pass out the same actual object more than once.
-        /// </remarks>
-        override public object GetColumnDefault(string columnName)
-        {
-            var columnInfo = GetColumnInfo(columnName);
-            return Plugin.GetColumnDefault(columnInfo);
-        }
-
+        #region MicroORM interface
 #if KEY_VALUES
         /// <summary>
         /// Return value column, raising an exception if not specified.
@@ -510,6 +444,18 @@ namespace Mighty
             return TableName;
         }
 
+        internal void ExceptionOnDbConnectionOrNull(object item)
+        {
+            if (item is null)
+            {
+                throw new InvalidOperationException($"Incorrect method overload used? Found null object instead of data item. If correct method overload used, remove null data items from list before call as they specify no action and trigger this warning!");
+            }
+            if (item is DbConnection)
+            {
+                throw new InvalidOperationException($"Incorrect method overload has been used: found {nameof(DbConnection)} object instead of data item");
+            }
+        }
+
         /// <summary>
         /// Checks that every item in the list is valid for the action to be undertaken.
         /// Normally you should not need to override this, but override <see cref="Validator.ValidateForAction"/>
@@ -528,6 +474,9 @@ namespace Mighty
             bool valid = true;
             foreach (var item in items)
             {
+                // best not to pass this to any validator
+                ExceptionOnDbConnectionOrNull(item);
+
                 int oldCount = Errors.Count;
                 Validator.ValidateForAction(action, item, o => Errors.Add(o));
                 if (Errors.Count > oldCount)

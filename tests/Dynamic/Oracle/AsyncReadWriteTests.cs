@@ -199,7 +199,7 @@ namespace Mighty.Dynamic.Tests.Oracle
             {
                 var inserted = await depts.InsertAsync(new { DNAME = "Massive Dep", LOC = "Beach" }, connection: connection);
                 Assert.IsTrue(inserted.DEPTNO > 0);
-                Assert.AreEqual(1, await depts.DeleteAsync(inserted.DEPTNO));
+                Assert.AreEqual(1, await depts.DeleteAsync(connection, inserted.DEPTNO));
             }
         }
 

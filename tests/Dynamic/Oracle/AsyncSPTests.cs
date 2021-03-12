@@ -1,4 +1,6 @@
 ﻿#if (NETFRAMEWORK && !NET40) || (NETCOREAPP && !(NETCOREAPP1_0 || NETCOREAPP1_1))
+#pragma warning disable IDE0079
+#pragma warning disable IDE0063
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;

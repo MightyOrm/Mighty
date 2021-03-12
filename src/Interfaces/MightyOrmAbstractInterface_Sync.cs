@@ -413,6 +413,79 @@ namespace Mighty.Interfaces
 
         #region Table specific methods
         /// <summary>
+        /// Get table meta data (filtered to only contain columns specific to generic type T, or to constructor `columns`, if either is present).
+        /// </summary>
+        /// <remarks>
+        /// Note that this does a synchronous database SELECT on first access, and the result is then cached.
+        /// Non-locking caching is used: the cached result will be returned after the first such SELECT to complete has finished.
+        /// </remarks>
+        /// <param name="connection">Optional connection to use</param>
+        abstract public IEnumerable<dynamic> GetTableMetaData(DbConnection connection = null);
+
+        /// <summary>
+        /// Return a new item populated with defaults which correctly reflect the defaults of the current database table, if any.
+        /// </summary>
+        /// <param name="nameValues">Optional name-value collection from which to initialise some or all of the fields</param>
+        /// <param name="addNonPresentAsDefaults">
+        /// When true also include default values for fields not present in <paramref name="nameValues"/>
+        /// but which exist in the defined list of columns for the current table in Mighty
+        /// </param>
+        /// <returns></returns>
+        abstract public T New(object nameValues = null, bool addNonPresentAsDefaults = true);
+
+        /// <summary>
+        /// Return a new item populated with defaults which correctly reflect the defaults of the current database table, if any.
+        /// </summary>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="nameValues">Optional name-value collection from which to initialise some or all of the fields</param>
+        /// <param name="addNonPresentAsDefaults">
+        /// When true also include default values for fields not present in <paramref name="nameValues"/>
+        /// but which exist in the defined list of columns for the current table in Mighty
+        /// </param>
+        /// <returns></returns>
+        abstract public T New(DbConnection connection, object nameValues = null, bool addNonPresentAsDefaults = true);
+
+        /// <summary>
+        /// Get the meta-data for a single column
+        /// </summary>
+        /// <param name="column">Column name</param>
+        /// <param name="ExceptionOnAbsent">If true throw an exception if there is no such column, otherwise return null.</param>
+        /// <returns></returns>
+        abstract public dynamic GetColumnInfo(string column, bool ExceptionOnAbsent = true);
+
+        /// <summary>
+        /// Get the meta-data for a single column
+        /// </summary>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="column">Column name</param>
+        /// <param name="ExceptionOnAbsent">If true throw an exception if there is no such column, otherwise return null.</param>
+        /// <returns></returns>
+        abstract public dynamic GetColumnInfo(DbConnection connection, string column, bool ExceptionOnAbsent = true);
+
+        /// <summary>
+        /// Get the default value for a column.
+        /// </summary>
+        /// <param name="columnName">The column name</param>
+        /// <returns></returns>
+        /// <remarks>
+        /// Although it might look more efficient, GetColumnDefault should not do buffering, as we don't
+        /// want to pass out the same actual object more than once.
+        /// </remarks>
+        abstract public object GetColumnDefault(string columnName);
+
+        /// <summary>
+        /// Get the default value for a column.
+        /// </summary>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="columnName">The column name</param>
+        /// <returns></returns>
+        /// <remarks>
+        /// Although it might look more efficient, GetColumnDefault should not do buffering, as we don't
+        /// want to pass out the same actual object more than once.
+        /// </remarks>
+        abstract public object GetColumnDefault(DbConnection connection, string columnName);
+
+        /// <summary>
         /// Perform COUNT on current table.
         /// </summary>
         /// <param name="where">WHERE clause</param>
@@ -739,25 +812,29 @@ namespace Mighty.Interfaces
             params object[] args);
 
         /// <summary>
-        /// Save one or more items.
+        /// Save one or more items specified using C# params arguments (provide one or more comma separated arguments in C# params format, will also accept a single object array).
+        /// </summary>
+        /// <remarks>
         /// 'Save' means
         /// objects with missing or default primary keys are inserted
         /// and objects with non-default primary keys are updated.
-        /// </summary>
-        /// <param name="items">The items</param>
+        /// </remarks>
+        /// <param name="args">The items</param>
         /// <returns></returns>
-        abstract public int Save(params object[] items);
+        abstract public int Save(params object[] args);
 
         /// <summary>
-        /// Save one or more items.
+        /// Save one or more items specified using C# params arguments (provide one or more comma separated arguments in C# params format, will also accept a single object array).
+        /// </summary>
+        /// <remarks>
         /// 'Save' means
         /// objects with missing or default primary keys are inserted
         /// and objects with non-default primary keys are updated.
-        /// </summary>
+        /// </remarks>
         /// <param name="connection">The connection to use</param>
-        /// <param name="items">The items</param>
+        /// <param name="args">The items</param>
         /// <returns></returns>
-        abstract public int Save(DbConnection connection, params object[] items);
+        abstract public int Save(DbConnection connection, params object[] args);
 
         /// <summary>
         /// Save array or other <see cref="IEnumerable"/> of items.
@@ -782,7 +859,7 @@ namespace Mighty.Interfaces
 
         /// <summary>
         /// Insert single item.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
+        /// Call <see cref="New(object, bool)"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>
         /// <param name="item">The item to insert, in any reasonable format (for MightyOrm&lt;T&gt; this includes, but is not limited to, in instance of type T)</param>
         /// <returns>The item sent in but with the primary key populated</returns>
@@ -790,7 +867,7 @@ namespace Mighty.Interfaces
 
         /// <summary>
         /// Insert single item.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
+        /// Call <see cref="New(object, bool)"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>
         /// <param name="connection">The connection to use</param>
         /// <param name="item">The item to insert, in any reasonable format (for MightyOrm&lt;T&gt; this includes, but is not limited to, in instance of type T)</param>
@@ -798,25 +875,29 @@ namespace Mighty.Interfaces
         abstract public T Insert(object item, DbConnection connection);
 
         /// <summary>
-        /// Insert one or more items.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
+        /// Insert one or more items specified using C# params arguments (provide one or more comma separated arguments in C# params format, will also accept a single object array).
         /// </summary>
-        /// <param name="items">The items</param>
+        /// <remarks>
+        /// Call <see cref="New(object, bool)"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
+        /// </remarks>
+        /// <param name="args">The items</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
-        abstract public IEnumerable<T> Insert(params object[] items);
+        abstract public IEnumerable<T> Insert(params object[] args);
 
         /// <summary>
-        /// Insert one or more items.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
+        /// Insert one or more items specified using C# params arguments (provide one or more comma separated arguments in C# params format, will also accept a single object array).
         /// </summary>
+        /// <remarks>
+        /// Call <see cref="New(object, bool)"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
+        /// </remarks>
         /// <param name="connection">The connection to use</param>
-        /// <param name="items">The items</param>
+        /// <param name="args">The items</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
-        abstract public IEnumerable<T> Insert(DbConnection connection, params object[] items);
+        abstract public IEnumerable<T> Insert(DbConnection connection, params object[] args);
 
         /// <summary>
         /// Insert array or other <see cref="IEnumerable"/> of items.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
+        /// Call <see cref="New(object, bool)"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>
         /// <param name="items">The items</param>
         /// <returns>The items sent in but with the primary keys populated</returns>
@@ -824,7 +905,7 @@ namespace Mighty.Interfaces
 
         /// <summary>
         /// Insert array or other <see cref="IEnumerable"/> of items.
-        /// Call <see cref="New"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
+        /// Call <see cref="New(object, bool)"/> before insert if you need to pre-populate your inserted items with any defined database column defaults.
         /// </summary>
         /// <param name="connection">The connection to use</param>
         /// <param name="items">The items</param>
@@ -832,34 +913,19 @@ namespace Mighty.Interfaces
         abstract public IEnumerable<T> Insert(DbConnection connection, IEnumerable<object> items);
 
         /// <summary>
-        /// Update single item.
+        /// Update one or more items specified using C# params arguments (provide one or more comma separated arguments in C# params format, will also accept a single object array).
         /// </summary>
-        /// <param name="item">The item</param>
+        /// <param name="args">The items</param>
         /// <returns></returns>
-        abstract public int Update(object item);
+        abstract public int Update(params object[] args);
 
         /// <summary>
-        /// Update single item.
+        /// Update one or more items specified using C# params arguments (provide one or more comma separated arguments in C# params format, will also accept a single object array).
         /// </summary>
         /// <param name="connection">The connection to use</param>
-        /// <param name="item">The item</param>
+        /// <param name="args">The items</param>
         /// <returns></returns>
-        abstract public int Update(object item, DbConnection connection);
-
-        /// <summary>
-        /// Update one or more items.
-        /// </summary>
-        /// <param name="items">The items</param>
-        /// <returns></returns>
-        abstract public int Update(params object[] items);
-
-        /// <summary>
-        /// Update one or more items.
-        /// </summary>
-        /// <param name="connection">The connection to use</param>
-        /// <param name="items">The items</param>
-        /// <returns></returns>
-        abstract public int Update(DbConnection connection, params object[] items);
+        abstract public int Update(DbConnection connection, params object[] args);
 
         /// <summary>
         /// Update array or other <see cref="IEnumerable"/> of items.
@@ -877,27 +943,31 @@ namespace Mighty.Interfaces
         abstract public int Update(DbConnection connection, IEnumerable<object> items);
 
         /// <summary>
-        /// Delete one or more items.
+        /// Delete one or more items specified using C# params arguments (provide one or more comma separated arguments in C# params format, will also accept a single object array).
+        /// </summary>
+        /// <remarks>
         /// Each argument may be (or contain) a value (or values) only, in which case
         /// it specifies the primary key value(s) of the item to delete, or it can be any object containing name-values pairs in which case
         /// it should contain fields with names matching the primary key(s) whose values will specify the item to delete (but it may contain
         /// other fields as well which will be ignored here).
-        /// </summary>
-        /// <param name="items">The items</param>
+        /// </remarks>
+        /// <param name="args">The items</param>
         /// <returns>The number of items affected</returns>
-        abstract public int Delete(params object[] items);
+        abstract public int Delete(params object[] args);
 
         /// <summary>
-        /// Delete one or more items.
+        /// Delete one or more items specified using C# params arguments (provide one or more comma separated arguments in C# params format, will also accept a single object array).
+        /// </summary>
+        /// <remarks>
         /// Each argument may be (or contain) a value (or values) only, in which case
         /// it specifies the primary key value(s) of the item to delete, or it can be any object containing name-values pairs in which case
         /// it should contain fields with names matching the primary key(s) whose values will specify the item to delete (but it may contain
         /// other fields as well which will be ignored here).
-        /// </summary>
-        /// <param name="items">The items</param>
+        /// </remarks>
+        /// <param name="args">The items</param>
         /// <param name="connection">The connection to use</param>
         /// <returns>The number of items affected</returns>
-        abstract public int Delete(DbConnection connection, params object[] items);
+        abstract public int Delete(DbConnection connection, params object[] args);
 
         /// <summary>
         /// Delete an array or other <see cref="IEnumerable"/> of items.
@@ -925,7 +995,7 @@ namespace Mighty.Interfaces
         /// <summary>
         /// Update the row(s) specified by the primary key(s) or WHERE values sent in using the values from the item sent in.
         /// If `keys` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
-        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New"/> with first parameter `partialItem` and second parameter `false` first.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New(object, bool)"/> with first parameter `partialItem` and second parameter `false` first.
         /// </summary>
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
@@ -934,7 +1004,7 @@ namespace Mighty.Interfaces
         /// <summary>
         /// Update the row(s) specified by the primary key(s) or WHERE values sent in using the values from the item sent in.
         /// If `keys` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
-        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New"/> with first parameter `partialItem` and second parameter `false` first.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New(object, bool)"/> with first parameter `partialItem` and second parameter `false` first.
         /// </summary>
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="whereParams">Value(s) to be mapped to the table's primary key(s), or object containing named value(s) to be mapped to the matching named column(s)</param>
@@ -945,7 +1015,7 @@ namespace Mighty.Interfaces
         /// <summary>
         /// Update all items matching WHERE clause using fields from the item sent in.
         /// If `keys` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
-        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New"/> with first parameter `partialItem` and second parameter `false` first.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New(object, bool)"/> with first parameter `partialItem` and second parameter `false` first.
         /// </summary>
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="where">WHERE clause specifying which rows to update</param>
@@ -956,7 +1026,7 @@ namespace Mighty.Interfaces
         /// <summary>
         /// Update all items matching WHERE clause using fields from the item sent in.
         /// If `keys` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
-        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New"/> with first parameter `partialItem` and second parameter `false` first.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New(object, bool)"/> with first parameter `partialItem` and second parameter `false` first.
         /// </summary>
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="where">WHERE clause specifying which rows to update</param>

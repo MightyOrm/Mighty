@@ -1,4 +1,6 @@
 ﻿#if !NET40
+#pragma warning disable IDE0079
+#pragma warning disable IDE0063
 using System;
 using System.Collections;
 using Dasync.Collections;
@@ -36,7 +38,7 @@ namespace Mighty.Dynamic.Tests.MySql
         [Test]
         public async Task Use_GlobalConnectionString()
         {
-            MightyOrm.GlobalConnectionString = string.Format(WhenDevart.AddLicenseKey(ProviderName, TestConstants.ReadTestConnection), ProviderName);
+            MightyOrm.GlobalConnectionString = WhenDevart.AddLicenseKey(ProviderName, string.Format(TestConstants.ReadTestConnection, ProviderName));
             dynamic film = new MightyOrm(tableName: "sakila.film");
             var singleInstance = await film.SingleAsync(new { film_id = 43 });
             Assert.AreEqual(43, singleInstance.film_id);
@@ -47,7 +49,7 @@ namespace Mighty.Dynamic.Tests.MySql
         public async Task Guid_Arg()
         {
             // MySQL has native Guid parameter support, but the SELECT output is a string
-            var db = new MightyOrm(string.Format(WhenDevart.AddLicenseKey(ProviderName, TestConstants.ReadTestConnection), ProviderName));
+            var db = new MightyOrm(WhenDevart.AddLicenseKey(ProviderName, string.Format(TestConstants.ReadTestConnection, ProviderName)));
             var guid = Guid.NewGuid();
             dynamic item;
             using (var command = db.CreateCommand("SELECT @0 AS val", null, guid))

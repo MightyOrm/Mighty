@@ -91,14 +91,14 @@ namespace Mighty.Generic.Tests.MySql
                 Assert.IsTrue(insertedCategoryID > 0);
                 // update it, with a better description
                 inserted.Description = "This is all jolly marvellous";
-                Assert.AreEqual(1, categories.Update(inserted, connection), "Update should have affected 1 row");
+                Assert.AreEqual(1, categories.Update(connection, inserted), "Update should have affected 1 row");
                 var updatedRow = categories.Single(new { inserted.CategoryID }, connection: connection);
                 Assert.IsNotNull(updatedRow);
                 Assert.AreEqual(inserted.CategoryID, Convert.ToInt32(updatedRow.CategoryID)); // convert from uint
                 Assert.AreEqual(inserted.Description, updatedRow.Description);
                 // reset description to NULL
                 updatedRow.Description = null;
-                Assert.AreEqual(1, categories.Update(updatedRow, connection), "Update should have affected 1 row");
+                Assert.AreEqual(1, categories.Update(connection, updatedRow), "Update should have affected 1 row");
                 var newUpdatedRow = categories.Single(new { updatedRow.CategoryID }, connection: connection);
                 Assert.IsNotNull(newUpdatedRow);
                 Assert.AreEqual(updatedRow.CategoryID, newUpdatedRow.CategoryID);

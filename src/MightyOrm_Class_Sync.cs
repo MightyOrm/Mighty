@@ -1,3 +1,5 @@
+#pragma warning disable IDE0079
+#pragma warning disable IDE0063
 using System;
 using System.Collections.Generic;
 using System.Data;
@@ -21,7 +23,171 @@ namespace Mighty
     public partial class MightyOrm<T> : MightyOrmAbstractInterface<T> where T : class, new()
     {
         // Only methods with a non-trivial implementation are here, the rest are in the MightyOrm_Redirects_Sync file.
-        #region MircoORM interface
+        #region MicroORM interface
+        /// <summary>
+        /// Table meta data (filtered to only contain columns specific to generic type T, or to constructor `columns`, if either is present).
+        /// </summary>
+        /// <remarks>
+        /// Note that this does a synchronous database SELECT on first access, and the result is then cached.
+        /// Non-locking caching is used: the cached result will be returned after the first such SELECT to complete has finished.
+        /// </remarks>
+        /// <param name="connection">Optional connection to use</param>
+        override public IEnumerable<dynamic> GetTableMetaData(DbConnection connection)
+        {
+            string connectionString;
+
+            if (connection == null)
+            {
+                if (string.IsNullOrEmpty(ConnectionString))
+                {
+                    throw new InvalidOperationException($"No {nameof(DbConnection)} object and no local or global connection string available in call to {nameof(GetTableMetaData)}");
+                }
+
+                // might as well use exactly the lazy load behaviour of this prop, in this case (dropping through
+                // and not returning this prop here would return exactly the same data to the user, however)
+                return TableMetaData;
+            }
+            else
+            {
+                if (string.IsNullOrEmpty(connection.ConnectionString))
+                {
+                    throw new InvalidOperationException($"No {nameof(connection.ConnectionString)} set on {nameof(DbConnection)} object passed to {nameof(MightyOrm.GetTableMetaData)}");
+                }
+                connectionString = connection.ConnectionString;
+            }
+
+            return TableMetaDataStore.Instance.Get(
+                         IsGeneric, Plugin, Factory, connection,
+                         BareTableName, TableOwner, DataContract,
+                         this);
+        }
+
+        /// <summary>
+        /// Make a new item, with optional passed-in name-value collection as initialiser.
+        /// </summary>
+        /// <param name="nameValues">The name-value collection</param>
+        /// <param name="addNonPresentAsDefaults">
+        /// If true also include default values for fields not present in the collection
+        /// but which exist in columns for the current table in Mighty, which correctly
+        /// reflect the defaults of the current database table.
+        /// </param>
+        /// <returns></returns>
+        override public T New(object nameValues = null, bool addNonPresentAsDefaults = true)
+        {
+            return New(null, nameValues, addNonPresentAsDefaults);
+        }
+
+        /// <summary>
+        /// Make a new item, with optional passed-in name-value collection as initialiser.
+        /// </summary>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="nameValues">The name-value collection</param>
+        /// <param name="addNonPresentAsDefaults">
+        /// If true also include default values for fields not present in the collection
+        /// but which exist in columns for the current table in Mighty, which correctly
+        /// reflect the defaults of the current database table.
+        /// </param>
+        /// <returns></returns>
+        override public T New(DbConnection connection, object nameValues = null, bool addNonPresentAsDefaults = true)
+        {
+            var nvtEnumerator = new NameValueTypeEnumerator(DataContract, nameValues);
+            Dictionary<string, object> columnNameToValue = new Dictionary<string, object>();
+            foreach (var nvtInfo in nvtEnumerator)
+            {
+                if (DataContract.TryGetColumnName(nvtInfo.Name, out string columnName))
+                {
+                    columnNameToValue.Add(columnName, nvtInfo.Value);
+                }
+            }
+            object item;
+            IDictionary<string, object> newItemDictionary = null;
+            if (!IsGeneric)
+            {
+                item = new ExpandoObject();
+                newItemDictionary = ((ExpandoObject)item).ToDictionary();
+            }
+            else
+            {
+                item = new T();
+            }
+            // drive the loop by the actual column names
+            foreach (var columnInfo in GetTableMetaData(connection))
+            {
+                if (!columnInfo.IS_MIGHTY_COLUMN) continue;
+                string columnName = columnInfo.COLUMN_NAME;
+                object value;
+                if (!columnNameToValue.TryGetValue(columnName, out value))
+                {
+                    if (!addNonPresentAsDefaults) continue;
+                    value = Plugin.GetColumnDefault(columnInfo);
+                }
+                if (value != null)
+                {
+                    if (IsGeneric) DataContract.GetDataMemberInfo(columnName).SetValue(item, value);
+                    else newItemDictionary.Add(columnName, value);
+                }
+            }
+            return (T)item;
+        }
+
+        /// <summary>
+        /// Get the meta-data for a single column
+        /// </summary>
+        /// <param name="column">Column name</param>
+        /// <param name="ExceptionOnAbsent">If true throw an exception if there is no such column, otherwise return null.</param>
+        /// <returns></returns>
+        override public dynamic GetColumnInfo(string column, bool ExceptionOnAbsent = true)
+        {
+            return GetColumnInfo(null, column, ExceptionOnAbsent);
+        }
+
+        /// <summary>
+        /// Get the meta-data for a single column
+        /// </summary>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="column">Column name</param>
+        /// <param name="ExceptionOnAbsent">If true throw an exception if there is no such column, otherwise return null.</param>
+        /// <returns></returns>
+        override public dynamic GetColumnInfo(DbConnection connection, string column, bool ExceptionOnAbsent = true)
+        {
+            var info = GetTableMetaData(connection).Where(c => column.Equals(c.COLUMN_NAME, StringComparison.OrdinalIgnoreCase)).FirstOrDefault();
+            if (ExceptionOnAbsent && info == null)
+            {
+                throw new InvalidOperationException("Cannot find table info for column name " + column);
+            }
+            return info;
+        }
+
+        /// <summary>
+        /// Get the default value for a column.
+        /// </summary>
+        /// <param name="columnName">The column name</param>
+        /// <returns></returns>
+        /// <remarks>
+        /// Although it might look more efficient, GetColumnDefault should not do buffering, as we don't
+        /// want to pass out the same actual object more than once.
+        /// </remarks>
+        override public object GetColumnDefault(string columnName)
+        {
+            return GetColumnDefault(null, columnName);
+        }
+
+        /// <summary>
+        /// Get the default value for a column.
+        /// </summary>
+        /// <param name="connection">The connection to use</param>
+        /// <param name="columnName">The column name</param>
+        /// <returns></returns>
+        /// <remarks>
+        /// Although it might look more efficient, GetColumnDefault should not do buffering, as we don't
+        /// want to pass out the same actual object more than once.
+        /// </remarks>
+        override public object GetColumnDefault(DbConnection connection, string columnName)
+        {
+            var columnInfo = GetColumnInfo(connection, columnName);
+            return Plugin.GetColumnDefault(columnInfo);
+        }
+
         /// <summary>
         /// Perform aggregate operation on the current table (use for SUM, MAX, MIN, AVG, etc.), with support for named params.
         /// </summary>
@@ -54,7 +220,7 @@ namespace Mighty
         /// <summary>
         /// Update all items matching WHERE clause using fields from the item sent in.
         /// If `keys` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
-        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New"/> with first parameter `partialItem` and second parameter `false` first.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New(object, bool)"/> with first parameter `partialItem` and second parameter `false` first.
         /// </summary>
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="where">WHERE clause specifying which rows to update</param>
@@ -73,7 +239,7 @@ namespace Mighty
         /// <summary>
         /// Update all items matching WHERE clause using fields from the item sent in.
         /// If `keys` has been specified on the current Mighty instance then any primary key fields in the item are ignored.
-        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New"/> with first parameter `partialItem` and second parameter `false` first.
+        /// The item is not filtered to remove fields not in the table, if you need that you can call <see cref="New(object, bool)"/> with first parameter `partialItem` and second parameter `false` first.
         /// </summary>
         /// <param name="partialItem">Item containing values to update with</param>
         /// <param name="where">WHERE clause specifying which rows to update</param>
@@ -162,6 +328,8 @@ namespace Mighty
             ValidateAction(items, action);
             foreach (var item in items)
             {
+                ExceptionOnDbConnectionOrNull(item);
+
                 if (Validator.ShouldPerformAction(item, action))
                 {
                     object result;
@@ -171,7 +339,7 @@ namespace Mighty
                         var modified = result ?? item;
                         if (IsGeneric && !(modified is T))
                         {
-                            modified = New(modified, false);
+                            modified = New(connection, modified, false);
                         }
                         modifiedItems.Add((T)modified);
                     }
@@ -514,7 +682,7 @@ namespace Mighty
             if (revisedAction == OrmAction.Insert && PrimaryKeyInfo.SequenceNameOrIdentityFunction != null)
             {
                 // *All* DBs return a huge sized number for their identity by default, following Massive we are normalising to int
-                var pk = Convert.ToInt32(Scalar(command));
+                var pk = Convert.ToInt32(Scalar(command, connection));
                 modified = UpsertItemPK(
                     item, pk,
                     // Don't create clone items on Save as these will then be discarded; but do still update the PK if clone not required
@@ -524,7 +692,7 @@ namespace Mighty
             else
             {
                 modified = null;
-                return Execute(command);
+                return Execute(command, connection);
             }
         }
         #endregion

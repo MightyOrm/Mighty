@@ -10,7 +10,7 @@ namespace Mighty.Dynamic.Tests.MySql.TableClasses
     public class Film : MightyOrm
     {
         public Film(string providerName, bool includeSchema = true, string columns = null) :
-            base(string.Format(WhenDevart.AddLicenseKey(providerName, TestConstants.ReadTestConnection), providerName), includeSchema ? "sakila.film" : "film", "film_id", columns: columns, validator: new FilmValidator())
+            base(WhenDevart.AddLicenseKey(providerName, string.Format(TestConstants.ReadTestConnection, providerName)), includeSchema ? "sakila.film" : "film", "film_id", columns: columns, validator: new FilmValidator())
         {
         }
 
