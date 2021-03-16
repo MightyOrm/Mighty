@@ -36,6 +36,11 @@ namespace Mighty.DataContracts
         private readonly ConcurrentDictionary<TableMetaDataKey, IEnumerable<dynamic>> store = new ConcurrentDictionary<TableMetaDataKey, IEnumerable<dynamic>>();
 
         /// <summary>
+        /// Cache size
+        /// </summary>
+        public int CacheSize { get { return store.Count; } }
+
+        /// <summary>
         /// Cache hits
         /// </summary>
         public int CacheHits { get; private set; }

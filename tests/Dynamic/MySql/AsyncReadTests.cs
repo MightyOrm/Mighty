@@ -90,19 +90,19 @@ namespace Mighty.Dynamic.Tests.MySql
 
 
         [Test]
-        public void EmptyElement_ProtoType()
+        public async Task EmptyElement_ProtoType()
         {
             var film = new Film(ProviderName);
-            dynamic defaults = film.New();
+            dynamic defaults = await film.NewAsync();
             Assert.IsTrue(defaults.last_update > DateTime.MinValue);
         }
 
 
         [Test]
-        public void SchemaTableMetaDataRetrieval()
+        public async Task SchemaTableMetaDataRetrieval()
         {
             var film = new Film(ProviderName);
-            var metaData = film.TableMetaData;
+            var metaData = await film.GetTableMetaDataAsync();
             Assert.IsNotNull(metaData);
             Assert.AreEqual(13, metaData.Count());
             Assert.IsTrue(metaData.All(v => v.TABLE_NAME == film.BareTableName));

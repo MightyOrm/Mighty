@@ -29,9 +29,21 @@ namespace Mighty
         /// </summary>
         /// <remarks>
         /// Note that this does a synchronous database SELECT on first access, and the result is then cached.
-        /// Non-locking caching is used: the cached result will be returned after the first such SELECT to complete has finished.
+        /// Non-locking caching is used: a cached result will be returned after the first such SELECT to complete has finished.
         /// </remarks>
-        /// <param name="connection">Optional connection to use</param>
+        override public IEnumerable<dynamic> GetTableMetaData()
+        {
+            return GetTableMetaData(null);
+        }
+
+        /// <summary>
+        /// Table meta data (filtered to only contain columns specific to generic type T, or to constructor `columns`, if either is present).
+        /// </summary>
+        /// <remarks>
+        /// Note that this does a synchronous database SELECT on first access, and the result is then cached.
+        /// Non-locking caching is used: a cached result will be returned after the first such SELECT to complete has finished.
+        /// </remarks>
+        /// <param name="connection">The connection to use</param>
         override public IEnumerable<dynamic> GetTableMetaData(DbConnection connection)
         {
             string connectionString;

@@ -35,10 +35,22 @@ namespace Mighty
         /// </summary>
         /// <remarks>
         /// Note that this does an asynchronous database SELECT on first access, and the result is then cached.
-        /// Non-locking caching is used: the cached result will be returned after the first such SELECT to complete has finished.
+        /// Non-locking caching is used: a cached result will be returned after the first such SELECT to complete has finished.
         /// </remarks>
-        /// <param name="connection">Optional connection to use</param>
-        override public async Task<IEnumerable<dynamic>> GetTableMetaDataAsync(DbConnection connection = null)
+        override public async Task<IEnumerable<dynamic>> GetTableMetaDataAsync()
+        {
+            return await GetTableMetaDataAsync(null).ConfigureAwait(false);
+        }
+
+        /// <summary>
+        /// Table meta data (filtered to only contain columns specific to generic type T, or to constructor `columns`, if either is present).
+        /// </summary>
+        /// <remarks>
+        /// Note that this does an asynchronous database SELECT on first access, and the result is then cached.
+        /// Non-locking caching is used: a cached result will be returned after the first such SELECT to complete has finished.
+        /// </remarks>
+        /// <param name="connection">The connection to use</param>
+        override public async Task<IEnumerable<dynamic>> GetTableMetaDataAsync(DbConnection connection)
         {
             string connectionString;
 

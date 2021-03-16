@@ -43,7 +43,7 @@ namespace Mighty.Generic.Tests.MySql
         public async Task Insert_FromNew()
         {
             Categories categories = new Categories(ProviderName);
-            Category toInsert = categories.New();
+            Category toInsert = await categories.NewAsync();
             toInsert.CategoryName = "Cool stuff";
             toInsert.Description = "You know... cool stuff! Cool. n. stuff.";
             var inserted = await categories.InsertAsync(toInsert);

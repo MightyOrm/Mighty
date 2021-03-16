@@ -36,19 +36,19 @@ namespace Mighty.Generic.Tests.SqlServer
 
 
         [Test]
-        public void EmptyElement_ProtoType()
+        public async Task EmptyElement_ProtoType()
         {
             var soh = new SalesOrderHeaders();
-            dynamic defaults = soh.New();
+            dynamic defaults = await soh.NewAsync();
             Assert.IsTrue(defaults.OrderDate > DateTime.MinValue);
         }
 
 
         [Test]
-        public void SchemaTableMetaDataRetrieval()
+        public async Task SchemaTableMetaDataRetrieval()
         {
             var soh = new SalesOrderHeaders();
-            var metaData = soh.TableMetaData;
+            var metaData = await soh.GetTableMetaDataAsync();
             Assert.IsNotNull(metaData);
             Assert.AreEqual(26, metaData.Count());
             Assert.IsTrue(metaData.All(v=>v.TABLE_NAME==soh.BareTableName));

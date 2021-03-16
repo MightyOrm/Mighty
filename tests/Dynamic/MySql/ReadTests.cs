@@ -412,7 +412,6 @@ namespace Mighty.Dynamic.Tests.MySql
         public void BoolTypes()
         {
             var db = new MightyOrm(WhenDevart.AddLicenseKey(ProviderName, string.Format(TestConstants.WriteTestConnection, ProviderName)), "bittest");
-            //var m = db.TableMetaData;
             var results = db.All();
             foreach (var result in results)
             {

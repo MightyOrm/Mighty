@@ -138,14 +138,26 @@ namespace Mighty.Interfaces
         /// </summary>
         abstract public bool IsGeneric { get; protected set; }
 
+#if NET40
         /// <summary>
         /// Table meta data (filtered to only contain columns specific to generic type T, or to constructor `columns`, if either is present).
         /// </summary>
         /// <remarks>
         /// Note that this does a synchronous database SELECT on first access, and the result is then cached.
-        /// Non-locking caching is used: the cached result will be returned after the first such SELECT to complete has finished.
+        /// Non-locking caching is used: a cached result will be returned after the first such SELECT to complete has finished.
         /// </remarks>
         abstract public IEnumerable<dynamic> TableMetaData { get; }
+#else
+        /// <summary>
+        /// Table meta data (filtered to only contain columns specific to generic type T, or to constructor `columns`, if either is present).
+        /// </summary>
+        /// <remarks>
+        /// Note that this does a synchronous database SELECT on first access, and the result is then cached.
+        /// Use <see cref="GetTableMetaDataAsync()"/> for async acccess.
+        /// Non-locking caching is used: a cached result will be returned after the first such SELECT to complete has finished.
+        /// </remarks>
+        abstract public IEnumerable<dynamic> TableMetaData { get; }
+#endif
         #endregion
 
         // 'Interface' for the general purpose data access wrapper methods (i.e. the ones which can be used

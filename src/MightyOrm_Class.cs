@@ -385,14 +385,26 @@ namespace Mighty
         /// </summary>
         private Lazy<IEnumerable<dynamic>> _TableMetaDataLazy;
 
+#if NET40
         /// <summary>
         /// Table meta data (filtered to only contain columns specific to generic type T, or to constructor `columns`, if either is present).
         /// </summary>
         /// <remarks>
         /// Note that this does a synchronous database SELECT on first access, and the result is then cached.
-        /// Non-locking caching is used: the cached result will be returned after the first such SELECT to complete has finished.
+        /// Non-locking caching is used: a cached result will be returned after the first such SELECT to complete has finished.
         /// </remarks>
         override public IEnumerable<dynamic> TableMetaData { get { return _TableMetaDataLazy.Value; } }
+#else
+        /// <summary>
+        /// Table meta data (filtered to only contain columns specific to generic type T, or to constructor `columns`, if either is present).
+        /// </summary>
+        /// <remarks>
+        /// Note that this does a synchronous database SELECT on first access, and the result is then cached.
+        /// Use <see cref="GetTableMetaDataAsync()"/> for async acccess.
+        /// Non-locking caching is used: a cached result will be returned after the first such SELECT to complete has finished.
+        /// </remarks>
+        override public IEnumerable<dynamic> TableMetaData { get { return _TableMetaDataLazy.Value; } }
+#endif
 
         private void InitTableMetaDataLazyLoader()
         {

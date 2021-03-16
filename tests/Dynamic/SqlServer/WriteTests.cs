@@ -24,9 +24,14 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void Insert_MultipleRows()
         {
-            var categories = new Category();
-            var toInsert = new List<dynamic>();
             var CategoryName = "Cat Insert_MR";
+
+            var categories = new Category();
+
+            // clear down
+            categories.Delete(where: "CategoryName=@0", args: CategoryName);
+
+            var toInsert = new List<dynamic>();
             toInsert.Add(new { CategoryName, Description = "cat 1 desc" });
             toInsert.Add(new { CategoryName, Description = "cat 2 desc" });
             var inserted = categories.Insert(toInsert.ToArray());
@@ -116,12 +121,18 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void Delete_SingleRow()
         {
-            // first insert 2 categories
+            var CategoryName = "Cat Delete_SR";
+
             var categories = new Category();
-            var insertedCategory1 = categories.Insert(new { CategoryName = "Cat Delete_SR", Description = "cat 1 desc" });
+
+            // clear down
+            categories.Delete(where: "CategoryName=@0", args: CategoryName);
+
+            // first insert 2 categories
+            var insertedCategory1 = categories.Insert(new { CategoryName, Description = "cat 1 desc" });
             int category1ID = insertedCategory1.CategoryID;
             Assert.IsTrue(category1ID > 0);
-            var insertedCategory2 = categories.Insert(new { CategoryName = "Cat Delete_SR", Description = "cat 2 desc" });
+            var insertedCategory2 = categories.Insert(new { CategoryName, Description = "cat 2 desc" });
             int category2ID = insertedCategory2.CategoryID;
             Assert.IsTrue(category2ID > 0);
 

@@ -63,19 +63,19 @@ namespace Mighty.Generic.Tests.MySql
 
 
         [Test]
-        public void EmptyElement_ProtoType()
+        public async Task EmptyElement_ProtoType()
         {
             var films = new Films(ProviderName);
-            var defaults = films.New();
+            var defaults = await films.NewAsync();
             Assert.IsTrue(defaults.last_update > DateTime.MinValue);
         }
 
 
         [Test]
-        public void SchemaTableMetaDataRetrieval()
+        public async Task SchemaTableMetaDataRetrieval()
         {
             var films = new Films(ProviderName);
-            var metaData = films.TableMetaData;
+            var metaData = await films.GetTableMetaDataAsync();
             Assert.IsNotNull(metaData);
             Assert.AreEqual(13, metaData.Count());
             Assert.IsTrue(metaData.All(v => v.TABLE_NAME == films.BareTableName));

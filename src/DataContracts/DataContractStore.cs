@@ -34,6 +34,11 @@ namespace Mighty.DataContracts
         private readonly ConcurrentDictionary<DataContractKey, DataContract> store = new ConcurrentDictionary<DataContractKey, DataContract>();
 
         /// <summary>
+        /// Cache size
+        /// </summary>
+        public int CacheSize { get { return store.Count;  } }
+
+        /// <summary>
         /// Cache hits
         /// </summary>
         public int CacheHits { get; private set; }

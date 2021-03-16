@@ -194,6 +194,7 @@ namespace Mighty.Dynamic.Tests.Sqlite
         }
 
 
+        [DebugExplicit("Should run fine by hand (use Debug), but often hangs with non-Mighty lock issue in full test run.")]
         [Test]
         public async Task Insert_SingleRow()
         {
