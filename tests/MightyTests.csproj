@@ -4,12 +4,12 @@
 	<!-- NB Oracle tests require setting Test/Test Settings/Default Processor Architecture to x64 if x64 version is installed -->
     <TargetFrameworks>netcoreapp1.0;netcoreapp1.1;netcoreapp2.0;netcoreapp3.0;netcoreapp3.1;net40;net45</TargetFrameworks>
     <PackageId>MightyTests</PackageId>
-    <PackageVersion>3.1.2-tests2</PackageVersion>
+    <PackageVersion>3.2.0-tests1</PackageVersion>
     <Authors>Mike Beaton</Authors>
     <Owners>MightyOrm</Owners>
     <Description>Mighty tests</Description>
     <PackageIconUrl>https://avatars3.githubusercontent.com/u/26790220?v=3&amp;s=200</PackageIconUrl>
-    <Copyright>Copyright (c) 2017-2020 Mike Beaton</Copyright>
+    <Copyright>Copyright (c) 2017-2021 Mike Beaton</Copyright>
     <PackageProjectUrl>https://github.com/MightyOrm/MightyOrm</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/MightyOrm/MightyOrm/blob/master/LICENSE</PackageLicenseUrl>
 	<PackageTags>micro-ORM, microORM, ORM, SQL, data access, data access wrapper, Mighty, MightyOrm, Massive, ADO.NET</PackageTags>
