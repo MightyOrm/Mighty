@@ -502,11 +502,10 @@ namespace Mighty
         {
             OrmAction revisedAction;
             DbCommand command = CreateActionCommand(originalAction, item, out revisedAction, connection);
-            command.Connection = connection;
             if (revisedAction == OrmAction.Insert && PrimaryKeyInfo.SequenceNameOrIdentityFunction != null)
             {
                 // *All* DBs return a huge sized number for their identity by default, following Massive we are normalising to int
-                var pk = Convert.ToInt32(Scalar(command));
+                var pk = Convert.ToInt32(Scalar(command, connection));
                 modified = UpsertItemPK(
                     item, pk,
                     // Don't create clone items on Save as these will then be discarded; but do still update the PK if clone not required
@@ -516,7 +515,7 @@ namespace Mighty
             else
             {
                 modified = null;
-                return Execute(command);
+                return Execute(command, connection);
             }
         }
         #endregion
