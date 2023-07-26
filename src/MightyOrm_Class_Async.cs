@@ -385,9 +385,12 @@ namespace Mighty
             DbConnection connection = null)
         {
             // using applied only to local connection
-            using (var localConn = ((connection == null) ? await OpenConnectionAsync(cancellationToken).ConfigureAwait(false) : null))
+            using (var localConn = ((command.Connection == null && connection == null) ? await OpenConnectionAsync(cancellationToken).ConfigureAwait(false) : null))
             {
-                command.Connection = connection ?? localConn;
+                if (command.Connection == null)
+                {
+                    command.Connection = connection ?? localConn;
+                }
                 return await command.ExecuteNonQueryAsync(cancellationToken);
             }
         }
@@ -418,9 +421,12 @@ namespace Mighty
             DbConnection connection = null)
         {
             // using applied only to local connection
-            using (var localConn = ((connection == null) ? await OpenConnectionAsync(cancellationToken).ConfigureAwait(false) : null))
+            using (var localConn = ((command.Connection == null && connection == null) ? await OpenConnectionAsync(cancellationToken).ConfigureAwait(false) : null))
             {
-                command.Connection = connection ?? localConn;
+                if (command.Connection == null)
+                {
+                    command.Connection = connection ?? localConn;
+                }
                 return await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
             }
         }
@@ -629,9 +635,9 @@ namespace Mighty
                         behavior = CommandBehavior.SingleResult;
                     }
                     // using is applied only to locally generated connection
-                    using (var localConn = (connection == null ? await OpenConnectionAsync(cancellationToken).ConfigureAwait(false) : null))
+                    using (var localConn = ((command?.Connection == null && connection == null) ? await OpenConnectionAsync(cancellationToken).ConfigureAwait(false) : null))
                     {
-                        if (command != null)
+                        if (command != null && command.Connection == null)
                         {
                             command.Connection = connection ?? localConn;
                         }

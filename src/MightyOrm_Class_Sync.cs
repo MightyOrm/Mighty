@@ -236,9 +236,12 @@ namespace Mighty
             DbConnection connection = null)
         {
             // using applied only to local connection
-            using (var localConn = ((connection == null) ? OpenConnection() : null))
+            using (var localConn = ((command.Connection == null && connection == null) ? OpenConnection() : null))
             {
-                command.Connection = connection ?? localConn;
+                if (command.Connection == null)
+                {
+                    command.Connection = connection ?? localConn;
+                }
                 return command.ExecuteNonQuery();
             }
         }
@@ -253,9 +256,12 @@ namespace Mighty
             DbConnection connection = null)
         {
             // using applied only to local connection
-            using (var localConn = ((connection == null) ? OpenConnection() : null))
+            using (var localConn = ((command.Connection == null && connection == null) ? OpenConnection() : null))
             {
-                command.Connection = connection ?? localConn;
+                if (command.Connection == null)
+                {
+                    command.Connection = connection ?? localConn;
+                }
                 return command.ExecuteScalar();
             }
         }
@@ -368,9 +374,9 @@ namespace Mighty
                     behavior = CommandBehavior.SingleResult;
                 }
                 // using is applied only to locally generated connection
-                using (var localConn = (connection == null ? OpenConnection() : null))
+                using (var localConn = ((command?.Connection == null && connection == null) ? OpenConnection() : null))
                 {
-                    if (command != null)
+                    if (command != null && command.Connection == null)
                     {
                         command.Connection = connection ?? localConn;
                     }
