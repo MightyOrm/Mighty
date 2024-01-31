@@ -17,6 +17,11 @@ namespace Mighty.Plugins
                     //return "MySql.Data.MySqlClient.MySqlClientFactory, MySql.Data.Core";
                     return "MySql.Data.MySqlClient.MySqlClientFactory, MySql.Data";
 
+                case "mysqlconnector":
+                    // older/beta qualified class name on .NET Core was:
+                    //return "MySql.Data.MySqlClient.MySqlClientFactory, MySql.Data.Core";
+                    return "MySqlConnector.MySqlConnectorFactory";
+
                 case "devart.data.mysql":
                     return "Devart.Data.MySql.MySqlProviderFactory";
 
