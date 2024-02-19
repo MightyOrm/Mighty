@@ -133,6 +133,11 @@ namespace Mighty
         /// </summary>
         override public PrimaryKeyInfo PrimaryKeyInfo { get; protected set; }
 
+        /// <summary>
+        /// Override <see cref="DbCommand.CommandTimeout"/>
+        /// </summary>
+        override public int? CommandTimeout { get; protected set; }
+
 #if KEY_VALUES
         /// <summary>
         /// Column from which value is retrieved by <see cref="KeyValues"/>

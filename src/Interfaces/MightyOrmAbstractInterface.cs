@@ -130,6 +130,11 @@ namespace Mighty.Interfaces
         /// </summary>
         abstract public PrimaryKeyInfo PrimaryKeyInfo { get; protected set; }
 
+        /// <summary>
+        /// Override <see cref="DbCommand.CommandTimeout"/>
+        /// </summary>
+        abstract public int? CommandTimeout { get; protected set; }
+
 #if KEY_VALUES
         /// <summary>
         /// Column from which value is retrieved by <see cref="KeyValues"/>

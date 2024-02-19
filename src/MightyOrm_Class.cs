@@ -49,6 +49,7 @@ namespace Mighty
         /// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
         /// <param name="profiler">Optional SQL profiler</param>
         /// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyOrm)</param>
+        /// <param name="commandTimeout">Override <see cref="DbCommand.CommandTimeout"/></param>
         /// <param name="providerName">Provider name may be passed here, or may be set by adding ProviderName= in the connectionString parameter, or in .NET Framework only
         /// (but not .NET Core) may be found in the config file if a connection string name is passed in the connectionString parameter</param>
         /// <remarks>
@@ -65,11 +66,12 @@ namespace Mighty
                          SqlNamingMapper mapper = null,
                          DataProfiler profiler = null,
                          ConnectionProvider connectionProvider = null,
+                         int? commandTimeout = null,
                          string providerName = null)
         {
             Init(connectionString, tableName, primaryKeys,
                 valueField,
-                sequence, columns, validator, mapper, profiler, connectionProvider, providerName);
+                sequence, columns, validator, mapper, profiler, connectionProvider, commandTimeout, providerName);
         }
 #else
         /// <summary>
@@ -91,6 +93,7 @@ namespace Mighty
         /// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
         /// <param name="profiler">Optional SQL profiler</param>
         /// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyOrm)</param>
+        /// <param name="commandTimeout">Override <see cref="DbCommand.CommandTimeout"/></param>
         /// <param name="providerName">Provider name may be passed here, or may be set by adding ProviderName= in the connectionString parameter, or in .NET Framework only
         /// (but not .NET Core) may be found in the config file if a connection string name is passed in the connectionString parameter</param>
         /// <remarks>
@@ -106,10 +109,11 @@ namespace Mighty
                          SqlNamingMapper mapper = null,
                          DataProfiler profiler = null,
                          ConnectionProvider connectionProvider = null,
+                         int? commandTimeout = null,
                          string providerName = null)
         {
             Init(connectionString, tableName, primaryKeys,
-                sequence, columns, validator, mapper, profiler, connectionProvider, providerName);
+                sequence, columns, validator, mapper, profiler, connectionProvider, commandTimeout, providerName);
         }
 #endif
         #endregion
@@ -168,6 +172,7 @@ namespace Mighty
         /// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
         /// <param name="profiler">Optional SQL profiler</param>
         /// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyOrm)</param>
+        /// <param name="commandTimeout">Override <see cref="DbCommand.CommandTimeout"/></param>
         /// <param name="providerName">Provider name may be passed here, or may be set by adding ProviderName= in the connectionString parameter, or in .NET Framework only
         /// (but not .NET Core) may be found in the config file if a connection string name is passed in the connectionString parameter</param>
         public MightyOrm(string connectionString = null,
@@ -180,6 +185,7 @@ namespace Mighty
                          SqlNamingMapper mapper = null,
                          DataProfiler profiler = null,
                          ConnectionProvider connectionProvider = null,
+                         int? commandTimeout = null,
                          string providerName = null)
         {
             // If this has been called as part of constructing MightyOrm (non-generic), then return immediately and let that constructor do all the work
@@ -187,7 +193,7 @@ namespace Mighty
             IsGeneric = true;
             Init(connectionString, tableName, primaryKeys,
                 valueField,
-                sequence, columns, validator, mapper, profiler, connectionProvider, providerName);
+                sequence, columns, validator, mapper, profiler, connectionProvider, commandTimeout, providerName);
         }
 #else
         /// <summary>
@@ -209,6 +215,7 @@ namespace Mighty
         /// <param name="mapper">Optional C# &lt;-&gt; SQL name mapper</param>
         /// <param name="profiler">Optional SQL profiler</param>
         /// <param name="connectionProvider">Optional connection provider (only needed for providers not yet known to MightyOrm)</param>
+        /// <param name="commandTimeout">Override <see cref="DbCommand.CommandTimeout"/></param>
         /// <param name="providerName">Provider name may be passed here, or may be set by adding ProviderName= in the connectionString parameter, or in .NET Framework only
         /// (but not .NET Core) may be found in the config file if a connection string name is passed in the connectionString parameter</param>
         public MightyOrm(string connectionString = null,
@@ -220,13 +227,14 @@ namespace Mighty
                          SqlNamingMapper mapper = null,
                          DataProfiler profiler = null,
                          ConnectionProvider connectionProvider = null,
+                         int? commandTimeout = null,
                          string providerName = null)
         {
             // If this has been called as part of constructing MightyOrm (non-generic), then return immediately and let that constructor do all the work
             if (this is MightyOrm) return;
             IsGeneric = true;
             Init(connectionString, table, primaryKeys,
-                sequence, columns, validator, mapper, profiler, connectionProvider, providerName);
+                sequence, columns, validator, mapper, profiler, connectionProvider, commandTimeout, providerName);
         }
 #endif
         #endregion
@@ -270,6 +278,7 @@ namespace Mighty
                          SqlNamingMapper _mapper,
                          DataProfiler _profiler,
                          ConnectionProvider connectionProvider,
+                         int? commandTimeout,
                          string _providerName)
         {
             // Use the passed in item, followed by the user global default for the specific generic type, followed by
@@ -282,6 +291,7 @@ namespace Mighty
             Validator = _validator ?? GlobalValidator ?? MightyOrm.GlobalValidator ?? new NullValidator();
             DataProfiler = _profiler ?? GlobalDataProfiler ?? MightyOrm.GlobalDataProfiler ?? new DataProfiler();
             SqlNamingMapper = _mapper ?? GlobalSqlNamingMapper ?? MightyOrm.GlobalSqlNamingMapper ?? new SqlNamingMapper();
+            CommandTimeout = commandTimeout;
 
             // Use the user global default for the specific generic type, followed by the user global default for untyped Mighty,
             // followed by the default default.
@@ -613,6 +623,10 @@ namespace Mighty
             command = DataProfiler.CommandWrapping(command);
             Plugin.SetProviderSpecificCommandProperties(this, command, connection);
             command.CommandText = sql;
+            if (CommandTimeout != null)
+            {
+                command.CommandTimeout = (int)CommandTimeout;
+            }    
             return command;
         }
 
