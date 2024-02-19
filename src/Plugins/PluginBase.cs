@@ -436,10 +436,17 @@ namespace Mighty.Plugins
         virtual public void SetValue(DbParameter p, object value)
         {
             p.Value = value;
-            var valueAsString = value as string;
-            if (valueAsString != null)
+            if (p.Direction == ParameterDirection.Output && value is string)
             {
-                p.Size = valueAsString.Length > 4000 ? -1 : 4000;
+                p.Size = -1;
+            }
+            else
+            {
+                var valueAsString = value as string;
+                if (valueAsString != null)
+                {
+                    p.Size = valueAsString.Length > 4000 ? -1 : 4000;
+                }
             }
         }
 
