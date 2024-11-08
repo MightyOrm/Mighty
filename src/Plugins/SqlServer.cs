@@ -15,6 +15,9 @@ namespace Mighty.Plugins
                 case "system.data.sqlclient":
                     return "System.Data.SqlClient.SqlClientFactory";
 
+                case "microsoft.data.sqlclient":
+                    return "Microsoft.Data.SqlClient.SqlClientFactory";
+
                 default:
                     return null;
             }

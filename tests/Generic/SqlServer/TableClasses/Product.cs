@@ -14,13 +14,13 @@ namespace Mighty.Generic.Tests.SqlServer.TableClasses
 
     public class Products : MightyOrm<Product>
     {
-        public Products() : this(includeSchema:true)
+        public Products(string providerName) : this(providerName, true)
         {
         }
 
 
-        public Products(bool includeSchema) :
-            base(TestConstants.WriteTestConnection, includeSchema ? "dbo.Products" : "Products", "ProductID")
+        public Products(string providerName, bool includeSchema) :
+            base(string.Format(TestConstants.WriteTestConnection, providerName), includeSchema ? "dbo.Products" : "Products", "ProductID")
         {
         }
     }

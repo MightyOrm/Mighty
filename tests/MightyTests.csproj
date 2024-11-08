@@ -2,7 +2,7 @@
 
   <PropertyGroup>
 	<!-- NB Oracle tests require setting Test/Test Settings/Default Processor Architecture to x64 if x64 version is installed -->
-    <TargetFrameworks>netcoreapp1.0;netcoreapp1.1;netcoreapp2.0;netcoreapp3.0;net40;net45</TargetFrameworks>
+    <TargetFrameworks>netcoreapp1.0;netcoreapp1.1;netcoreapp2.0;netcoreapp3.0;netcoreapp3.1;net40;net45</TargetFrameworks>
     <PackageId>MightyTests</PackageId>
     <PackageVersion>4.0.0-alpha-tests3</PackageVersion>
     <Authors>Mike Beaton</Authors>
@@ -60,7 +60,7 @@
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp1.0'">
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.7.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
     <PackageReference Include="Npgsql" Version="3.2.2" />
     <PackageReference Include="MySql.Data" Version="8.0.15" />
     <PackageReference Include="Microsoft.Data.SQLite" Version="1.1.1" />
@@ -81,7 +81,7 @@
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp1.1'">
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.7.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
     <PackageReference Include="Npgsql" Version="3.2.2" />
     <PackageReference Include="MySql.Data" Version="8.0.15" />
     <PackageReference Include="Microsoft.Data.SQLite" Version="1.1.1" />
@@ -103,7 +103,7 @@
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp2.0'">
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.7.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
     <PackageReference Include="Npgsql" Version="4.1.1" />
     <PackageReference Include="MySql.Data" Version="8.0.18" />
     <PackageReference Include="Microsoft.Data.SQLite" Version="3.0.0" />
@@ -126,7 +126,7 @@
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.0'">
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.7.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
     <PackageReference Include="Npgsql" Version="4.1.1" />
     <PackageReference Include="MySql.Data" Version="8.0.18" />
     <PackageReference Include="Microsoft.Data.SQLite" Version="3.0.0" />
@@ -149,7 +149,8 @@
 
   <ItemGroup Condition="'$(TargetFramework)' == 'netcoreapp3.1'">
     <PackageReference Include="System.Data.Common" Version="4.3.0" />
-    <PackageReference Include="System.Data.SqlClient" Version="4.7.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
+    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.2.2" />
     <PackageReference Include="Npgsql" Version="4.1.1" />
     <PackageReference Include="MySql.Data" Version="8.0.18" />
     <PackageReference Include="Microsoft.Data.SQLite" Version="3.0.0" />

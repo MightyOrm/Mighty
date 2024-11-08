@@ -23,13 +23,13 @@ namespace Mighty.Generic.Tests.SqlServer.TableClasses
 
     public class Categories : MightyOrm<Category>
     {
-        public Categories() : this(true)
+        public Categories(string providerName) : this(providerName, true)
         {
         }
 
 
-        public Categories(bool includeSchema) :
-            base(TestConstants.WriteTestConnection, includeSchema ? "dbo.Categories" : "Categories", "CategoryID")
+        public Categories(string providerName, bool includeSchema) :
+            base(string.Format(TestConstants.WriteTestConnection, providerName), includeSchema ? "dbo.Categories" : "Categories", "CategoryID")
         {
         }
     }

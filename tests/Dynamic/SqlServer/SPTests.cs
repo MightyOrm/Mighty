@@ -15,14 +15,24 @@ namespace Mighty.Dynamic.Tests.SqlServer
     /// <remarks>
     /// Runs against functions and procedures which are already in the AdventureWorks test database.
     /// </remarks>
-    [TestFixture]
+    [TestFixture("System.Data.SqlClient")]
+#if NETCOREAPP3_1
+    [TestFixture("Microsoft.Data.SqlClient")]
+#endif
     public class SPTests
     {
+        private readonly string ProviderName;
+
+        public SPTests(string providerName)
+        {
+            ProviderName = providerName;
+        }
+
         [Test]
         public void NormalSingleCall()
         {
             // Check that things are up and running normally before trying the new stuff
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             var item = soh.Single("SalesOrderID=@0", args: 43659);
             Assert.AreEqual("PO522145787", item.PurchaseOrderNumber);
         }
@@ -30,7 +40,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void InitialNullBooleanOutputParam()
         {
-            var db = new SPTestsDatabase();
+            var db = new SPTestsDatabase(ProviderName);
             dynamic boolResult = db.ExecuteWithParams("set @a = 1", outParams: new { a = (bool?)null });
             Assert.AreEqual(typeof(bool), boolResult.a.GetType());
         }
@@ -38,7 +48,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void InitialNullIntegerOutputParam()
         {
-            var db = new SPTestsDatabase();
+            var db = new SPTestsDatabase(ProviderName);
             dynamic intResult = db.ExecuteWithParams("set @a = 1", outParams: new { a = (int?)null });
             Assert.AreEqual(typeof(int), intResult.a.GetType());
         }
@@ -46,7 +56,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void QueryFromStoredProcedure()
         {
-            var db = new SPTestsDatabase();
+            var db = new SPTestsDatabase(ProviderName);
             var people = db.QueryFromProcedure("uspGetEmployeeManagers", new { BusinessEntityID = 35 });
             int count = 0;
             foreach(var person in people)
@@ -60,7 +70,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void SingleRowFromTableValuedFunction()
         {
-            var db = new SPTestsDatabase();
+            var db = new SPTestsDatabase(ProviderName);
             // Accessing table value functions on SQL Server (different syntax from Postgres, for example)
             var person = db.SingleFromQueryWithParams("SELECT * FROM dbo.ufnGetContactInformation(@PersonID)", new { @PersonID = 35 });
             Assert.AreEqual(typeof(string), person.FirstName.GetType());
@@ -69,7 +79,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void DateReturnParameter()
         {
-            var db = new SPTestsDatabase();
+            var db = new SPTestsDatabase(ProviderName);
             dynamic d = new ExpandoObject();
             d.d = true; // NB the type is ignored (by the underlying driver)
             var dResult = db.ExecuteProcedure("ufnGetAccountingEndDate", returnParams: d);
@@ -79,7 +89,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void QueryMultipleFromTwoResultSets()
         {
-            var db = new SPTestsDatabase();
+            var db = new SPTestsDatabase(ProviderName);
             var twoSets = db.QueryMultiple("select 1 as a, 2 as b; select 3 as c, 4 as d;");
             int sets = 0;
             int[] counts = new int[2];
@@ -101,7 +111,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void DefaultValueFromNullInputOutputParam()
         {
-            var db = new SPTestsDatabase();
+            var db = new SPTestsDatabase(ProviderName);
             // w := w + 2; v := w - 1; x := w + 1
             dynamic testResult = db.ExecuteProcedure("TestVars", ioParams: new { w = (int?)null }, outParams: new { v = 0, x = 0 });
             Assert.AreEqual(1, testResult.v);
@@ -112,7 +122,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void ProvideValueToInputOutputParam()
         {
-            var db = new SPTestsDatabase();
+            var db = new SPTestsDatabase(ProviderName);
             // w := w + 2; v := w - 1; x := w + 1
             dynamic testResult = db.ExecuteProcedure("TestVars", ioParams: new { w = 2 }, outParams: new { v = 0, x = 0 });
             Assert.AreEqual(3, testResult.v);
@@ -124,7 +134,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         public void DereferenceCursor()
         {
             // Split the results into multiple result sets for a test
-            var db = new SPTestsDatabase();
+            var db = new SPTestsDatabase(ProviderName);
             var SQL = @"DECLARE @MyCursor CURSOR;
 EXEC dbo.uspCurrencyCursor @CurrencyCursor = @MyCursor OUTPUT;
 WHILE(@@FETCH_STATUS = 0)
@@ -159,7 +169,7 @@ DEALLOCATE @MyCursor;";
         [Test]
         public void ScalarFromProcedure()
         {
-            var db = new SPTestsDatabase();
+            var db = new SPTestsDatabase(ProviderName);
             var value = db.ScalarFromProcedure("uspCurrencySelect");
             Assert.AreEqual("AFA", value);
         }

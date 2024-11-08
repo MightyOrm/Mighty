@@ -7,13 +7,13 @@ namespace Mighty.Dynamic.Tests.SqlServer.TableClasses
 {
     public class Product : MightyOrm
     {
-        public Product() : this(includeSchema:true)
+        public Product(string providerName) : this(providerName, true)
         {
         }
 
 
-        public Product(bool includeSchema) :
-            base(TestConstants.WriteTestConnection, includeSchema ? "dbo.Products" : "Products", "ProductID")
+        public Product(string providerName, bool includeSchema) :
+            base(string.Format(TestConstants.WriteTestConnection, providerName), includeSchema ? "dbo.Products" : "Products", "ProductID")
         {
         }
     }

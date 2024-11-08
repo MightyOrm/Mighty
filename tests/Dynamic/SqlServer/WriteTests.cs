@@ -11,13 +11,23 @@ using NUnit.Framework;
 
 namespace Mighty.Dynamic.Tests.SqlServer
 {
-    [TestFixture]
+    [TestFixture("System.Data.SqlClient")]
+#if NETCOREAPP3_1
+    [TestFixture("Microsoft.Data.SqlClient")]
+#endif
     public class WriteTests
     {
+        private readonly string ProviderName;
+
+        public WriteTests(string providerName)
+        {
+            ProviderName = providerName;
+        }
+
         [Test]
         public void Insert_SingleRow()
         {
-            var categories = new Category();
+            var categories = new Category(ProviderName);
             var inserted = categories.Insert(new {CategoryName = "Cool stuff", Description = "You know... cool stuff! Cool. n. stuff."});
             int insertedCategoryID = inserted.CategoryID;
             Assert.IsTrue(insertedCategoryID > 0);
@@ -27,7 +37,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void Insert_MultipleRows()
         {
-            var categories = new Category();
+            var categories = new Category(ProviderName);
             var toInsert = new List<dynamic>();
             var CategoryName = "Cat Insert_MR";
             toInsert.Add(new { CategoryName, Description = "cat 1 desc" });
@@ -49,7 +59,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void Update_SingleRow()
         {
-            var categories = new Category();
+            var categories = new Category(ProviderName);
             // insert something to update first. 
             var inserted = categories.Insert(new { CategoryName = "Cool stuff", Description = "You know... cool stuff! Cool. n. stuff." });
             int insertedCategoryID = inserted.CategoryID;
@@ -75,7 +85,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         public void Update_MultipleRows()
         {
             // first insert 2 categories and 4 products, one for each category
-            var categories = new Category();
+            var categories = new Category(ProviderName);
             var insertedCategory1 = categories.Insert(new {CategoryName = "Category 1", Description = "Cat 1 desc"});
             int category1ID = insertedCategory1.CategoryID;
             Assert.IsTrue(category1ID > 0);
@@ -83,7 +93,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
             int category2ID = insertedCategory2.CategoryID;
             Assert.IsTrue(category2ID > 0);
 
-            var products = new Product();
+            var products = new Product(ProviderName);
             for(int i = 0; i < 4; i++)
             {
                 var category = i % 2 == 0 ? insertedCategory1 : insertedCategory2;
@@ -105,7 +115,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         public void Delete_SingleRow()
         {
             // first insert 2 categories
-            var categories = new Category();
+            var categories = new Category(ProviderName);
             var insertedCategory1 = categories.Insert(new { CategoryName = "Cat Delete_SR", Description = "cat 1 desc" });
             int category1ID = insertedCategory1.CategoryID;
             Assert.IsTrue(category1ID > 0);
@@ -124,7 +134,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         public void Delete_MultiRow()
         {
             // first insert 2 categories
-            var categories = new Category();
+            var categories = new Category(ProviderName);
             var insertedCategory1 = categories.Insert(new { CategoryName = "Cat Delete_MR", Description = "cat 1 desc" });
             int category1ID = insertedCategory1.CategoryID;
             Assert.IsTrue(category1ID > 0);
@@ -141,7 +151,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [OneTimeTearDown]
         public void CleanUp()
         {
-            var db = new MightyOrm(TestConstants.WriteTestConnection);
+            var db = new MightyOrm(string.Format(TestConstants.WriteTestConnection, ProviderName));
             db.ExecuteProcedure("pr_clearAll");
         }
     }

@@ -36,13 +36,13 @@ namespace Mighty.Generic.Tests.SqlServer.TableClasses
 
     public class EnumTests : MightyOrm<EnumTest>
     {
-        public EnumTests() : this(true)
+        public EnumTests(string providerName) : this(providerName, true)
         {
         }
 
 
-        public EnumTests(bool includeSchema) :
-            base(TestConstants.WriteTestConnection, includeSchema ? "dbo.EnumTestTable" : "EnumTestTable", "ID")
+        public EnumTests(string providerName, bool includeSchema) :
+            base(string.Format(TestConstants.WriteTestConnection, providerName), includeSchema ? "dbo.EnumTestTable" : "EnumTestTable", "ID")
         {
         }
     }

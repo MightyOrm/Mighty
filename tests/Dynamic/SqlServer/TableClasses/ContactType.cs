@@ -8,13 +8,13 @@ namespace Mighty.Dynamic.Tests.SqlServer.TableClasses
 {
     public class ContactType : MightyOrm
     {
-        public ContactType() : this(true)
+        public ContactType(string providerName) : this(providerName, true)
         {
         }
 
 
-        public ContactType(bool includeSchema) :
-            base(TestConstants.ReadTestConnection, includeSchema ? "Person.ContactType" : "ContactType", "ContactTypeID", "Name")
+        public ContactType(string providerName, bool includeSchema) :
+            base(string.Format(TestConstants.ReadTestConnection, providerName), includeSchema ? "Person.ContactType" : "ContactType", "ContactTypeID", "Name")
         {
         }
     }

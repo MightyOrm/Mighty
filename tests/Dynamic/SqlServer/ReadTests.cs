@@ -11,9 +11,19 @@ using NUnit.Framework;
 
 namespace Mighty.Dynamic.Tests.SqlServer
 {
-    [TestFixture]
+    [TestFixture("System.Data.SqlClient")]
+#if NETCOREAPP3_1
+    [TestFixture("Microsoft.Data.SqlClient")]
+#endif
     public class ReadTests
     {
+        private readonly string ProviderName;
+
+        public ReadTests(string providerName)
+        {
+            ProviderName = providerName;
+        }
+
 #if NETCOREAPP
         [Test]
         public void WorksWithSpacedConnectionString()
@@ -22,7 +32,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
             var from = $"{providerName}=";
             var to = $" {providerName} = ";
             Assert.That(TestConstants.ReadTestConnection.Contains(from));
-            var db = new MightyOrm(TestConstants.ReadTestConnection.Replace(from, to));
+            var db = new MightyOrm(string.Format(TestConstants.ReadTestConnection.Replace(from, to), ProviderName));
             var item = db.SingleFromQuery("SELECT 1 AS a");
             Assert.That(item.a, Is.EqualTo(1));
         }
@@ -32,7 +42,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         public void Guid_Arg()
         {
             // SQL Server has true Guid type support
-            var db = new MightyOrm(TestConstants.ReadTestConnection);
+            var db = new MightyOrm(string.Format(TestConstants.ReadTestConnection, ProviderName));
             var guid = Guid.NewGuid();
             dynamic item;
             using (var command = db.CreateCommand("SELECT @0 AS val", null, guid))
@@ -47,7 +57,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void MaxOnFilteredSet()
         {
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             var result = soh.Max(columns: "SalesOrderID", where: "SalesOrderID < @0", args: 100000);
             Assert.AreEqual(75123, result);
         }
@@ -56,7 +66,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void MaxOnFilteredSet2()
         {
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             var result = soh.Max("SalesOrderID", new { TerritoryID = 10 });
             Assert.AreEqual(75117, result);
         }
@@ -65,7 +75,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void EmptyElement_ProtoType()
         {
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             dynamic defaults = soh.New();
             Assert.IsTrue(defaults.OrderDate > DateTime.MinValue);
         }
@@ -74,7 +84,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void SchemaTableMetaDataRetrieval()
         {
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             var metaData = soh.TableMetaData;
             Assert.IsNotNull(metaData);
             Assert.AreEqual(26, metaData.Count());
@@ -85,7 +95,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void All_NoParameters()
         {
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             var allRows = soh.All().ToList();
             Assert.AreEqual(31465, allRows.Count);
         }
@@ -94,7 +104,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void All_NoParameters_Streaming()
         {
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             var allRows = soh.All();
             var count = 0;
             foreach(var r in allRows)
@@ -109,7 +119,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void All_LimitSpecification()
         {
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             var allRows = soh.All(limit: 10).ToList();
             Assert.AreEqual(10, allRows.Count);
         }
@@ -118,7 +128,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void All_ColumnSpecification()
         {
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             var allRows = soh.All(columns: "SalesOrderID as SOID, Status, SalesPersonID").ToList();
             Assert.AreEqual(31465, allRows.Count);
             var firstRow = (IDictionary<string, object>)allRows[0];
@@ -132,7 +142,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void All_OrderBySpecification()
         {
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             var allRows = soh.All(orderBy: "CustomerID DESC").ToList();
             Assert.AreEqual(31465, allRows.Count);
             int previous = int.MaxValue;
@@ -148,7 +158,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void All_WhereSpecification()
         {
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             var allRows = soh.All(where: "WHERE CustomerId=@0", args: 30052).ToList();
             Assert.AreEqual(4, allRows.Count);
         }
@@ -157,7 +167,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void All_WhereSpecification_OrderBySpecification()
         {
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             var allRows = soh.All(orderBy: "SalesOrderID DESC", where: "WHERE CustomerId=@0", args: 30052).ToList();
             Assert.AreEqual(4, allRows.Count);
             int previous = int.MaxValue;
@@ -173,7 +183,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void All_WhereSpecification_ColumnsSpecification()
         {
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             var allRows = soh.All(columns: "SalesOrderID as SOID, Status, SalesPersonID", where: "WHERE CustomerId=@0", args: 30052).ToList();
             Assert.AreEqual(4, allRows.Count);
             var firstRow = (IDictionary<string, object>)allRows[0];
@@ -188,7 +198,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void All_WhereSpecification_ColumnsSpecification_LimitSpecification()
         {
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             var allRows = soh.All(limit: 2, columns: "SalesOrderID as SOID, Status, SalesPersonID", where: "WHERE CustomerId=@0", args: 30052).ToList();
             Assert.AreEqual(2, allRows.Count);
             var firstRow = (IDictionary<string, object>)allRows[0];
@@ -202,7 +212,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void Find_AllColumns()
         {
-            dynamic soh = new SalesOrderHeader();
+            dynamic soh = new SalesOrderHeader(ProviderName);
             var singleInstance = soh.Find(SalesOrderID: 43666);
             Assert.AreEqual(43666, singleInstance.SalesOrderID);
         }
@@ -211,7 +221,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void Find_OneColumn()
         {
-            dynamic soh = new SalesOrderHeader();
+            dynamic soh = new SalesOrderHeader(ProviderName);
             var singleInstance = soh.Find(SalesOrderID: 43666, columns:"SalesOrderID");
             Assert.AreEqual(43666, singleInstance.SalesOrderID);
             var siAsDict = (IDictionary<string, object>)singleInstance;
@@ -222,7 +232,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void Get_AllColumns()
         {
-            dynamic soh = new SalesOrderHeader();
+            dynamic soh = new SalesOrderHeader(ProviderName);
             var singleInstance = soh.Get(SalesOrderID: 43666);
             Assert.AreEqual(43666, singleInstance.SalesOrderID);
         }
@@ -231,7 +241,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void First_AllColumns()
         {
-            dynamic soh = new SalesOrderHeader();
+            dynamic soh = new SalesOrderHeader(ProviderName);
             var singleInstance = soh.First(SalesOrderID: 43666);
             Assert.AreEqual(43666, singleInstance.SalesOrderID);
         }
@@ -241,7 +251,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void Single_Where_AllColumns()
         {
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             var singleInstance = soh.Single(new { SalesOrderID = 43666 });
             Assert.AreEqual(43666, singleInstance.SalesOrderID);
             Assert.AreEqual(26, ((ExpandoObject)singleInstance).ToDictionary().Count);
@@ -251,7 +261,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void Single_Key_AllColumns()
         {
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             var singleInstance = soh.Single(43666);
             Assert.AreEqual(43666, singleInstance.SalesOrderID);
             Assert.AreEqual(26, ((ExpandoObject)singleInstance).ToDictionary().Count);
@@ -261,7 +271,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void Single_Where_ThreeColumns()
         {
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             var singleInstance = soh.Single(new { SalesOrderID = 43666 }, columns: "SalesOrderID, SalesOrderNumber, OrderDate");
             Assert.AreEqual(43666, singleInstance.SalesOrderID);
             Assert.AreEqual("SO43666", singleInstance.SalesOrderNumber);
@@ -273,7 +283,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void Single_Key_ThreeColumns()
         {
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             var singleInstance = soh.Single(43666, columns: "SalesOrderID, SalesOrderNumber, OrderDate");
             Assert.AreEqual(43666, singleInstance.SalesOrderID);
             Assert.AreEqual("SO43666", singleInstance.SalesOrderNumber);
@@ -285,7 +295,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void Query_AllRows()
         {
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             var allRows = soh.Query("SELECT * FROM Sales.SalesOrderHeader").ToList();
             Assert.AreEqual(31465, allRows.Count);
         }
@@ -294,7 +304,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void Query_Filter()
         {
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             var filteredRows = soh.Query("SELECT * FROM Sales.SalesOrderHeader WHERE CustomerID=@0", 30052).ToList();
             Assert.AreEqual(4, filteredRows.Count);
         }
@@ -303,7 +313,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void Paged_NoSpecification()
         {
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             // no order by, and paged queries logically must have an order by; this will order on PK
             var page2 = soh.Paged(currentPage:2, pageSize: 30);
             Assert.AreEqual(30, page2.Items.Count);
@@ -316,7 +326,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void Paged_WhereSpecification()
         {
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             var page3 = soh.Paged(currentPage: 3, where: "SalesOrderNumber LIKE @0", args: "SO4%");
             var pageItems = ((IEnumerable<dynamic>)page3.Items).ToList();
             Assert.AreEqual(20, pageItems.Count);
@@ -327,7 +337,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void Paged_WhereSpecification_WithParams()
         {
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             var page3 = soh.PagedWithParams(currentPage: 3, where: "SalesOrderNumber LIKE @son", inParams: new { son = "SO4%" });
             var pageItems = ((IEnumerable<dynamic>)page3.Items).ToList();
             Assert.AreEqual(20, pageItems.Count);
@@ -338,7 +348,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void Paged_OrderBySpecification()
         {
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             var page2 = soh.Paged(orderBy: "CustomerID DESC", currentPage: 2, pageSize: 30);
             var pageItems = ((IEnumerable<dynamic>)page2.Items).ToList();
             Assert.AreEqual(30, pageItems.Count);
@@ -357,7 +367,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void Paged_OrderBySpecification_ColumnsSpecification()
         {
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             var page2 = soh.Paged(columns: "CustomerID, SalesOrderID", orderBy: "CustomerID DESC", currentPage: 2, pageSize: 30);
             var pageItems = ((IEnumerable<dynamic>)page2.Items).ToList();
             Assert.AreEqual(30, pageItems.Count);
@@ -377,7 +387,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void Count_NoSpecification()
         {
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             var total = soh.Count();
             Assert.AreEqual(31465, total);
         }
@@ -386,7 +396,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void Count_WhereSpecification_FromArgs()
         {
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             var total = soh.Count(where: "WHERE CustomerId=@0", args:11212);
             Assert.AreEqual(17, total);
         }
@@ -396,7 +406,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void Count_WhereSpecification_FromArgsPlusNameValue()
         {
-            dynamic soh = new SalesOrderHeader();
+            dynamic soh = new SalesOrderHeader(ProviderName);
             var total = soh.Count(where: "WHERE CustomerId=@0", args: 11212, ModifiedDate: new DateTime(2013, 10, 10));
             Assert.AreEqual(2, total);
         }
@@ -405,7 +415,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void Count_WhereSpecification_FromNameValuePairs()
         {
-            dynamic soh = new SalesOrderHeader();
+            dynamic soh = new SalesOrderHeader(ProviderName);
             var total = soh.Count(CustomerID: 11212, ModifiedDate: new DateTime(2013, 10, 10));
             Assert.AreEqual(2, total);
         }
@@ -417,7 +427,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void Count_TestWhereWrapping()
         {
-            dynamic soh = new SalesOrderHeader();
+            dynamic soh = new SalesOrderHeader(ProviderName);
             var total = soh.Count(where: "1=1 OR 0=0", CustomerID: 11212);
             Assert.AreEqual(17, total);
         }
@@ -425,7 +435,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void Count_WhereSpecification_FromNameValuePairs()
         {
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             var total = soh.Count(new { CustomerID = 11212, ModifiedDate = new DateTime(2013, 10, 10) });
             Assert.AreEqual(2, total);
         }
@@ -435,7 +445,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void DefaultValue()
         {
-            var soh = new SalesOrderHeader(false);
+            var soh = new SalesOrderHeader(ProviderName, false);
             var value = soh.GetColumnDefault("OrderDate");
             Assert.AreEqual(typeof(DateTime), value.GetType());
         }
@@ -444,7 +454,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void IsValid_SalesPersonIDCheck()
         {
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             var toValidate = soh.Single(new { SalesOrderID = 45816 });
             // is invalid
             Assert.AreEqual(1, soh.IsValid(toValidate).Count);
@@ -458,7 +468,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void PrimaryKey_Read_Check()
         {
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             var toValidate = soh.Single(new { SalesOrderID = 45816 });
 
             Assert.IsTrue(soh.HasPrimaryKey(toValidate));
@@ -472,7 +482,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void KeyValues()
         {
-            var contactTypes = new ContactType();
+            var contactTypes = new ContactType(ProviderName);
             var keyValues = contactTypes.KeyValues();
             int count = 0;
             int oldId = 0;

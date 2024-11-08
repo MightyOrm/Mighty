@@ -15,13 +15,23 @@ namespace Mighty.Generic.Tests.SqlServer
     /// <remarks>
     /// Runs against functions and procedures which are already in the AdventureWorks test database.
     /// </remarks>
-    [TestFixture]
+    [TestFixture("System.Data.SqlClient")]
+#if NETCOREAPP3_1
+    [TestFixture("Microsoft.Data.SqlClient")]
+#endif
     public class SPTests
     {
+        private readonly string ProviderName;
+
+        public SPTests(string providerName)
+        {
+            ProviderName = providerName;
+        }
+
         [Test]
         public void QueryFromStoredProcedure()
         {
-            var db = new People();
+            var db = new People(ProviderName);
             var people = db.QueryFromProcedure("uspGetEmployeeManagers", new { BusinessEntityID = 35 });
             int count = 0;
             foreach(var person in people)
@@ -35,7 +45,7 @@ namespace Mighty.Generic.Tests.SqlServer
         [Test]
         public void SingleRowFromTableValuedFunction()
         {
-            var db = new People();
+            var db = new People(ProviderName);
             // Accessing table value functions on SQL Server (different syntax from Postgres, for example)
             var person = db.SingleFromQueryWithParams("SELECT * FROM dbo.ufnGetContactInformation(@PersonID)", new { @PersonID = 35 });
             Assert.AreEqual(typeof(string), person.FirstName.GetType());
@@ -56,7 +66,7 @@ namespace Mighty.Generic.Tests.SqlServer
         [Test]
         public void QueryMultipleFromTwoResultSets_FullResultSetSupport()
         {
-            var db = new MightyOrm(TestConstants.ReadTestConnection);
+            var db = new MightyOrm(string.Format(TestConstants.ReadTestConnection, ProviderName));
             int[] counts = new int[2];
             using (var twoSets = db.QueryMultiple("select 1 as a, 2 as b; select 3 as c, 4 as d;"))
             {
@@ -83,7 +93,7 @@ namespace Mighty.Generic.Tests.SqlServer
         [Test]
         public void QueryMultiple_OnlyFirstResultSet_DisposesCorrectly()
         {
-            var db = new MightyOrm(TestConstants.ReadTestConnection);
+            var db = new MightyOrm(string.Format(TestConstants.ReadTestConnection, ProviderName));
             int[] counts = new int[2];
             MultipleResultSets<dynamic> twoSets;
             EnumerableResultSet<dynamic> set1;
@@ -106,7 +116,7 @@ namespace Mighty.Generic.Tests.SqlServer
         [Test]
         public void QueryMultiple_OnlyFirstRow_DisposesCorrectly()
         {
-            var db = new MightyOrm(TestConstants.ReadTestConnection);
+            var db = new MightyOrm(string.Format(TestConstants.ReadTestConnection, ProviderName));
             int[] counts = new int[2];
             MultipleResultSets<dynamic> twoSets;
             EnumerableResultSet<dynamic> set1;
@@ -130,7 +140,7 @@ namespace Mighty.Generic.Tests.SqlServer
         [Test]
         public void QueryMultipleFromTwoResultSets_SemiEnumerable()
         {
-            var db = new MightyOrm(TestConstants.ReadTestConnection);
+            var db = new MightyOrm(string.Format(TestConstants.ReadTestConnection, ProviderName));
             var twoSets = db.QueryMultiple("select 1 as a, 2 as b; select 3 as c, 4 as d;");
             int sets = 0;
             int[] counts = new int[2];

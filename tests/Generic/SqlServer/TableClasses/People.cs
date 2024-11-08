@@ -14,13 +14,13 @@ namespace Mighty.Generic.Tests.SqlServer.TableClasses
 
     public class People : MightyOrm<Person>
     {
-        public People() : this(true)
+        public People(string providerName) : this(providerName, true)
         {
         }
 
 
-        public People(bool includeSchema) :
-            base(TestConstants.ReadTestConnection, includeSchema ? "dbo.People" : "People", "PersonID")
+        public People(string providerName, bool includeSchema) :
+            base(string.Format(TestConstants.ReadTestConnection, providerName), includeSchema ? "dbo.People" : "People", "PersonID")
         {
         }
     }

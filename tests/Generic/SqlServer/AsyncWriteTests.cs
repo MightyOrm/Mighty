@@ -14,13 +14,23 @@ using NUnit.Framework;
 
 namespace Mighty.Generic.Tests.SqlServer
 {
-    [TestFixture]
+    [TestFixture("System.Data.SqlClient")]
+#if NETCOREAPP3_1
+    [TestFixture("Microsoft.Data.SqlClient")]
+#endif
     public class AsyncWriteTests
     {
+        private readonly string ProviderName;
+
+        public AsyncWriteTests(string providerName)
+        {
+            ProviderName = providerName;
+        }
+
         [Test]
         public async Task Insert_SingleRow()
         {
-            var categories = new Categories();
+            var categories = new Categories(ProviderName);
             var inserted = await categories.InsertAsync(new {CategoryName = "Cool stuff", Description = "You know... cool stuff! Cool. n. stuff."});
             int insertedCategoryID = inserted.CategoryID;
             Assert.IsTrue(insertedCategoryID > 0);
@@ -30,7 +40,7 @@ namespace Mighty.Generic.Tests.SqlServer
         [Test]
         public async Task Insert_MultipleRows()
         {
-            var categories = new Categories();
+            var categories = new Categories(ProviderName);
             var toInsert = new List<dynamic>();
             var CategoryName = "Cat Insert_MR";
             toInsert.Add(new { CategoryName, Description = "cat 1 desc" });
@@ -52,7 +62,7 @@ namespace Mighty.Generic.Tests.SqlServer
         [Test]
         public async Task Update_SingleRow()
         {
-            var categories = new Categories();
+            var categories = new Categories(ProviderName);
             // insert something to update first. 
             Category inserted = await categories.InsertAsync(new { CategoryName = "Cool stuff", Description = "You know... cool stuff! Cool. n. stuff." });
             int insertedCategoryID = inserted.CategoryID;
@@ -78,7 +88,7 @@ namespace Mighty.Generic.Tests.SqlServer
         public async Task Update_MultipleRows()
         {
             // first insert 2 categories and 4 products, one for each category
-            var categories = new Categories();
+            var categories = new Categories(ProviderName);
             var insertedCategory1 = await categories.InsertAsync(new {CategoryName = "Category 1", Description = "Cat 1 desc"});
             int category1ID = insertedCategory1.CategoryID;
             Assert.IsTrue(category1ID > 0);
@@ -86,7 +96,7 @@ namespace Mighty.Generic.Tests.SqlServer
             int category2ID = insertedCategory2.CategoryID;
             Assert.IsTrue(category2ID > 0);
 
-            var products = new Products();
+            var products = new Products(ProviderName);
             for(int i = 0; i < 4; i++)
             {
                 var category = i % 2 == 0 ? insertedCategory1 : insertedCategory2;
@@ -108,7 +118,7 @@ namespace Mighty.Generic.Tests.SqlServer
         public async Task Delete_SingleRow()
         {
             // first insert 2 categories
-            var categories = new Categories();
+            var categories = new Categories(ProviderName);
             var insertedCategory1 = await categories.InsertAsync(new { CategoryName = "Cat Delete_SR", Description = "cat 1 desc" });
             int category1ID = insertedCategory1.CategoryID;
             Assert.IsTrue(category1ID > 0);
@@ -127,7 +137,7 @@ namespace Mighty.Generic.Tests.SqlServer
         public async Task Delete_MultiRow()
         {
             // first insert 2 categories
-            var categories = new Categories();
+            var categories = new Categories(ProviderName);
             var insertedCategory1 = await categories.InsertAsync(new { CategoryName = "Cat Delete_MR", Description = "cat 1 desc" });
             int category1ID = insertedCategory1.CategoryID;
             Assert.IsTrue(category1ID > 0);
@@ -144,7 +154,7 @@ namespace Mighty.Generic.Tests.SqlServer
         [OneTimeTearDown]
         public async Task CleanUp()
         {
-            var db = new MightyOrm(TestConstants.WriteTestConnection);
+            var db = new MightyOrm(string.Format(TestConstants.WriteTestConnection, ProviderName));
             await db.ExecuteProcedureAsync("pr_clearAll");
         }
     }
