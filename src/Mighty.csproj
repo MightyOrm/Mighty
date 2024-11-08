@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFrameworks>netstandard1.6;netstandard2.0;netstandard2.1;net40;net45</TargetFrameworks>
 	<PackageId>Mighty</PackageId>
-    <Version>3.2.0</Version>
+    <Version>3.3.0</Version>
     <Authors>Mike Beaton</Authors>
     <Owners>MightyOrm</Owners>
     <Description>A new small, happy, dynamic micro-ORM and general purpose .NET data access wrapper.
