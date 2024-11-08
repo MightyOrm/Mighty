@@ -8,13 +8,23 @@ using NUnit.Framework;
 
 namespace Mighty.Dynamic.Tests.SqlServer
 {
-    [TestFixture]
+    [TestFixture("System.Data.SqlClient")]
+#if NETCOREAPP3_1
+    [TestFixture("Microsoft.Data.SqlClient")]
+#endif
     public class WriteTests
     {
+        private readonly string ProviderName;
+
+        public WriteTests(string providerName)
+        {
+            ProviderName = providerName;
+        }
+
         [Test]
         public void Insert_SingleRow()
         {
-            var categories = new Category();
+            var categories = new Category(ProviderName);
             var inserted = categories.Insert(new {CategoryName = "Cool stuff", Description = "You know... cool stuff! Cool. n. stuff."});
             int insertedCategoryID = inserted.CategoryID;
             Assert.IsTrue(insertedCategoryID > 0);
@@ -26,7 +36,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         {
             var CategoryName = "Cat Insert_MR";
 
-            var categories = new Category();
+            var categories = new Category(ProviderName);
 
             // clear down
             categories.Delete(where: "CategoryName=@0", args: CategoryName);
@@ -51,7 +61,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public void Update_SingleRow()
         {
-            var categories = new Category();
+            var categories = new Category(ProviderName);
             // insert something to update first. 
             var inserted = categories.Insert(new { CategoryName = "Cool stuff", Description = "You know... cool stuff! Cool. n. stuff." });
             int insertedCategoryID = inserted.CategoryID;
@@ -79,12 +89,12 @@ namespace Mighty.Dynamic.Tests.SqlServer
         public void Update_MultipleRows(bool explicitConnection)
         {
             // first insert 2 categories and 4 products, one for each category
-            var categories = new Category(explicitConnection);
+            var categories = new Category(ProviderName, explicitConnection);
             DbConnection connection = null;
             if (explicitConnection)
             {
                 MightyTests.ConnectionStringUtils.CheckConnectionStringRequiredForOpenConnection(categories);
-                connection = categories.OpenConnection(MightyTests.ConnectionStringUtils.GetConnectionString(TestConstants.WriteTestConnection, TestConstants.ProviderName));
+                connection = categories.OpenConnection(MightyTests.ConnectionStringUtils.GetConnectionString(TestConstants.WriteTestConnection, ProviderName));
             }
             using (connection)
             {
@@ -95,7 +105,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
                 int category2ID = insertedCategory2.CategoryID;
                 Assert.IsTrue(category2ID > 0);
 
-                var products = new Product(explicitConnection);
+                var products = new Product(ProviderName, explicitConnection);
                 if (explicitConnection)
                 {
                     MightyTests.ConnectionStringUtils.CheckConnectionStringRequiredForOpenConnection(products);
@@ -123,7 +133,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         {
             var CategoryName = "Cat Delete_SR";
 
-            var categories = new Category();
+            var categories = new Category(ProviderName);
 
             // clear down
             categories.Delete(where: "CategoryName=@0", args: CategoryName);
@@ -147,7 +157,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         public void Delete_MultiRow()
         {
             // first insert 2 categories
-            var categories = new Category();
+            var categories = new Category(ProviderName);
             var insertedCategory1 = categories.Insert(new { CategoryName = "Cat Delete_MR", Description = "cat 1 desc" });
             int category1ID = insertedCategory1.CategoryID;
             Assert.IsTrue(category1ID > 0);
@@ -164,7 +174,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [OneTimeTearDown]
         public void CleanUp()
         {
-            var db = new MightyOrm(string.Format(TestConstants.WriteTestConnection, TestConstants.ProviderName));
+            var db = new MightyOrm(string.Format(TestConstants.WriteTestConnection, ProviderName));
             db.ExecuteProcedure("pr_clearAll");
         }
     }

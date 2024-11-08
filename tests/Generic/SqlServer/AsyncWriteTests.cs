@@ -11,13 +11,29 @@ using NUnit.Framework;
 
 namespace Mighty.Generic.Tests.SqlServer
 {
-    [TestFixture]
+    /// <summary>
+    /// Suite of tests for stored procedures and functions on SQL Server database.
+    /// </summary>
+    /// <remarks>
+    /// Runs against functions and procedures which are already in the AdventureWorks test database.
+    /// </remarks>
+    [TestFixture("System.Data.SqlClient")]
+#if NETCOREAPP3_1
+    [TestFixture("Microsoft.Data.SqlClient")]
+#endif
     public class AsyncWriteTests
     {
+        private readonly string ProviderName;
+
+        public AsyncWriteTests(string providerName)
+        {
+            ProviderName = providerName;
+        }
+
         [Test]
         public async Task Insert_SingleRow()
         {
-            var categories = new Categories();
+            var categories = new Categories(ProviderName);
             var inserted = await categories.InsertAsync(new {CategoryName = "Cool stuff", Description = "You know... cool stuff! Cool. n. stuff."});
             int insertedCategoryID = inserted.CategoryID;
             Assert.IsTrue(insertedCategoryID > 0);
@@ -27,7 +43,7 @@ namespace Mighty.Generic.Tests.SqlServer
         [Test]
         public async Task Insert_MultipleRows()
         {
-            var categories = new Categories();
+            var categories = new Categories(ProviderName);
             var toInsert = new List<dynamic>();
             var CategoryName = "Cat Insert_MR";
             toInsert.Add(new { CategoryName, Description = "cat 1 desc" });
@@ -49,7 +65,7 @@ namespace Mighty.Generic.Tests.SqlServer
         [Test]
         public async Task Update_SingleRow()
         {
-            var categories = new Categories();
+            var categories = new Categories(ProviderName);
             // insert something to update first. 
             Category inserted = await categories.InsertAsync(new { CategoryName = "Cool stuff", Description = "You know... cool stuff! Cool. n. stuff." });
             int insertedCategoryID = inserted.CategoryID;
@@ -77,12 +93,12 @@ namespace Mighty.Generic.Tests.SqlServer
         public async Task Update_MultipleRows(bool explicitConnection)
         {
             // first insert 2 categories and 4 products, one for each category
-            var categories = new Categories(explicitConnection);
+            var categories = new Categories(ProviderName, explicitConnection);
             DbConnection connection = null;
             if (explicitConnection)
             {
                 MightyTests.ConnectionStringUtils.CheckConnectionStringRequiredForOpenConnectionAsync(categories);
-                connection = await categories.OpenConnectionAsync(MightyTests.ConnectionStringUtils.GetConnectionString(TestConstants.WriteTestConnection, TestConstants.ProviderName));
+                connection = await categories.OpenConnectionAsync(MightyTests.ConnectionStringUtils.GetConnectionString(TestConstants.WriteTestConnection, ProviderName));
             }
             using (connection)
             {
@@ -93,7 +109,7 @@ namespace Mighty.Generic.Tests.SqlServer
                 int category2ID = insertedCategory2.CategoryID;
                 Assert.IsTrue(category2ID > 0);
 
-                var products = new Products(explicitConnection);
+                var products = new Products(ProviderName, explicitConnection);
                 if (explicitConnection)
                 {
                     MightyTests.ConnectionStringUtils.CheckConnectionStringRequiredForOpenConnectionAsync(products);
@@ -120,7 +136,7 @@ namespace Mighty.Generic.Tests.SqlServer
         public async Task Delete_SingleRow()
         {
             // first insert 2 categories
-            var categories = new Categories();
+            var categories = new Categories(ProviderName);
             var insertedCategory1 = await categories.InsertAsync(new { CategoryName = "Cat Delete_SR", Description = "cat 1 desc" });
             int category1ID = insertedCategory1.CategoryID;
             Assert.IsTrue(category1ID > 0);
@@ -139,7 +155,7 @@ namespace Mighty.Generic.Tests.SqlServer
         public async Task Delete_MultiRow()
         {
             // first insert 2 categories
-            var categories = new Categories();
+            var categories = new Categories(ProviderName);
             var insertedCategory1 = await categories.InsertAsync(new { CategoryName = "Cat Delete_MR", Description = "cat 1 desc" });
             int category1ID = insertedCategory1.CategoryID;
             Assert.IsTrue(category1ID > 0);
@@ -156,7 +172,7 @@ namespace Mighty.Generic.Tests.SqlServer
         [OneTimeTearDown]
         public async Task CleanUp()
         {
-            var db = new MightyOrm(string.Format(TestConstants.WriteTestConnection, TestConstants.ProviderName));
+            var db = new MightyOrm(string.Format(TestConstants.WriteTestConnection, ProviderName));
             await db.ExecuteProcedureAsync("pr_clearAll");
         }
     }

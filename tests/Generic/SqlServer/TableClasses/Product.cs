@@ -11,16 +11,16 @@ namespace Mighty.Generic.Tests.SqlServer.TableClasses
 
     public class Products : MightyOrm<Product>
     {
-        public Products(bool explicitConnection = false) : this(includeSchema: true, explicitConnection: explicitConnection)
+        public Products(string providerName, bool explicitConnection = false) : this(providerName, true, explicitConnection)
         {
         }
 
 
-        public Products(bool includeSchema, bool explicitConnection = false) :
+        public Products(string providerName, bool includeSchema, bool explicitConnection = false) :
             base(
                 explicitConnection ?
-                    $"ProviderName={TestConstants.ProviderName}" :
-                    string.Format(TestConstants.WriteTestConnection, TestConstants.ProviderName),
+                    $"ProviderName={providerName}" :
+                    string.Format(TestConstants.WriteTestConnection, providerName),
                 includeSchema ? "dbo.Products" : "Products",
                 "ProductID")
         {

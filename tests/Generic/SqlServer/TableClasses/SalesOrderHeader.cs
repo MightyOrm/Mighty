@@ -17,8 +17,8 @@ namespace Mighty.Generic.Tests.SqlServer.TableClasses
 
     public class SalesOrderHeaders : MightyOrm<SalesOrderHeader>
     {
-        public SalesOrderHeaders(bool includeSchema = true, string columns = null) :
-            base(string.Format(TestConstants.ReadTestConnection, TestConstants.ProviderName), includeSchema ? "Sales.SalesOrderHeader" : "SalesOrderHeader", "SalesOrderID", columns: columns, validator: new SalesOrderHeaderValidator())
+        public SalesOrderHeaders(string providerName, bool includeSchema = true, string columns = null) :
+            base(string.Format(TestConstants.ReadTestConnection, providerName), includeSchema ? "Sales.SalesOrderHeader" : "SalesOrderHeader", "SalesOrderID", columns: columns, validator: new SalesOrderHeaderValidator())
         {
         }
 

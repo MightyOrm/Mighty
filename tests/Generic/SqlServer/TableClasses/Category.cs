@@ -20,16 +20,16 @@ namespace Mighty.Generic.Tests.SqlServer.TableClasses
 
     public class Categories : MightyOrm<Category>
     {
-        public Categories(bool explicitConnection = false) : this(true, explicitConnection)
+        public Categories(string providerName, bool explicitConnection = false) : this(providerName, true, explicitConnection)
         {
         }
 
 
-        public Categories(bool includeSchema, bool explicitConnection = false) :
+        public Categories(string providerName, bool includeSchema, bool explicitConnection = false) :
             base(
                 explicitConnection ?
-                    $"providerName={TestConstants.ProviderName}" :
-                    string.Format(TestConstants.WriteTestConnection, TestConstants.ProviderName),
+                    $"providerName={providerName}" :
+                    string.Format(TestConstants.WriteTestConnection, providerName),
                 includeSchema ? "dbo.Categories" : "Categories",
                 "CategoryID")
         {

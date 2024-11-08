@@ -18,14 +18,24 @@ namespace Mighty.Dynamic.Tests.SqlServer
     /// <remarks>
     /// Runs against functions and procedures which are already in the AdventureWorks test database.
     /// </remarks>
-    [TestFixture]
+    [TestFixture("System.Data.SqlClient")]
+#if NETCOREAPP3_1
+    [TestFixture("Microsoft.Data.SqlClient")]
+#endif
     public class AsyncSPTests
     {
+        private readonly string ProviderName;
+
+        public AsyncSPTests(string providerName)
+        {
+            ProviderName = providerName;
+        }
+
         [Test]
         public async Task NormalSingleCall()
         {
             // Check that things are up and running normally before trying the new stuff
-            var soh = new SalesOrderHeader();
+            var soh = new SalesOrderHeader(ProviderName);
             var item = await soh.SingleAsync("SalesOrderID=@0", args: 43659);
             Assert.AreEqual("PO522145787", item.PurchaseOrderNumber);
         }
@@ -33,7 +43,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public async Task InitialNullBooleanOutputParam()
         {
-            var db = new SPTestsDatabase();
+            var db = new SPTestsDatabase(ProviderName);
             dynamic boolResult = await db.ExecuteWithParamsAsync("set @a = 1", outParams: new { a = (bool?)null });
             Assert.AreEqual(typeof(bool), boolResult.a.GetType());
         }
@@ -41,7 +51,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public async Task InitialNullIntegerOutputParam()
         {
-            var db = new SPTestsDatabase();
+            var db = new SPTestsDatabase(ProviderName);
             dynamic intResult = await db.ExecuteWithParamsAsync("set @a = 1", outParams: new { a = (int?)null });
             Assert.AreEqual(typeof(int), intResult.a.GetType());
         }
@@ -49,7 +59,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public async Task QueryFromStoredProcedure()
         {
-            var db = new SPTestsDatabase();
+            var db = new SPTestsDatabase(ProviderName);
             var people = await db.QueryFromProcedureAsync("uspGetEmployeeManagers", new { BusinessEntityID = 35 });
             int count = 0;
             await people.ForEachAsync(person => {
@@ -62,7 +72,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public async Task SingleRowFromTableValuedFunction()
         {
-            var db = new SPTestsDatabase();
+            var db = new SPTestsDatabase(ProviderName);
             // Accessing table value functions on SQL Server (different syntax from Postgres, for example)
             var person = await db.SingleFromQueryWithParamsAsync("SELECT * FROM dbo.ufnGetContactInformation(@PersonID)", new { @PersonID = 35 });
             Assert.AreEqual(typeof(string), person.FirstName.GetType());
@@ -71,7 +81,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public async Task DateReturnParameter()
         {
-            var db = new SPTestsDatabase();
+            var db = new SPTestsDatabase(ProviderName);
             dynamic d = new ExpandoObject();
             d.d = true; // NB the type is ignored (by the underlying driver)
             var dResult = await db.ExecuteProcedureAsync("ufnGetAccountingEndDate", returnParams: d);
@@ -81,7 +91,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public async Task QueryMultipleFromTwoResultSets()
         {
-            var db = new SPTestsDatabase();
+            var db = new SPTestsDatabase(ProviderName);
             var twoSets = await db.QueryMultipleAsync("select 1 as a, 2 as b; select 3 as c, 4 as d;");
             int sets = 0;
             int[] counts = new int[2];
@@ -101,7 +111,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public async Task DefaultValueFromNullInputOutputParam()
         {
-            var db = new SPTestsDatabase();
+            var db = new SPTestsDatabase(ProviderName);
             // w := w + 2; v := w - 1; x := w + 1
             dynamic testResult = await db.ExecuteProcedureAsync("TestVars", ioParams: new { w = (int?)null }, outParams: new { v = 0, x = 0 });
             Assert.AreEqual(1, testResult.v);
@@ -112,7 +122,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public async Task ProvideValueToInputOutputParam()
         {
-            var db = new SPTestsDatabase();
+            var db = new SPTestsDatabase(ProviderName);
             // w := w + 2; v := w - 1; x := w + 1
             dynamic testResult = await db.ExecuteProcedureAsync("TestVars", ioParams: new { w = 2 }, outParams: new { v = 0, x = 0 });
             Assert.AreEqual(3, testResult.v);
@@ -128,7 +138,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         {
             // There is probably no situation in which it would make sense to do this (a procedure returning a cursor should be for use by another
             // procedure only - if at all); the remarks above and the example immediately below document why this is the wrong thing to do.
-            var db = new SPTestsDatabase();
+            var db = new SPTestsDatabase(ProviderName);
             var SQL = "DECLARE @MyCursor CURSOR;\r\n" +
                       "EXEC dbo.uspCurrencyCursor @CurrencyCursor = @MyCursor OUTPUT;\r\n" +
                       "WHILE(@@FETCH_STATUS = 0)\r\n" +
@@ -162,7 +172,7 @@ namespace Mighty.Dynamic.Tests.SqlServer
         [Test]
         public async Task ScalarFromProcedure()
         {
-            var db = new SPTestsDatabase();
+            var db = new SPTestsDatabase(ProviderName);
             var value = await db.ScalarFromProcedureAsync("uspCurrencySelect");
             Assert.AreEqual("AFA", value);
         }
