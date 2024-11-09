@@ -1,7 +1,7 @@
 plugins:
   - jekyll-remote-theme
 
-remote_theme: pmarsceill/just-the-docs
+remote_theme: just-the-docs/just-the-docs@v0.3.3
 
 # Site settings
 title: Mighty ORM
