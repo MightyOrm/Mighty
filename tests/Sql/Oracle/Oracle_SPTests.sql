@@ -92,15 +92,6 @@ begin
   return;
 end;
 
-create or replace function get_some_data (p_val in number) 
-return my_tab_type_coll pipelined is
-begin
-  FOR i in (select * from my_table where prodid=p_val) loop
-    pipe row(my_tab_type(i.prodid,i.a,i.b,i.c,i.d,i.e));
-  end loop;
-  return;
-end;
-
 create or replace function pipe_back_emp_cursor (prc in sys_refcursor) 
 return emp_tab_type_coll pipelined is
   l_emp emp_tab_type;
