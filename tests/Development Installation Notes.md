@@ -83,7 +83,49 @@ Note: BigSQL Manager lives on localhost:8050
 !Make sure the PostgreSQL is higher up your path than Oracle, beware that createdb also exists as a command for both
 Create the Northwind database by unzipping northwind_psql-master.zip and then running create_db.sh from within it - to make it run as is you'd need to add -U postgres as an option to each line and convert it to a .bat or .cmd extension
 By default the postgres user doesn't require a password, you should use psql to set one.
+  (psql -U postgres -d postgres
+   Then at the postgres=# prompt, type:
+   \password postgres)
 Bizarrely, the postgres user works with ANY password. I assume this is only when connecting from localhost. TO DO: test.
+
+If the install is incomplete, you may need to do:
+Add "C:\Program Files\PostgreSQL\pg96\bin" to path (make sure it's before Oracle path).
+
+pgc status
+pgc info
+
+Then install PostgreSQL itself:
+
+pgc install pg96
+
+After that completes, initialise the cluster:
+
+pgc init pg96
+
+This should create:
+
+C:\Program Files\PostgreSQL\data\pg96
+
+and prompt you to configure the postgres superuser. BigSQL’s normal workflow was to install the component, run pgc init pg96, and then start it.
+
+Start and verify it:
+
+pgc start pg96
+pgc status
+
+----
+
+Or to register as a service (if not present):
+
+pg_ctl register -N postgresql-9.6 -D "C:\Program Files\PostgreSQL\data\pg96"
+
+Then start it with:
+
+net start postgresql-9.6
+
+or:
+
+sc start postgresql-9.6
 
 MySQL:
 ------
@@ -97,7 +139,7 @@ MySQL:
     o Download the web installer version to only pull the parts you actually need from the web during the install
     o NB If you have previously installed MySQL you will need to uninstall everything in order to select a different Setup Type (e.g. to change from 'Client Only' to 'Full' or 'Custom')
 
-- You require MySQL Server on the server and Connector/NET on the client, and you will probablty want MySQL Workbench
+- You require MySQL Server on the server and Connector/NET on the client, and you will probably want MySQL Workbench
 
 - I chose old (weaker) style authenticaion at install, and I need to see what happens if I choose the newer
   stronger (SHA-256) version, i.e. which drivers, if any, support it
@@ -108,6 +150,7 @@ MySQL:
     o mysql> SOURCE C:/temp/sakila-db/sakila-data.sql;
     o mysql> CREATE USER 'Massive'@'localhost' IDENTIFIED BY 'mt123';
     o mysql> GRANT ALL ON sakila.* TO 'Massive'@'localhost';
+    o mysql> GRANT SELECT ON mysql.proc TO 'Massive'@'localhost';
     o If it doesn't appear in MySQL Workbench, try clicking the refresh icon for the Schemas view
 
 - To use with older drivers, you may need to do steps from:
