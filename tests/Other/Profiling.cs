@@ -41,22 +41,22 @@ namespace Mighty.XAllTests.SqlProfiling
         {
 #if NETFRAMEWORK
 #if !NET40
-            Assert.AreEqual(395, ((MightyTestsProfiler)MightyOrm.GlobalDataProfiler).DbCommandMethodCounts[DbCommandMethod.ExecuteNonQuery]);
+            Assert.AreEqual(396, ((MightyTestsProfiler)MightyOrm.GlobalDataProfiler).DbCommandMethodCounts[DbCommandMethod.ExecuteNonQuery]);
 #else
-            Assert.AreEqual(201, ((MightyTestsProfiler)MightyOrm.GlobalDataProfiler).DbCommandMethodCounts[DbCommandMethod.ExecuteNonQuery]);
+            Assert.AreEqual(202, ((MightyTestsProfiler)MightyOrm.GlobalDataProfiler).DbCommandMethodCounts[DbCommandMethod.ExecuteNonQuery]);
 #endif
 #elif NETCOREAPP
 #if !(NETCOREAPP1_0 || NETCOREAPP1_1)
 #if DISABLE_DEVART
             Assert.AreEqual(256, ((MightyTestsProfiler)MightyOrm.GlobalDataProfiler).DbCommandMethodCounts[DbCommandMethod.ExecuteNonQuery]);
 #else
-            Assert.AreEqual(312, ((MightyTestsProfiler)MightyOrm.GlobalDataProfiler).DbCommandMethodCounts[DbCommandMethod.ExecuteNonQuery]);
+            Assert.AreEqual(313, ((MightyTestsProfiler)MightyOrm.GlobalDataProfiler).DbCommandMethodCounts[DbCommandMethod.ExecuteNonQuery]);
 #endif
 #else
 #if DISABLE_DEVART
-            Assert.AreEqual(176, ((MightyTestsProfiler)MightyOrm.GlobalDataProfiler).DbCommandMethodCounts[DbCommandMethod.ExecuteNonQuery]);
+            Assert.AreEqual(177, ((MightyTestsProfiler)MightyOrm.GlobalDataProfiler).DbCommandMethodCounts[DbCommandMethod.ExecuteNonQuery]);
 #else
-            Assert.AreEqual(232, ((MightyTestsProfiler)MightyOrm.GlobalDataProfiler).DbCommandMethodCounts[DbCommandMethod.ExecuteNonQuery]);
+            Assert.AreEqual(233, ((MightyTestsProfiler)MightyOrm.GlobalDataProfiler).DbCommandMethodCounts[DbCommandMethod.ExecuteNonQuery]);
 #endif
 #endif
 #endif

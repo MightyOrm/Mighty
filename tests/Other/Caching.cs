@@ -225,22 +225,22 @@ namespace Mighty.Generic.Tests.X
         {
 #if NETFRAMEWORK
 #if !NET40
-            Assert.AreEqual(938, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(939, DataContractStore.Instance.CacheHits);
 #else
-            Assert.AreEqual(464, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(465, DataContractStore.Instance.CacheHits);
 #endif
 #elif NETCOREAPP
 #if !(NETCOREAPP1_0 || NETCOREAPP1_1)
 #if DISABLE_DEVART
             Assert.AreEqual(627, DataContractStore.Instance.CacheHits);
 #else
-            Assert.AreEqual(816, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(817, DataContractStore.Instance.CacheHits);
 #endif
 #else
 #if DISABLE_DEVART
-            Assert.AreEqual(515, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(516, DataContractStore.Instance.CacheHits);
 #else
-            Assert.AreEqual(704, DataContractStore.Instance.CacheHits);
+            Assert.AreEqual(705, DataContractStore.Instance.CacheHits);
 #endif
 #endif
 #endif
