@@ -20,7 +20,7 @@ await foreach (var person in myPeople)
 }
 ```
 
-In earlier versions of C# `await async` does not exist, but we use the excellent [Dasync/AsyncEnumerable](https://github.com/Dasync/AsyncEnumerable) package, so you can get the needed effect with:
+In earlier versions of C# `await foreach` does not exist, but we use the excellent [Dasync/AsyncEnumerable](https://github.com/Dasync/AsyncEnumerable) package, so you can get the needed effect with:
 
 ```c#
 MightyOrm people = new MightyOrm(connectionString, "People", "PersonID");
