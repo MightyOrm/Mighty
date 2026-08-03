@@ -24,14 +24,9 @@ Based on and highly compatible with Massive, but now with:
     <PackageProjectUrl>https://github.com/MightyOrm/MightyOrm</PackageProjectUrl>
     <PackageLicenseUrl>https://github.com/MightyOrm/MightyOrm/blob/master/LICENSE</PackageLicenseUrl>
 	<PackageTags>micro-ORM, microORM, ORM, SQL, data access, data access wrapper, Mighty, MightyOrm, Massive, ADO.NET</PackageTags>
-  </PropertyGroup>
-
-  <PropertyGroup>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
-  </PropertyGroup>
-
-  <PropertyGroup>	
-    <PlatformTarget>AnyCPU</PlatformTarget>	
+    <PlatformTarget>AnyCPU</PlatformTarget>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
   </PropertyGroup>	
 
   <PropertyGroup Condition="'$(TargetFramework)' == 'net40'">
