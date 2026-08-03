@@ -29,7 +29,7 @@ namespace Mighty.Npgsql
             {
                 // Supports 1x1 1xN Nx1 and NXM patterns of cursor data.
                 // If just some values are cursors we follow the pre-existing pattern set by the Oracle drivers, and dereference what we can.
-                while (await originalReader.ReadAsync(cancellationToken))
+                while (await originalReader.ReadAsync(cancellationToken).ConfigureAwait(false))
                 {
                     for (int i = 0; i < originalReader.FieldCount; i++)
                     {
@@ -46,7 +46,7 @@ namespace Mighty.Npgsql
             }
 
             // initialize
-            await NextResultAsync(cancellationToken);
+            await NextResultAsync(cancellationToken).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -71,7 +71,7 @@ namespace Mighty.Npgsql
                 {
                     throw new TaskCanceledException();
                 }
-                fetchReader = await fetchCmd.ExecuteReaderAsync(CommandBehavior.SingleResult, cancellationToken);
+                fetchReader = await fetchCmd.ExecuteReaderAsync(CommandBehavior.SingleResult, cancellationToken).ConfigureAwait(false);
             }
             Count = 0;
         }
@@ -84,7 +84,7 @@ namespace Mighty.Npgsql
                 return false;
             }
             Cursor = Cursors[Index++];
-            await FetchNextNFromCursorAsync(cancellationToken, closeSql);
+            await FetchNextNFromCursorAsync(cancellationToken, closeSql).ConfigureAwait(false);
             return true;
         }
 
@@ -98,7 +98,7 @@ namespace Mighty.Npgsql
                 {
                     throw new TaskCanceledException();
                 }
-                bool cursorHasNextRow = await fetchReader.ReadAsync(cancellationToken);
+                bool cursorHasNextRow = await fetchReader.ReadAsync(cancellationToken).ConfigureAwait(false);
                 if (cursorHasNextRow)
                 {
                     Count++;
@@ -111,9 +111,9 @@ namespace Mighty.Npgsql
                 }
             }
             // if rows expired at requested count, there may or may not be more rows
-            await FetchNextNFromCursorAsync(cancellationToken);
+            await FetchNextNFromCursorAsync(cancellationToken).ConfigureAwait(false);
             // recursive self-call
-            return await ReadAsync(cancellationToken);
+            return await ReadAsync(cancellationToken).ConfigureAwait(false);
         }
     }
 }
