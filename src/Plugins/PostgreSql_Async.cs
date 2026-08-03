@@ -36,7 +36,7 @@ namespace Mighty.Plugins
                 // Passes <see cref="CommandBehavior"/> to dereferencing reader, which uses it where it can
                 // (e.g. to dereference only the first cursor, or only the first row of the first cursor)
                 var newReader = new NpgsqlDereferencingReader(reader, behavior, Connection, Mighty);
-                await newReader.InitAsync(cancellationToken);
+                await newReader.InitAsync(cancellationToken).ConfigureAwait(false);
                 return newReader;
             }
 

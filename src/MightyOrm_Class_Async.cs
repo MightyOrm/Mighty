@@ -230,7 +230,8 @@ namespace Mighty
             return await AggregateWithParamsAsync(function, columns, CancellationToken.None, where,
                 inParams, outParams, ioParams, returnParams,
                 connection,
-                args: args);
+                args: args)
+                .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -283,7 +284,8 @@ namespace Mighty
                 connection,
                 CancellationToken.None,
                 null,
-                args);
+                args)
+                .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -307,7 +309,8 @@ namespace Mighty
                 connection,
                 cancellationToken,
                 null,
-                args);
+                args)
+                .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -368,7 +371,8 @@ namespace Mighty
             return await DeleteAsync(where,
                 connection,
                 CancellationToken.None,
-                args: args);
+                args: args)
+                .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -461,7 +465,7 @@ namespace Mighty
         /// <returns></returns>
         override public async Task<IDictionary<string, string>> KeyValuesAsync(string orderBy = "")
         {
-            return await KeyValuesAsync(CancellationToken.None, orderBy);
+            return await KeyValuesAsync(CancellationToken.None, orderBy).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -476,19 +480,20 @@ namespace Mighty
             {
                 // TO DO: Make sure this works even when there is mapping
                 var db = new MightyOrm(null, TableName, PrimaryKeyInfo.PrimaryKeyColumn, ValueColumn, connectionProvider: new PresetsConnectionProvider(ConnectionString, Factory, Plugin.GetType()));
-                return await db.KeyValuesAsync(cancellationToken, orderBy);
+                return await db.KeyValuesAsync(cancellationToken, orderBy).ConfigureAwait(false);
             }
             string partialMessage = $" to call {nameof(KeyValuesAsync)}, please provide one in your constructor";
             string valueColumn = CheckGetValueColumn(partialMessage);
             string pkColumn = PrimaryKeyInfo.CheckGetKeyColumn(partialMessage);
-            var results = await AllAsync(cancellationToken, orderBy: orderBy ?? pkColumn, columns: $"{pkColumn}, {valueColumn}");
+            var results = await AllAsync(cancellationToken, orderBy: orderBy ?? pkColumn, columns: $"{pkColumn}, {valueColumn}").ConfigureAwait(false);
             // Convert results to required format
             var retval = new Dictionary<string, string>();
             await results.ForEachAsync(result => {
                 var expando = result as ExpandoObject;
                 var item = expando.ToDictionary();
                 retval.Add(item[pkColumn].ToString(), item[valueColumn].ToString());
-            });
+                })
+                .ConfigureAwait(false);
             return retval;
         }
 #endif
@@ -580,7 +585,7 @@ namespace Mighty
         override public async Task<int> ExecuteAsync(DbCommand command,
             DbConnection connection = null)
         {
-            return await ExecuteAsync(command, CancellationToken.None, connection);
+            return await ExecuteAsync(command, CancellationToken.None, connection).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -598,7 +603,7 @@ namespace Mighty
             using (var localConn = ((connection == null) ? await OpenConnectionAsync(true, cancellationToken).ConfigureAwait(false) : null))
             {
                 command.Connection = connection ?? localConn;
-                return await command.ExecuteNonQueryAsync(cancellationToken);
+                return await command.ExecuteNonQueryAsync(cancellationToken).ConfigureAwait(false);
             }
         }
 
@@ -611,7 +616,7 @@ namespace Mighty
         override public async Task<object> ScalarAsync(DbCommand command,
             DbConnection connection = null)
         {
-            return await ScalarAsync(command, CancellationToken.None, connection);
+            return await ScalarAsync(command, CancellationToken.None, connection).ConfigureAwait(false);
         }
 
         /// <summary>
@@ -665,7 +670,8 @@ namespace Mighty
                 where,
                 pageSize, currentPage,
                 connection,
-                args: args);
+                args: args)
+                .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -734,7 +740,8 @@ namespace Mighty
                 where, orderBy, columns, limit,
                 inParams, outParams, ioParams, returnParams,
                 connection,
-                args: args);
+                args: args)
+                .ConfigureAwait(false);
         }
 
         /// <summary>
@@ -764,7 +771,8 @@ namespace Mighty
             var sql = Plugin.BuildSelect(columns, CheckGetTableName(), where, orderBy, limit);
             return await QueryNWithParamsAsync<T>(sql,
                 inParams, outParams, ioParams, returnParams,
-                behavior: limit == 1 ? CommandBehavior.SingleRow : CommandBehavior.Default, connection: connection, cancellationToken: cancellationToken, args: args);
+                behavior: limit == 1 ? CommandBehavior.SingleRow : CommandBehavior.Default, connection: connection, cancellationToken: cancellationToken, args: args)
+                .ConfigureAwait(false);
         }
 
 #pragma warning disable CS1998

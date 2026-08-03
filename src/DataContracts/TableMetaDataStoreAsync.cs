@@ -28,7 +28,7 @@ namespace Mighty.DataContracts
             {
                 return resultingValue;
             }
-            var newValue = await asyncValueFactory(key);
+            var newValue = await asyncValueFactory(key).ConfigureAwait(false);
             return dict.GetOrAdd(key, newValue);
         }
     }
