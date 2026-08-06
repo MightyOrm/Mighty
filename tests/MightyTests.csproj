@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
 	<!-- NB Oracle tests require setting Test/Test Settings/Default Processor Architecture to x64 if x64 version is installed -->
@@ -76,7 +76,7 @@
     <PackageReference Include="Microsoft.Data.SQLite" Version="3.0.0" />
     <PackageReference Include="System.Collections.Specialized" Version="4.3.0" />
     <PackageReference Include="AsyncEnumerator" Version="3.1.0" />
-    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.19.31" />
+    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.19.180" />
     <PackageReference Include="Devart.Data.MySql" Version="8.14.1470" />
   </ItemGroup>
 
@@ -91,7 +91,7 @@
     <PackageReference Include="Microsoft.Data.SQLite" Version="3.0.0" />
     <PackageReference Include="System.Collections.Specialized" Version="4.3.0" />
     <PackageReference Include="AsyncEnumerator" Version="3.1.0" />
-    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.19.31" />
+    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.19.180" />
     <PackageReference Include="Devart.Data.MySql" Version="8.14.1470" />
   </ItemGroup>
 
@@ -107,7 +107,7 @@
     <PackageReference Include="Microsoft.Data.SQLite" Version="3.0.0" />
     <PackageReference Include="System.Collections.Specialized" Version="4.3.0" />
     <PackageReference Include="AsyncEnumerator" Version="3.1.0" />
-    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.19.31" />
+    <PackageReference Include="Oracle.ManagedDataAccess.Core" Version="2.19.180" />
     <PackageReference Include="Devart.Data.MySql" Version="8.14.1470" />
   </ItemGroup>
 
