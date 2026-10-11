@@ -235,8 +235,7 @@ namespace Mighty
         override public int Execute(DbCommand command,
             DbConnection connection = null)
         {
-            // Prefer an existing command connection; only own connections opened here.
-            connection = command.Connection ?? connection;
+            connection = ResolveCommandConnection(command.Connection, connection);
             // using applied only to local connection
             using (var localConn = ((connection == null) ? OpenConnection() : null))
             {
@@ -268,8 +267,7 @@ namespace Mighty
         override public object Scalar(DbCommand command,
             DbConnection connection = null)
         {
-            // Prefer an existing command connection; only own connections opened here.
-            connection = command.Connection ?? connection;
+            connection = ResolveCommandConnection(command.Connection, connection);
             // using applied only to local connection
             using (var localConn = ((connection == null) ? OpenConnection() : null))
             {
@@ -400,7 +398,7 @@ namespace Mighty
                     behavior = CommandBehavior.SingleResult;
                 }
                 // Treat an existing command connection as caller-owned throughout the query.
-                connection = command?.Connection ?? connection;
+                connection = ResolveCommandConnection(command?.Connection, connection);
                 // using is applied only to locally generated connection
                 using (var localConn = (connection == null ? OpenConnection() : null))
                 {

@@ -602,6 +602,18 @@ namespace Mighty
         // Only methods with a non-trivial implementation are here, the rest are in the DataAccessWrapper abstract class.
 #region DataAccessWrapper interface
         /// <summary>
+        /// Resolve the caller-owned connection, rejecting conflicting command and argument connections.
+        /// </summary>
+        private static DbConnection ResolveCommandConnection(DbConnection commandConnection, DbConnection connection)
+        {
+            if (commandConnection != null && connection != null && !ReferenceEquals(commandConnection, connection))
+            {
+                throw new ArgumentException("The supplied connection differs from the connection already assigned to the command.", nameof(connection));
+            }
+            return commandConnection ?? connection;
+        }
+
+        /// <summary>
         /// Create command, setting any provider specific features which we assume elsewhere.
         /// </summary>
         /// <param name="sql">The command SQL</param>
