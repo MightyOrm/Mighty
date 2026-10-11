@@ -384,14 +384,27 @@ namespace Mighty
             DbCommand command,
             DbConnection connection = null)
         {
+            // Prefer an existing command connection; only own connections opened here.
+            connection = command.Connection ?? connection;
             // using applied only to local connection
-            using (var localConn = ((command.Connection == null && connection == null) ? await OpenConnectionAsync(cancellationToken).ConfigureAwait(false) : null))
+            using (var localConn = ((connection == null) ? await OpenConnectionAsync(cancellationToken).ConfigureAwait(false) : null))
             {
-                if (command.Connection == null)
+                try
                 {
-                    command.Connection = connection ?? localConn;
+                    if (command.Connection == null)
+                    {
+                        command.Connection = connection ?? localConn;
+                    }
+                    return await command.ExecuteNonQueryAsync(cancellationToken);
                 }
-                return await command.ExecuteNonQueryAsync(cancellationToken);
+                finally
+                {
+                    // Do not leave a disposed local connection attached to a reusable command.
+                    if (localConn != null)
+                    {
+                        command.Connection = null;
+                    }
+                }
             }
         }
 
@@ -420,14 +433,27 @@ namespace Mighty
             DbCommand command,
             DbConnection connection = null)
         {
+            // Prefer an existing command connection; only own connections opened here.
+            connection = command.Connection ?? connection;
             // using applied only to local connection
-            using (var localConn = ((command.Connection == null && connection == null) ? await OpenConnectionAsync(cancellationToken).ConfigureAwait(false) : null))
+            using (var localConn = ((connection == null) ? await OpenConnectionAsync(cancellationToken).ConfigureAwait(false) : null))
             {
-                if (command.Connection == null)
+                try
                 {
-                    command.Connection = connection ?? localConn;
+                    if (command.Connection == null)
+                    {
+                        command.Connection = connection ?? localConn;
+                    }
+                    return await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
                 }
-                return await command.ExecuteScalarAsync(cancellationToken).ConfigureAwait(false);
+                finally
+                {
+                    // Do not leave a disposed local connection attached to a reusable command.
+                    if (localConn != null)
+                    {
+                        command.Connection = null;
+                    }
+                }
             }
         }
 
@@ -634,8 +660,10 @@ namespace Mighty
                         // (= single result set, not single row...)
                         behavior = CommandBehavior.SingleResult;
                     }
+                    // Treat an existing command connection as caller-owned throughout the query.
+                    connection = command?.Connection ?? connection;
                     // using is applied only to locally generated connection
-                    using (var localConn = ((command?.Connection == null && connection == null) ? await OpenConnectionAsync(cancellationToken).ConfigureAwait(false) : null))
+                    using (var localConn = (connection == null ? await OpenConnectionAsync(cancellationToken).ConfigureAwait(false) : null))
                     {
                         if (command != null && command.Connection == null)
                         {
