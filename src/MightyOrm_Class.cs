@@ -138,7 +138,7 @@ namespace Mighty
         /// </remarks>
         new static public MightyOrm Open(string connectionString = null, string providerName = null)
         {
-            return new MightyOrm(connectionString);
+            return new MightyOrm(connectionString, providerName: providerName);
         }
         #endregion
 
