@@ -2189,7 +2189,7 @@ namespace Mighty
             object item,
             DbConnection connection = null)
         {
-            return (await ActionOnItemsAsync(OrmAction.Insert, null, new object[] { item }).ConfigureAwait(false)).FirstOrDefault();
+            return (await ActionOnItemsAsync(OrmAction.Insert, connection, new object[] { item }).ConfigureAwait(false)).FirstOrDefault();
         }
 
         /// <summary>
@@ -2205,7 +2205,7 @@ namespace Mighty
             object item,
             DbConnection connection = null)
         {
-            return (await ActionOnItemsAsync(OrmAction.Insert, null, new object[] { item }, cancellationToken).ConfigureAwait(false)).FirstOrDefault();
+            return (await ActionOnItemsAsync(OrmAction.Insert, connection, new object[] { item }, cancellationToken).ConfigureAwait(false)).FirstOrDefault();
         }
 
         /// <summary>
